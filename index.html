@@ -599,9 +599,47 @@
     .intro-chip.border-green { border-left: 4px solid #28a745; }
     .intro-chip.border-yellow { border-left: 4px solid #f0ad00; }
     .intro-chip.border-red { border-left: 4px solid #dc3545; }
+    /* GIF overlay */
+    #gif-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.72);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      gap: 18px;
+      cursor: pointer;
+      animation: fadeInOverlay 0.3s ease;
+    }
+    #gif-overlay.visible { display: flex; }
+    #gif-img {
+      max-width: min(520px, 90vw);
+      max-height: 60vh;
+      border-radius: 18px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    }
+    #gif-label {
+      color: white;
+      font-size: 1.6rem;
+      font-weight: 800;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      letter-spacing: 0.02em;
+    }
+    @keyframes fadeInOverlay {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+
   </style>
 </head>
 <body>
+
+<!-- GIF OVERLAY -->
+<div id="gif-overlay" onclick="closeGif()">
+  <img id="gif-img" src="" alt="">
+  <div id="gif-label"></div>
+</div>
 
 <h1>📞 Telenor Salg Trener</h1>
 <p class="subtitle">Tren på introer og innvendinger</p>
@@ -1151,6 +1189,44 @@
   renderIntroHistory();
   buildObjections();
 
+  // ---- Celebration GIFs ----
+  const gifs = {
+    over5min: [
+      'https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif',
+      'https://media.giphy.com/media/3oz8xIsloV7zOmt81G/giphy.gif',
+      'https://media.giphy.com/media/26u4lOMA8JKSnL9Uk/giphy.gif',
+      'https://media.giphy.com/media/5GoVLqeAOo6PK/giphy.gif',
+      'https://media.giphy.com/media/l0HlHFRbmaZtBRhXG/giphy.gif',
+      'https://media.giphy.com/media/xT9IgG50Lg7russbCN/giphy.gif',
+    ],
+    salg: [
+      'https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif',
+      'https://media.giphy.com/media/l0ExncehJzexFpRHq/giphy.gif',
+      'https://media.giphy.com/media/26BRBKqUiq586bRVm/giphy.gif',
+      'https://media.giphy.com/media/l3V0dy1zzyjbYTQQM/giphy.gif',
+      'https://media.giphy.com/media/artj92V8o75VPL7AeQ/giphy.gif',
+      'https://media.giphy.com/media/L0O3TQpp0WnSXmxV8p/giphy.gif',
+    ]
+  };
+
+  let gifTimer = null;
+
+  function showCelebrationGif(type) {
+    const pool = gifs[type];
+    const url = pool[Math.floor(Math.random() * pool.length)];
+    const label = type === 'salg' ? '💰 SALG! 💰' : '⏱️ 5-MINUTTERS! ⏱️';
+    document.getElementById('gif-img').src = url;
+    document.getElementById('gif-label').textContent = label;
+    document.getElementById('gif-overlay').classList.add('visible');
+    clearTimeout(gifTimer);
+    gifTimer = setTimeout(closeGif, 6500);
+  }
+
+  function closeGif() {
+    document.getElementById('gif-overlay').classList.remove('visible');
+    clearTimeout(gifTimer);
+  }
+
   // ---- Eksport / Import ----
   function quickUnregister(type) {
     const history = getIntroHistory();
@@ -1180,6 +1256,7 @@
     history.push(entry);
     localStorage.setItem('introHistory', JSON.stringify(history));
     renderStatsHome();
+    showCelebrationGif(type);
   }
 
   function exportData() {
