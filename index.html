@@ -421,8 +421,14 @@
 
     .quick-register-card { padding-bottom: 16px !important; }
 
-    .quick-reg-btn {
+    .quick-reg-btns {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
       margin-top: 12px;
+    }
+
+    .quick-reg-btn {
       padding: 10px 22px;
       border: none;
       border-radius: 30px;
@@ -438,6 +444,14 @@
 
     .quick-reg-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(41,168,224,0.45); }
     .quick-reg-btn:active { transform: scale(0.96); }
+
+    .quick-reg-btn.minus {
+      background: #e8e8e8;
+      color: #555;
+      box-shadow: none;
+      padding: 10px 14px;
+    }
+    .quick-reg-btn.minus:hover { background: #d0d0d0; transform: none; box-shadow: none; }
 
     .quick-reg-btn.salg {
       background: linear-gradient(135deg, #2ecc71, #1a9e52);
@@ -882,13 +896,19 @@
             <div class="stat-icon big">⏱️</div>
             <div class="stat-value big">${dag.over5}</div>
             <div class="stat-label">5-minutters</div>
-            <button class="quick-reg-btn" onclick="quickRegister('over5min')">+ Registrer</button>
+            <div class="quick-reg-btns">
+              <button class="quick-reg-btn minus" onclick="quickUnregister('over5min')">−1</button>
+              <button class="quick-reg-btn" onclick="quickRegister('over5min')">+ Registrer</button>
+            </div>
           </div>
           <div class="stat-card day-card quick-register-card">
             <div class="stat-icon big">💰</div>
             <div class="stat-value big">${dag.salg}</div>
             <div class="stat-label">Salg</div>
-            <button class="quick-reg-btn salg" onclick="quickRegister('salg')">+ Registrer</button>
+            <div class="quick-reg-btns">
+              <button class="quick-reg-btn minus salg" onclick="quickUnregister('salg')">−1</button>
+              <button class="quick-reg-btn salg" onclick="quickRegister('salg')">+ Registrer</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1151,6 +1171,19 @@
   buildObjections();
 
   // ---- Eksport / Import ----
+  function quickUnregister(type) {
+    const history = getIntroHistory();
+    const todayStr = new Date().toISOString().slice(0, 10);
+    // Find last today-entry where this field is 'ja' and it's a quickEntry
+    const idx = [...history].map((h, i) => ({ h, i })).reverse()
+      .find(({ h }) => h.quickEntry && h[type] === 'ja' && (h.isoDate || '').slice(0, 10) === todayStr);
+    if (idx) {
+      history.splice(idx.i, 1);
+      localStorage.setItem('introHistory', JSON.stringify(history));
+    }
+    renderStatsHome();
+  }
+
   function quickRegister(type) {
     const history = getIntroHistory();
     const now = new Date();
