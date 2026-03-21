@@ -1155,19 +1155,28 @@
     return JSON.parse(localStorage.getItem('objdata_' + id) || '[]');
   }
 
+  function selectObjResult(id, val) {
+    document.getElementById('obj-ja-' + id).className = 'toggle-btn' + (val === 'ja' ? ' selected-ja' : '');
+    document.getElementById('obj-nei-' + id).className = 'toggle-btn' + (val === 'nei' ? ' selected-nei' : '');
+    document.getElementById('obj-ja-' + id).dataset.selected = val === 'ja' ? 'ja' : '';
+    document.getElementById('obj-nei-' + id).dataset.selected = val === 'nei' ? 'nei' : '';
+  }
+
   function saveObjResponse(id) {
     const textarea = document.getElementById('obj-text-' + id);
-    const resultVal = document.querySelector(`input[name="obj-result-${id}"]:checked`);
+    const jaBtn = document.getElementById('obj-ja-' + id);
+    const neiBtn = document.getElementById('obj-nei-' + id);
+    const resultVal = jaBtn.dataset.selected === 'ja' ? 'ja' : neiBtn.dataset.selected === 'nei' ? 'nei' : null;
     const text = textarea.value.trim();
     if (!text) { alert('Skriv inn svaret ditt først.'); return; }
     if (!resultVal) { alert('Marker om det funket eller ikke.'); return; }
 
     const data = getObjData(id);
-    data.unshift({ text, result: resultVal.value, tid: new Date().toLocaleString('no-NO') });
+    data.unshift({ text, result: resultVal, tid: new Date().toLocaleString('no-NO') });
     localStorage.setItem('objdata_' + id, JSON.stringify(data));
 
     textarea.value = '';
-    document.querySelectorAll(`input[name="obj-result-${id}"]`).forEach(r => r.checked = false);
+    selectObjResult(id, null);
     renderObjHistory(id);
   }
 
@@ -1233,9 +1242,9 @@
         <textarea id="obj-text-${id}" placeholder="Skriv svaret ditt her..."></textarea>
         <div style="margin-top: 10px;">
           <strong>Funket det?</strong>
-          <div class="radio-group">
-            <label><input type="radio" name="obj-result-${id}" value="ja"> ✅ Ja</label>
-            <label><input type="radio" name="obj-result-${id}" value="nei"> ❌ Nei</label>
+          <div class="toggle-group">
+            <button class="toggle-btn" id="obj-ja-${id}" onclick="selectObjResult('${id}', 'ja')">✅ Ja</button>
+            <button class="toggle-btn" id="obj-nei-${id}" onclick="selectObjResult('${id}', 'nei')">❌ Nei</button>
           </div>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
