@@ -782,8 +782,9 @@
   }
 
   function statsFor(entries) {
-    const total = entries.length;
-    const opptak = entries.filter(h => h.opptak === 'ja').length;
+    const introEntries = entries.filter(h => !h.quickEntry);
+    const total = introEntries.length;
+    const opptak = introEntries.filter(h => h.opptak === 'ja').length;
     const over5 = entries.filter(h => h.over5min === 'ja').length;
     const salg = entries.filter(h => h.salg === 'ja').length;
     const hitrate = total > 0 ? Math.round(opptak / total * 100) : null;
