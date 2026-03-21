@@ -290,6 +290,152 @@
     }
     .delete-objection-btn:hover { color: #c00; }
 
+    /* Objection stats */
+    .obj-stats-bar {
+      margin-bottom: 14px;
+      padding: 12px 14px;
+      background: var(--primary-xlight);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .obj-stats-numbers {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 7px;
+      color: var(--text);
+    }
+
+    .obj-progress-track {
+      height: 8px;
+      background: #dde;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .obj-progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.4s ease;
+    }
+
+    .obj-best-answer {
+      margin-top: 10px;
+      padding: 10px 14px;
+      background: #eafaf1;
+      border: 1px solid #a9dfbf;
+      border-radius: 10px;
+      font-size: 0.88rem;
+    }
+
+    .obj-best-label {
+      font-weight: 700;
+      color: #1a7a34;
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .obj-best-rate {
+      background: #d4edda;
+      color: #155724;
+      border-radius: 20px;
+      padding: 1px 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .obj-best-text {
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .obj-history-toggle {
+      width: 100%;
+      margin-top: 14px;
+      padding: 8px;
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      color: var(--primary-dark);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .obj-history-toggle:hover { background: var(--primary-xlight); border-color: var(--primary); }
+
+    .obj-history-panel { display: none; }
+    .obj-history-panel.open { display: block; }
+
+    /* Objection summary panel */
+    .obj-summary-panel {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 20px 24px;
+      max-width: 720px;
+      margin: 0 auto 20px auto;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(41,168,224,0.09);
+    }
+
+    .obj-summary-panel h2 {
+      color: var(--primary-dark);
+      font-size: 1rem;
+      margin-bottom: 14px;
+    }
+
+    .obj-summary-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+    }
+    .obj-summary-row:last-child { border-bottom: none; }
+
+    .obj-summary-name {
+      flex: 1;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 200px;
+    }
+
+    .obj-summary-mini-bar {
+      flex: 1;
+      height: 7px;
+      background: #dde;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .obj-summary-mini-fill {
+      height: 100%;
+      border-radius: 99px;
+    }
+
+    .obj-summary-pct {
+      font-weight: 700;
+      min-width: 42px;
+      text-align: right;
+    }
+
+    .obj-summary-empty {
+      color: var(--muted);
+      font-style: italic;
+      font-size: 0.88rem;
+      text-align: center;
+      padding: 8px 0;
+    }
+
     /* Intro library */
     .intro-library {
       display: flex;
@@ -732,6 +878,11 @@
 
 <!-- ===== INNVENDINGER TAB ===== -->
 <div id="tab-innvendinger" class="tab-content">
+
+  <div id="obj-summary-panel" class="obj-summary-panel" style="display:none">
+    <h2>📊 Suksessrate per innvending</h2>
+    <div id="obj-summary-rows"></div>
+  </div>
 
   <div id="objections-container"></div>
 
@@ -1178,12 +1329,16 @@
     textarea.value = '';
     selectObjResult(id, null);
     renderObjHistory(id);
+    renderObjStats(id);
+    renderObjSummary();
   }
 
   function clearObjHistory(id) {
     if (confirm('Slette historikk for denne innvendingen?')) {
       localStorage.removeItem('objdata_' + id);
       renderObjHistory(id);
+      renderObjStats(id);
+      renderObjSummary();
     }
   }
 
@@ -1209,14 +1364,93 @@
     setTimeout(() => document.getElementById('tab-innvendinger').scrollIntoView({ behavior: 'smooth', block: 'end' }), 100);
   }
 
+  function getBestAnswer(data) {
+    if (!data.length) return null;
+    const groups = {};
+    data.forEach(d => {
+      const key = d.text.trim().toLowerCase();
+      if (!groups[key]) groups[key] = { text: d.text, ja: 0, total: 0 };
+      groups[key].total++;
+      if (d.result === 'ja') groups[key].ja++;
+    });
+    const entries = Object.values(groups).filter(g => g.ja > 0);
+    if (!entries.length) return null;
+    return entries.sort((a, b) => (b.ja / b.total) - (a.ja / a.total) || b.ja - a.ja)[0];
+  }
+
+  function successColor(pct) {
+    if (pct >= 60) return '#1a9e52';
+    if (pct >= 30) return '#e08a00';
+    return '#c0392b';
+  }
+
+  function renderObjStats(id) {
+    const container = document.getElementById('obj-stats-' + id);
+    if (!container) return;
+    const data = getObjData(id);
+    if (!data.length) { container.innerHTML = ''; return; }
+    const total = data.length;
+    const ja = data.filter(d => d.result === 'ja').length;
+    const pct = Math.round((ja / total) * 100);
+    const color = successColor(pct);
+    const best = getBestAnswer(data);
+    const bestRate = best ? Math.round((best.ja / best.total) * 100) : 0;
+    container.innerHTML = `
+      <div class="obj-stats-bar">
+        <div class="obj-stats-numbers">
+          <span>🎯 ${total} forsøk</span>
+          <span style="color:${color}">${pct}% funket</span>
+        </div>
+        <div class="obj-progress-track">
+          <div class="obj-progress-fill" style="width:${pct}%; background:${color}"></div>
+        </div>
+      </div>
+      ${best ? `
+        <div class="obj-best-answer">
+          <div class="obj-best-label">🏆 Beste svar <span class="obj-best-rate">${bestRate}% (${best.ja}/${best.total})</span></div>
+          <div class="obj-best-text">${escHtml(best.text)}</div>
+        </div>
+      ` : ''}
+    `;
+  }
+
+  function renderObjSummary() {
+    const list = getObjList();
+    const panel = document.getElementById('obj-summary-panel');
+    const rows = document.getElementById('obj-summary-rows');
+    const withData = list.filter(({ id }) => getObjData(id).length > 0);
+    if (!withData.length) { panel.style.display = 'none'; return; }
+    panel.style.display = '';
+    rows.innerHTML = withData.map(({ id, text }) => {
+      const data = getObjData(id);
+      const total = data.length;
+      const ja = data.filter(d => d.result === 'ja').length;
+      const pct = Math.round((ja / total) * 100);
+      const color = successColor(pct);
+      return `
+        <div class="obj-summary-row">
+          <span class="obj-summary-name" title="${escHtml(text)}">💬 ${escHtml(text)}</span>
+          <div class="obj-summary-mini-bar">
+            <div class="obj-summary-mini-fill" style="width:${pct}%; background:${color}"></div>
+          </div>
+          <span class="obj-summary-pct" style="color:${color}">${pct}%</span>
+          <span style="color:var(--muted); font-size:0.78rem">${ja}/${total}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
   function renderObjHistory(id) {
     const container = document.getElementById('obj-history-' + id);
     if (!container) return;
     const data = getObjData(id);
+    const toggle = document.getElementById('obj-history-toggle-' + id);
     if (!data.length) {
       container.innerHTML = '<p class="empty-state">Ingen svar registrert ennå.</p>';
+      if (toggle) toggle.style.display = 'none';
       return;
     }
+    if (toggle) { toggle.style.display = ''; toggle.textContent = `📋 Vis historikk (${data.length})`; }
     container.innerHTML = data.map(d => `
       <div class="history-item">
         <div>${escHtml(d.text)}</div>
@@ -1230,6 +1464,14 @@
     `).join('');
   }
 
+  function toggleObjHistory(id) {
+    const panel = document.getElementById('obj-history-panel-' + id);
+    const toggle = document.getElementById('obj-history-toggle-' + id);
+    const data = getObjData(id);
+    const open = panel.classList.toggle('open');
+    toggle.textContent = open ? `📋 Skjul historikk (${data.length})` : `📋 Vis historikk (${data.length})`;
+  }
+
   function buildObjections() {
     const list = getObjList();
     const container = document.getElementById('objections-container');
@@ -1238,6 +1480,7 @@
         <h3>💬 ${escHtml(text)}
           <button class="delete-objection-btn" onclick="deleteObjection('${id}')" title="Fjern innvending">🗑</button>
         </h3>
+        <div id="obj-stats-${id}"></div>
         <label class="objection-label">Ditt svar på innvendingen:</label>
         <textarea id="obj-text-${id}" placeholder="Skriv svaret ditt her..."></textarea>
         <div style="margin-top: 10px;">
@@ -1251,11 +1494,15 @@
           <button class="save-btn" onclick="saveObjResponse('${id}')">Lagre svar</button>
           <button class="clear-btn" onclick="clearObjHistory('${id}')">Tøm historikk</button>
         </div>
-        <div id="obj-history-${id}" class="history-list" style="margin-top:12px;"></div>
+        <button class="obj-history-toggle" id="obj-history-toggle-${id}" onclick="toggleObjHistory('${id}')" style="display:none"></button>
+        <div id="obj-history-panel-${id}" class="obj-history-panel">
+          <div id="obj-history-${id}" class="history-list" style="margin-top:12px;"></div>
+        </div>
       </div>
     `).join('');
 
-    list.forEach(({ id }) => renderObjHistory(id));
+    list.forEach(({ id }) => { renderObjStats(id); renderObjHistory(id); });
+    renderObjSummary();
   }
 
   function escHtml(str) {
