@@ -641,24 +641,7 @@
           </div>
         </div>
 
-        <div style="margin-top: 14px;">
-          <strong>Ble samtalen over 5 minutter?</strong>
-          <div class="toggle-group">
-            <button class="toggle-btn" id="over5min-ja" onclick="selectOver5min('ja')">✅ Ja</button>
-            <button class="toggle-btn" id="over5min-nei" onclick="selectOver5min('nei')">❌ Nei</button>
-          </div>
-        </div>
-
-        <div style="margin-top: 14px;">
-          <strong>Ble det et salg?</strong>
-          <div class="toggle-group">
-            <button class="toggle-btn" id="salg-ja" onclick="selectSalg('ja')">✅ Ja</button>
-            <button class="toggle-btn" id="salg-nei" onclick="selectSalg('nei')">❌ Nei</button>
-          </div>
-        </div>
-
         <button class="save-btn" onclick="saveIntro()">Lagre forsøk</button>
-
         <button class="history-toggle-btn" onclick="toggleHistory()">📋 Vis historikk</button>
         <div id="history-panel" class="history-panel">
           <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 4px;">
@@ -725,8 +708,8 @@
   }
 
   function resetOpptak() {
-    selectedOpptak = null; selectedOver5min = null; selectedSalg = null;
-    ['opptak-ja','opptak-nei','over5min-ja','over5min-nei','salg-ja','salg-nei']
+    selectedOpptak = null;
+    ['opptak-ja','opptak-nei']
       .forEach(id => document.getElementById(id).className = 'toggle-btn');
   }
 
@@ -1019,8 +1002,6 @@
     const text = document.getElementById('intro-text').value.trim();
     if (!text) { alert('Skriv inn introen din først.'); return; }
     if (!selectedOpptak) { alert('Marker om du kom forbi opptaksspørsmålet.'); return; }
-    if (!selectedOver5min) { alert('Marker om samtalen var over 5 minutter.'); return; }
-    if (!selectedSalg) { alert('Marker om det ble et salg.'); return; }
 
     addToIntroLibrary(text);
 
@@ -1028,8 +1009,8 @@
     history.unshift({
       text,
       opptak: selectedOpptak,
-      over5min: selectedOver5min,
-      salg: selectedSalg,
+      over5min: null,
+      salg: null,
       isoDate: new Date().toISOString(),
       tid: new Date().toLocaleString('no-NO')
     });
