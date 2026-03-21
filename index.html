@@ -1189,37 +1189,28 @@
   renderIntroHistory();
   buildObjections();
 
-  // ---- Celebration GIFs ----
-  const gifs = {
-    over5min: [
-      'https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif',
-      'https://media.giphy.com/media/3oz8xIsloV7zOmt81G/giphy.gif',
-      'https://media.giphy.com/media/26u4lOMA8JKSnL9Uk/giphy.gif',
-      'https://media.giphy.com/media/5GoVLqeAOo6PK/giphy.gif',
-      'https://media.giphy.com/media/l0HlHFRbmaZtBRhXG/giphy.gif',
-      'https://media.giphy.com/media/xT9IgG50Lg7russbCN/giphy.gif',
-    ],
-    salg: [
-      'https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif',
-      'https://media.giphy.com/media/l0ExncehJzexFpRHq/giphy.gif',
-      'https://media.giphy.com/media/26BRBKqUiq586bRVm/giphy.gif',
-      'https://media.giphy.com/media/l3V0dy1zzyjbYTQQM/giphy.gif',
-      'https://media.giphy.com/media/artj92V8o75VPL7AeQ/giphy.gif',
-      'https://media.giphy.com/media/L0O3TQpp0WnSXmxV8p/giphy.gif',
-    ]
-  };
+  // ---- Celebration GIFs (Giphy API) ----
+  const GIPHY_KEY = 'DIN_GIPHY_NOKKEL_HER';
+  const gifTags = { over5min: 'celebration', salg: 'money rain' };
 
   let gifTimer = null;
 
-  function showCelebrationGif(type) {
-    const pool = gifs[type];
-    const url = pool[Math.floor(Math.random() * pool.length)];
+  async function showCelebrationGif(type) {
+    const tag = gifTags[type];
     const label = type === 'salg' ? '💰 SALG! 💰' : '⏱️ 5-MINUTTERS! ⏱️';
-    document.getElementById('gif-img').src = url;
     document.getElementById('gif-label').textContent = label;
+    document.getElementById('gif-img').src = '';
     document.getElementById('gif-overlay').classList.add('visible');
     clearTimeout(gifTimer);
     gifTimer = setTimeout(closeGif, 6500);
+
+    try {
+      const res = await fetch(`https://api.giphy.com/v1/gifs/random?api_key=${GIPHY_KEY}&tag=${encodeURIComponent(tag)}&rating=g`);
+      const data = await res.json();
+      document.getElementById('gif-img').src = data.data.images.original.url;
+    } catch {
+      // fallback: keep overlay open without image
+    }
   }
 
   function closeGif() {
