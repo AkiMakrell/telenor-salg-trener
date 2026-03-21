@@ -419,6 +419,32 @@
 
     .stat-card.day-card { padding: 26px 18px; }
 
+    .quick-register-card { padding-bottom: 16px !important; }
+
+    .quick-reg-btn {
+      margin-top: 12px;
+      padding: 10px 22px;
+      border: none;
+      border-radius: 30px;
+      background: linear-gradient(135deg, #29a8e0, #1a7ab0);
+      color: white;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      box-shadow: 0 4px 14px rgba(41,168,224,0.35);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    .quick-reg-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(41,168,224,0.45); }
+    .quick-reg-btn:active { transform: scale(0.96); }
+
+    .quick-reg-btn.salg {
+      background: linear-gradient(135deg, #2ecc71, #1a9e52);
+      box-shadow: 0 4px 14px rgba(46,204,113,0.35);
+    }
+    .quick-reg-btn.salg:hover { box-shadow: 0 6px 18px rgba(46,204,113,0.45); }
+
     .stat-icon { font-size: 1.8rem; margin-bottom: 6px; }
     .stat-icon.big { font-size: 2.2rem; }
 
@@ -852,8 +878,18 @@
         <div class="stats-grid stats-grid-4">
           ${statCard('📞', dag.total, 'Forsøk', true)}
           ${statCard('🎯', dag.hitrate !== null ? `<span style="color:${pctColor(dag.hitrate)}">${dag.hitrate}%</span>` : '–', 'Hitrate opptak', true)}
-          ${statCard('⏱️', dag.over5, '5-minutters', true)}
-          ${statCard('💰', dag.salg, 'Salg', true)}
+          <div class="stat-card day-card quick-register-card">
+            <div class="stat-icon big">⏱️</div>
+            <div class="stat-value big">${dag.over5}</div>
+            <div class="stat-label">5-minutters</div>
+            <button class="quick-reg-btn" onclick="quickRegister('over5min')">+ Registrer</button>
+          </div>
+          <div class="stat-card day-card quick-register-card">
+            <div class="stat-icon big">💰</div>
+            <div class="stat-value big">${dag.salg}</div>
+            <div class="stat-label">Salg</div>
+            <button class="quick-reg-btn salg" onclick="quickRegister('salg')">+ Registrer</button>
+          </div>
         </div>
       </div>
 
@@ -1115,6 +1151,23 @@
   buildObjections();
 
   // ---- Eksport / Import ----
+  function quickRegister(type) {
+    const history = getIntroHistory();
+    const now = new Date();
+    const entry = {
+      text: '',
+      opptak: null,
+      over5min: type === 'over5min' ? 'ja' : 'nei',
+      salg: type === 'salg' ? 'ja' : 'nei',
+      isoDate: now.toISOString(),
+      tid: now.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' }),
+      quickEntry: true
+    };
+    history.push(entry);
+    localStorage.setItem('introHistory', JSON.stringify(history));
+    renderStatsHome();
+  }
+
   function exportData() {
     const keys = ['savedIntros', 'introHistory'];
     for (let i = 0; i < 12; i++) keys.push('obj_' + i);
