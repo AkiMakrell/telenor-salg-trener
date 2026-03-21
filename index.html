@@ -419,16 +419,27 @@
 
     .stat-card.day-card { padding: 26px 18px; }
 
-    .quick-register-card { padding-bottom: 16px !important; }
+    .quick-register-card { padding-bottom: 16px !important; position: relative; }
 
-    .quick-reg-btns {
-      display: flex;
-      gap: 6px;
-      justify-content: center;
-      margin-top: 12px;
+    .quick-undo-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: 1px solid #ccc;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      font-size: 0.85rem;
+      color: #999;
+      cursor: pointer;
+      line-height: 1;
+      transition: all 0.15s;
     }
+    .quick-undo-btn:hover { border-color: #999; color: #555; background: #f0f0f0; }
 
     .quick-reg-btn {
+      margin-top: 12px;
       padding: 10px 22px;
       border: none;
       border-radius: 30px;
@@ -444,14 +455,6 @@
 
     .quick-reg-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(41,168,224,0.45); }
     .quick-reg-btn:active { transform: scale(0.96); }
-
-    .quick-reg-btn.minus {
-      background: #e8e8e8;
-      color: #555;
-      box-shadow: none;
-      padding: 10px 14px;
-    }
-    .quick-reg-btn.minus:hover { background: #d0d0d0; transform: none; box-shadow: none; }
 
     .quick-reg-btn.salg {
       background: linear-gradient(135deg, #2ecc71, #1a9e52);
@@ -876,22 +879,18 @@
           ${statCard('📞', dag.total, 'Forsøk', true)}
           ${statCard('🎯', dag.hitrate !== null ? `<span style="color:${pctColor(dag.hitrate)}">${dag.hitrate}%</span>` : '–', 'Hitrate opptak', true)}
           <div class="stat-card day-card quick-register-card">
+            <button class="quick-undo-btn" onclick="quickUnregister('over5min')" title="Angre siste">↩</button>
             <div class="stat-icon big">⏱️</div>
             <div class="stat-value big">${dag.over5}</div>
             <div class="stat-label">5-minutters</div>
-            <div class="quick-reg-btns">
-              <button class="quick-reg-btn minus" onclick="quickUnregister('over5min')">−1</button>
-              <button class="quick-reg-btn" onclick="quickRegister('over5min')">+ Registrer</button>
-            </div>
+            <button class="quick-reg-btn" onclick="quickRegister('over5min')">+ Registrer</button>
           </div>
           <div class="stat-card day-card quick-register-card">
+            <button class="quick-undo-btn" onclick="quickUnregister('salg')" title="Angre siste">↩</button>
             <div class="stat-icon big">💰</div>
             <div class="stat-value big">${dag.salg}</div>
             <div class="stat-label">Salg</div>
-            <div class="quick-reg-btns">
-              <button class="quick-reg-btn minus salg" onclick="quickUnregister('salg')">−1</button>
-              <button class="quick-reg-btn salg" onclick="quickRegister('salg')">+ Registrer</button>
-            </div>
+            <button class="quick-reg-btn salg" onclick="quickRegister('salg')">+ Registrer</button>
           </div>
         </div>
       </div>
