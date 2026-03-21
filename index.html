@@ -879,11 +879,6 @@
 <!-- ===== INNVENDINGER TAB ===== -->
 <div id="tab-innvendinger" class="tab-content">
 
-  <div id="obj-summary-panel" class="obj-summary-panel" style="display:none">
-    <h2>📊 Suksessrate per innvending</h2>
-    <div id="obj-summary-rows"></div>
-  </div>
-
   <div id="objections-container"></div>
 
   <div style="text-align:center; margin: 24px 0;">
@@ -1396,6 +1391,15 @@
     const best = getBestAnswer(data);
     const bestRate = best ? Math.round((best.ja / best.total) * 100) : 0;
     container.innerHTML = `
+      <div class="obj-stats-bar">
+        <div class="obj-stats-numbers">
+          <span>🎯 ${total} forsøk</span>
+          <span style="color:${color}">${pct}% funket</span>
+        </div>
+        <div class="obj-progress-track">
+          <div class="obj-progress-fill" style="width:${pct}%; background:${color}"></div>
+        </div>
+      </div>
       ${best ? `
         <div class="obj-best-answer">
           <div class="obj-best-label">🏆 Beste svar <span class="obj-best-rate">${bestRate}% (${best.ja}/${best.total})</span></div>
