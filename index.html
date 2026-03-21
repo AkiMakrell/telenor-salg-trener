@@ -264,6 +264,32 @@
 
     .clear-btn:hover { border-color: #c00; color: #c00; }
 
+    .add-objection-btn {
+      padding: 12px 32px;
+      background: white;
+      border: 2px dashed var(--primary);
+      color: var(--primary-dark);
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .add-objection-btn:hover { background: var(--primary-light); }
+
+    .delete-objection-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #ccc;
+      padding: 2px 6px;
+      border-radius: 6px;
+      transition: color 0.15s;
+      float: right;
+    }
+    .delete-objection-btn:hover { color: #c00; }
+
     /* Intro library */
     .intro-library {
       display: flex;
@@ -708,6 +734,10 @@
 
   <div id="objections-container"></div>
 
+  <div style="text-align:center; margin: 24px 0;">
+    <button class="add-objection-btn" onclick="addObjection()">＋ Legg til innvending</button>
+  </div>
+
 </div>
 
 <script>
@@ -1092,7 +1122,7 @@
   }
 
   // ---- Objections ----
-  const OBJECTIONS = [
+  const DEFAULT_OBJECTIONS = [
     'Jeg er ikke interessert',
     'Jeg har ikke tid nå',
     'Send meg noe på e-post',
@@ -1107,36 +1137,72 @@
     'Innvending 12',
   ];
 
-  function getObjData(index) {
-    return JSON.parse(localStorage.getItem('obj_' + index) || '[]');
+  function getObjList() {
+    const stored = localStorage.getItem('objectionsList');
+    if (stored) return JSON.parse(stored);
+    // First run: migrate defaults
+    const list = DEFAULT_OBJECTIONS.map((text, i) => ({ id: 'obj_' + i, text }));
+    localStorage.setItem('objectionsList', JSON.stringify(list));
+    return list;
   }
 
-  function saveObjResponse(index) {
-    const textarea = document.getElementById('obj-text-' + index);
-    const resultVal = document.querySelector(`input[name="obj-result-${index}"]:checked`);
+  function saveObjList(list) {
+    localStorage.setItem('objectionsList', JSON.stringify(list));
+  }
+
+  function getObjData(id) {
+    return JSON.parse(localStorage.getItem('objdata_' + id) || '[]');
+  }
+
+  function saveObjResponse(id) {
+    const textarea = document.getElementById('obj-text-' + id);
+    const resultVal = document.querySelector(`input[name="obj-result-${id}"]:checked`);
     const text = textarea.value.trim();
     if (!text) { alert('Skriv inn svaret ditt først.'); return; }
     if (!resultVal) { alert('Marker om det funket eller ikke.'); return; }
 
-    const data = getObjData(index);
+    const data = getObjData(id);
     data.unshift({ text, result: resultVal.value, tid: new Date().toLocaleString('no-NO') });
-    localStorage.setItem('obj_' + index, JSON.stringify(data));
+    localStorage.setItem('objdata_' + id, JSON.stringify(data));
 
     textarea.value = '';
-    document.querySelectorAll(`input[name="obj-result-${index}"]`).forEach(r => r.checked = false);
-    renderObjHistory(index);
+    document.querySelectorAll(`input[name="obj-result-${id}"]`).forEach(r => r.checked = false);
+    renderObjHistory(id);
   }
 
-  function clearObjHistory(index) {
+  function clearObjHistory(id) {
     if (confirm('Slette historikk for denne innvendingen?')) {
-      localStorage.removeItem('obj_' + index);
-      renderObjHistory(index);
+      localStorage.removeItem('objdata_' + id);
+      renderObjHistory(id);
     }
   }
 
-  function renderObjHistory(index) {
-    const container = document.getElementById('obj-history-' + index);
-    const data = getObjData(index);
+  function deleteObjection(id) {
+    const list = getObjList();
+    const obj = list.find(o => o.id === id);
+    if (!obj) return;
+    if (!confirm(`Fjerne innvendingen "${obj.text}"?\n\nAll historikk for denne innvendingen slettes også.`)) return;
+    saveObjList(list.filter(o => o.id !== id));
+    localStorage.removeItem('objdata_' + id);
+    buildObjections();
+  }
+
+  function addObjection() {
+    const text = prompt('Skriv inn den nye innvendingen:');
+    if (!text || !text.trim()) return;
+    const list = getObjList();
+    const id = 'obj_' + Date.now();
+    list.push({ id, text: text.trim() });
+    saveObjList(list);
+    buildObjections();
+    // Scroll to bottom so user sees the new card
+    setTimeout(() => document.getElementById('tab-innvendinger').scrollIntoView({ behavior: 'smooth', block: 'end' }), 100);
+  }
+
+  function renderObjHistory(id) {
+    const container = document.getElementById('obj-history-' + id);
+    if (!container) return;
+    const data = getObjData(id);
     if (!data.length) {
       container.innerHTML = '<p class="empty-state">Ingen svar registrert ennå.</p>';
       return;
@@ -1155,28 +1221,31 @@
   }
 
   function buildObjections() {
+    const list = getObjList();
     const container = document.getElementById('objections-container');
-    container.innerHTML = OBJECTIONS.map((obj, i) => `
+    container.innerHTML = list.map(({ id, text }) => `
       <div class="objection-card">
-        <h3>💬 ${escHtml(obj)}</h3>
+        <h3>💬 ${escHtml(text)}
+          <button class="delete-objection-btn" onclick="deleteObjection('${id}')" title="Fjern innvending">🗑</button>
+        </h3>
         <label class="objection-label">Ditt svar på innvendingen:</label>
-        <textarea id="obj-text-${i}" placeholder="Skriv svaret ditt her..."></textarea>
+        <textarea id="obj-text-${id}" placeholder="Skriv svaret ditt her..."></textarea>
         <div style="margin-top: 10px;">
           <strong>Funket det?</strong>
           <div class="radio-group">
-            <label><input type="radio" name="obj-result-${i}" value="ja"> ✅ Ja</label>
-            <label><input type="radio" name="obj-result-${i}" value="nei"> ❌ Nei</label>
+            <label><input type="radio" name="obj-result-${id}" value="ja"> ✅ Ja</label>
+            <label><input type="radio" name="obj-result-${id}" value="nei"> ❌ Nei</label>
           </div>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
-          <button class="save-btn" onclick="saveObjResponse(${i})">Lagre svar</button>
-          <button class="clear-btn" onclick="clearObjHistory(${i})">Tøm historikk</button>
+          <button class="save-btn" onclick="saveObjResponse('${id}')">Lagre svar</button>
+          <button class="clear-btn" onclick="clearObjHistory('${id}')">Tøm historikk</button>
         </div>
-        <div id="obj-history-${i}" class="history-list" style="margin-top:12px;"></div>
+        <div id="obj-history-${id}" class="history-list" style="margin-top:12px;"></div>
       </div>
     `).join('');
 
-    OBJECTIONS.forEach((_, i) => renderObjHistory(i));
+    list.forEach(({ id }) => renderObjHistory(id));
   }
 
   function escHtml(str) {
@@ -1251,7 +1320,10 @@
   }
 
   function exportData() {
-    const keys = ['savedIntros', 'introHistory'];
+    const list = getObjList();
+    const keys = ['savedIntros', 'introHistory', 'objectionsList'];
+    list.forEach(({ id }) => keys.push('objdata_' + id));
+    // Also include legacy keys just in case
     for (let i = 0; i < 12; i++) keys.push('obj_' + i);
     const data = {};
     keys.forEach(k => { const v = localStorage.getItem(k); if (v) data[k] = JSON.parse(v); });
