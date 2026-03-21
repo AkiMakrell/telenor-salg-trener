@@ -43,11 +43,10 @@
     }
 
     .top-bar {
+      position: relative;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
+      justify-content: center;
       margin-bottom: 28px;
     }
 
@@ -59,26 +58,28 @@
     }
 
     .backup-btns {
+      position: absolute;
+      right: 0;
       display: flex;
-      gap: 8px;
+      gap: 6px;
     }
 
     .backup-btn {
-      padding: 7px 14px;
-      border: 1.5px solid var(--primary);
+      padding: 5px 10px;
+      border: 1px solid #ccc;
       background: white;
-      color: var(--primary-dark);
+      color: #888;
       border-radius: 20px;
       cursor: pointer;
-      font-size: 0.82rem;
-      font-weight: 600;
+      font-size: 0.75rem;
+      font-weight: 500;
       transition: all 0.2s;
       white-space: nowrap;
     }
 
     .backup-btn:hover {
-      background: var(--primary);
-      color: white;
+      border-color: var(--primary);
+      color: var(--primary-dark);
     }
 
     .tab-btn {
