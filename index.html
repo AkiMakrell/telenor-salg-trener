@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Telenor Salg Trener</title>
+  <style>
+    :root {
+      --primary:       #29a8e0;
+      --primary-dark:  #1a7fb5;
+      --primary-light: #d6eef9;
+      --primary-xlight:#eaf6fd;
+      --bg:            #dceefb;
+      --card:          #ffffff;
+      --text:          #1a2b3c;
+      --muted:         #6a8099;
+      --border:        #b8d9ef;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 30px 20px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--primary-dark);
+      margin-bottom: 8px;
+      font-size: 2rem;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 28px;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .backup-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .backup-btn {
+      padding: 7px 14px;
+      border: 1.5px solid var(--primary);
+      background: white;
+      color: var(--primary-dark);
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .backup-btn:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    .tab-btn {
+      padding: 10px 28px;
+      border: 2px solid var(--primary);
+      background: white;
+      color: var(--primary-dark);
+      border-radius: 30px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active, .tab-btn:hover {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 4px 12px rgba(41,168,224,0.35);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 24px;
+      max-width: 720px;
+      margin: 0 auto 20px auto;
+      box-shadow: 0 2px 16px rgba(41,168,224,0.10);
+      border: 1px solid var(--border);
+    }
+
+    .card h2 {
+      color: var(--primary-dark);
+      margin-bottom: 16px;
+      font-size: 1.15rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 11px 13px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      resize: vertical;
+      min-height: 80px;
+      font-family: inherit;
+      background: var(--primary-xlight);
+      color: var(--text);
+      transition: border-color 0.15s;
+    }
+
+    textarea:focus { outline: none; border-color: var(--primary); background: white; }
+
+    .radio-group { display: none; }
+
+    .toggle-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .toggle-btn {
+      flex: 1;
+      padding: 14px 10px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--primary-xlight);
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+      color: var(--text);
+    }
+
+    .toggle-btn:hover { border-color: var(--primary); background: var(--primary-light); }
+
+    .toggle-btn.selected-ja {
+      border-color: #28a745;
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .toggle-btn.selected-nei {
+      border-color: #dc3545;
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .save-btn {
+      margin-top: 16px;
+      padding: 11px 26px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 700;
+      transition: all 0.15s;
+      box-shadow: 0 3px 10px rgba(41,168,224,0.3);
+    }
+
+    .save-btn:hover { background: var(--primary-dark); box-shadow: 0 4px 14px rgba(41,168,224,0.4); }
+
+    .result-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .badge-yes { background: #d4edda; color: #155724; }
+    .badge-no  { background: #f8d7da; color: #721c24; }
+
+    .history-list { margin-top: 20px; }
+
+    .history-item {
+      border-left: 4px solid var(--primary);
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      background: var(--primary-xlight);
+      border-radius: 0 8px 8px 0;
+      font-size: 0.9rem;
+    }
+
+    .history-item .meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .objection-card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 20px;
+      max-width: 720px;
+      margin: 0 auto 14px auto;
+      box-shadow: 0 2px 12px rgba(41,168,224,0.09);
+      border: 1px solid var(--border);
+    }
+
+    .objection-card h3 {
+      color: var(--primary-dark);
+      margin-bottom: 10px;
+      font-size: 1rem;
+    }
+
+    .objection-label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--muted);
+      font-style: italic;
+      padding: 20px 0;
+    }
+
+    .clear-btn {
+      float: right;
+      background: none;
+      border: 1px solid var(--border);
+      padding: 4px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .clear-btn:hover { border-color: #c00; color: #c00; }
+
+    /* Intro library */
+    .intro-library {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .intro-library-empty {
+      font-size: 0.88rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .intro-chip {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 11px 14px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--primary-xlight);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 0.9rem;
+      text-align: left;
+    }
+
+    .intro-chip:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .intro-chip.selected {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      font-weight: 600;
+    }
+
+    .intro-chip-delete {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #aaa;
+      padding: 0 2px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .intro-chip-delete:hover { color: #c00; }
+
+    .intro-chip-stats {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .intro-chip-stats .hit {
+      color: #1a7a34;
+      font-weight: 700;
+    }
+
+    /* Intro two-column layout */
+    .intro-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      max-width: 1100px;
+      margin: 0 auto;
+      align-items: start;
+    }
+
+    @media (max-width: 700px) {
+      .intro-layout { grid-template-columns: 1fr; }
+    }
+
+    .leaderboard-card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 2px 16px rgba(41,168,224,0.10);
+      border: 1px solid var(--border);
+    }
+
+    .leaderboard-card h2 {
+      color: var(--primary-dark);
+      margin-bottom: 16px;
+      font-size: 1.15rem;
+    }
+
+    .history-toggle-btn {
+      margin-top: 14px;
+      width: 100%;
+      padding: 9px;
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      color: var(--primary-dark);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .history-toggle-btn:hover {
+      background: var(--primary-xlight);
+      border-color: var(--primary);
+    }
+
+    .history-panel {
+      display: none;
+      margin-top: 4px;
+    }
+
+    .history-panel.open { display: block; }
+
+    /* ===== STATS HOME PAGE ===== */
+    .stats-section { max-width: 1100px; margin: 0 auto 32px auto; }
+
+    .stats-section-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stats-grid {
+      display: grid;
+      gap: 14px;
+    }
+    .stats-grid-4 { grid-template-columns: repeat(4, 1fr); }
+    .stats-grid-2 { grid-template-columns: 1fr 1fr; }
+
+    @media (max-width: 800px) {
+      .stats-grid-4 { grid-template-columns: repeat(2, 1fr); }
+      .stats-grid-2 { grid-template-columns: 1fr; }
+    }
+
+    .stat-card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 20px 18px;
+      text-align: center;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(41,168,224,0.09);
+    }
+
+    .stat-card.day-card { padding: 26px 18px; }
+
+    .stat-icon { font-size: 1.8rem; margin-bottom: 6px; }
+    .stat-icon.big { font-size: 2.2rem; }
+
+    .stat-value {
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: var(--primary-dark);
+      line-height: 1;
+    }
+    .stat-value.big { font-size: 3rem; }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 6px;
+    }
+
+    /* Motivational banner */
+    .today-date-banner {
+      max-width: 1100px;
+      margin: 0 auto 14px auto;
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      letter-spacing: 0.02em;
+    }
+
+    .motivation-banner {
+      max-width: 1100px;
+      margin: 0 auto 24px auto;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      border-radius: 14px;
+      padding: 16px 24px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    /* Bar chart */
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      height: 120px;
+      padding: 0 4px;
+    }
+
+    .bar-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    .bar-fill {
+      width: 100%;
+      background: var(--primary);
+      border-radius: 6px 6px 0 0;
+      min-height: 4px;
+      transition: height 0.4s ease;
+      position: relative;
+    }
+
+    .bar-fill:hover { background: var(--primary-dark); }
+
+    .bar-val {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 3px;
+    }
+
+    .bar-lbl {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 5px;
+      text-align: center;
+    }
+
+    .chart-card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(41,168,224,0.09);
+    }
+
+    .chart-card-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 14px;
+    }
+
+    /* Leaderboard progress bar */
+    .intro-chip-bar-wrap {
+      height: 6px;
+      background: #e0e0e0;
+      border-radius: 4px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .intro-chip-bar {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+
+    .bar-green { background: #28a745; }
+    .bar-yellow { background: #f0ad00; }
+    .bar-red { background: #dc3545; }
+
+    .intro-chip-pct {
+      font-size: 1.4rem;
+      font-weight: 800;
+      line-height: 1;
+      flex-shrink: 0;
+      min-width: 52px;
+      text-align: right;
+    }
+
+    .pct-green { color: #1a7a34; }
+    .pct-yellow { color: #9a6800; }
+    .pct-red { color: #b52030; }
+
+    .intro-chip.border-green { border-left: 4px solid #28a745; }
+    .intro-chip.border-yellow { border-left: 4px solid #f0ad00; }
+    .intro-chip.border-red { border-left: 4px solid #dc3545; }
+  </style>
+</head>
+<body>
+
+<h1>📞 Telenor Salg Trener</h1>
+<p class="subtitle">Tren på introer og innvendinger</p>
+
+<div class="top-bar">
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('hjem')">🏠 Hjem</button>
+    <button class="tab-btn" onclick="switchTab('intro')">📞 Intro</button>
+    <button class="tab-btn" onclick="switchTab('innvendinger')">💬 Innvendinger</button>
+  </div>
+  <div class="backup-btns">
+    <button class="backup-btn" onclick="exportData()" title="Last ned sikkerhetskopi">💾 Eksporter data</button>
+    <label class="backup-btn" title="Gjenopprett fra sikkerhetskopi">📂 Importer data<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+  </div>
+</div>
+
+<!-- ===== HJEM TAB ===== -->
+<div id="tab-hjem" class="tab-content active">
+  <div id="stats-home"></div>
+</div>
+
+<!-- ===== INTRO TAB ===== -->
+<div id="tab-intro" class="tab-content">
+
+  <div class="intro-layout">
+
+    <!-- LEFT: input + history -->
+    <div>
+      <div class="card" style="margin:0 0 16px 0;">
+        <h2>Registrer forsøk</h2>
+
+        <label class="objection-label">Introtekst:</label>
+        <textarea id="intro-text" placeholder="Hei, jeg ringer fra Telenor..."></textarea>
+
+        <div style="margin-top: 14px;">
+          <strong>Kom du forbi opptaksspørsmålet?</strong>
+          <div class="toggle-group">
+            <button class="toggle-btn" id="opptak-ja" onclick="selectOpptak('ja')">✅ Ja</button>
+            <button class="toggle-btn" id="opptak-nei" onclick="selectOpptak('nei')">❌ Nei</button>
+          </div>
+        </div>
+
+        <div style="margin-top: 14px;">
+          <strong>Ble samtalen over 5 minutter?</strong>
+          <div class="toggle-group">
+            <button class="toggle-btn" id="over5min-ja" onclick="selectOver5min('ja')">✅ Ja</button>
+            <button class="toggle-btn" id="over5min-nei" onclick="selectOver5min('nei')">❌ Nei</button>
+          </div>
+        </div>
+
+        <div style="margin-top: 14px;">
+          <strong>Ble det et salg?</strong>
+          <div class="toggle-group">
+            <button class="toggle-btn" id="salg-ja" onclick="selectSalg('ja')">✅ Ja</button>
+            <button class="toggle-btn" id="salg-nei" onclick="selectSalg('nei')">❌ Nei</button>
+          </div>
+        </div>
+
+        <button class="save-btn" onclick="saveIntro()">Lagre forsøk</button>
+
+        <button class="history-toggle-btn" onclick="toggleHistory()">📋 Vis historikk</button>
+        <div id="history-panel" class="history-panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 4px;">
+            <span style="font-weight:600;color:var(--primary-dark);">Historikk</span>
+            <button class="clear-btn" style="float:none;" onclick="clearIntroHistory()">Tøm</button>
+          </div>
+          <div id="intro-history" class="history-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: leaderboard -->
+    <div class="leaderboard-card">
+      <h2>🏆 Intro Leaderboard</h2>
+      <div id="intro-library" class="intro-library"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== INNVENDINGER TAB ===== -->
+<div id="tab-innvendinger" class="tab-content">
+
+  <div id="objections-container"></div>
+
+</div>
+
+<script>
+  function toggleHistory() {
+    const panel = document.getElementById('history-panel');
+    const btn = document.querySelector('.history-toggle-btn');
+    const open = panel.classList.toggle('open');
+    btn.textContent = open ? '📋 Skjul historikk' : '📋 Vis historikk';
+  }
+
+  // ---- Tab switching ----
+  function switchTab(name) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  let selectedOpptak = null;
+  let selectedOver5min = null;
+  let selectedSalg = null;
+
+  function selectOpptak(val) {
+    selectedOpptak = val;
+    document.getElementById('opptak-ja').className = 'toggle-btn' + (val === 'ja' ? ' selected-ja' : '');
+    document.getElementById('opptak-nei').className = 'toggle-btn' + (val === 'nei' ? ' selected-nei' : '');
+  }
+
+  function selectOver5min(val) {
+    selectedOver5min = val;
+    document.getElementById('over5min-ja').className = 'toggle-btn' + (val === 'ja' ? ' selected-ja' : '');
+    document.getElementById('over5min-nei').className = 'toggle-btn' + (val === 'nei' ? ' selected-nei' : '');
+  }
+
+  function selectSalg(val) {
+    selectedSalg = val;
+    document.getElementById('salg-ja').className = 'toggle-btn' + (val === 'ja' ? ' selected-ja' : '');
+    document.getElementById('salg-nei').className = 'toggle-btn' + (val === 'nei' ? ' selected-nei' : '');
+  }
+
+  function resetOpptak() {
+    selectedOpptak = null; selectedOver5min = null; selectedSalg = null;
+    ['opptak-ja','opptak-nei','over5min-ja','over5min-nei','salg-ja','salg-nei']
+      .forEach(id => document.getElementById(id).className = 'toggle-btn');
+  }
+
+  // ---- Intro ----
+  let selectedIntroId = null;
+
+  function getSavedIntros() {
+    return JSON.parse(localStorage.getItem('savedIntros') || '[]');
+  }
+
+  function addToIntroLibrary(text) {
+    const intros = getSavedIntros();
+    const exists = intros.some(i => i.text.trim() === text.trim());
+    if (exists) return;
+    intros.push({ id: Date.now().toString(), text, createdAt: new Date().toISOString() });
+    localStorage.setItem('savedIntros', JSON.stringify(intros));
+  }
+
+  function deleteSavedIntro(id) {
+    if (!confirm('Slette denne introen fra biblioteket?')) return;
+    const intros = getSavedIntros().filter(i => i.id !== id);
+    localStorage.setItem('savedIntros', JSON.stringify(intros));
+    if (selectedIntroId === id) {
+      selectedIntroId = null;
+      document.getElementById('intro-text').value = '';
+    }
+    renderIntroLibrary();
+  }
+
+  function selectIntro(id) {
+    const intros = getSavedIntros();
+    const intro = intros.find(i => i.id === id);
+    if (!intro) return;
+    selectedIntroId = id;
+    document.getElementById('intro-text').value = intro.text;
+    renderIntroLibrary();
+  }
+
+  function clearIntroSelection() {
+    selectedIntroId = null;
+    document.getElementById('intro-text').value = '';
+    document.getElementById('intro-text').focus();
+    renderIntroLibrary();
+  }
+
+  // ---- Stats helpers ----
+  function isoToDate(iso) { return iso ? new Date(iso) : null; }
+
+  function isToday(iso) {
+    const d = isoToDate(iso); if (!d) return false;
+    const n = new Date();
+    return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate();
+  }
+
+  function isThisWeek(iso) {
+    const d = isoToDate(iso); if (!d) return false;
+    const now = new Date();
+    const mon = new Date(now); mon.setDate(now.getDate() - ((now.getDay() + 6) % 7)); mon.setHours(0,0,0,0);
+    const sun = new Date(mon); sun.setDate(mon.getDate() + 7);
+    return d >= mon && d < sun;
+  }
+
+  function isThisMonth(iso) {
+    const d = isoToDate(iso); if (!d) return false;
+    const n = new Date();
+    return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth();
+  }
+
+  function statsFor(entries) {
+    const total = entries.length;
+    const opptak = entries.filter(h => h.opptak === 'ja').length;
+    const over5 = entries.filter(h => h.over5min === 'ja').length;
+    const salg = entries.filter(h => h.salg === 'ja').length;
+    const hitrate = total > 0 ? Math.round(opptak / total * 100) : null;
+    return { total, opptak, over5, salg, hitrate };
+  }
+
+  function statCard(icon, value, label, big = false) {
+    return `<div class="stat-card${big ? ' day-card' : ''}">
+      <div class="stat-icon${big ? ' big' : ''}">${icon}</div>
+      <div class="stat-value${big ? ' big' : ''}">${value}</div>
+      <div class="stat-label">${label}</div>
+    </div>`;
+  }
+
+  function barChart(data) {
+    // data = [{label, value}]
+    const max = Math.max(...data.map(d => d.value), 1);
+    return `<div class="bar-chart">` + data.map(d => {
+      const h = Math.round((d.value / max) * 100);
+      return `<div class="bar-col">
+        <div class="bar-val">${d.value > 0 ? d.value : ''}</div>
+        <div class="bar-fill" style="height:${h}%"></div>
+        <div class="bar-lbl">${d.label}</div>
+      </div>`;
+    }).join('') + `</div>`;
+  }
+
+  function renderStatsHome() {
+    const history = getIntroHistory();
+    const dagEntries = history.filter(h => isToday(h.isoDate));
+    const ukeEntries = history.filter(h => isThisWeek(h.isoDate));
+    const mndEntries = history.filter(h => isThisMonth(h.isoDate));
+
+    const dag = statsFor(dagEntries);
+    const uke = statsFor(ukeEntries);
+    const mnd = statsFor(mndEntries);
+
+    // Motivation
+    const motivations = [
+      [80, '🔥 Du er i toppform i dag! Fortsett slik!'],
+      [60, '💪 Bra jobbet! Du er på rett vei!'],
+      [40, '📈 God innsats! Øvelse gjør mester!'],
+      [0,  '🌱 Hvert forsøk teller – hold det gående!'],
+    ];
+    const msg = dag.total === 0 ? '👋 Ingen forsøk registrert i dag ennå – lykke til!' :
+      motivations.find(([min]) => (dag.hitrate ?? 0) >= min)[1];
+
+    // Week bar chart: 5-min per weekday (Mon–Fri only)
+    const days = ['Man','Tir','Ons','Tor','Fre'];
+    const now = new Date();
+    const monOffset = (now.getDay() + 6) % 7;
+    const weekData = days.map((lbl, i) => {
+      const day = new Date(now); day.setDate(now.getDate() - monOffset + i); day.setHours(0,0,0,0);
+      const next = new Date(day); next.setDate(day.getDate() + 1);
+      const count = ukeEntries.filter(h => { const d = new Date(h.isoDate); return d >= day && d < next && h.over5min === 'ja'; }).length;
+      return { label: lbl, value: count };
+    });
+
+    // Month bar chart: work weeks (Mon–Fri) that overlap with the current month
+    const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    // Find the Monday of the first week overlapping this month
+    const firstMon = new Date(firstOfMonth);
+    firstMon.setDate(firstMon.getDate() - ((firstMon.getDay() + 6) % 7));
+    const weekBuckets = [];
+    let wMon = new Date(firstMon);
+    while (wMon <= lastOfMonth) {
+      const wFri = new Date(wMon); wFri.setDate(wMon.getDate() + 5); // Saturday 00:00 = end of Friday
+      // Only include if the work week overlaps with the current month
+      if (wFri > firstOfMonth && wMon <= lastOfMonth) {
+        const count = mndEntries.filter(h => {
+          const d = new Date(h.isoDate);
+          return d >= wMon && d < wFri && h.over5min === 'ja';
+        }).length;
+        weekBuckets.push({ label: `U${weekBuckets.length + 1}`, value: count });
+      }
+      wMon = new Date(wMon); wMon.setDate(wMon.getDate() + 7);
+    }
+
+    const pctColor = (p) => p === null ? 'var(--primary-dark)' : p >= 70 ? '#1a7a34' : p >= 40 ? '#9a6800' : '#b52030';
+
+    const dateStr = now.toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+      .replace(/^\w/, c => c.toUpperCase());
+
+    document.getElementById('stats-home').innerHTML = `
+      <div class="today-date-banner">${dateStr}</div>
+      <div class="motivation-banner">${msg}</div>
+
+      <!-- DAG -->
+      <div class="stats-section">
+        <div class="stats-section-title">☀️ I dag</div>
+        <div class="stats-grid stats-grid-4">
+          ${statCard('📞', dag.total, 'Forsøk', true)}
+          ${statCard('🎯', dag.hitrate !== null ? `<span style="color:${pctColor(dag.hitrate)}">${dag.hitrate}%</span>` : '–', 'Hitrate opptak', true)}
+          ${statCard('⏱️', dag.over5, '5-minutters', true)}
+          ${statCard('💰', dag.salg, 'Salg', true)}
+        </div>
+      </div>
+
+      <!-- UKE -->
+      <div class="stats-section">
+        <div class="stats-section-title">📅 Denne uken</div>
+        <div class="stats-grid stats-grid-2" style="margin-bottom:14px;">
+          <div class="chart-card">
+            <div class="chart-card-title">⏱️ 5-minutters per dag</div>
+            ${barChart(weekData)}
+          </div>
+          <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
+            ${statCard('📞', uke.total, 'Forsøk totalt')}
+            ${statCard('🎯', uke.hitrate !== null ? `<span style="color:${pctColor(uke.hitrate)}">${uke.hitrate}%</span>` : '–', 'Hitrate opptak')}
+            ${statCard('⏱️', uke.over5, '5-minutters totalt')}
+            ${statCard('💰', uke.salg, 'Salg')}
+          </div>
+        </div>
+      </div>
+
+      <!-- MÅNED -->
+      <div class="stats-section">
+        <div class="stats-section-title">🗓️ ${now.toLocaleString('no-NO', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase())}</div>
+        <div class="stats-grid stats-grid-2">
+          <div class="chart-card">
+            <div class="chart-card-title">⏱️ 5-minutters per uke</div>
+            ${barChart(weekBuckets)}
+          </div>
+          <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
+            ${statCard('📞', mnd.total, 'Forsøk totalt')}
+            ${statCard('🎯', mnd.hitrate !== null ? `<span style="color:${pctColor(mnd.hitrate)}">${mnd.hitrate}%</span>` : '–', 'Hitrate opptak')}
+            ${statCard('⏱️', mnd.over5, '5-minutters totalt')}
+            ${statCard('💰', mnd.salg, 'Salg')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function hitrateClass(pct) {
+    if (pct === null) return { bar: '', pct: '', border: '' };
+    if (pct >= 70) return { bar: 'bar-green', pct: 'pct-green', border: 'border-green' };
+    if (pct >= 40) return { bar: 'bar-yellow', pct: 'pct-yellow', border: 'border-yellow' };
+    return { bar: 'bar-red', pct: 'pct-red', border: 'border-red' };
+  }
+
+  function renderIntroLibrary() {
+    const container = document.getElementById('intro-library');
+    const intros = getSavedIntros();
+    if (!intros.length) {
+      container.innerHTML = '<p class="intro-library-empty">Ingen introen lagret ennå – skriv den første nedenfor.</p>';
+      return;
+    }
+    const history = getIntroHistory();
+
+    const withStats = intros.map(i => {
+      const attempts = history.filter(h => h.text.trim() === i.text.trim());
+      const total = attempts.length;
+      const ja = attempts.filter(h => h.opptak === 'ja').length;
+      return { i, total, ja, nei: total - ja, hitrate: total > 0 ? ja / total : null };
+    });
+
+    withStats.sort((a, b) => {
+      const aTop = a.total > 10;
+      const bTop = b.total > 10;
+      if (aTop && !bTop) return -1;
+      if (!aTop && bTop) return 1;
+      if (aTop && bTop) return b.hitrate - a.hitrate;
+      return 0;
+    });
+
+    const medals = ['🥇', '🥈', '🥉'];
+
+    container.innerHTML = withStats.map(({ i, total, ja, nei, hitrate }, idx) => {
+      const pct = hitrate !== null ? Math.round(hitrate * 100) : null;
+      const medal = total > 10 && idx < 3 ? medals[idx] : '';
+      const cls = hitrateClass(pct);
+
+      const barHtml = total > 0 ? `
+        <div class="intro-chip-bar-wrap">
+          <div class="intro-chip-bar ${cls.bar}" style="width:${pct}%"></div>
+        </div>` : '';
+
+      const statsRow = total > 0
+        ? `<div class="intro-chip-stats" style="margin-top:5px;">${medal ? medal + ' ' : ''}${total} forsøk &nbsp;✅ ${ja} · ❌ ${nei}</div>`
+        : `<div class="intro-chip-stats" style="margin-top:5px;">Ingen forsøk ennå</div>`;
+
+      const pctHtml = pct !== null
+        ? `<div class="intro-chip-pct ${cls.pct}">${pct}%</div>`
+        : '';
+
+      return `
+        <div class="intro-chip ${cls.border} ${selectedIntroId === i.id ? 'selected' : ''}" onclick="selectIntro('${i.id}')">
+          <div style="flex:1;min-width:0;">
+            <div>${escHtml(i.text)}</div>
+            ${statsRow}
+            ${barHtml}
+          </div>
+          ${pctHtml}
+          <button class="intro-chip-delete" title="Slett intro" onclick="event.stopPropagation(); deleteSavedIntro('${i.id}')">🗑</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function saveIntro() {
+    const text = document.getElementById('intro-text').value.trim();
+    if (!text) { alert('Skriv inn introen din først.'); return; }
+    if (!selectedOpptak) { alert('Marker om du kom forbi opptaksspørsmålet.'); return; }
+    if (!selectedOver5min) { alert('Marker om samtalen var over 5 minutter.'); return; }
+    if (!selectedSalg) { alert('Marker om det ble et salg.'); return; }
+
+    addToIntroLibrary(text);
+
+    const history = getIntroHistory();
+    history.unshift({
+      text,
+      opptak: selectedOpptak,
+      over5min: selectedOver5min,
+      salg: selectedSalg,
+      isoDate: new Date().toISOString(),
+      tid: new Date().toLocaleString('no-NO')
+    });
+    localStorage.setItem('introHistory', JSON.stringify(history));
+
+    resetOpptak();
+    renderStatsHome();
+    renderIntroLibrary();
+    renderIntroHistory();
+  }
+
+  function getIntroHistory() {
+    return JSON.parse(localStorage.getItem('introHistory') || '[]');
+  }
+
+  function clearIntroHistory() {
+    if (confirm('Slette all intro-historikk?')) {
+      localStorage.removeItem('introHistory');
+      renderIntroHistory();
+    }
+  }
+
+  function renderIntroHistory() {
+    const container = document.getElementById('intro-history');
+    const history = getIntroHistory();
+    if (!history.length) {
+      container.innerHTML = '<p class="empty-state">Ingen forsøk registrert ennå.</p>';
+      return;
+    }
+    container.innerHTML = history.map(h => `
+      <div class="history-item">
+        <div>${escHtml(h.text)}</div>
+        <div class="meta">
+          <span class="result-badge ${h.opptak === 'ja' ? 'badge-yes' : 'badge-no'}">
+            Opptak: ${h.opptak === 'ja' ? '✅ Ja' : '❌ Nei'}
+          </span>
+          <span>${h.tid}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ---- Objections ----
+  const OBJECTIONS = [
+    'Jeg er ikke interessert',
+    'Jeg har ikke tid nå',
+    'Send meg noe på e-post',
+    'Det er for dyrt',
+    'Jeg er fornøyd med det jeg har',
+    'Jeg har binding',
+    'Jeg bestemmer ikke selv / må snakke med ektefelle',
+    'Jeg vil ikke bytte leverandør',
+    'Innvending 9',
+    'Innvending 10',
+    'Innvending 11',
+    'Innvending 12',
+  ];
+
+  function getObjData(index) {
+    return JSON.parse(localStorage.getItem('obj_' + index) || '[]');
+  }
+
+  function saveObjResponse(index) {
+    const textarea = document.getElementById('obj-text-' + index);
+    const resultVal = document.querySelector(`input[name="obj-result-${index}"]:checked`);
+    const text = textarea.value.trim();
+    if (!text) { alert('Skriv inn svaret ditt først.'); return; }
+    if (!resultVal) { alert('Marker om det funket eller ikke.'); return; }
+
+    const data = getObjData(index);
+    data.unshift({ text, result: resultVal.value, tid: new Date().toLocaleString('no-NO') });
+    localStorage.setItem('obj_' + index, JSON.stringify(data));
+
+    textarea.value = '';
+    document.querySelectorAll(`input[name="obj-result-${index}"]`).forEach(r => r.checked = false);
+    renderObjHistory(index);
+  }
+
+  function clearObjHistory(index) {
+    if (confirm('Slette historikk for denne innvendingen?')) {
+      localStorage.removeItem('obj_' + index);
+      renderObjHistory(index);
+    }
+  }
+
+  function renderObjHistory(index) {
+    const container = document.getElementById('obj-history-' + index);
+    const data = getObjData(index);
+    if (!data.length) {
+      container.innerHTML = '<p class="empty-state">Ingen svar registrert ennå.</p>';
+      return;
+    }
+    container.innerHTML = data.map(d => `
+      <div class="history-item">
+        <div>${escHtml(d.text)}</div>
+        <div class="meta">
+          <span class="result-badge ${d.result === 'ja' ? 'badge-yes' : 'badge-no'}">
+            ${d.result === 'ja' ? '✅ Funket' : '❌ Funket ikke'}
+          </span>
+          <span>${d.tid}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function buildObjections() {
+    const container = document.getElementById('objections-container');
+    container.innerHTML = OBJECTIONS.map((obj, i) => `
+      <div class="objection-card">
+        <h3>💬 ${escHtml(obj)}</h3>
+        <label class="objection-label">Ditt svar på innvendingen:</label>
+        <textarea id="obj-text-${i}" placeholder="Skriv svaret ditt her..."></textarea>
+        <div style="margin-top: 10px;">
+          <strong>Funket det?</strong>
+          <div class="radio-group">
+            <label><input type="radio" name="obj-result-${i}" value="ja"> ✅ Ja</label>
+            <label><input type="radio" name="obj-result-${i}" value="nei"> ❌ Nei</label>
+          </div>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
+          <button class="save-btn" onclick="saveObjResponse(${i})">Lagre svar</button>
+          <button class="clear-btn" onclick="clearObjHistory(${i})">Tøm historikk</button>
+        </div>
+        <div id="obj-history-${i}" class="history-list" style="margin-top:12px;"></div>
+      </div>
+    `).join('');
+
+    OBJECTIONS.forEach((_, i) => renderObjHistory(i));
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ---- Init ----
+  renderStatsHome();
+  renderIntroLibrary();
+  renderIntroHistory();
+  buildObjections();
+
+  // ---- Eksport / Import ----
+  function exportData() {
+    const keys = ['savedIntros', 'introHistory'];
+    for (let i = 0; i < 12; i++) keys.push('obj_' + i);
+    const data = {};
+    keys.forEach(k => { const v = localStorage.getItem(k); if (v) data[k] = JSON.parse(v); });
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'telenor-salg-backup-' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+  }
+
+  function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const data = JSON.parse(e.target.result);
+        Object.entries(data).forEach(([k, v]) => localStorage.setItem(k, JSON.stringify(v)));
+        alert('✅ Data importert! Siden lastes inn på nytt.');
+        location.reload();
+      } catch { alert('❌ Feil: ugyldig backup-fil.'); }
+    };
+    reader.readAsText(file);
+  }
+</script>
+</body>
+</html>
