@@ -221,7 +221,19 @@
       font-size: 0.82rem;
     }
 
-    .objection-card {
+    .delete-entry-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+      opacity: 0.5;
+      padding: 0 2px;
+      line-height: 1;
+      transition: opacity 0.2s;
+    }
+    .delete-entry-btn:hover { opacity: 1; }
+
+
       background: var(--card);
       border-radius: 14px;
       padding: 20px;
@@ -813,8 +825,7 @@
   <div id="gif-label"></div>
 </div>
 
-<img src="telenor_logo.png" alt="Telenor logo" style="display:block; margin: 0 auto 12px; height: 48px; object-fit: contain;">
-<h1>📞 Telenor Salg Trener</h1>
+<h1>Aki salg trener</h1>
 <p class="subtitle">Tren på introer og innvendinger</p>
 
 <div class="top-bar">
@@ -927,8 +938,10 @@
 
   function resetOpptak() {
     selectedOpptak = null;
-    ['opptak-ja','opptak-nei']
-      .forEach(id => document.getElementById(id).className = 'toggle-btn');
+    selectedOver5min = null;
+    selectedSalg = null;
+    ['opptak-ja','opptak-nei','over5min-ja','over5min-nei','salg-ja','salg-nei']
+      .forEach(id => { const el = document.getElementById(id); if (el) el.className = 'toggle-btn'; });
   }
 
   // ---- Intro ----
@@ -1224,12 +1237,15 @@
     history.unshift({
       text,
       opptak: selectedOpptak,
-      over5min: null,
-      salg: null,
+      over5min: selectedOver5min,
+      salg: selectedSalg,
       isoDate: new Date().toISOString(),
       tid: new Date().toLocaleString('no-NO')
     });
     localStorage.setItem('introHistory', JSON.stringify(history));
+
+    if (selectedSalg === 'ja') showCelebrationGif('salg');
+    else if (selectedOver5min === 'ja') showCelebrationGif('over5min');
 
     resetOpptak();
     renderStatsHome();
@@ -1335,6 +1351,15 @@
       renderObjStats(id);
       renderObjSummary();
     }
+  }
+
+  function deleteObjEntry(id, index) {
+    const data = getObjData(id);
+    data.splice(index, 1);
+    localStorage.setItem('objdata_' + id, JSON.stringify(data));
+    renderObjHistory(id);
+    renderObjStats(id);
+    renderObjSummary();
   }
 
   function deleteObjection(id) {
@@ -1446,7 +1471,7 @@
       return;
     }
     if (toggle) { toggle.style.display = ''; toggle.textContent = `📋 Vis historikk (${data.length})`; }
-    container.innerHTML = data.map(d => `
+    container.innerHTML = data.map((d, i) => `
       <div class="history-item">
         <div>${escHtml(d.text)}</div>
         <div class="meta">
@@ -1454,6 +1479,7 @@
             ${d.result === 'ja' ? '✅ Funket' : '❌ Funket ikke'}
           </span>
           <span>${d.tid}</span>
+          <button class="delete-entry-btn" onclick="deleteObjEntry('${id}', ${i})" title="Slett dette svaret">🗑</button>
         </div>
       </div>
     `).join('');
