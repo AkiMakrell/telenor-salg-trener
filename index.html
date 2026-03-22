@@ -798,12 +798,6 @@
       animation: fadeInOverlay 0.3s ease;
     }
     #gif-overlay.visible { display: flex; }
-    #gif-img {
-      max-width: min(520px, 90vw);
-      max-height: 60vh;
-      border-radius: 18px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
-    }
     #gif-label {
       color: white;
       font-size: 1.6rem;
@@ -819,10 +813,11 @@
 </head>
 <body>
 
-<!-- GIF OVERLAY -->
+<!-- CELEBRATION OVERLAY -->
 <div id="gif-overlay" onclick="closeGif()">
-  <img id="gif-img" src="" alt="">
+  <canvas id="confetti-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
   <div id="gif-label"></div>
+  <div style="color:white;font-size:0.9rem;opacity:0.6;">Trykk for å lukke</div>
 </div>
 
 <h1>Aki salg trener</h1>
@@ -1536,33 +1531,59 @@
   renderIntroHistory();
   buildObjections();
 
-  // ---- Celebration GIFs (hardcoded, no API key needed) ----
-  const gifUrls = {
-    salg: [
-      'https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif',
-      'https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif',
-      'https://media.giphy.com/media/26tOZ42Mg6pbTUPHW/giphy.gif',
-      'https://media.giphy.com/media/5xaOcLGvzHxDKjufnLW/giphy.gif',
-    ],
-    over5min: [
-      'https://media.giphy.com/media/3oz8xAFtqoOUUrsh7W/giphy.gif',
-      'https://media.giphy.com/media/26tknCqiJrBQG6bxC/giphy.gif',
-      'https://media.giphy.com/media/artj92V8o75VPL7AeQ/giphy.gif',
-      'https://media.giphy.com/media/YTbZzCkRQCEJa/giphy.gif',
-    ]
-  };
-
+  // ---- Celebration confetti ----
   let gifTimer = null;
+  let confettiFrame = null;
 
   function showCelebrationGif(type) {
     const label = type === 'salg' ? '💰 SALG! 💰' : '⏱️ 5-MINUTTERS! ⏱️';
-    const urls = gifUrls[type];
-    const url = urls[Math.floor(Math.random() * urls.length)];
     document.getElementById('gif-label').textContent = label;
-    document.getElementById('gif-img').src = url;
     document.getElementById('gif-overlay').classList.add('visible');
     clearTimeout(gifTimer);
     gifTimer = setTimeout(closeGif, 6500);
+    startConfetti(type === 'salg' ? ['#f7c948','#4CAF50','#fff','#ff9800'] : ['#3b82f6','#a855f7','#fff','#22c55e']);
+  }
+
+  function closeGif() {
+    document.getElementById('gif-overlay').classList.remove('visible');
+    clearTimeout(gifTimer);
+    cancelAnimationFrame(confettiFrame);
+    const canvas = document.getElementById('confetti-canvas');
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  function startConfetti(colors) {
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const pieces = Array.from({length: 120}, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      r: 6 + Math.random() * 8,
+      d: 2 + Math.random() * 3,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      tilt: Math.random() * 10 - 10,
+      tiltSpeed: 0.1 + Math.random() * 0.2
+    }));
+    let angle = 0;
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      angle += 0.01;
+      pieces.forEach(p => {
+        p.tilt += p.tiltSpeed;
+        p.y += p.d;
+        p.x += Math.sin(angle) * 1.5;
+        if (p.y > canvas.height) { p.y = -10; p.x = Math.random() * canvas.width; }
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, p.r, p.r / 2, p.tilt, 0, 2 * Math.PI);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+      });
+      confettiFrame = requestAnimationFrame(draw);
+    }
+    cancelAnimationFrame(confettiFrame);
+    draw();
   }
 
   function closeGif() {
