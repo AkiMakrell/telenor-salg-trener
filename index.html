@@ -1536,28 +1536,33 @@
   renderIntroHistory();
   buildObjections();
 
-  // ---- Celebration GIFs (Giphy API) ----
-  const GIPHY_KEY = 'AvCz5CgLUg69uON27oHVnFLY1IzbCx6c';
-  const gifTags = { over5min: 'celebration', salg: 'money rain' };
+  // ---- Celebration GIFs (hardcoded, no API key needed) ----
+  const gifUrls = {
+    salg: [
+      'https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif',
+      'https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif',
+      'https://media.giphy.com/media/26tOZ42Mg6pbTUPHW/giphy.gif',
+      'https://media.giphy.com/media/5xaOcLGvzHxDKjufnLW/giphy.gif',
+    ],
+    over5min: [
+      'https://media.giphy.com/media/3oz8xAFtqoOUUrsh7W/giphy.gif',
+      'https://media.giphy.com/media/26tknCqiJrBQG6bxC/giphy.gif',
+      'https://media.giphy.com/media/artj92V8o75VPL7AeQ/giphy.gif',
+      'https://media.giphy.com/media/YTbZzCkRQCEJa/giphy.gif',
+    ]
+  };
 
   let gifTimer = null;
 
-  async function showCelebrationGif(type) {
-    const tag = gifTags[type];
+  function showCelebrationGif(type) {
     const label = type === 'salg' ? '💰 SALG! 💰' : '⏱️ 5-MINUTTERS! ⏱️';
+    const urls = gifUrls[type];
+    const url = urls[Math.floor(Math.random() * urls.length)];
     document.getElementById('gif-label').textContent = label;
-    document.getElementById('gif-img').src = '';
+    document.getElementById('gif-img').src = url;
     document.getElementById('gif-overlay').classList.add('visible');
     clearTimeout(gifTimer);
     gifTimer = setTimeout(closeGif, 6500);
-
-    try {
-      const res = await fetch(`https://api.giphy.com/v1/gifs/random?api_key=${GIPHY_KEY}&tag=${encodeURIComponent(tag)}&rating=g`);
-      const data = await res.json();
-      document.getElementById('gif-img').src = data.data.images.original.url;
-    } catch {
-      // fallback: keep overlay open without image
-    }
   }
 
   function closeGif() {
