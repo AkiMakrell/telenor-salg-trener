@@ -830,6 +830,7 @@
     <button class="tab-btn" onclick="switchTab('innvendinger')">💬 Innvendinger</button>
   </div>
   <div class="backup-btns">
+    <span id="sync-status" style="font-size:0.75rem;color:#888;padding:5px 8px;white-space:nowrap;"></span>
     <button class="backup-btn" onclick="exportData()" title="Last ned sikkerhetskopi">💾 Eksporter data</button>
     <label class="backup-btn" title="Gjenopprett fra sikkerhetskopi">📂 Importer data<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
   </div>
@@ -894,6 +895,65 @@
 </div>
 
 <script>
+  // ---- Google Sheets sync ----
+  // Paste your Google Apps Script URL below after deploying (see instructions)
+  const SCRIPT_URL = 'YOUR_SCRIPT_URL_HERE';
+
+  const _origSetItem    = localStorage.setItem.bind(localStorage);
+  const _origRemoveItem = localStorage.removeItem.bind(localStorage);
+  const _origGetItem    = localStorage.getItem.bind(localStorage);
+
+  // Auto-sync 800ms after any localStorage write
+  let syncTimeout = null;
+  localStorage.setItem    = function(k, v) { _origSetItem(k, v);    scheduleSync(); };
+  localStorage.removeItem = function(k)    { _origRemoveItem(k);     scheduleSync(); };
+
+  function scheduleSync() {
+    clearTimeout(syncTimeout);
+    syncTimeout = setTimeout(syncToCloud, 800);
+  }
+
+  function getAllData() {
+    const list = JSON.parse(_origGetItem('objectionsList') || '[]');
+    const keys = ['savedIntros', 'introHistory', 'objectionsList'];
+    list.forEach(({ id }) => keys.push('objdata_' + id));
+    const data = {};
+    keys.forEach(k => { const v = _origGetItem(k); if (v) data[k] = JSON.parse(v); });
+    return data;
+  }
+
+  function syncToCloud() {
+    if (!SCRIPT_URL || SCRIPT_URL.includes('YOUR_SCRIPT')) return;
+    setSyncStatus('syncing');
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(getAllData())
+    }).then(() => setSyncStatus('ok')).catch(() => setSyncStatus('error'));
+  }
+
+  async function loadFromCloud() {
+    if (!SCRIPT_URL || SCRIPT_URL.includes('YOUR_SCRIPT')) return;
+    setSyncStatus('loading');
+    try {
+      const r = await fetch(SCRIPT_URL, { redirect: 'follow' });
+      const data = await r.json();
+      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+        Object.entries(data).forEach(([k, v]) => _origSetItem(k, JSON.stringify(v)));
+      }
+      setSyncStatus('ok');
+    } catch { setSyncStatus('error'); }
+  }
+
+  function setSyncStatus(s) {
+    const el = document.getElementById('sync-status');
+    if (!el) return;
+    const map = { ok: '☁️ Synkronisert', syncing: '🔄 Synkroniserer...', loading: '⬇️ Laster data...', error: '⚠️ Synk feilet' };
+    el.textContent = map[s] || '';
+  }
+  // ---- End Google Sheets sync ----
+
   function toggleHistory() {
     const panel = document.getElementById('history-panel');
     const btn = document.querySelector('.history-toggle-btn');
@@ -1526,10 +1586,13 @@
   }
 
   // ---- Init ----
-  renderStatsHome();
-  renderIntroLibrary();
-  renderIntroHistory();
-  buildObjections();
+  (async () => {
+    await loadFromCloud();
+    renderStatsHome();
+    renderIntroLibrary();
+    renderIntroHistory();
+    buildObjections();
+  })();
 
   // ---- Celebration confetti ----
   let gifTimer = null;
