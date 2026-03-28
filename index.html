@@ -1131,6 +1131,32 @@
     .sf-back-phase-btn:hover { border-color: #94a3b8; color: #1e293b; }
 
 
+    /* Customer response boxes in the tree canvas */
+    .sf-kunde-node {
+      position: absolute;
+      width: 180px;
+      background: #f0fdf4;
+      border: 2px solid #86efac;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 0.78rem;
+      color: #166534;
+      text-align: center;
+      pointer-events: none;
+      box-shadow: 0 1px 4px rgba(22,163,74,0.1);
+    }
+    .sf-kunde-node-label {
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: #16a34a;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .sf-kunde-node-text {
+      line-height: 1.4;
+    }
+
     .sf-arrow-label {
       font-size: 11px;
       fill: #16a34a;
@@ -2214,10 +2240,12 @@
 
   let sfCurrentPhase = null;
   const NODE_W = 200;
-  const NODE_H = 80;  // approximate, used for layout
-  const H_GAP  = 60;  // horizontal gap between siblings
-  const V_GAP  = 90;  // vertical gap between levels
-  const PAD    = 40;  // canvas padding
+  const NODE_H = 90;
+  const KUNDE_W = 180;
+  const KUNDE_H = 52;
+  const H_GAP  = 60;
+  const V_GAP  = 160; // larger gap to fit kunde boxes between nodes
+  const PAD    = 40;
 
   let sfSelectedId = null;
 
@@ -2341,8 +2369,15 @@
     svg.setAttribute('width',  w);
     svg.setAttribute('height', h);
 
-    // Draw SVG arrows
-    let svgContent = '';
+    // Draw SVG arrows and collect kunde box positions
+    let svgContent = `
+      <defs>
+        <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#94a3b8"/>
+        </marker>
+      </defs>`;
+    const kundeBoxes = [];
+
     Object.values(data.nodes).forEach(node => {
       if (!node.children) return;
       const from = positions[node.id];
@@ -2354,20 +2389,14 @@
         const y1 = from.y + NODE_H;
         const x2 = to.x + NODE_W / 2;
         const y2 = to.y;
-        const cy1 = y1 + V_GAP * 0.5;
-        const cy2 = y2 - V_GAP * 0.5;
-        const mx  = (x1 + x2) / 2;
-        const my  = (y1 + y2) / 2;
+        const kx = x2 - KUNDE_W / 2;
+        const ky = (y1 + y2) / 2 - KUNDE_H / 2;
+        const kBottom = ky + KUNDE_H;
         svgContent += `
-          <defs>
-            <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-              <path d="M0,0 L0,6 L8,3 z" fill="#cbd5e1"/>
-            </marker>
-          </defs>
-          <path d="M${x1},${y1} C${x1},${cy1} ${x2},${cy2} ${x2},${y2}"
-                stroke="#cbd5e1" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
-          <text class="sf-arrow-label" x="${mx}" y="${my - 6}" text-anchor="middle">${sfEsc(child.label)}</text>
+          <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${ky}" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="${x2}" y1="${kBottom}" x2="${x2}" y2="${y2}" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
         `;
+        kundeBoxes.push({ x: kx, y: ky, label: child.label });
       });
     });
     svg.innerHTML = svgContent;
@@ -2395,6 +2424,20 @@
         <button class="sf-node-add-btn" onclick="event.stopPropagation();sfQuickAddBranch('${node.id}')">+ Legg til svar</button>
       `;
       div.onclick = () => sfSelectNode(node.id);
+      canvas.appendChild(div);
+    });
+
+    // Draw kunde boxes in the tree
+    kundeBoxes.forEach(kb => {
+      const div = document.createElement('div');
+      div.className = 'sf-kunde-node';
+      div.style.left = kb.x + 'px';
+      div.style.top  = kb.y + 'px';
+      const shortLabel = kb.label.length > 50 ? kb.label.slice(0, 50) + '…' : kb.label;
+      div.innerHTML = `
+        <div class="sf-kunde-node-label">Kunden sier</div>
+        <div class="sf-kunde-node-text">${sfEsc(shortLabel)}</div>
+      `;
       canvas.appendChild(div);
     });
 
