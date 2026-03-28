@@ -2434,11 +2434,12 @@
 
     const list = document.getElementById('sf-branch-list');
     list.innerHTML = (node.children || []).map((c, i) => `
-      <div class="sf-branch-row">
-        <input class="sf-branch-label-input" id="sf-bl-${i}" value="${sfEsc(c.label)}" placeholder="Skriv hva kunden sier..."/>
-        <div class="sf-branch-row-actions">
+      <div style="background:#f0fdf4;border:2px solid #86efac;border-radius:10px;padding:12px 14px;margin-bottom:8px;">
+        <div style="font-size:0.72rem;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Kunden sier</div>
+        <input class="sf-branch-label-input" id="sf-bl-${i}" value="${sfEsc(c.label)}" placeholder="Skriv hva kunden sier..." style="width:100%;padding:9px 12px;border:1.5px solid #86efac;border-radius:8px;font-size:0.88rem;font-family:inherit;color:#166534;background:white;box-sizing:border-box;margin-bottom:8px;"/>
+        <div style="display:flex;gap:8px;margin-top:4px;">
           <button class="sf-go-btn" onclick="sfSelectNode('${c.nodeId}')">Min respons →</button>
-          <button class="sf-branch-del-btn" onclick="sfDeleteBranch(${i})">× Slett</button>
+          <button class="sf-branch-del-btn" onclick="sfDeleteBranch(${i})" style="margin-left:auto;">× Slett</button>
         </div>
       </div>
     `).join('');
