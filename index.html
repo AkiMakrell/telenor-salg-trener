@@ -835,184 +835,121 @@
     .objection-card-body { display: none; margin-top: 12px; }
     .objection-card.expanded .objection-card-body { display: block; }
 
-    /* ===== SAMTALEFLYT ===== */
-    .sf-container { max-width: 900px; margin: 0 auto; }
-
-    .sf-pipeline {
+    /* ===== SAMTALEFLYT v2 ===== */
+    #sf-outer {
       display: flex;
-      align-items: center;
-      gap: 0;
-      margin-bottom: 32px;
-      flex-wrap: wrap;
+      flex-direction: column;
+      max-width: 1100px;
+      margin: 0 auto;
     }
 
-    .sf-phase-btn {
-      flex: 1;
-      min-width: 120px;
-      padding: 14px 10px;
-      background: white;
+    /* Canvas wrapper */
+    #sf-canvas-wrap {
+      position: relative;
+      overflow: auto;
       border: 1.5px solid #e2e8f0;
-      font-size: 0.88rem;
-      font-weight: 600;
-      color: #64748b;
-      cursor: pointer;
-      transition: all 0.15s;
-      text-align: center;
+      border-radius: 14px;
+      background: #f8fafc;
+      min-height: 300px;
+      max-height: 65vh;
+      cursor: default;
+    }
+
+    #sf-canvas {
       position: relative;
     }
-    .sf-phase-btn:first-child { border-radius: 10px 0 0 10px; }
-    .sf-phase-btn:last-child { border-radius: 0 10px 10px 0; }
-    .sf-phase-btn:not(:last-child) { border-right: none; }
-    .sf-phase-btn:hover { background: #f8fafc; color: #1e293b; }
-    .sf-phase-btn.active {
-      background: #1e293b;
-      color: white;
-      border-color: #1e293b;
-      z-index: 1;
+
+    #sf-svg {
+      position: absolute;
+      top: 0; left: 0;
+      pointer-events: none;
+      overflow: visible;
     }
-    .sf-phase-number {
-      display: block;
+
+    /* Node boxes */
+    .sf-node {
+      position: absolute;
+      width: 200px;
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      font-size: 0.82rem;
+      color: #1e293b;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      user-select: none;
+    }
+    .sf-node:hover { border-color: #29a8e0; }
+    .sf-node.selected {
+      border-color: #29a8e0;
+      box-shadow: 0 0 0 3px rgba(41,168,224,0.18);
+    }
+    .sf-node.root-node { border-color: #1e293b; }
+
+    .sf-node-preview {
+      font-size: 0.78rem;
+      color: #64748b;
+      margin-top: 4px;
+      line-height: 1.4;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .sf-node-empty .sf-node-preview {
+      font-style: italic;
+      color: #94a3b8;
+    }
+
+    .sf-node-label {
       font-size: 0.7rem;
-      font-weight: 400;
-      opacity: 0.6;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
       margin-bottom: 3px;
     }
 
-    .sf-navigator {
-      background: white;
-      border-radius: 14px;
-      border: 1.5px solid #e2e8f0;
-      padding: 28px;
-      margin-bottom: 20px;
-    }
-
-    .sf-breadcrumb {
-      font-size: 0.78rem;
-      color: #94a3b8;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .sf-breadcrumb span { cursor: pointer; }
-    .sf-breadcrumb span:hover { color: #1e293b; }
-    .sf-breadcrumb .sep { opacity: 0.4; cursor: default; }
-
-    .sf-script-card {
-      background: #f8fafc;
-      border: 1.5px solid #e2e8f0;
+    /* Add root button (shown when tree is empty) */
+    #sf-add-root-btn {
+      display: block;
+      margin: 40px auto;
+      padding: 14px 32px;
+      background: #1e293b;
+      color: white;
+      border: none;
       border-radius: 10px;
-      padding: 20px 22px;
-      font-size: 1rem;
-      line-height: 1.65;
-      color: #1e293b;
-      margin-bottom: 22px;
-      white-space: pre-wrap;
-      word-break: break-word;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s;
     }
+    #sf-add-root-btn:hover { opacity: 0.85; }
 
-    .sf-branches-label {
+    /* Detail panel */
+    #sf-detail {
+      margin-top: 16px;
+      background: white;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 24px;
+      display: none;
+    }
+    #sf-detail.open { display: block; }
+
+    #sf-detail h3 {
       font-size: 0.75rem;
       font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
       color: #94a3b8;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
 
-    .sf-branches {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-
-    .sf-branch-btn {
-      padding: 12px 16px;
-      background: white;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 8px;
-      font-size: 0.92rem;
-      color: #1e293b;
-      cursor: pointer;
-      text-align: left;
-      transition: all 0.15s;
-      font-weight: 500;
-    }
-    .sf-branch-btn:hover {
-      border-color: #29a8e0;
-      background: #f0f9ff;
-      color: #0369a1;
-    }
-
-    .sf-end-node {
-      padding: 16px;
-      background: #f0fdf4;
-      border: 1.5px solid #bbf7d0;
-      border-radius: 8px;
-      color: #166534;
-      font-size: 0.9rem;
-      font-weight: 600;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .sf-nav-btns {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .sf-back-btn, .sf-reset-btn {
-      padding: 8px 18px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
-      border: 1.5px solid #e2e8f0;
-      background: white;
-      color: #64748b;
-    }
-    .sf-back-btn:hover, .sf-reset-btn:hover {
-      border-color: #94a3b8;
-      color: #1e293b;
-    }
-    .sf-back-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
-    .sf-edit-toggle {
-      margin-left: auto;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
-      border: 1.5px solid #e2e8f0;
-      background: white;
-      color: #64748b;
-      transition: all 0.15s;
-    }
-    .sf-edit-toggle:hover { border-color: #94a3b8; color: #1e293b; }
-    .sf-edit-toggle.active { background: #1e293b; color: white; border-color: #1e293b; }
-
-    /* Edit mode */
-    .sf-edit-panel {
-      background: white;
-      border-radius: 14px;
-      border: 1.5px solid #e2e8f0;
-      padding: 24px;
-      margin-bottom: 20px;
-    }
-    .sf-edit-panel h3 {
-      font-size: 0.88rem;
-      font-weight: 700;
-      color: #1e293b;
-      margin-bottom: 14px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    .sf-edit-script {
+    #sf-detail-script {
       width: 100%;
       padding: 12px 14px;
       border: 1.5px solid #e2e8f0;
@@ -1020,19 +957,21 @@
       font-size: 0.95rem;
       font-family: inherit;
       resize: vertical;
-      min-height: 100px;
+      min-height: 90px;
       color: #1e293b;
+      line-height: 1.55;
       margin-bottom: 16px;
     }
-    .sf-edit-script:focus { outline: none; border-color: #29a8e0; }
+    #sf-detail-script:focus { outline: none; border-color: #29a8e0; }
 
-    .sf-edit-branches { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
-    .sf-edit-branch-row {
+    .sf-branch-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+
+    .sf-branch-row {
       display: flex;
       gap: 8px;
       align-items: center;
     }
-    .sf-edit-branch-input {
+    .sf-branch-label-input {
       flex: 1;
       padding: 9px 12px;
       border: 1.5px solid #e2e8f0;
@@ -1041,21 +980,57 @@
       font-family: inherit;
       color: #1e293b;
     }
-    .sf-edit-branch-input:focus { outline: none; border-color: #29a8e0; }
-    .sf-edit-branch-del {
+    .sf-branch-label-input:focus { outline: none; border-color: #29a8e0; }
+
+    .sf-branch-del-btn {
       padding: 8px 12px;
       border: 1.5px solid #e2e8f0;
       border-radius: 8px;
       background: white;
       color: #94a3b8;
       cursor: pointer;
-      font-size: 0.85rem;
       font-weight: 700;
+      font-size: 0.85rem;
       transition: all 0.15s;
     }
-    .sf-edit-branch-del:hover { border-color: #fca5a5; color: #dc2626; }
+    .sf-branch-del-btn:hover { border-color: #fca5a5; color: #dc2626; }
 
-    .sf-edit-add-branch {
+    .sf-go-btn {
+      padding: 7px 12px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      background: white;
+      color: #64748b;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .sf-go-btn:hover { border-color: #29a8e0; color: #0369a1; }
+
+    .sf-detail-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .sf-save-node-btn {
+      padding: 9px 22px;
+      background: #1e293b;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .sf-save-node-btn:hover { opacity: 0.85; }
+
+    .sf-add-branch-btn {
       padding: 9px 18px;
       border: 1.5px dashed #cbd5e1;
       border-radius: 8px;
@@ -1066,28 +1041,28 @@
       font-weight: 600;
       transition: all 0.15s;
     }
-    .sf-edit-add-branch:hover { border-color: #29a8e0; color: #0369a1; }
+    .sf-add-branch-btn:hover { border-color: #29a8e0; color: #0369a1; }
 
-    .sf-edit-save-btn {
-      padding: 10px 24px;
-      background: #1e293b;
-      color: white;
-      border: none;
+    .sf-delete-node-btn {
+      padding: 9px 16px;
+      border: 1.5px solid #fee2e2;
       border-radius: 8px;
-      font-size: 0.9rem;
-      font-weight: 700;
+      background: white;
+      color: #dc2626;
       cursor: pointer;
-      transition: opacity 0.15s;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-left: auto;
+      transition: all 0.15s;
     }
-    .sf-edit-save-btn:hover { opacity: 0.85; }
+    .sf-delete-node-btn:hover { background: #fef2f2; }
 
-    .sf-node-path-info {
-      font-size: 0.78rem;
-      color: #94a3b8;
-      margin-top: 10px;
-      font-style: italic;
+    /* Arrow labels in SVG */
+    .sf-arrow-label {
+      font-size: 11px;
+      fill: #64748b;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
     }
-
   </style>
 </head>
 <body>
@@ -1198,7 +1173,25 @@
 </div>
 
 <div id="tab-samtaleflyt" class="tab-content">
-  <div id="samtaleflyt-root"></div>
+  <div id="sf-outer">
+    <div id="sf-canvas-wrap">
+      <div id="sf-canvas">
+        <svg id="sf-svg"></svg>
+      </div>
+    </div>
+    <div id="sf-detail">
+      <h3 id="sf-detail-title">Steg</h3>
+      <textarea id="sf-detail-script" placeholder="Skriv inn hva du sier her..."></textarea>
+      <div style="font-size:0.75rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Kunden kan svare</div>
+      <div class="sf-branch-list" id="sf-branch-list"></div>
+      <div class="sf-detail-actions">
+        <button class="sf-save-node-btn" onclick="sfSaveCurrentNode()">Lagre</button>
+        <button class="sf-add-branch-btn" onclick="sfAddBranch()">+ Legg til svar</button>
+        <button class="sf-delete-node-btn" onclick="sfDeleteCurrentNode()">Slett steg</button>
+      </div>
+    </div>
+  </div>
+</div>
 </div>
 
 <script>
@@ -1222,7 +1215,7 @@
 
   function getAllData() {
     const list = JSON.parse(_origGetItem('objectionsList') || '[]');
-    const keys = ['savedIntros', 'introHistory', 'objectionsList', 'samtaleflyt'];
+    const keys = ['savedIntros', 'introHistory', 'objectionsList', 'samtaleflyt', 'samtaleflyt2'];
     list.forEach(({ id }) => keys.push('objdata_' + id));
     const data = {};
     keys.forEach(k => { const v = _origGetItem(k); if (v) data[k] = JSON.parse(v); });
@@ -2067,442 +2060,279 @@
     reader.readAsText(file);
   }
 
-  // ===== SAMTALEFLYT =====
+  // ===== SAMTALEFLYT v2 =====
 
-  function getDefaultSamtaleflyt() {
-    return {
-      phases: [
-        {
-          id: 'intro',
-          name: 'Intro',
-          rootId: 'i_root',
-          nodes: {
-            'i_root': {
-              id: 'i_root',
-              script: 'Hei dette er Aki Fackrell som ringer i fra Telenor Bedrift, god dag!\n\nStemmer det at jeg har kommet til [bedriftnavn]?\n\nPerfekt — du jeg skulle snakket med deg angående telefoni i bedriften din, men før jeg gjør det, er det greit at samtalen tas opp?',
-              branches: [
-                { label: 'Ja, greit', nodeId: 'i_ja' },
-                { label: 'Hva handler det om?', nodeId: 'i_hva' },
-                { label: 'Ikke interessert / travelt', nodeId: 'i_nei' }
-              ]
-            },
-            'i_ja': {
-              id: 'i_ja',
-              script: 'Takk! Da registrerer jeg det.\n\nJeg ringer fordi vi hjelper bedrifter med å optimalisere telefoniløsningen sin — mange betaler mer enn nødvendig eller bruker en løsning som ikke passer dem.\n\nKan jeg stille deg noen raske spørsmål om hvordan dere bruker telefoni i dag?',
-              branches: [
-                { label: 'Ja, det er greit', nodeId: 'i_ferdig' },
-                { label: 'Ikke tid nå', nodeId: 'i_ikke_tid' }
-              ]
-            },
-            'i_hva': {
-              id: 'i_hva',
-              script: 'Ja, selvfølgelig! Vi i Telenor Bedrift ser på om dere har riktig telefoniløsning for bedriften.\n\nDet er ingen forpliktelse — jeg vil bare stille et par raske spørsmål for å se om vi kan tilby noe bedre enn det dere har i dag.\n\nHar du et lite minutt?',
-              branches: [
-                { label: 'Ja, ok', nodeId: 'i_ferdig' },
-                { label: 'Nei, ikke nå', nodeId: 'i_ikke_tid' }
-              ]
-            },
-            'i_nei': {
-              id: 'i_nei',
-              script: 'Det forstår jeg! Jeg skal ikke ta mye av tiden din.\n\nJeg ringer fordi mange bedrifter faktisk sparer penger ved å bytte til en bedre løsning. Det tar bare 2–3 minutter å se om det er noe for dere.\n\nHar du tid til det nå?',
-              branches: [
-                { label: 'Ok, greit', nodeId: 'i_ferdig' },
-                { label: 'Nei, ikke interessert', nodeId: 'i_avslutning' }
-              ]
-            },
-            'i_ikke_tid': {
-              id: 'i_ikke_tid',
-              script: 'Ingen problem! Når passer det bedre — kan jeg ringe tilbake i morgen, eller er det en annen dag som passer?',
-              branches: [
-                { label: 'Gi meg en annen tid', nodeId: 'i_avslutning' }
-              ]
-            },
-            'i_ferdig': {
-              id: 'i_ferdig',
-              script: 'Flott! Da er vi i gang. [Gå videre til Behovsanalyse]',
-              branches: []
-            },
-            'i_avslutning': {
-              id: 'i_avslutning',
-              script: 'Forstår det, takk for at du tok telefonen! Ha en fin dag.',
-              branches: []
-            }
-          }
-        },
-        {
-          id: 'behovsanalyse',
-          name: 'Behovsanalyse',
-          rootId: 'b_root',
-          nodes: {
-            'b_root': {
-              id: 'b_root',
-              script: 'Hvor mange ansatte er det i bedriften som bruker mobiltelefon i jobben?',
-              branches: [
-                { label: '1–5 ansatte', nodeId: 'b_liten' },
-                { label: '6–20 ansatte', nodeId: 'b_medium' },
-                { label: '20+ ansatte', nodeId: 'b_stor' }
-              ]
-            },
-            'b_liten': {
-              id: 'b_liten',
-              script: 'OK, liten bedrift. Har dere faste abonnementer på alle telefoner, eller er det noen som bruker privatabonnement i jobben?',
-              branches: [
-                { label: 'Faste bedriftsabonnement', nodeId: 'b_kontrakt' },
-                { label: 'Noen bruker privat', nodeId: 'b_privat' }
-              ]
-            },
-            'b_medium': {
-              id: 'b_medium',
-              script: 'Greit. Har dere en felles faktura for alle abonnementene, eller betaler de ansatte selv?',
-              branches: [
-                { label: 'Felles faktura', nodeId: 'b_kontrakt' },
-                { label: 'Ansatte betaler selv', nodeId: 'b_privat' }
-              ]
-            },
-            'b_stor': {
-              id: 'b_stor',
-              script: 'Bra, dere er en større bedrift. Da er det ofte mye å spare på en samlet avtale. Har dere en innkjøpsansvarlig eller noen som håndterer telefonifaktura?',
-              branches: [
-                { label: 'Ja, en kontaktperson', nodeId: 'b_kontrakt' },
-                { label: 'Nei, det er spredt', nodeId: 'b_privat' }
-              ]
-            },
-            'b_kontrakt': {
-              id: 'b_kontrakt',
-              script: 'Greit. Vet du omtrent hva dere betaler per måned for telefoni totalt, eller per ansatt?',
-              branches: [
-                { label: 'Ja, vet omtrent', nodeId: 'b_ferdig' },
-                { label: 'Nei, vet ikke', nodeId: 'b_ferdig' }
-              ]
-            },
-            'b_privat': {
-              id: 'b_privat',
-              script: 'Det er vanlig, men det kan bli dyrt. Vi kan hjelpe dere med en felles bedriftsavtale som er billigere og enklere å administrere.\n\nHar dere vært i kontakt med Telenor Bedrift tidligere?',
-              branches: [
-                { label: 'Ja', nodeId: 'b_ferdig' },
-                { label: 'Nei', nodeId: 'b_ferdig' }
-              ]
-            },
-            'b_ferdig': {
-              id: 'b_ferdig',
-              script: 'Takk, det gir meg et godt bilde. [Gå videre til Oppsummering]',
-              branches: []
-            }
-          }
-        },
-        {
-          id: 'oppsummering',
-          name: 'Oppsummering',
-          rootId: 'o_root',
-          nodes: {
-            'o_root': {
-              id: 'o_root',
-              script: 'La meg oppsummere det jeg har forstått:\n\nDere er [X] ansatte, og bruker [beskriv situasjonen].\n\nStemmer det?',
-              branches: [
-                { label: 'Ja, stemmer', nodeId: 'o_bekreft' },
-                { label: 'Nei, ikke helt', nodeId: 'o_korriger' }
-              ]
-            },
-            'o_bekreft': {
-              id: 'o_bekreft',
-              script: 'Perfekt. Basert på det dere har i dag, tror jeg vi kan tilby en bedre løsning. [Gå videre til Løsningsforslag]',
-              branches: []
-            },
-            'o_korriger': {
-              id: 'o_korriger',
-              script: 'Beklager, takk for korreksjonen! Kan du utdype litt, så jeg får det riktig?',
-              branches: [
-                { label: 'Har forklart mer', nodeId: 'o_bekreft' }
-              ]
-            }
-          }
-        },
-        {
-          id: 'losningsforslag',
-          name: 'Løsningsforslag',
-          rootId: 'l_root',
-          nodes: {
-            'l_root': {
-              id: 'l_root',
-              script: 'Basert på det dere har fortalt meg, ville jeg anbefale [løsning].\n\nDette gir dere [fordel 1], [fordel 2], og [fordel 3].\n\nHva tenker du om det?',
-              branches: [
-                { label: 'Høres interessant ut', nodeId: 'l_interessert' },
-                { label: 'For dyrt', nodeId: 'l_pris' },
-                { label: 'Må tenke på det', nodeId: 'l_tenke' },
-                { label: 'Ikke interessert', nodeId: 'l_nei' }
-              ]
-            },
-            'l_interessert': {
-              id: 'l_interessert',
-              script: 'Flott! Da kan vi sette opp et møte der vi går gjennom detaljene og lager et konkret tilbud til dere. Hva passer best for deg — er det bedre med et Teams-møte eller at vi møtes fysisk?',
-              branches: [
-                { label: 'Teams-møte', nodeId: 'l_avtale' },
-                { label: 'Fysisk møte', nodeId: 'l_avtale' },
-                { label: 'Send meg noe på e-post', nodeId: 'l_epost' }
-              ]
-            },
-            'l_pris': {
-              id: 'l_pris',
-              script: 'Forstår at pris er viktig! Men mange av kundene våre opplever at de faktisk sparer penger etter å ha byttet — fordi de betaler for mye i dag.\n\nHva betaler dere omtrent nå? Da kan jeg si om vi kan slå det.',
-              branches: [
-                { label: 'Forteller pris', nodeId: 'l_interessert' },
-                { label: 'Vil ikke si', nodeId: 'l_tenke' }
-              ]
-            },
-            'l_tenke': {
-              id: 'l_tenke',
-              script: 'Det er helt greit! Hva er det du er usikker på? Kanskje jeg kan svare på det med en gang.',
-              branches: [
-                { label: 'Har spørsmål', nodeId: 'l_interessert' },
-                { label: 'Vil bare tenke', nodeId: 'l_oppfolging' }
-              ]
-            },
-            'l_nei': {
-              id: 'l_nei',
-              script: 'Det er greit. Kan jeg spørre — er det noe spesielt som gjør at dere ikke ønsker å se nærmere på det?',
-              branches: [
-                { label: 'Har binding', nodeId: 'l_binding' },
-                { label: 'Fornøyd med nåværende', nodeId: 'l_fornøyd' },
-                { label: 'Ikke relevant nå', nodeId: 'l_oppfolging' }
-              ]
-            },
-            'l_binding': {
-              id: 'l_binding',
-              script: 'Bindingstid er en vanlig situasjon. Vi kan hjelpe dere med å vurdere om det lønner seg å bytte nå eller vente til bindingen utgår. Kan jeg ta kontakt igjen når dere er fri?',
-              branches: [
-                { label: 'Ja, ring da', nodeId: 'l_avtale' },
-                { label: 'Nei takk', nodeId: 'l_avslutning' }
-              ]
-            },
-            'l_fornøyd': {
-              id: 'l_fornøyd',
-              script: 'Det er bra å høre! Det er alltid verdt å sammenligne for å sikre at dere har den beste prisen. Hadde det vært ok om jeg sendte en sammenligning på e-post, helt uforpliktende?',
-              branches: [
-                { label: 'Ja, greit', nodeId: 'l_epost' },
-                { label: 'Nei, ikke nødvendig', nodeId: 'l_avslutning' }
-              ]
-            },
-            'l_epost': {
-              id: 'l_epost',
-              script: 'Perfekt! Hva er den beste e-postadressen å sende til? Og hva heter du, slik at jeg kan adressere det riktig?',
-              branches: [
-                { label: 'Har gitt info', nodeId: 'l_avslutning' }
-              ]
-            },
-            'l_oppfolging': {
-              id: 'l_oppfolging',
-              script: 'Ingen problem. Kan jeg ringe tilbake om et par uker for å høre om situasjonen har endret seg?',
-              branches: [
-                { label: 'Ja, ok', nodeId: 'l_avtale' },
-                { label: 'Nei takk', nodeId: 'l_avslutning' }
-              ]
-            },
-            'l_avtale': {
-              id: 'l_avtale',
-              script: 'Flott! Hvilken dag og tid passer best for deg neste uke?',
-              branches: [
-                { label: 'Har gitt tid', nodeId: 'l_avslutning' }
-              ]
-            },
-            'l_avslutning': {
-              id: 'l_avslutning',
-              script: 'Tusen takk for praten! Ha en fin dag.',
-              branches: []
-            }
-          }
-        }
-      ]
-    };
+  const NODE_W = 200;
+  const NODE_H = 80;  // approximate, used for layout
+  const H_GAP  = 60;  // horizontal gap between siblings
+  const V_GAP  = 90;  // vertical gap between levels
+  const PAD    = 40;  // canvas padding
+
+  let sfSelectedId = null;
+
+  function sfGetData() {
+    const s = _origGetItem('samtaleflyt2');
+    if (s) { try { return JSON.parse(s); } catch {} }
+    return { rootId: null, nodes: {} };
   }
 
-  function getSamtaleflyt() {
-    const stored = localStorage.getItem('samtaleflyt');
-    if (stored) {
-      try { return JSON.parse(stored); } catch {}
+  function sfSaveData(data) {
+    localStorage.setItem('samtaleflyt2', JSON.stringify(data));
+  }
+
+  // ── Layout ──────────────────────────────────────────────────────────────
+  // Returns a map of nodeId → { x, y, subtreeWidth }
+  function sfLayout(data) {
+    const positions = {};
+    if (!data.rootId || !data.nodes[data.rootId]) return positions;
+
+    function subtreeWidth(id) {
+      const node = data.nodes[id];
+      if (!node) return NODE_W;
+      if (!node.children || node.children.length === 0) return NODE_W;
+      const childWidths = node.children.map(c => subtreeWidth(c.nodeId));
+      const total = childWidths.reduce((a, b) => a + b, 0) + H_GAP * (node.children.length - 1);
+      return Math.max(NODE_W, total);
     }
-    const def = getDefaultSamtaleflyt();
-    localStorage.setItem('samtaleflyt', JSON.stringify(def));
-    return def;
+
+    function place(id, cx, depth) {
+      const node = data.nodes[id];
+      if (!node) return;
+      const x = cx - NODE_W / 2;
+      const y = PAD + depth * (NODE_H + V_GAP);
+      positions[id] = { x, y };
+      if (!node.children || node.children.length === 0) return;
+      const childWidths = node.children.map(c => subtreeWidth(c.nodeId));
+      const totalW = childWidths.reduce((a, b) => a + b, 0) + H_GAP * (node.children.length - 1);
+      let curX = cx - totalW / 2;
+      node.children.forEach((c, i) => {
+        const cw = childWidths[i];
+        place(c.nodeId, curX + cw / 2, depth + 1);
+        curX += cw + H_GAP;
+      });
+    }
+
+    const rw = subtreeWidth(data.rootId);
+    place(data.rootId, PAD + rw / 2, 0);
+    return positions;
   }
 
-  function saveSamtaleflyt(data) {
-    localStorage.setItem('samtaleflyt', JSON.stringify(data));
+  function sfCanvasSize(positions) {
+    let maxX = 0, maxY = 0;
+    Object.values(positions).forEach(p => {
+      maxX = Math.max(maxX, p.x + NODE_W + PAD);
+      maxY = Math.max(maxY, p.y + NODE_H + PAD);
+    });
+    return { w: Math.max(maxX, 400), h: Math.max(maxY, 200) };
   }
 
-  // State
-  let sfActivePhaseIdx = 0;
-  let sfEditMode = false;
-  let sfNavStack = [];
-
+  // ── Render ──────────────────────────────────────────────────────────────
   function renderSamtaleflyt() {
-    const data = getSamtaleflyt();
-    const container = document.getElementById('samtaleflyt-root');
-    if (!container) return;
+    const data = sfGetData();
+    const canvas = document.getElementById('sf-canvas');
+    const svg    = document.getElementById('sf-svg');
+    if (!canvas || !svg) return;
 
-    const phase = data.phases[sfActivePhaseIdx];
+    // Clear old nodes (not svg)
+    canvas.querySelectorAll('.sf-node').forEach(n => n.remove());
 
-    const pipeline = data.phases.map((p, idx) => `
-      <button class="sf-phase-btn ${idx === sfActivePhaseIdx ? 'active' : ''}" onclick="sfSetPhase(${idx})">
-        <span class="sf-phase-number">${idx + 1}</span>
-        ${escHtml(p.name)}
-      </button>
-    `).join('');
-
-    if (sfNavStack.length === 0) sfNavStack = [phase.rootId];
-    const currentNodeId = sfNavStack[sfNavStack.length - 1];
-    const node = phase.nodes[currentNodeId];
-
-    const crumbs = sfNavStack.map((nid, i) => {
-      const label = i === 0 ? phase.name : (() => {
-        const parent = phase.nodes[sfNavStack[i - 1]];
-        const branch = parent && parent.branches.find(b => b.nodeId === nid);
-        return branch ? branch.label : 'Neste';
-      })();
-      const isLast = i === sfNavStack.length - 1;
-      return isLast
-        ? `<span style="color:#1e293b;font-weight:600;">${escHtml(label)}</span>`
-        : `<span onclick="sfGoToCrumb(${i})" style="cursor:pointer;">${escHtml(label)}</span><span class="sep">›</span>`;
-    }).join('');
-
-    let branchesHtml = '';
-    if (node && node.branches && node.branches.length > 0) {
-      branchesHtml = `
-        <div class="sf-branches-label">Kunden sier...</div>
-        <div class="sf-branches">
-          ${node.branches.map(b => `
-            <button class="sf-branch-btn" onclick="sfNavigate('${b.nodeId}')">${escHtml(b.label)}</button>
-          `).join('')}
-        </div>
-      `;
-    } else if (node) {
-      branchesHtml = `<div class="sf-end-node">Slutt på denne stien</div>`;
+    if (!data.rootId || Object.keys(data.nodes).length === 0) {
+      svg.innerHTML = '';
+      canvas.style.width  = '100%';
+      canvas.style.height = '300px';
+      svg.setAttribute('width',  '100%');
+      svg.setAttribute('height', '300');
+      if (!document.getElementById('sf-add-root-btn')) {
+        const btn = document.createElement('button');
+        btn.id = 'sf-add-root-btn';
+        btn.textContent = 'Start samtaleflyt';
+        btn.onclick = sfAddRoot;
+        canvas.appendChild(btn);
+      }
+      return;
     }
 
-    let editHtml = '';
-    if (sfEditMode && node) {
-      editHtml = `
-        <div class="sf-edit-panel">
-          <h3>Rediger dette steget</h3>
-          <textarea class="sf-edit-script" id="sf-edit-script-input" rows="5">${escHtml(node.script)}</textarea>
-          <div style="font-size:0.78rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;">Svaralternativer</div>
-          <div class="sf-edit-branches" id="sf-edit-branches-list">
-            ${(node.branches || []).map((b, i) => `
-              <div class="sf-edit-branch-row">
-                <input class="sf-edit-branch-input" id="sf-branch-input-${i}" value="${escHtml(b.label)}" placeholder="Kundens svar..." />
-                <button class="sf-edit-branch-del" onclick="sfDeleteBranch(${i})">×</button>
-              </div>
-            `).join('')}
-          </div>
-          <button class="sf-edit-add-branch" onclick="sfAddBranch()">+ Legg til svar</button>
-          <div style="margin-top:16px;">
-            <button class="sf-edit-save-btn" onclick="sfSaveNode()">Lagre endringer</button>
-          </div>
-          <div class="sf-node-path-info">Node ID: ${currentNodeId}</div>
-        </div>
+    // Remove "start" button if present
+    const startBtn = document.getElementById('sf-add-root-btn');
+    if (startBtn) startBtn.remove();
+
+    const positions = sfLayout(data);
+    const { w, h } = sfCanvasSize(positions);
+    canvas.style.width  = w + 'px';
+    canvas.style.height = h + 'px';
+    svg.setAttribute('width',  w);
+    svg.setAttribute('height', h);
+
+    // Draw SVG arrows
+    let svgContent = '';
+    Object.values(data.nodes).forEach(node => {
+      if (!node.children) return;
+      const from = positions[node.id];
+      if (!from) return;
+      node.children.forEach(child => {
+        const to = positions[child.nodeId];
+        if (!to) return;
+        const x1 = from.x + NODE_W / 2;
+        const y1 = from.y + NODE_H;
+        const x2 = to.x + NODE_W / 2;
+        const y2 = to.y;
+        const cy1 = y1 + V_GAP * 0.5;
+        const cy2 = y2 - V_GAP * 0.5;
+        const mx  = (x1 + x2) / 2;
+        const my  = (y1 + y2) / 2;
+        svgContent += `
+          <defs>
+            <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#cbd5e1"/>
+            </marker>
+          </defs>
+          <path d="M${x1},${y1} C${x1},${cy1} ${x2},${cy2} ${x2},${y2}"
+                stroke="#cbd5e1" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+          <text class="sf-arrow-label" x="${mx}" y="${my - 6}" text-anchor="middle">${sfEsc(child.label)}</text>
+        `;
+      });
+    });
+    svg.innerHTML = svgContent;
+
+    // Draw node boxes
+    Object.values(data.nodes).forEach(node => {
+      const pos = positions[node.id];
+      if (!pos) return;
+      const isRoot     = node.id === data.rootId;
+      const isSelected = node.id === sfSelectedId;
+      const isEmpty    = !node.text || node.text.trim() === '';
+      const preview    = isEmpty ? 'Klikk for å redigere' : node.text;
+      const shortPrev  = preview.length > 60 ? preview.slice(0, 60) + '…' : preview;
+
+      const div = document.createElement('div');
+      div.className = 'sf-node' +
+        (isRoot     ? ' root-node' : '') +
+        (isSelected ? ' selected'  : '') +
+        (isEmpty    ? ' sf-node-empty' : '');
+      div.style.left = pos.x + 'px';
+      div.style.top  = pos.y + 'px';
+      div.innerHTML = `
+        ${isRoot ? '<div class="sf-node-label">Start</div>' : ''}
+        <div class="sf-node-preview">${sfEsc(shortPrev)}</div>
       `;
-    }
-
-    container.innerHTML = `
-      <div class="sf-container">
-        <div class="sf-pipeline">${pipeline}</div>
-        ${editHtml}
-        <div class="sf-navigator">
-          <div class="sf-breadcrumb">${crumbs}</div>
-          <div class="sf-script-card">${node ? escHtml(node.script) : 'Noden ble ikke funnet.'}</div>
-          ${branchesHtml}
-          <div class="sf-nav-btns">
-            <button class="sf-back-btn" onclick="sfBack()" ${sfNavStack.length <= 1 ? 'disabled' : ''}>Tilbake</button>
-            <button class="sf-reset-btn" onclick="sfReset()">Start på nytt</button>
-            <button class="sf-edit-toggle ${sfEditMode ? 'active' : ''}" onclick="sfToggleEdit()">
-              ${sfEditMode ? 'Ferdig med redigering' : 'Rediger'}
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  function sfSetPhase(idx) {
-    sfActivePhaseIdx = idx;
-    sfNavStack = [];
-    sfEditMode = false;
-    renderSamtaleflyt();
-  }
-
-  function sfNavigate(nodeId) {
-    sfNavStack.push(nodeId);
-    renderSamtaleflyt();
-  }
-
-  function sfBack() {
-    if (sfNavStack.length > 1) sfNavStack.pop();
-    renderSamtaleflyt();
-  }
-
-  function sfReset() {
-    sfNavStack = [];
-    renderSamtaleflyt();
-  }
-
-  function sfGoToCrumb(idx) {
-    sfNavStack = sfNavStack.slice(0, idx + 1);
-    renderSamtaleflyt();
-  }
-
-  function sfToggleEdit() {
-    sfEditMode = !sfEditMode;
-    renderSamtaleflyt();
-  }
-
-  function sfSaveNode() {
-    const data = getSamtaleflyt();
-    const phase = data.phases[sfActivePhaseIdx];
-    const currentNodeId = sfNavStack[sfNavStack.length - 1];
-    const node = phase.nodes[currentNodeId];
-    if (!node) return;
-
-    const scriptEl = document.getElementById('sf-edit-script-input');
-    if (scriptEl) node.script = scriptEl.value;
-
-    const inputs = document.querySelectorAll('.sf-edit-branch-input');
-    inputs.forEach((inp, i) => {
-      if (node.branches[i]) node.branches[i].label = inp.value;
+      div.onclick = () => sfSelectNode(node.id);
+      canvas.appendChild(div);
     });
 
-    saveSamtaleflyt(data);
+    sfRenderDetail(data);
+  }
+
+  function sfSelectNode(id) {
+    sfSelectedId = id;
     renderSamtaleflyt();
   }
 
-  function sfDeleteBranch(idx) {
-    const data = getSamtaleflyt();
-    const phase = data.phases[sfActivePhaseIdx];
-    const currentNodeId = sfNavStack[sfNavStack.length - 1];
-    const node = phase.nodes[currentNodeId];
+  function sfRenderDetail(data) {
+    const panel = document.getElementById('sf-detail');
+    if (!panel) return;
+    if (!sfSelectedId || !data.nodes[sfSelectedId]) {
+      panel.classList.remove('open');
+      return;
+    }
+    panel.classList.add('open');
+    const node = data.nodes[sfSelectedId];
+    document.getElementById('sf-detail-title').textContent =
+      node.id === data.rootId ? 'Startsteg' : 'Steg';
+    document.getElementById('sf-detail-script').value = node.text || '';
+
+    const list = document.getElementById('sf-branch-list');
+    list.innerHTML = (node.children || []).map((c, i) => `
+      <div class="sf-branch-row">
+        <input class="sf-branch-label-input" id="sf-bl-${i}" value="${sfEsc(c.label)}" placeholder="Kunden sier..."/>
+        <button class="sf-go-btn" onclick="sfSelectNode('${c.nodeId}')">Gå til</button>
+        <button class="sf-branch-del-btn" onclick="sfDeleteBranch(${i})">×</button>
+      </div>
+    `).join('');
+  }
+
+  function sfSaveCurrentNode() {
+    if (!sfSelectedId) return;
+    const data = sfGetData();
+    const node = data.nodes[sfSelectedId];
     if (!node) return;
-    node.branches.splice(idx, 1);
-    saveSamtaleflyt(data);
+    node.text = document.getElementById('sf-detail-script').value;
+    const inputs = document.querySelectorAll('.sf-branch-label-input');
+    inputs.forEach((inp, i) => { if (node.children[i]) node.children[i].label = inp.value; });
+    sfSaveData(data);
     renderSamtaleflyt();
   }
 
   function sfAddBranch() {
-    const data = getSamtaleflyt();
-    const phase = data.phases[sfActivePhaseIdx];
-    const currentNodeId = sfNavStack[sfNavStack.length - 1];
-    const node = phase.nodes[currentNodeId];
+    sfSaveCurrentNode();
+    const data = sfGetData();
+    const node = data.nodes[sfSelectedId];
     if (!node) return;
-
-    const newId = 'node_' + Date.now();
-    phase.nodes[newId] = {
-      id: newId,
-      script: 'Skriv inn hva du skal si her...',
-      branches: []
-    };
-    node.branches.push({ label: 'Nytt svar', nodeId: newId });
-    saveSamtaleflyt(data);
+    const newId = 'n_' + Date.now();
+    data.nodes[newId] = { id: newId, text: '', children: [] };
+    if (!node.children) node.children = [];
+    node.children.push({ label: 'Kunden sier...', nodeId: newId });
+    sfSaveData(data);
     renderSamtaleflyt();
   }
-  // ===== END SAMTALEFLYT =====
+
+  function sfDeleteBranch(idx) {
+    const data = sfGetData();
+    const node = data.nodes[sfSelectedId];
+    if (!node || !node.children[idx]) return;
+    // Remove the child subtree
+    sfDeleteSubtree(data, node.children[idx].nodeId);
+    node.children.splice(idx, 1);
+    sfSaveData(data);
+    renderSamtaleflyt();
+  }
+
+  function sfDeleteSubtree(data, id) {
+    const node = data.nodes[id];
+    if (!node) return;
+    (node.children || []).forEach(c => sfDeleteSubtree(data, c.nodeId));
+    delete data.nodes[id];
+  }
+
+  function sfDeleteCurrentNode() {
+    if (!sfSelectedId) return;
+    const data = sfGetData();
+    if (sfSelectedId === data.rootId) {
+      if (!confirm('Slette hele samtaleflyt-treet?')) return;
+      data.rootId = null;
+      data.nodes  = {};
+      sfSelectedId = null;
+      sfSaveData(data);
+      renderSamtaleflyt();
+      return;
+    }
+    if (!confirm('Slette dette steget og alle steg under det?')) return;
+    // Remove reference from parent
+    Object.values(data.nodes).forEach(n => {
+      if (n.children) n.children = n.children.filter(c => c.nodeId !== sfSelectedId);
+    });
+    sfDeleteSubtree(data, sfSelectedId);
+    sfSelectedId = null;
+    sfSaveData(data);
+    renderSamtaleflyt();
+  }
+
+  function sfAddRoot() {
+    const data = sfGetData();
+    const id = 'n_root_' + Date.now();
+    data.nodes[id] = { id, text: '', children: [] };
+    data.rootId = id;
+    sfSelectedId = id;
+    sfSaveData(data);
+    renderSamtaleflyt();
+  }
+
+  function sfEsc(str) {
+    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ===== END SAMTALEFLYT v2 =====
 
 </script>
 </body>
 </html>
+
