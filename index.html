@@ -940,13 +940,29 @@
     }
     #sf-detail.open { display: block; }
 
-    #sf-detail h3 {
-      font-size: 0.75rem;
+    .sf-detail-section {
+      margin-bottom: 20px;
+    }
+
+    .sf-section-label {
+      font-size: 0.72rem;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #94a3b8;
-      margin-bottom: 12px;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    .sf-jeg-label {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .sf-kunde-label {
+      background: #f1f5f9;
+      color: #64748b;
     }
 
     #sf-detail-script {
@@ -1249,13 +1265,17 @@
         </div>
       </div>
       <div id="sf-detail">
-        <h3 id="sf-detail-title">Steg</h3>
-        <textarea id="sf-detail-script" placeholder="Skriv inn hva du sier her..."></textarea>
-        <div style="font-size:0.75rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Kunden kan svare</div>
-        <div class="sf-branch-list" id="sf-branch-list"></div>
+        <div class="sf-detail-section">
+          <div class="sf-section-label sf-jeg-label">Jeg sier</div>
+          <textarea id="sf-detail-script" placeholder="Skriv inn hva du sier..."></textarea>
+        </div>
+        <div class="sf-detail-section">
+          <div class="sf-section-label sf-kunde-label">Kunden kan svare</div>
+          <div class="sf-branch-list" id="sf-branch-list"></div>
+          <button class="sf-add-branch-btn" onclick="sfAddBranch()">+ Legg til kundesvar</button>
+        </div>
         <div class="sf-detail-actions">
           <button class="sf-save-node-btn" onclick="sfSaveCurrentNode()">Lagre</button>
-          <button class="sf-add-branch-btn" onclick="sfAddBranch()">+ Legg til svar</button>
           <button class="sf-delete-node-btn" onclick="sfDeleteCurrentNode()">Slett steg</button>
         </div>
       </div>
@@ -2342,15 +2362,13 @@
     }
     panel.classList.add('open');
     const node = data.nodes[sfSelectedId];
-    document.getElementById('sf-detail-title').textContent =
-      node.id === data.rootId ? 'Startsteg' : 'Steg';
     document.getElementById('sf-detail-script').value = node.text || '';
 
     const list = document.getElementById('sf-branch-list');
     list.innerHTML = (node.children || []).map((c, i) => `
       <div class="sf-branch-row">
-        <input class="sf-branch-label-input" id="sf-bl-${i}" value="${sfEsc(c.label)}" placeholder="Kunden sier..."/>
-        <button class="sf-go-btn" onclick="sfSelectNode('${c.nodeId}')">Gå til</button>
+        <input class="sf-branch-label-input" id="sf-bl-${i}" value="${sfEsc(c.label)}" placeholder="Skriv hva kunden sier..."/>
+        <button class="sf-go-btn" onclick="sfSelectNode('${c.nodeId}')">Min respons</button>
         <button class="sf-branch-del-btn" onclick="sfDeleteBranch(${i})">×</button>
       </div>
     `).join('');
