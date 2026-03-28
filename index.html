@@ -233,7 +233,7 @@
     }
     .delete-entry-btn:hover { opacity: 1; }
 
-
+    .objection-card {
       background: var(--card);
       border-radius: 14px;
       padding: 20px;
@@ -809,6 +809,32 @@
       from { opacity: 0; } to { opacity: 1; }
     }
 
+    /* Objection collapse */
+    .objection-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      padding: 2px 0;
+    }
+
+    .objection-card-header:hover h3 { color: var(--primary); }
+
+    .objection-collapse-icon {
+      font-size: 0.9rem;
+      color: var(--muted);
+      transition: transform 0.2s;
+      flex-shrink: 0;
+    }
+
+    .objection-card.expanded .objection-collapse-icon {
+      transform: rotate(180deg);
+    }
+
+    .objection-card-body { display: none; margin-top: 12px; }
+    .objection-card.expanded .objection-card-body { display: block; }
+
   </style>
 </head>
 <body>
@@ -826,7 +852,7 @@
 <div class="top-bar">
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('hjem')">🏠 Hjem</button>
-    <button class="tab-btn" onclick="switchTab('intro')">📞 Intro</button>
+    <button class="tab-btn" onclick="switchTab('intro')">📝 Registrer</button>
     <button class="tab-btn" onclick="switchTab('innvendinger')">💬 Innvendinger</button>
   </div>
   <div class="backup-btns">
@@ -841,28 +867,51 @@
   <div id="stats-home"></div>
 </div>
 
-<!-- ===== INTRO TAB ===== -->
+<!-- ===== REGISTRER TAB ===== -->
 <div id="tab-intro" class="tab-content">
 
   <div class="intro-layout">
 
-    <!-- LEFT: input + history -->
+    <!-- LEFT: scorecard form -->
     <div>
       <div class="card" style="margin:0 0 16px 0;">
-        <h2>Registrer forsøk</h2>
+        <h2>📝 Registrer samtale</h2>
 
         <label class="objection-label">Introtekst:</label>
         <textarea id="intro-text" placeholder="Hei, jeg ringer fra Telenor..."></textarea>
 
-        <div style="margin-top: 14px;">
-          <strong>Kom du forbi opptaksspørsmålet?</strong>
-          <div class="toggle-group">
-            <button class="toggle-btn" id="opptak-ja" onclick="selectOpptak('ja')">✅ Ja</button>
-            <button class="toggle-btn" id="opptak-nei" onclick="selectOpptak('nei')">❌ Nei</button>
+        <div id="intro-library-inline" style="margin-top:10px;"></div>
+
+        <div style="margin-top: 18px; display:flex; flex-direction:column; gap:14px;">
+
+          <div>
+            <strong>Kom du forbi opptaksspørsmålet?</strong>
+            <div class="toggle-group">
+              <button class="toggle-btn" id="opptak-ja" onclick="selectOpptak('ja')">✅ Ja</button>
+              <button class="toggle-btn" id="opptak-nei" onclick="selectOpptak('nei')">❌ Nei</button>
+            </div>
           </div>
+
+          <div>
+            <strong>Over 5 minutter? <span style="font-weight:400;color:var(--muted);font-size:0.85rem;">(valgfri)</span></strong>
+            <div class="toggle-group">
+              <button class="toggle-btn" id="over5min-ja" onclick="selectOver5min('ja')">✅ Ja</button>
+              <button class="toggle-btn" id="over5min-nei" onclick="selectOver5min('nei')">❌ Nei</button>
+            </div>
+          </div>
+
+          <div>
+            <strong>Salg? <span style="font-weight:400;color:var(--muted);font-size:0.85rem;">(valgfri)</span></strong>
+            <div class="toggle-group">
+              <button class="toggle-btn" id="salg-ja" onclick="selectSalg('ja')">✅ Ja</button>
+              <button class="toggle-btn" id="salg-nei" onclick="selectSalg('nei')">❌ Nei</button>
+            </div>
+          </div>
+
         </div>
 
-        <button class="save-btn" onclick="saveIntro()">Lagre forsøk</button>
+        <button class="save-btn" style="width:100%;margin-top:22px;padding:14px;font-size:1.1rem;" onclick="saveIntro()">💾 Lagre samtale</button>
+
         <button class="history-toggle-btn" onclick="toggleHistory()">📋 Vis historikk</button>
         <div id="history-panel" class="history-panel">
           <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 4px;">
@@ -1162,20 +1211,8 @@
         <div class="stats-grid stats-grid-4">
           ${statCard('📞', dag.total, 'Forsøk', true)}
           ${statCard('🎯', dag.hitrate !== null ? `<span style="color:${pctColor(dag.hitrate)}">${dag.hitrate}%</span>` : '–', 'Hitrate opptak', true)}
-          <div class="stat-card day-card quick-register-card">
-            <button class="quick-undo-btn" onclick="quickUnregister('over5min')" title="Angre siste">↩</button>
-            <div class="stat-icon big">⏱️</div>
-            <div class="stat-value big">${dag.over5}</div>
-            <div class="stat-label">5-minutters</div>
-            <button class="quick-reg-btn" onclick="quickRegister('over5min')">+ Registrer</button>
-          </div>
-          <div class="stat-card day-card quick-register-card">
-            <button class="quick-undo-btn" onclick="quickUnregister('salg')" title="Angre siste">↩</button>
-            <div class="stat-icon big">💰</div>
-            <div class="stat-value big">${dag.salg}</div>
-            <div class="stat-label">Salg</div>
-            <button class="quick-reg-btn salg" onclick="quickRegister('salg')">+ Registrer</button>
-          </div>
+          ${statCard('⏱️', dag.over5, '5-minutters', true)}
+          ${statCard('💰', dag.salg, 'Salg', true)}
         </div>
       </div>
 
@@ -1220,6 +1257,48 @@
     if (pct >= 70) return { bar: 'bar-green', pct: 'pct-green', border: 'border-green' };
     if (pct >= 40) return { bar: 'bar-yellow', pct: 'pct-yellow', border: 'border-yellow' };
     return { bar: 'bar-red', pct: 'pct-red', border: 'border-red' };
+  }
+
+  function renderIntroLibraryInline() {
+    const container = document.getElementById('intro-library-inline');
+    if (!container) return;
+    const intros = getSavedIntros();
+    if (!intros.length) { container.innerHTML = ''; return; }
+    const history = getIntroHistory();
+    const withStats = intros.map(i => {
+      const attempts = history.filter(h => h.text.trim() === i.text.trim());
+      const total = attempts.length;
+      const ja = attempts.filter(h => h.opptak === 'ja').length;
+      return { i, total, ja, hitrate: total > 0 ? ja / total : null };
+    });
+    withStats.sort((a, b) => {
+      const aTop = a.total > 10, bTop = b.total > 10;
+      if (aTop && !bTop) return -1; if (!aTop && bTop) return 1;
+      if (aTop && bTop) return b.hitrate - a.hitrate; return 0;
+    });
+    container.innerHTML = `
+      <div style="font-size:0.82rem;color:var(--muted);margin-bottom:6px;font-weight:600;">📚 Velg fra biblioteket:</div>
+      <div style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;">
+        ${withStats.map(({ i, total, ja, hitrate }) => {
+          const pct = hitrate !== null ? Math.round(hitrate * 100) : null;
+          const cls = hitrateClass(pct);
+          const isSelected = document.getElementById('intro-text')?.value.trim() === i.text.trim();
+          return `<button class="intro-chip-inline ${cls.border}" onclick="selectIntroInline('${i.id}')" style="text-align:left;padding:8px 12px;border:2px solid var(--border);border-radius:8px;background:var(--primary-xlight);cursor:pointer;font-size:0.88rem;display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(i.text)}</span>
+            ${pct !== null ? `<span style="font-weight:700;${cls.pct ? `color:var(--text)` : ''};font-size:0.82rem;flex-shrink:0;">${pct}%</span>` : ''}
+          </button>`;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  function selectIntroInline(id) {
+    const intros = getSavedIntros();
+    const intro = intros.find(i => i.id === id);
+    if (!intro) return;
+    selectedIntroId = id;
+    document.getElementById('intro-text').value = intro.text;
+    renderIntroLibraryInline();
   }
 
   function renderIntroLibrary() {
@@ -1292,8 +1371,8 @@
     history.unshift({
       text,
       opptak: selectedOpptak,
-      over5min: selectedOver5min,
-      salg: selectedSalg,
+      over5min: selectedOver5min || null,
+      salg: selectedSalg || null,
       isoDate: new Date().toISOString(),
       tid: new Date().toLocaleString('no-NO')
     });
@@ -1305,6 +1384,7 @@
     resetOpptak();
     renderStatsHome();
     renderIntroLibrary();
+    renderIntroLibraryInline();
     renderIntroHistory();
   }
 
@@ -1548,31 +1628,43 @@
     toggle.textContent = open ? `📋 Skjul historikk (${data.length})` : `📋 Vis historikk (${data.length})`;
   }
 
+  function toggleObjCard(id) {
+    const card = document.getElementById('objcard-' + id);
+    if (!card) return;
+    card.classList.toggle('expanded');
+  }
+
   function buildObjections() {
     const list = getObjList();
     const container = document.getElementById('objections-container');
     container.innerHTML = list.map(({ id, text }) => `
-      <div class="objection-card">
-        <h3>💬 ${escHtml(text)}
-          <button class="delete-objection-btn" onclick="deleteObjection('${id}')" title="Fjern innvending">🗑</button>
-        </h3>
-        <div id="obj-stats-${id}"></div>
-        <label class="objection-label">Ditt svar på innvendingen:</label>
-        <textarea id="obj-text-${id}" placeholder="Skriv svaret ditt her..."></textarea>
-        <div style="margin-top: 10px;">
-          <strong>Funket det?</strong>
-          <div class="toggle-group">
-            <button class="toggle-btn" id="obj-ja-${id}" onclick="selectObjResult('${id}', 'ja')">✅ Ja</button>
-            <button class="toggle-btn" id="obj-nei-${id}" onclick="selectObjResult('${id}', 'nei')">❌ Nei</button>
+      <div class="objection-card" id="objcard-${id}">
+        <div class="objection-card-header" onclick="toggleObjCard('${id}')">
+          <h3 style="margin:0;flex:1;">💬 ${escHtml(text)}</h3>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button class="delete-objection-btn" onclick="event.stopPropagation(); deleteObjection('${id}')" title="Fjern innvending" style="float:none;position:static;">🗑</button>
+            <span class="objection-collapse-icon">▼</span>
           </div>
         </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
-          <button class="save-btn" onclick="saveObjResponse('${id}')">Lagre svar</button>
-          <button class="clear-btn" onclick="clearObjHistory('${id}')">Tøm historikk</button>
-        </div>
-        <button class="obj-history-toggle" id="obj-history-toggle-${id}" onclick="toggleObjHistory('${id}')" style="display:none"></button>
-        <div id="obj-history-panel-${id}" class="obj-history-panel">
-          <div id="obj-history-${id}" class="history-list" style="margin-top:12px;"></div>
+        <div id="obj-stats-${id}" style="margin-top:8px;"></div>
+        <div class="objection-card-body">
+          <label class="objection-label">Ditt svar på innvendingen:</label>
+          <textarea id="obj-text-${id}" placeholder="Skriv svaret ditt her..."></textarea>
+          <div style="margin-top: 10px;">
+            <strong>Funket det?</strong>
+            <div class="toggle-group">
+              <button class="toggle-btn" id="obj-ja-${id}" onclick="selectObjResult('${id}', 'ja')">✅ Ja</button>
+              <button class="toggle-btn" id="obj-nei-${id}" onclick="selectObjResult('${id}', 'nei')">❌ Nei</button>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
+            <button class="save-btn" onclick="saveObjResponse('${id}')">Lagre svar</button>
+            <button class="clear-btn" onclick="clearObjHistory('${id}')">Tøm historikk</button>
+          </div>
+          <button class="obj-history-toggle" id="obj-history-toggle-${id}" onclick="toggleObjHistory('${id}')" style="display:none"></button>
+          <div id="obj-history-panel-${id}" class="obj-history-panel">
+            <div id="obj-history-${id}" class="history-list" style="margin-top:12px;"></div>
+          </div>
         </div>
       </div>
     `).join('');
@@ -1590,6 +1682,7 @@
     await loadFromCloud();
     renderStatsHome();
     renderIntroLibrary();
+    renderIntroLibraryInline();
     renderIntroHistory();
     buildObjections();
   })();
