@@ -769,6 +769,20 @@
     .bar-fill.bf-teal   { background: linear-gradient(to top, #14b8a6, #2dd4bf); }
 
     .bar-fill:hover { filter: brightness(1.1); }
+
+    /* Stacked bar (teal + gold) */
+    .bar-stack {
+      width: 100%;
+      border-radius: 6px 6px 0 0;
+      min-height: 4px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: height 0.4s ease;
+    }
+    .bar-seg-gold { background: linear-gradient(to top, #f59e0b, #fbbf24); min-height: 0; }
+    .bar-seg-teal { background: linear-gradient(to top, #14b8a6, #2dd4bf); min-height: 0; }
+    .bar-stack:hover { filter: brightness(1.08); }
       font-size: 0.78rem;
       font-weight: 700;
       color: var(--muted);
@@ -1649,6 +1663,27 @@
     }).join('') + `</div>`;
   }
 
+  function stackedBarChart(data) {
+    const max = Math.max(...data.map(d => (d.fiveMin || 0) + (d.sales || 0)), 1);
+    return `<div class="bar-chart">` + data.map(d => {
+      const total = (d.fiveMin || 0) + (d.sales || 0);
+      const h = Math.round((total / max) * 100);
+      const goldFlex = d.sales || 0;
+      const tealFlex = d.fiveMin || 0;
+      const bar = total > 0
+        ? `<div class="bar-stack" style="height:${h}%">
+            ${goldFlex > 0 ? `<div class="bar-seg-gold" style="flex:${goldFlex}"></div>` : ''}
+            <div class="bar-seg-teal" style="flex:${Math.max(tealFlex, 0.001)}"></div>
+          </div>`
+        : `<div class="bar-stack" style="height:4px"><div class="bar-seg-teal" style="flex:1;opacity:0.25"></div></div>`;
+      return `<div class="bar-col">
+        <div class="bar-val">${total > 0 ? total : ''}</div>
+        ${bar}
+        <div class="bar-lbl">${d.label}</div>
+      </div>`;
+    }).join('') + `</div>`;
+  }
+
   function renderStatsHome() {
     const history = getIntroHistory();
     const dagEntries = history.filter(h => isToday(h.isoDate));
@@ -1676,8 +1711,9 @@
     const weekData = days.map((lbl, i) => {
       const day = new Date(now); day.setDate(now.getDate() - monOffset + i); day.setHours(0,0,0,0);
       const next = new Date(day); next.setDate(day.getDate() + 1);
-      const count = ukeEntries.filter(h => { const d = new Date(h.isoDate); return d >= day && d < next && h.over5min === 'ja'; }).length;
-      return { label: lbl, value: count };
+      const fiveMin = ukeEntries.filter(h => { const d = new Date(h.isoDate); return d >= day && d < next && h.over5min === 'ja'; }).length;
+      const sales = ukeEntries.filter(h => { const d = new Date(h.isoDate); return d >= day && d < next && h.salg === 'ja'; }).length;
+      return { label: lbl, fiveMin, sales };
     });
 
     // Month bar chart: work weeks (Mon–Fri) that overlap with the current month
@@ -1692,11 +1728,15 @@
       const wFri = new Date(wMon); wFri.setDate(wMon.getDate() + 5); // Saturday 00:00 = end of Friday
       // Only include if the work week overlaps with the current month
       if (wFri > firstOfMonth && wMon <= lastOfMonth) {
-        const count = mndEntries.filter(h => {
+        const fiveMin = mndEntries.filter(h => {
           const d = new Date(h.isoDate);
           return d >= wMon && d < wFri && h.over5min === 'ja';
         }).length;
-        weekBuckets.push({ label: `U${weekBuckets.length + 1}`, value: count });
+        const sales = mndEntries.filter(h => {
+          const d = new Date(h.isoDate);
+          return d >= wMon && d < wFri && h.salg === 'ja';
+        }).length;
+        weekBuckets.push({ label: `U${weekBuckets.length + 1}`, fiveMin, sales });
       }
       wMon = new Date(wMon); wMon.setDate(wMon.getDate() + 7);
     }
@@ -1726,8 +1766,8 @@
         <div class="stats-section-title st-teal">Denne uken</div>
         <div class="stats-grid stats-grid-2" style="margin-bottom:14px;">
           <div class="chart-card cc-teal">
-            <div class="chart-card-title">5-minutters per dag</div>
-            ${barChart(weekData, 'bf-teal')}
+            <div class="chart-card-title">5-min & salg per dag</div>
+            ${stackedBarChart(weekData)}
           </div>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
             ${statCard(uke.total, 'Forsøk totalt', false, 'blue')}
@@ -1743,8 +1783,8 @@
         <div class="stats-section-title st-teal">${now.toLocaleString('no-NO', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase())}</div>
         <div class="stats-grid stats-grid-2">
           <div class="chart-card cc-teal">
-            <div class="chart-card-title">5-minutters per uke</div>
-            ${barChart(weekBuckets, 'bf-teal')}
+            <div class="chart-card-title">5-min & salg per uke</div>
+            ${stackedBarChart(weekBuckets)}
           </div>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
             ${statCard(mnd.total, 'Forsøk totalt', false, 'blue')}
