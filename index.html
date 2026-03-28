@@ -2519,9 +2519,6 @@
         <marker id="arr-shared" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
           <path d="M0,0 L0,6 L8,3 z" fill="#f97316"/>
         </marker>
-        <marker id="arr-link" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-          <path d="M0,0 L0,6 L8,3 z" fill="#7c3aed"/>
-        </marker>
       </defs>`;
     const kundeBoxes = [];
 
@@ -2555,37 +2552,35 @@
     kundeBoxes.forEach(kb => { kundeBoxMap[`${kb.parentId}_${kb.childIdx}`] = kb; });
 
     // Extra links (purely visual, no structure changes)
-    // sfEdgePt: given box center + half-sizes, returns border point in direction (dx,dy)
-    function sfEdgePt(cx, cy, hw, hh, dx, dy) {
-      if (dx === 0 && dy === 0) return [cx, cy];
-      const tx = dx !== 0 ? hw / Math.abs(dx) : Infinity;
-      const ty = dy !== 0 ? hh / Math.abs(dy) : Infinity;
-      const t  = Math.min(tx, ty);
-      return [cx + dx * t, cy + dy * t];
+    // Snap to nearest side midpoint (top/bottom/left/right center) — same as normal lines
+    function sfSideAnchor(x, y, w, h, dx, dy) {
+      const cx = x + w / 2, cy = y + h / 2;
+      if (Math.abs(dy) >= Math.abs(dx)) {
+        return dy >= 0 ? [cx, y + h] : [cx, y];      // bottom or top
+      } else {
+        return dx >= 0 ? [x + w, cy] : [x, cy];      // right or left
+      }
     }
     (data.extraLinks || []).forEach(link => {
-      let fromCx, fromCy, fromHW, fromHH, toCx, toCy, toHW, toHH;
+      let fx, fy, fw, fh, tx, ty, tw, th;
       if (link.from === 'jegsier') {
         const fp = positions[link.fromId];
         const tb = kundeBoxMap[`${link.toParentId}_${link.toChildIdx}`];
         if (!fp || !tb) return;
-        fromCx = fp.x + NODE_W / 2;  fromCy = fp.y + NODE_H / 2;  fromHW = NODE_W / 2;  fromHH = NODE_H / 2;
-        toCx   = tb.x + KUNDE_W / 2; toCy   = tb.y + KUNDE_H / 2; toHW   = KUNDE_W / 2; toHH   = KUNDE_H / 2;
+        fx = fp.x; fy = fp.y; fw = NODE_W;  fh = NODE_H;
+        tx = tb.x; ty = tb.y; tw = KUNDE_W; th = KUNDE_H;
       } else {
         const fb = kundeBoxMap[`${link.fromParentId}_${link.fromChildIdx}`];
         const tp = positions[link.toId];
         if (!fb || !tp) return;
-        fromCx = fb.x + KUNDE_W / 2; fromCy = fb.y + KUNDE_H / 2; fromHW = KUNDE_W / 2; fromHH = KUNDE_H / 2;
-        toCx   = tp.x + NODE_W / 2;  toCy   = tp.y + NODE_H / 2;  toHW   = NODE_W / 2;  toHH   = NODE_H / 2;
+        fx = fb.x; fy = fb.y; fw = KUNDE_W; fh = KUNDE_H;
+        tx = tp.x; ty = tp.y; tw = NODE_W;  th = NODE_H;
       }
-      const dx = toCx - fromCx, dy = toCy - fromCy;
-      const len = Math.sqrt(dx * dx + dy * dy) || 1;
-      const nx = dx / len, ny = dy / len;
-      const [x1, y1] = sfEdgePt(fromCx, fromCy, fromHW, fromHH,  nx,  ny);
-      const [x2r, y2r] = sfEdgePt(toCx, toCy, toHW, toHH, -nx, -ny);
-      // Pull endpoint back by ~10px so arrowhead tip lands on the box border
-      const x2 = x2r + nx * 10, y2 = y2r + ny * 10;
-      svgContent += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>`;
+      const dx = (tx + tw / 2) - (fx + fw / 2);
+      const dy = (ty + th / 2) - (fy + fh / 2);
+      const [x1, y1] = sfSideAnchor(fx, fy, fw, fh,  dx,  dy);
+      const [x2, y2] = sfSideAnchor(tx, ty, tw, th, -dx, -dy);
+      svgContent += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>`;
     });
 
     svg.innerHTML = svgContent;
