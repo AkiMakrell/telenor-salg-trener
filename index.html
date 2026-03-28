@@ -2555,22 +2555,37 @@
     kundeBoxes.forEach(kb => { kundeBoxMap[`${kb.parentId}_${kb.childIdx}`] = kb; });
 
     // Extra links (purely visual, no structure changes)
+    // sfEdgePt: given box center + half-sizes, returns border point in direction (dx,dy)
+    function sfEdgePt(cx, cy, hw, hh, dx, dy) {
+      if (dx === 0 && dy === 0) return [cx, cy];
+      const tx = dx !== 0 ? hw / Math.abs(dx) : Infinity;
+      const ty = dy !== 0 ? hh / Math.abs(dy) : Infinity;
+      const t  = Math.min(tx, ty);
+      return [cx + dx * t, cy + dy * t];
+    }
     (data.extraLinks || []).forEach(link => {
+      let fromCx, fromCy, fromHW, fromHH, toCx, toCy, toHW, toHH;
       if (link.from === 'jegsier') {
-        const fromPos = positions[link.fromId];
-        const toBox   = kundeBoxMap[`${link.toParentId}_${link.toChildIdx}`];
-        if (!fromPos || !toBox) return;
-        const x1 = fromPos.x + NODE_W / 2, y1 = fromPos.y + NODE_H;
-        const x2 = toBox.x   + KUNDE_W / 2, y2 = toBox.y + KUNDE_H / 2;
-        svgContent += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#7c3aed" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arr-link)"/>`;
+        const fp = positions[link.fromId];
+        const tb = kundeBoxMap[`${link.toParentId}_${link.toChildIdx}`];
+        if (!fp || !tb) return;
+        fromCx = fp.x + NODE_W / 2;  fromCy = fp.y + NODE_H / 2;  fromHW = NODE_W / 2;  fromHH = NODE_H / 2;
+        toCx   = tb.x + KUNDE_W / 2; toCy   = tb.y + KUNDE_H / 2; toHW   = KUNDE_W / 2; toHH   = KUNDE_H / 2;
       } else {
-        const fromBox = kundeBoxMap[`${link.fromParentId}_${link.fromChildIdx}`];
-        const toPos   = positions[link.toId];
-        if (!fromBox || !toPos) return;
-        const x1 = fromBox.x + KUNDE_W / 2, y1 = fromBox.y + KUNDE_H / 2;
-        const x2 = toPos.x   + NODE_W / 2,  y2 = toPos.y;
-        svgContent += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#7c3aed" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arr-link)"/>`;
+        const fb = kundeBoxMap[`${link.fromParentId}_${link.fromChildIdx}`];
+        const tp = positions[link.toId];
+        if (!fb || !tp) return;
+        fromCx = fb.x + KUNDE_W / 2; fromCy = fb.y + KUNDE_H / 2; fromHW = KUNDE_W / 2; fromHH = KUNDE_H / 2;
+        toCx   = tp.x + NODE_W / 2;  toCy   = tp.y + NODE_H / 2;  toHW   = NODE_W / 2;  toHH   = NODE_H / 2;
       }
+      const dx = toCx - fromCx, dy = toCy - fromCy;
+      const len = Math.sqrt(dx * dx + dy * dy) || 1;
+      const nx = dx / len, ny = dy / len;
+      const [x1, y1] = sfEdgePt(fromCx, fromCy, fromHW, fromHH,  nx,  ny);
+      const [x2r, y2r] = sfEdgePt(toCx, toCy, toHW, toHH, -nx, -ny);
+      // Pull endpoint back by ~10px so arrowhead tip lands on the box border
+      const x2 = x2r + nx * 10, y2 = y2r + ny * 10;
+      svgContent += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#7c3aed" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arr-link)"/>`;
     });
 
     svg.innerHTML = svgContent;
