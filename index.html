@@ -1217,11 +1217,22 @@
     .sf-toolbar-btn:disabled { opacity: 0.35; cursor: default; }
     .sf-toolbar-btn.new-intro { border-color: #bfdbfe; color: #1d4ed8; background: #eff6ff; }
     .sf-toolbar-btn.new-intro:hover { background: #dbeafe; }
+    .sf-toolbar-btn.koble-active { border-color: #f97316; color: white; background: #f97316; }
+    .sf-toolbar-btn.koble-active:hover { background: #ea580c; }
 
-    /* Link mode */
-    #sf-canvas-wrap.link-mode { cursor: crosshair; }
-    .sf-node.link-target { cursor: pointer; }
-    .sf-node.link-target:hover { border-color: #f97316; box-shadow: 0 0 0 3px rgba(249,115,22,0.2); }
+    /* Koble modus */
+    #sf-canvas-wrap.koble-modus { cursor: crosshair; }
+    #sf-canvas-wrap.koble-modus .sf-node,
+    #sf-canvas-wrap.koble-modus .sf-kunde-node { cursor: crosshair; }
+    .sf-node.koble-source {
+      border-color: #f97316 !important;
+      box-shadow: 0 0 0 4px rgba(249,115,22,0.3) !important;
+    }
+    .sf-kunde-node.koble-source {
+      border-color: #f97316 !important;
+      box-shadow: 0 0 0 4px rgba(249,115,22,0.3) !important;
+      background: #fff7ed !important;
+    }
 
     /* Shared node indicator */
     .sf-node.shared-node { border-style: dashed; }
@@ -1236,23 +1247,6 @@
       background: #fff7ed;
     }
     .sf-kunde-node.shared-edge .sf-kunde-node-label { color: #ea580c; }
-
-    /* Link button in detail panel */
-    .sf-link-btn {
-      padding: 9px 16px;
-      border: 1.5px solid #fed7aa;
-      border-radius: 8px;
-      background: #fff7ed;
-      color: #ea580c;
-      cursor: pointer;
-      font-size: 0.85rem;
-      font-weight: 600;
-      font-family: inherit;
-      transition: all 0.15s;
-      width: 100%;
-      margin-top: 8px;
-    }
-    .sf-link-btn:hover { background: #ffedd5; border-color: #fb923c; }
   </style>
 </head>
 <body>
@@ -1390,12 +1384,12 @@
       <button class="sf-back-phase-btn" onclick="sfBackToPhases()">← Tilbake</button>
       <span id="sf-phase-title" style="font-size:1.1rem;font-weight:700;color:#1e293b;"></span>
       <button class="sf-toolbar-btn new-intro" onclick="sfAddNewIntro()">+ Ny intro</button>
+      <button class="sf-toolbar-btn" id="sf-koble-btn" onclick="sfToggleKobleMode()">🔗 Koble modus</button>
       <button class="sf-toolbar-btn" id="sf-undo-btn" onclick="sfUndo()" disabled>↩ Angre</button>
     </div>
     <div id="sf-outer">
-      <div id="sf-link-banner" style="display:none;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:8px;padding:10px 16px;margin-bottom:12px;align-items:center;gap:12px;">
-        <span style="color:#ea580c;font-weight:600;font-size:0.88rem;">🔗 Klikk et steg for å koble til det — eller klikk tomt område for å avbryte</span>
-        <button onclick="sfCancelLinkMode()" style="margin-left:auto;padding:5px 12px;border:1.5px solid #fed7aa;border-radius:6px;background:white;color:#ea580c;cursor:pointer;font-size:0.8rem;font-weight:600;font-family:inherit;">✕ Avbryt</button>
+      <div id="sf-koble-banner" style="display:none;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:8px;padding:10px 16px;margin-bottom:12px;align-items:center;gap:12px;">
+        <span id="sf-koble-banner-text" style="color:#ea580c;font-weight:600;font-size:0.88rem;">🔗 Koble modus — klikk en boks for å velge den, klikk deretter en kompatibel boks for å koble. Klikk tomt område for å avvelge.</span>
       </div>
       <div id="sf-canvas-wrap">
         <div id="sf-canvas">
@@ -1411,7 +1405,6 @@
           <div class="sf-section-label sf-kunde-label">Kunden kan svare</div>
           <div class="sf-branch-list" id="sf-branch-list"></div>
           <button class="sf-add-branch-btn" onclick="sfAddBranch()">+ Legg til kundesvar</button>
-          <button class="sf-link-btn" onclick="sfEnterLinkMode()">🔗 Koble til eksisterende steg</button>
         </div>
         <div class="sf-detail-actions">
           <button class="sf-save-node-btn" onclick="sfSaveCurrentNode()">Lagre</button>
@@ -2308,9 +2301,10 @@
   const V_GAP  = 160;
   const PAD    = 40;
 
-  let sfSelectedId = null;
-  let sfLinkMode   = false;
-  let sfHistory    = [];
+  let sfSelectedId  = null;
+  let sfKobleMode   = false;
+  let sfKobleSource = null; // { type:'jegsier'|'kundesier', id?, parentId?, childIdx?, label?, targetId? }
+  let sfHistory     = [];
 
   // ── Data ──────────────────────────────────────────────────────────────
   function sfGetData() {
@@ -2345,8 +2339,8 @@
     if (!sfHistory.length) return;
     const snapshot = sfHistory.pop();
     _origSetItem('samtaleflyt2_' + sfCurrentPhase, snapshot);
-    sfSelectedId = null;
-    sfLinkMode   = false;
+    sfSelectedId  = null;
+    sfKobleSource = null;
     renderSamtaleflyt();
   }
 
@@ -2354,7 +2348,8 @@
   function sfOpenPhase(phaseId) {
     sfCurrentPhase = phaseId;
     sfSelectedId   = null;
-    sfLinkMode     = false;
+    sfKobleMode    = false;
+    sfKobleSource  = null;
     sfHistory      = [];
     const phase = SF_PHASES.find(p => p.id === phaseId);
     document.getElementById('sf-phase-picker').style.display = 'none';
@@ -2366,7 +2361,8 @@
   function sfBackToPhases() {
     sfCurrentPhase = null;
     sfSelectedId   = null;
-    sfLinkMode     = false;
+    sfKobleMode    = false;
+    sfKobleSource  = null;
     sfHistory      = [];
     document.getElementById('sf-tree-view').style.display   = 'none';
     document.getElementById('sf-phase-picker').style.display = 'block';
@@ -2462,11 +2458,21 @@
     const undoBtn = document.getElementById('sf-undo-btn');
     if (undoBtn) undoBtn.disabled = sfHistory.length === 0;
 
-    // Link mode banner
-    const banner = document.getElementById('sf-link-banner');
-    if (banner) banner.style.display = sfLinkMode ? 'flex' : 'none';
+    // Koble modus button + banner
+    const kobleBtn = document.getElementById('sf-koble-btn');
+    if (kobleBtn) kobleBtn.classList.toggle('koble-active', sfKobleMode);
+    const banner = document.getElementById('sf-koble-banner');
+    if (banner) {
+      banner.style.display = sfKobleMode ? 'flex' : 'none';
+      const bannerText = document.getElementById('sf-koble-banner-text');
+      if (bannerText) {
+        bannerText.textContent = sfKobleSource
+          ? `🔗 Valgt: "${sfKobleSource.type === 'jegsier' ? 'Jeg sier' : 'Kunden sier: ' + sfKobleSource.label}" — klikk nå en ${sfKobleSource.type === 'jegsier' ? 'grønn kunden-sier' : 'blå jeg-sier'} boks for å koble`
+          : '🔗 Koble modus — klikk en boks, klikk deretter en kompatibel boks for å koble. Klikk tomt område for å avvelge.';
+      }
+    }
     const wrap = document.getElementById('sf-canvas-wrap');
-    if (wrap) wrap.classList.toggle('link-mode', sfLinkMode);
+    if (wrap) wrap.classList.toggle('koble-modus', sfKobleMode);
 
     // Clear canvas
     canvas.querySelectorAll('.sf-node, .sf-kunde-node').forEach(n => n.remove());
@@ -2537,7 +2543,7 @@
           <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${ky}"      stroke="${stroke}" stroke-width="1.5" marker-end="${marker}"/>
           <line x1="${x2}" y1="${kBottom}" x2="${x2}" y2="${y2}"  stroke="${stroke}" stroke-width="1.5" marker-end="${marker}"/>
         `;
-        kundeBoxes.push({ x: kx, y: ky, label: child.label, shared: isShared });
+        kundeBoxes.push({ x: kx, y: ky, label: child.label, shared: isShared, parentId: node.id, childIdx: node.children.indexOf(child), targetId: child.nodeId });
       });
     });
     svg.innerHTML = svgContent;
@@ -2550,6 +2556,7 @@
       const isSelected = node.id === sfSelectedId;
       const isEmpty    = !node.text || node.text.trim() === '';
       const isShared   = (refCount[node.id] || 0) > 1;
+      const isKobleSrc = sfKobleSource && sfKobleSource.type === 'jegsier' && sfKobleSource.id === node.id;
       const preview    = isEmpty ? 'Klikk for å redigere' : node.text;
       const shortPrev  = preview.length > 60 ? preview.slice(0, 60) + '…' : preview;
 
@@ -2559,17 +2566,17 @@
         + (isSelected ? ' selected'      : '')
         + (isEmpty    ? ' sf-node-empty' : '')
         + (isShared   ? ' shared-node'   : '')
-        + (sfLinkMode && node.id !== sfSelectedId ? ' link-target' : '');
+        + (isKobleSrc ? ' koble-source'  : '');
       div.style.left = pos.x + 'px';
       div.style.top  = pos.y + 'px';
       div.innerHTML = `
         ${isRoot   ? '<div class="sf-node-label">Intro</div>' : ''}
         ${isShared ? '<div class="sf-shared-badge">↔ delt steg</div>' : ''}
         <div class="sf-node-preview">${sfEsc(shortPrev)}</div>
-        <button class="sf-node-add-btn" onclick="event.stopPropagation();sfQuickAddBranch('${node.id}')">+ Legg til svar</button>
+        ${!sfKobleMode ? `<button class="sf-node-add-btn" onclick="event.stopPropagation();sfQuickAddBranch('${node.id}')">+ Legg til svar</button>` : ''}
       `;
-      if (sfLinkMode) {
-        div.onclick = e => { e.stopPropagation(); sfLinkToNode(node.id); };
+      if (sfKobleMode) {
+        div.onclick = e => { e.stopPropagation(); sfHandleKobleClick('jegsier', { id: node.id }); };
       } else {
         div.onclick = () => sfSelectNode(node.id);
       }
@@ -2578,8 +2585,12 @@
 
     // Kunde boxes
     kundeBoxes.forEach(kb => {
+      const isKobleSrc = sfKobleSource && sfKobleSource.type === 'kundesier'
+        && sfKobleSource.parentId === kb.parentId && sfKobleSource.childIdx === kb.childIdx;
       const div = document.createElement('div');
-      div.className = 'sf-kunde-node' + (kb.shared ? ' shared-edge' : '');
+      div.className = 'sf-kunde-node'
+        + (kb.shared    ? ' shared-edge'  : '')
+        + (isKobleSrc   ? ' koble-source' : '');
       div.style.left = kb.x + 'px';
       div.style.top  = kb.y + 'px';
       const shortLabel = kb.label.length > 50 ? kb.label.slice(0, 50) + '…' : kb.label;
@@ -2587,6 +2598,10 @@
         <div class="sf-kunde-node-label">Kunden sier</div>
         <div class="sf-kunde-node-text">${sfEsc(shortLabel)}</div>
       `;
+      if (sfKobleMode) {
+        div.style.cursor = 'crosshair';
+        div.onclick = e => { e.stopPropagation(); sfHandleKobleClick('kundesier', { parentId: kb.parentId, childIdx: kb.childIdx, label: kb.label, targetId: kb.targetId }); };
+      }
       canvas.appendChild(div);
     });
 
@@ -2613,38 +2628,66 @@
     }, 80);
   }
 
-  // ── Link Mode ──────────────────────────────────────────────────────────
-  function sfEnterLinkMode() {
-    if (!sfSelectedId) return;
-    sfLinkMode = true;
+  // ── Koble modus ──────────────────────────────────────────────────────────
+  function sfToggleKobleMode() {
+    sfKobleMode   = !sfKobleMode;
+    sfKobleSource = null;
     renderSamtaleflyt();
   }
 
-  function sfCancelLinkMode() {
-    sfLinkMode = false;
-    renderSamtaleflyt();
-  }
+  function sfHandleKobleClick(type, info) {
+    // First click: select as source
+    if (!sfKobleSource) {
+      sfKobleSource = { type, ...info };
+      renderSamtaleflyt();
+      return;
+    }
 
-  function sfLinkToNode(targetId) {
-    if (targetId === sfSelectedId) { sfCancelLinkMode(); return; }
-    const label = prompt('Hva sier kunden for å gå til dette steget?', 'Kunden sier...');
-    if (label === null) { sfCancelLinkMode(); return; }
+    const src = sfKobleSource;
+
+    // Clicking same box: deselect
+    const isSame = type === src.type && (
+      (type === 'jegsier'   && info.id === src.id) ||
+      (type === 'kundesier' && info.parentId === src.parentId && info.childIdx === src.childIdx)
+    );
+    if (isSame) { sfKobleSource = null; renderSamtaleflyt(); return; }
+
+    // Same type (incompatible): switch source
+    if (type === src.type) { sfKobleSource = { type, ...info }; renderSamtaleflyt(); return; }
+
+    // Compatible! Create connection
     sfPushHistory();
     const data = sfGetData();
-    const src  = data.nodes[sfSelectedId];
-    if (!src) { sfCancelLinkMode(); return; }
-    if (!src.children) src.children = [];
-    src.children.push({ label: label || 'Kunden sier...', nodeId: targetId });
+
+    if (src.type === 'jegsier' && type === 'kundesier') {
+      // jeg-sier → kunden-sier: add this kunden-sier edge to the jeg-sier node
+      const node = data.nodes[src.id];
+      if (node) {
+        if (!node.children) node.children = [];
+        if (!node.children.some(c => c.nodeId === info.targetId && c.label === info.label)) {
+          node.children.push({ label: info.label, nodeId: info.targetId });
+        }
+      }
+    } else if (src.type === 'kundesier' && type === 'jegsier') {
+      // kunden-sier → jeg-sier: re-route this kunden-sier edge to point to the jeg-sier node
+      const parentNode = data.nodes[src.parentId];
+      if (parentNode && parentNode.children[src.childIdx]) {
+        parentNode.children[src.childIdx].nodeId = info.id;
+        sfCleanupOrphans(data);
+      }
+    }
+
     sfSaveData(data);
-    sfLinkMode = false;
+    sfKobleSource = null;
     renderSamtaleflyt();
   }
 
-  // Cancel link mode when clicking blank canvas space
+  // Blank canvas click: deselect source (stay in koble modus)
   document.getElementById('sf-canvas-wrap').addEventListener('click', function(e) {
-    if (!sfLinkMode) return;
+    if (!sfKobleMode) return;
     if (!e.target.closest('.sf-node') && !e.target.closest('.sf-kunde-node')) {
-      sfCancelLinkMode();
+      sfKobleSource = null;
+      renderSamtaleflyt();
     }
   });
 
