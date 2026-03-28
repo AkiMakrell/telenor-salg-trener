@@ -2519,6 +2519,9 @@
         <marker id="arr-shared" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
           <path d="M0,0 L0,6 L8,3 z" fill="#f97316"/>
         </marker>
+        <marker id="arr-link" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#7c3aed"/>
+        </marker>
       </defs>`;
     const kundeBoxes = [];
 
@@ -2546,6 +2549,30 @@
         kundeBoxes.push({ x: kx, y: ky, label: child.label, shared: isShared, parentId: node.id, childIdx: node.children.indexOf(child), targetId: child.nodeId });
       });
     });
+
+    // Build lookup for extra link rendering
+    const kundeBoxMap = {};
+    kundeBoxes.forEach(kb => { kundeBoxMap[`${kb.parentId}_${kb.childIdx}`] = kb; });
+
+    // Extra links (purely visual, no structure changes)
+    (data.extraLinks || []).forEach(link => {
+      if (link.from === 'jegsier') {
+        const fromPos = positions[link.fromId];
+        const toBox   = kundeBoxMap[`${link.toParentId}_${link.toChildIdx}`];
+        if (!fromPos || !toBox) return;
+        const x1 = fromPos.x + NODE_W / 2, y1 = fromPos.y + NODE_H;
+        const x2 = toBox.x   + KUNDE_W / 2, y2 = toBox.y + KUNDE_H / 2;
+        svgContent += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#7c3aed" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arr-link)"/>`;
+      } else {
+        const fromBox = kundeBoxMap[`${link.fromParentId}_${link.fromChildIdx}`];
+        const toPos   = positions[link.toId];
+        if (!fromBox || !toPos) return;
+        const x1 = fromBox.x + KUNDE_W / 2, y1 = fromBox.y + KUNDE_H / 2;
+        const x2 = toPos.x   + NODE_W / 2,  y2 = toPos.y;
+        svgContent += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#7c3aed" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arr-link)"/>`;
+      }
+    });
+
     svg.innerHTML = svgContent;
 
     // Node boxes
@@ -2655,26 +2682,15 @@
     // Same type (incompatible): switch source
     if (type === src.type) { sfKobleSource = { type, ...info }; renderSamtaleflyt(); return; }
 
-    // Compatible! Create connection
+    // Compatible! Add a purely visual extra link (no tree structure changes)
     sfPushHistory();
     const data = sfGetData();
+    if (!data.extraLinks) data.extraLinks = [];
 
     if (src.type === 'jegsier' && type === 'kundesier') {
-      // jeg-sier → kunden-sier: add this kunden-sier edge to the jeg-sier node
-      const node = data.nodes[src.id];
-      if (node) {
-        if (!node.children) node.children = [];
-        if (!node.children.some(c => c.nodeId === info.targetId && c.label === info.label)) {
-          node.children.push({ label: info.label, nodeId: info.targetId });
-        }
-      }
-    } else if (src.type === 'kundesier' && type === 'jegsier') {
-      // kunden-sier → jeg-sier: re-route this kunden-sier edge to point to the jeg-sier node
-      const parentNode = data.nodes[src.parentId];
-      if (parentNode && parentNode.children[src.childIdx]) {
-        parentNode.children[src.childIdx].nodeId = info.id;
-        sfCleanupOrphans(data);
-      }
+      data.extraLinks.push({ from: 'jegsier', fromId: src.id, toParentId: info.parentId, toChildIdx: info.childIdx });
+    } else {
+      data.extraLinks.push({ from: 'kundesier', fromParentId: src.parentId, fromChildIdx: src.childIdx, toId: info.id });
     }
 
     sfSaveData(data);
