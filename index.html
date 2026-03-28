@@ -581,6 +581,7 @@
     }
     .stats-section-title.st-purple { border-left-color: #8b5cf6; }
     .stats-section-title.st-green  { border-left-color: #22c55e; }
+    .stats-section-title.st-teal   { border-left-color: #14b8a6; }
 
     .stats-grid {
       display: grid;
@@ -753,6 +754,7 @@
     }
     .chart-card.cc-purple { background: #f5f3ff; border-color: #ddd6fe; }
     .chart-card.cc-green  { background: #f0fdf4; border-color: #bbf7d0; }
+    .chart-card.cc-teal   { background: #f0fdfa; border-color: #99f6e4; }
 
     .bar-fill {
       width: 100%;
@@ -764,6 +766,7 @@
     }
     .bar-fill.bf-purple { background: linear-gradient(to top, #8b5cf6, #a78bfa); }
     .bar-fill.bf-green  { background: linear-gradient(to top, #22c55e, #4ade80); }
+    .bar-fill.bf-teal   { background: linear-gradient(to top, #14b8a6, #2dd4bf); }
 
     .bar-fill:hover { filter: brightness(1.1); }
       font-size: 0.78rem;
@@ -1720,11 +1723,11 @@
 
       <!-- UKE -->
       <div class="stats-section">
-        <div class="stats-section-title st-purple">Denne uken</div>
+        <div class="stats-section-title st-teal">Denne uken</div>
         <div class="stats-grid stats-grid-2" style="margin-bottom:14px;">
-          <div class="chart-card cc-purple">
+          <div class="chart-card cc-teal">
             <div class="chart-card-title">5-minutters per dag</div>
-            ${barChart(weekData, 'bf-purple')}
+            ${barChart(weekData, 'bf-teal')}
           </div>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
             ${statCard(uke.total, 'Forsøk totalt', false, 'blue')}
@@ -1737,11 +1740,11 @@
 
       <!-- MÅNED -->
       <div class="stats-section">
-        <div class="stats-section-title st-green">${now.toLocaleString('no-NO', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase())}</div>
+        <div class="stats-section-title st-teal">${now.toLocaleString('no-NO', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase())}</div>
         <div class="stats-grid stats-grid-2">
-          <div class="chart-card cc-green">
+          <div class="chart-card cc-teal">
             <div class="chart-card-title">5-minutters per uke</div>
-            ${barChart(weekBuckets, 'bf-green')}
+            ${barChart(weekBuckets, 'bf-teal')}
           </div>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
             ${statCard(mnd.total, 'Forsøk totalt', false, 'blue')}
