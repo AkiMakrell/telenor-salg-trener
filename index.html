@@ -1862,6 +1862,14 @@
     const history = getIntroHistory();
     history.splice(index, 1);
     localStorage.setItem('introHistory', JSON.stringify(history));
+
+    // Remove any saved intros that now have zero attempts left in history
+    const intros = getSavedIntros();
+    const trimmed = intros.filter(i => history.some(h => h.text.trim() === i.text.trim()));
+    if (trimmed.length !== intros.length) {
+      localStorage.setItem('savedIntros', JSON.stringify(trimmed));
+    }
+
     renderIntroHistory();
     renderStatsHome();
     renderIntroLibrary();
