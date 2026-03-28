@@ -1057,7 +1057,49 @@
     }
     .sf-delete-node-btn:hover { background: #fef2f2; }
 
-    /* Arrow labels in SVG */
+    /* Phase picker cards */
+    .sf-phase-card {
+      background: white;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 28px 20px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+      font-family: inherit;
+    }
+    .sf-phase-card:hover {
+      border-color: #1e293b;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+    }
+    .sf-phase-card-num {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: #e2e8f0;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    .sf-phase-card-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .sf-back-phase-btn {
+      padding: 8px 16px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      background: white;
+      color: #64748b;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .sf-back-phase-btn:hover { border-color: #94a3b8; color: #1e293b; }
+
+
     .sf-arrow-label {
       font-size: 11px;
       fill: #64748b;
@@ -1173,21 +1215,49 @@
 </div>
 
 <div id="tab-samtaleflyt" class="tab-content">
-  <div id="sf-outer">
-    <div id="sf-canvas-wrap">
-      <div id="sf-canvas">
-        <svg id="sf-svg"></svg>
-      </div>
+  <!-- Phase picker -->
+  <div id="sf-phase-picker" style="max-width:900px;margin:0 auto;">
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:600px;margin:0 auto;">
+      <button class="sf-phase-card" onclick="sfOpenPhase('intro')">
+        <div class="sf-phase-card-num">1</div>
+        <div class="sf-phase-card-name">Intro</div>
+      </button>
+      <button class="sf-phase-card" onclick="sfOpenPhase('behovsanalyse')">
+        <div class="sf-phase-card-num">2</div>
+        <div class="sf-phase-card-name">Behovsanalyse</div>
+      </button>
+      <button class="sf-phase-card" onclick="sfOpenPhase('oppsummering')">
+        <div class="sf-phase-card-num">3</div>
+        <div class="sf-phase-card-name">Oppsummering</div>
+      </button>
+      <button class="sf-phase-card" onclick="sfOpenPhase('losning')">
+        <div class="sf-phase-card-num">4</div>
+        <div class="sf-phase-card-name">Løsningspresentasjon</div>
+      </button>
     </div>
-    <div id="sf-detail">
-      <h3 id="sf-detail-title">Steg</h3>
-      <textarea id="sf-detail-script" placeholder="Skriv inn hva du sier her..."></textarea>
-      <div style="font-size:0.75rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Kunden kan svare</div>
-      <div class="sf-branch-list" id="sf-branch-list"></div>
-      <div class="sf-detail-actions">
-        <button class="sf-save-node-btn" onclick="sfSaveCurrentNode()">Lagre</button>
-        <button class="sf-add-branch-btn" onclick="sfAddBranch()">+ Legg til svar</button>
-        <button class="sf-delete-node-btn" onclick="sfDeleteCurrentNode()">Slett steg</button>
+  </div>
+  <!-- Tree view (hidden until phase selected) -->
+  <div id="sf-tree-view" style="display:none;max-width:1100px;margin:0 auto;">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+      <button class="sf-back-phase-btn" onclick="sfBackToPhases()">← Tilbake</button>
+      <span id="sf-phase-title" style="font-size:1.1rem;font-weight:700;color:#1e293b;"></span>
+    </div>
+    <div id="sf-outer">
+      <div id="sf-canvas-wrap">
+        <div id="sf-canvas">
+          <svg id="sf-svg"></svg>
+        </div>
+      </div>
+      <div id="sf-detail">
+        <h3 id="sf-detail-title">Steg</h3>
+        <textarea id="sf-detail-script" placeholder="Skriv inn hva du sier her..."></textarea>
+        <div style="font-size:0.75rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Kunden kan svare</div>
+        <div class="sf-branch-list" id="sf-branch-list"></div>
+        <div class="sf-detail-actions">
+          <button class="sf-save-node-btn" onclick="sfSaveCurrentNode()">Lagre</button>
+          <button class="sf-add-branch-btn" onclick="sfAddBranch()">+ Legg til svar</button>
+          <button class="sf-delete-node-btn" onclick="sfDeleteCurrentNode()">Slett steg</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1215,7 +1285,8 @@
 
   function getAllData() {
     const list = JSON.parse(_origGetItem('objectionsList') || '[]');
-    const keys = ['savedIntros', 'introHistory', 'objectionsList', 'samtaleflyt', 'samtaleflyt2'];
+    const keys = ['savedIntros', 'introHistory', 'objectionsList', 'samtaleflyt',
+      'samtaleflyt2_intro', 'samtaleflyt2_behovsanalyse', 'samtaleflyt2_oppsummering', 'samtaleflyt2_losning'];
     list.forEach(({ id }) => keys.push('objdata_' + id));
     const data = {};
     keys.forEach(k => { const v = _origGetItem(k); if (v) data[k] = JSON.parse(v); });
@@ -2062,7 +2133,14 @@
 
   // ===== SAMTALEFLYT v2 =====
 
-  const NODE_W = 200;
+  const SF_PHASES = [
+    { id: 'intro',          name: 'Intro' },
+    { id: 'behovsanalyse',  name: 'Behovsanalyse' },
+    { id: 'oppsummering',   name: 'Oppsummering' },
+    { id: 'losning',        name: 'Løsningspresentasjon' },
+  ];
+
+  let sfCurrentPhase = null;
   const NODE_H = 80;  // approximate, used for layout
   const H_GAP  = 60;  // horizontal gap between siblings
   const V_GAP  = 90;  // vertical gap between levels
@@ -2071,13 +2149,32 @@
   let sfSelectedId = null;
 
   function sfGetData() {
-    const s = _origGetItem('samtaleflyt2');
+    if (!sfCurrentPhase) return { rootId: null, nodes: {} };
+    const s = _origGetItem('samtaleflyt2_' + sfCurrentPhase);
     if (s) { try { return JSON.parse(s); } catch {} }
     return { rootId: null, nodes: {} };
   }
 
   function sfSaveData(data) {
-    localStorage.setItem('samtaleflyt2', JSON.stringify(data));
+    if (!sfCurrentPhase) return;
+    localStorage.setItem('samtaleflyt2_' + sfCurrentPhase, JSON.stringify(data));
+  }
+
+  function sfOpenPhase(phaseId) {
+    sfCurrentPhase = phaseId;
+    sfSelectedId = null;
+    const phase = SF_PHASES.find(p => p.id === phaseId);
+    document.getElementById('sf-phase-picker').style.display = 'none';
+    document.getElementById('sf-tree-view').style.display = 'block';
+    document.getElementById('sf-phase-title').textContent = phase ? phase.name : phaseId;
+    renderSamtaleflyt();
+  }
+
+  function sfBackToPhases() {
+    sfCurrentPhase = null;
+    sfSelectedId = null;
+    document.getElementById('sf-tree-view').style.display = 'none';
+    document.getElementById('sf-phase-picker').style.display = 'block';
   }
 
   // ── Layout ──────────────────────────────────────────────────────────────
@@ -2128,6 +2225,14 @@
 
   // ── Render ──────────────────────────────────────────────────────────────
   function renderSamtaleflyt() {
+    if (!sfCurrentPhase) {
+      // Just ensure picker is shown
+      const picker = document.getElementById('sf-phase-picker');
+      const tree   = document.getElementById('sf-tree-view');
+      if (picker) picker.style.display = 'block';
+      if (tree)   tree.style.display   = 'none';
+      return;
+    }
     const data = sfGetData();
     const canvas = document.getElementById('sf-canvas');
     const svg    = document.getElementById('sf-svg');
