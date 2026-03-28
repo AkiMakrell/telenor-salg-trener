@@ -1199,6 +1199,60 @@
       text-align: center;
     }
     .sf-node-add-btn:hover { background: #dcfce7; border-color: #22c55e; }
+
+    /* Toolbar buttons */
+    .sf-toolbar-btn {
+      padding: 7px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      background: white;
+      color: #1e293b;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .sf-toolbar-btn:hover { border-color: #94a3b8; }
+    .sf-toolbar-btn:disabled { opacity: 0.35; cursor: default; }
+    .sf-toolbar-btn.new-intro { border-color: #bfdbfe; color: #1d4ed8; background: #eff6ff; }
+    .sf-toolbar-btn.new-intro:hover { background: #dbeafe; }
+
+    /* Link mode */
+    #sf-canvas-wrap.link-mode { cursor: crosshair; }
+    .sf-node.link-target { cursor: pointer; }
+    .sf-node.link-target:hover { border-color: #f97316; box-shadow: 0 0 0 3px rgba(249,115,22,0.2); }
+
+    /* Shared node indicator */
+    .sf-node.shared-node { border-style: dashed; }
+    .sf-shared-badge {
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: #f97316;
+      margin-bottom: 3px;
+    }
+    .sf-kunde-node.shared-edge {
+      border-color: #fdba74;
+      background: #fff7ed;
+    }
+    .sf-kunde-node.shared-edge .sf-kunde-node-label { color: #ea580c; }
+
+    /* Link button in detail panel */
+    .sf-link-btn {
+      padding: 9px 16px;
+      border: 1.5px solid #fed7aa;
+      border-radius: 8px;
+      background: #fff7ed;
+      color: #ea580c;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: inherit;
+      transition: all 0.15s;
+      width: 100%;
+      margin-top: 8px;
+    }
+    .sf-link-btn:hover { background: #ffedd5; border-color: #fb923c; }
   </style>
 </head>
 <body>
@@ -1332,11 +1386,17 @@
   </div>
   <!-- Tree view (hidden until phase selected) -->
   <div id="sf-tree-view" style="display:none;max-width:1100px;margin:0 auto;">
-    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
       <button class="sf-back-phase-btn" onclick="sfBackToPhases()">← Tilbake</button>
       <span id="sf-phase-title" style="font-size:1.1rem;font-weight:700;color:#1e293b;"></span>
+      <button class="sf-toolbar-btn new-intro" onclick="sfAddNewIntro()">+ Ny intro</button>
+      <button class="sf-toolbar-btn" id="sf-undo-btn" onclick="sfUndo()" disabled>↩ Angre</button>
     </div>
     <div id="sf-outer">
+      <div id="sf-link-banner" style="display:none;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:8px;padding:10px 16px;margin-bottom:12px;align-items:center;gap:12px;">
+        <span style="color:#ea580c;font-weight:600;font-size:0.88rem;">🔗 Klikk et steg for å koble til det — eller klikk tomt område for å avbryte</span>
+        <button onclick="sfCancelLinkMode()" style="margin-left:auto;padding:5px 12px;border:1.5px solid #fed7aa;border-radius:6px;background:white;color:#ea580c;cursor:pointer;font-size:0.8rem;font-weight:600;font-family:inherit;">✕ Avbryt</button>
+      </div>
       <div id="sf-canvas-wrap">
         <div id="sf-canvas">
           <svg id="sf-svg"></svg>
@@ -1351,6 +1411,7 @@
           <div class="sf-section-label sf-kunde-label">Kunden kan svare</div>
           <div class="sf-branch-list" id="sf-branch-list"></div>
           <button class="sf-add-branch-btn" onclick="sfAddBranch()">+ Legg til kundesvar</button>
+          <button class="sf-link-btn" onclick="sfEnterLinkMode()">🔗 Koble til eksisterende steg</button>
         </div>
         <div class="sf-detail-actions">
           <button class="sf-save-node-btn" onclick="sfSaveCurrentNode()">Lagre</button>
@@ -2244,16 +2305,30 @@
   const KUNDE_W = 180;
   const KUNDE_H = 52;
   const H_GAP  = 60;
-  const V_GAP  = 160; // larger gap to fit kunde boxes between nodes
+  const V_GAP  = 160;
   const PAD    = 40;
 
   let sfSelectedId = null;
+  let sfLinkMode   = false;
+  let sfHistory    = [];
 
+  // ── Data ──────────────────────────────────────────────────────────────
   function sfGetData() {
-    if (!sfCurrentPhase) return { rootId: null, nodes: {} };
+    if (!sfCurrentPhase) return { rootIds: [], nodes: {} };
     const s = _origGetItem('samtaleflyt2_' + sfCurrentPhase);
-    if (s) { try { return JSON.parse(s); } catch {} }
-    return { rootId: null, nodes: {} };
+    if (s) {
+      try {
+        const d = JSON.parse(s);
+        // Migrate old single rootId → rootIds array
+        if (d.rootId !== undefined && !d.rootIds) {
+          d.rootIds = d.rootId ? [d.rootId] : [];
+          delete d.rootId;
+        }
+        if (!d.rootIds) d.rootIds = [];
+        return d;
+      } catch {}
+    }
+    return { rootIds: [], nodes: {} };
   }
 
   function sfSaveData(data) {
@@ -2261,57 +2336,80 @@
     localStorage.setItem('samtaleflyt2_' + sfCurrentPhase, JSON.stringify(data));
   }
 
+  function sfPushHistory() {
+    sfHistory.push(_origGetItem('samtaleflyt2_' + sfCurrentPhase) || JSON.stringify({ rootIds: [], nodes: {} }));
+    if (sfHistory.length > 20) sfHistory.shift();
+  }
+
+  function sfUndo() {
+    if (!sfHistory.length) return;
+    const snapshot = sfHistory.pop();
+    _origSetItem('samtaleflyt2_' + sfCurrentPhase, snapshot);
+    sfSelectedId = null;
+    sfLinkMode   = false;
+    renderSamtaleflyt();
+  }
+
+  // ── Phase navigation ──────────────────────────────────────────────────
   function sfOpenPhase(phaseId) {
     sfCurrentPhase = phaseId;
-    sfSelectedId = null;
+    sfSelectedId   = null;
+    sfLinkMode     = false;
+    sfHistory      = [];
     const phase = SF_PHASES.find(p => p.id === phaseId);
     document.getElementById('sf-phase-picker').style.display = 'none';
-    document.getElementById('sf-tree-view').style.display = 'block';
-    document.getElementById('sf-phase-title').textContent = phase ? phase.name : phaseId;
+    document.getElementById('sf-tree-view').style.display    = 'block';
+    document.getElementById('sf-phase-title').textContent    = phase ? phase.name : phaseId;
     renderSamtaleflyt();
   }
 
   function sfBackToPhases() {
     sfCurrentPhase = null;
-    sfSelectedId = null;
-    document.getElementById('sf-tree-view').style.display = 'none';
+    sfSelectedId   = null;
+    sfLinkMode     = false;
+    sfHistory      = [];
+    document.getElementById('sf-tree-view').style.display   = 'none';
     document.getElementById('sf-phase-picker').style.display = 'block';
   }
 
   // ── Layout ──────────────────────────────────────────────────────────────
-  // Returns a map of nodeId → { x, y, subtreeWidth }
   function sfLayout(data) {
     const positions = {};
-    if (!data.rootId || !data.nodes[data.rootId]) return positions;
+    const visited   = new Set();
+    if (!data.rootIds || data.rootIds.length === 0) return positions;
 
-    function subtreeWidth(id) {
+    function subtreeWidth(id, seen) {
+      if (seen.has(id)) return 0;
+      seen = new Set(seen); seen.add(id);
       const node = data.nodes[id];
-      if (!node) return NODE_W;
-      if (!node.children || node.children.length === 0) return NODE_W;
-      const childWidths = node.children.map(c => subtreeWidth(c.nodeId));
+      if (!node || !node.children || node.children.length === 0) return NODE_W;
+      const childWidths = node.children.map(c => subtreeWidth(c.nodeId, seen));
       const total = childWidths.reduce((a, b) => a + b, 0) + H_GAP * (node.children.length - 1);
       return Math.max(NODE_W, total);
     }
 
     function place(id, cx, depth) {
+      if (visited.has(id)) return;
+      visited.add(id);
       const node = data.nodes[id];
       if (!node) return;
-      const x = cx - NODE_W / 2;
-      const y = PAD + depth * (NODE_H + V_GAP);
-      positions[id] = { x, y };
+      positions[id] = { x: cx - NODE_W / 2, y: PAD + depth * (NODE_H + V_GAP) };
       if (!node.children || node.children.length === 0) return;
-      const childWidths = node.children.map(c => subtreeWidth(c.nodeId));
+      const childWidths = node.children.map(c => subtreeWidth(c.nodeId, new Set([id])));
       const totalW = childWidths.reduce((a, b) => a + b, 0) + H_GAP * (node.children.length - 1);
       let curX = cx - totalW / 2;
       node.children.forEach((c, i) => {
-        const cw = childWidths[i];
-        place(c.nodeId, curX + cw / 2, depth + 1);
-        curX += cw + H_GAP;
+        place(c.nodeId, curX + childWidths[i] / 2, depth + 1);
+        curX += childWidths[i] + H_GAP;
       });
     }
 
-    const rw = subtreeWidth(data.rootId);
-    place(data.rootId, PAD + rw / 2, 0);
+    let cx = PAD;
+    data.rootIds.forEach((id, i) => {
+      const rw = subtreeWidth(id, new Set());
+      place(id, cx + rw / 2, 0);
+      cx += rw + H_GAP;
+    });
     return positions;
   }
 
@@ -2324,25 +2422,56 @@
     return { w: Math.max(maxX, 400), h: Math.max(maxY, 200) };
   }
 
+  // Count how many parents reference a nodeId
+  function sfParentCount(data, nodeId) {
+    let count = 0;
+    Object.values(data.nodes).forEach(n => {
+      (n.children || []).forEach(c => { if (c.nodeId === nodeId) count++; });
+    });
+    return count;
+  }
+
+  // Remove nodes unreachable from any root
+  function sfCleanupOrphans(data) {
+    const reachable = new Set();
+    function visit(id) {
+      if (reachable.has(id) || !data.nodes[id]) return;
+      reachable.add(id);
+      (data.nodes[id].children || []).forEach(c => visit(c.nodeId));
+    }
+    (data.rootIds || []).forEach(id => visit(id));
+    Object.keys(data.nodes).forEach(id => { if (!reachable.has(id)) delete data.nodes[id]; });
+  }
+
   // ── Render ──────────────────────────────────────────────────────────────
   function renderSamtaleflyt() {
     if (!sfCurrentPhase) {
-      // Just ensure picker is shown
       const picker = document.getElementById('sf-phase-picker');
       const tree   = document.getElementById('sf-tree-view');
       if (picker) picker.style.display = 'block';
       if (tree)   tree.style.display   = 'none';
       return;
     }
-    const data = sfGetData();
+
+    const data   = sfGetData();
     const canvas = document.getElementById('sf-canvas');
     const svg    = document.getElementById('sf-svg');
     if (!canvas || !svg) return;
 
-    // Clear old nodes and kunde boxes
+    // Undo button state
+    const undoBtn = document.getElementById('sf-undo-btn');
+    if (undoBtn) undoBtn.disabled = sfHistory.length === 0;
+
+    // Link mode banner
+    const banner = document.getElementById('sf-link-banner');
+    if (banner) banner.style.display = sfLinkMode ? 'flex' : 'none';
+    const wrap = document.getElementById('sf-canvas-wrap');
+    if (wrap) wrap.classList.toggle('link-mode', sfLinkMode);
+
+    // Clear canvas
     canvas.querySelectorAll('.sf-node, .sf-kunde-node').forEach(n => n.remove());
 
-    if (!data.rootId || Object.keys(data.nodes).length === 0) {
+    if (!data.rootIds || data.rootIds.length === 0) {
       svg.innerHTML = '';
       canvas.style.width  = '100%';
       canvas.style.height = '300px';
@@ -2350,30 +2479,39 @@
       svg.setAttribute('height', '300');
       if (!document.getElementById('sf-add-root-btn')) {
         const btn = document.createElement('button');
-        btn.id = 'sf-add-root-btn';
+        btn.id          = 'sf-add-root-btn';
         btn.textContent = 'Start samtaleflyt';
-        btn.onclick = sfAddRoot;
+        btn.onclick     = sfAddRoot;
         canvas.appendChild(btn);
       }
+      sfRenderDetail(data);
       return;
     }
 
-    // Remove "start" button if present
     const startBtn = document.getElementById('sf-add-root-btn');
     if (startBtn) startBtn.remove();
 
     const positions = sfLayout(data);
-    const { w, h } = sfCanvasSize(positions);
+    const { w, h }  = sfCanvasSize(positions);
     canvas.style.width  = w + 'px';
     canvas.style.height = h + 'px';
     svg.setAttribute('width',  w);
     svg.setAttribute('height', h);
 
-    // Draw SVG arrows and collect kunde box positions
+    // Count references to detect shared nodes
+    const refCount = {};
+    Object.values(data.nodes).forEach(n => {
+      (n.children || []).forEach(c => { refCount[c.nodeId] = (refCount[c.nodeId] || 0) + 1; });
+    });
+
+    // SVG arrows + kunde box positions
     let svgContent = `
       <defs>
         <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
           <path d="M0,0 L0,6 L8,3 z" fill="#94a3b8"/>
+        </marker>
+        <marker id="arr-shared" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#f97316"/>
         </marker>
       </defs>`;
     const kundeBoxes = [];
@@ -2387,50 +2525,61 @@
         if (!to) return;
         const x1 = from.x + NODE_W / 2;
         const y1 = from.y + NODE_H;
-        const x2 = to.x + NODE_W / 2;
+        const x2 = to.x   + NODE_W / 2;
         const y2 = to.y;
         const kx = x2 - KUNDE_W / 2;
         const ky = (y1 + y2) / 2 - KUNDE_H / 2;
         const kBottom = ky + KUNDE_H;
+        const isShared = (refCount[child.nodeId] || 0) > 1;
+        const stroke = isShared ? '#f97316' : '#94a3b8';
+        const marker = isShared ? 'url(#arr-shared)' : 'url(#arr)';
         svgContent += `
-          <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${ky}" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
-          <line x1="${x2}" y1="${kBottom}" x2="${x2}" y2="${y2}" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
+          <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${ky}"      stroke="${stroke}" stroke-width="1.5" marker-end="${marker}"/>
+          <line x1="${x2}" y1="${kBottom}" x2="${x2}" y2="${y2}"  stroke="${stroke}" stroke-width="1.5" marker-end="${marker}"/>
         `;
-        kundeBoxes.push({ x: kx, y: ky, label: child.label });
+        kundeBoxes.push({ x: kx, y: ky, label: child.label, shared: isShared });
       });
     });
     svg.innerHTML = svgContent;
 
-    // Draw node boxes
+    // Node boxes
     Object.values(data.nodes).forEach(node => {
       const pos = positions[node.id];
       if (!pos) return;
-      const isRoot     = node.id === data.rootId;
+      const isRoot     = data.rootIds.includes(node.id);
       const isSelected = node.id === sfSelectedId;
       const isEmpty    = !node.text || node.text.trim() === '';
+      const isShared   = (refCount[node.id] || 0) > 1;
       const preview    = isEmpty ? 'Klikk for å redigere' : node.text;
       const shortPrev  = preview.length > 60 ? preview.slice(0, 60) + '…' : preview;
 
       const div = document.createElement('div');
-      div.className = 'sf-node' +
-        (isRoot     ? ' root-node' : '') +
-        (isSelected ? ' selected'  : '') +
-        (isEmpty    ? ' sf-node-empty' : '');
+      div.className = 'sf-node'
+        + (isRoot     ? ' root-node'     : '')
+        + (isSelected ? ' selected'      : '')
+        + (isEmpty    ? ' sf-node-empty' : '')
+        + (isShared   ? ' shared-node'   : '')
+        + (sfLinkMode && node.id !== sfSelectedId ? ' link-target' : '');
       div.style.left = pos.x + 'px';
       div.style.top  = pos.y + 'px';
       div.innerHTML = `
-        ${isRoot ? '<div class="sf-node-label">Start</div>' : ''}
+        ${isRoot   ? '<div class="sf-node-label">Intro</div>' : ''}
+        ${isShared ? '<div class="sf-shared-badge">↔ delt steg</div>' : ''}
         <div class="sf-node-preview">${sfEsc(shortPrev)}</div>
         <button class="sf-node-add-btn" onclick="event.stopPropagation();sfQuickAddBranch('${node.id}')">+ Legg til svar</button>
       `;
-      div.onclick = () => sfSelectNode(node.id);
+      if (sfLinkMode) {
+        div.onclick = e => { e.stopPropagation(); sfLinkToNode(node.id); };
+      } else {
+        div.onclick = () => sfSelectNode(node.id);
+      }
       canvas.appendChild(div);
     });
 
-    // Draw kunde boxes in the tree
+    // Kunde boxes
     kundeBoxes.forEach(kb => {
       const div = document.createElement('div');
-      div.className = 'sf-kunde-node';
+      div.className = 'sf-kunde-node' + (kb.shared ? ' shared-edge' : '');
       div.style.left = kb.x + 'px';
       div.style.top  = kb.y + 'px';
       const shortLabel = kb.label.length > 50 ? kb.label.slice(0, 50) + '…' : kb.label;
@@ -2464,6 +2613,42 @@
     }, 80);
   }
 
+  // ── Link Mode ──────────────────────────────────────────────────────────
+  function sfEnterLinkMode() {
+    if (!sfSelectedId) return;
+    sfLinkMode = true;
+    renderSamtaleflyt();
+  }
+
+  function sfCancelLinkMode() {
+    sfLinkMode = false;
+    renderSamtaleflyt();
+  }
+
+  function sfLinkToNode(targetId) {
+    if (targetId === sfSelectedId) { sfCancelLinkMode(); return; }
+    const label = prompt('Hva sier kunden for å gå til dette steget?', 'Kunden sier...');
+    if (label === null) { sfCancelLinkMode(); return; }
+    sfPushHistory();
+    const data = sfGetData();
+    const src  = data.nodes[sfSelectedId];
+    if (!src) { sfCancelLinkMode(); return; }
+    if (!src.children) src.children = [];
+    src.children.push({ label: label || 'Kunden sier...', nodeId: targetId });
+    sfSaveData(data);
+    sfLinkMode = false;
+    renderSamtaleflyt();
+  }
+
+  // Cancel link mode when clicking blank canvas space
+  document.getElementById('sf-canvas-wrap').addEventListener('click', function(e) {
+    if (!sfLinkMode) return;
+    if (!e.target.closest('.sf-node') && !e.target.closest('.sf-kunde-node')) {
+      sfCancelLinkMode();
+    }
+  });
+
+  // ── Detail Panel ──────────────────────────────────────────────────────
   function sfRenderDetail(data) {
     const panel = document.getElementById('sf-detail');
     if (!panel) return;
@@ -2472,7 +2657,8 @@
       return;
     }
     panel.classList.add('open');
-    const node = data.nodes[sfSelectedId];
+    const node   = data.nodes[sfSelectedId];
+    const isRoot = data.rootIds.includes(sfSelectedId);
     document.getElementById('sf-detail-script').value = node.text || '';
 
     const list = document.getElementById('sf-branch-list');
@@ -2486,9 +2672,12 @@
         </div>
       </div>
     `).join('');
+
+    const delBtn = document.querySelector('.sf-delete-node-btn');
+    if (delBtn) delBtn.textContent = isRoot ? 'Slett intro' : 'Slett steg';
   }
 
-  function sfSaveCurrentNode() {
+  function sfSaveCurrentNodeSilent() {
     if (!sfSelectedId) return;
     const data = sfGetData();
     const node = data.nodes[sfSelectedId];
@@ -2497,11 +2686,17 @@
     const inputs = document.querySelectorAll('.sf-branch-label-input');
     inputs.forEach((inp, i) => { if (node.children[i]) node.children[i].label = inp.value; });
     sfSaveData(data);
+  }
+
+  function sfSaveCurrentNode() {
+    sfPushHistory();
+    sfSaveCurrentNodeSilent();
     renderSamtaleflyt();
   }
 
   function sfAddBranch() {
-    sfSaveCurrentNode();
+    sfPushHistory();
+    sfSaveCurrentNodeSilent();
     const data = sfGetData();
     const node = data.nodes[sfSelectedId];
     if (!node) return;
@@ -2514,12 +2709,14 @@
   }
 
   function sfDeleteBranch(idx) {
+    sfPushHistory();
     const data = sfGetData();
     const node = data.nodes[sfSelectedId];
     if (!node || !node.children[idx]) return;
-    // Remove the child subtree
-    sfDeleteSubtree(data, node.children[idx].nodeId);
+    const targetId = node.children[idx].nodeId;
     node.children.splice(idx, 1);
+    if (sfParentCount(data, targetId) === 0) sfDeleteSubtree(data, targetId);
+    sfCleanupOrphans(data);
     sfSaveData(data);
     renderSamtaleflyt();
   }
@@ -2527,41 +2724,65 @@
   function sfDeleteSubtree(data, id) {
     const node = data.nodes[id];
     if (!node) return;
-    (node.children || []).forEach(c => sfDeleteSubtree(data, c.nodeId));
+    (node.children || []).forEach(c => {
+      if (sfParentCount(data, c.nodeId) <= 1) sfDeleteSubtree(data, c.nodeId);
+    });
     delete data.nodes[id];
   }
 
   function sfDeleteCurrentNode() {
     if (!sfSelectedId) return;
     const data = sfGetData();
-    if (sfSelectedId === data.rootId) {
-      if (!confirm('Slette hele samtaleflyt-treet?')) return;
-      data.rootId = null;
-      data.nodes  = {};
+
+    if (data.rootIds.includes(sfSelectedId)) {
+      const msg = data.rootIds.length === 1
+        ? 'Slette hele samtaleflyt-treet?'
+        : 'Slette denne introen og alle steg under den?';
+      if (!confirm(msg)) return;
+      sfPushHistory();
+      data.rootIds = data.rootIds.filter(id => id !== sfSelectedId);
+      if (sfParentCount(data, sfSelectedId) === 0) sfDeleteSubtree(data, sfSelectedId);
+      sfCleanupOrphans(data);
       sfSelectedId = null;
       sfSaveData(data);
       renderSamtaleflyt();
       return;
     }
-    if (!confirm('Slette dette steget og alle steg under det?')) return;
-    // Remove reference from parent
+
+    const parentCount = sfParentCount(data, sfSelectedId);
+    const msg = parentCount > 1
+      ? 'Dette steget er delt mellom flere grener. Fjerne alle koblinger til det?'
+      : 'Slette dette steget og alle steg under det?';
+    if (!confirm(msg)) return;
+    sfPushHistory();
     Object.values(data.nodes).forEach(n => {
       if (n.children) n.children = n.children.filter(c => c.nodeId !== sfSelectedId);
     });
-    sfDeleteSubtree(data, sfSelectedId);
+    if (parentCount <= 1) sfDeleteSubtree(data, sfSelectedId);
+    sfCleanupOrphans(data);
     sfSelectedId = null;
     sfSaveData(data);
     renderSamtaleflyt();
   }
 
   function sfAddRoot() {
+    sfPushHistory();
     const data = sfGetData();
     const id = 'n_root_' + Date.now();
     data.nodes[id] = { id, text: '', children: [] };
-    data.rootId = id;
+    if (!data.rootIds) data.rootIds = [];
+    data.rootIds.push(id);
     sfSelectedId = id;
     sfSaveData(data);
     renderSamtaleflyt();
+  }
+
+  function sfAddNewIntro() {
+    sfAddRoot();
+    setTimeout(() => {
+      const panel = document.getElementById('sf-detail');
+      if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 80);
   }
 
   function sfEsc(str) {
