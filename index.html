@@ -1293,7 +1293,7 @@
         <label class="objection-label">Introtekst:</label>
         <textarea id="intro-text" placeholder="Hei, jeg ringer fra Telenor..."></textarea>
 
-        <div id="intro-library-inline" style="margin-top:10px;"></div>
+        <div id="intro-library-inline" style="display:none;"></div>
 
         <div style="margin-top: 18px; display:flex; flex-direction:column; gap:14px;">
 
@@ -1554,7 +1554,10 @@
     const intro = intros.find(i => i.id === id);
     if (!intro) return;
     selectedIntroId = id;
-    document.getElementById('intro-text').value = intro.text;
+    const ta = document.getElementById('intro-text');
+    ta.value = intro.text;
+    ta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    ta.focus();
     renderIntroLibrary();
   }
 
@@ -1733,47 +1736,9 @@
     return { bar: 'bar-red', pct: 'pct-red', border: 'border-red' };
   }
 
-  function renderIntroLibraryInline() {
-    const container = document.getElementById('intro-library-inline');
-    if (!container) return;
-    const intros = getSavedIntros();
-    if (!intros.length) { container.innerHTML = ''; return; }
-    const history = getIntroHistory();
-    const withStats = intros.map(i => {
-      const attempts = history.filter(h => h.text.trim() === i.text.trim());
-      const total = attempts.length;
-      const ja = attempts.filter(h => h.opptak === 'ja').length;
-      return { i, total, ja, hitrate: total > 0 ? ja / total : null };
-    });
-    withStats.sort((a, b) => {
-      const aTop = a.total > 10, bTop = b.total > 10;
-      if (aTop && !bTop) return -1; if (!aTop && bTop) return 1;
-      if (aTop && bTop) return b.hitrate - a.hitrate; return 0;
-    });
-    container.innerHTML = `
-      <div style="font-size:0.82rem;color:var(--muted);margin-bottom:6px;font-weight:600;">Velg fra biblioteket:</div>
-      <div style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;">
-        ${withStats.map(({ i, total, ja, hitrate }) => {
-          const pct = hitrate !== null ? Math.round(hitrate * 100) : null;
-          const cls = hitrateClass(pct);
-          const isSelected = document.getElementById('intro-text')?.value.trim() === i.text.trim();
-          return `<button class="intro-chip-inline ${cls.border}" onclick="selectIntroInline('${i.id}')" style="text-align:left;padding:8px 12px;border:2px solid var(--border);border-radius:8px;background:var(--primary-xlight);cursor:pointer;font-size:0.88rem;display:flex;justify-content:space-between;align-items:center;gap:8px;">
-            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(i.text)}</span>
-            ${pct !== null ? `<span style="font-weight:700;${cls.pct ? `color:var(--text)` : ''};font-size:0.82rem;flex-shrink:0;">${pct}%</span>` : ''}
-          </button>`;
-        }).join('')}
-      </div>
-    `;
-  }
+  function renderIntroLibraryInline() { /* removed — leaderboard click fills the text box instead */ }
 
-  function selectIntroInline(id) {
-    const intros = getSavedIntros();
-    const intro = intros.find(i => i.id === id);
-    if (!intro) return;
-    selectedIntroId = id;
-    document.getElementById('intro-text').value = intro.text;
-    renderIntroLibraryInline();
-  }
+  function selectIntroInline(id) { selectIntro(id); }
 
   function renderIntroLibrary() {
     const container = document.getElementById('intro-library');
