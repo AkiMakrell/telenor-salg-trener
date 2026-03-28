@@ -2339,8 +2339,8 @@
     const svg    = document.getElementById('sf-svg');
     if (!canvas || !svg) return;
 
-    // Clear old nodes (not svg)
-    canvas.querySelectorAll('.sf-node').forEach(n => n.remove());
+    // Clear old nodes and kunde boxes
+    canvas.querySelectorAll('.sf-node, .sf-kunde-node').forEach(n => n.remove());
 
     if (!data.rootId || Object.keys(data.nodes).length === 0) {
       svg.innerHTML = '';
