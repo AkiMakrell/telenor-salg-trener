@@ -981,27 +981,37 @@
     }
     #sf-detail-script:focus { outline: none; border-color: #3b82f6; }
 
-    .sf-branch-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+    .sf-branch-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
 
     .sf-branch-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: #f0fdf4;
+      border: 1.5px solid #86efac;
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .sf-branch-row-actions {
       display: flex;
       gap: 8px;
       align-items: center;
     }
     .sf-branch-label-input {
-      flex: 1;
+      width: 100%;
       padding: 9px 12px;
       border: 1.5px solid #86efac;
       border-radius: 8px;
       font-size: 0.88rem;
       font-family: inherit;
       color: #166534;
-      background: #f0fdf4;
+      background: white;
+      box-sizing: border-box;
     }
     .sf-branch-label-input:focus { outline: none; border-color: #22c55e; }
 
     .sf-branch-del-btn {
-      padding: 8px 12px;
+      padding: 6px 10px;
       border: 1.5px solid #e2e8f0;
       border-radius: 8px;
       background: white;
@@ -1010,6 +1020,7 @@
       font-weight: 700;
       font-size: 0.85rem;
       transition: all 0.15s;
+      margin-left: auto;
     }
     .sf-branch-del-btn:hover { border-color: #fca5a5; color: #dc2626; }
 
@@ -2425,8 +2436,10 @@
     list.innerHTML = (node.children || []).map((c, i) => `
       <div class="sf-branch-row">
         <input class="sf-branch-label-input" id="sf-bl-${i}" value="${sfEsc(c.label)}" placeholder="Skriv hva kunden sier..."/>
-        <button class="sf-go-btn" onclick="sfSelectNode('${c.nodeId}')">Min respons</button>
-        <button class="sf-branch-del-btn" onclick="sfDeleteBranch(${i})">×</button>
+        <div class="sf-branch-row-actions">
+          <button class="sf-go-btn" onclick="sfSelectNode('${c.nodeId}')">Min respons →</button>
+          <button class="sf-branch-del-btn" onclick="sfDeleteBranch(${i})">× Slett</button>
+        </div>
       </div>
     `).join('');
   }
