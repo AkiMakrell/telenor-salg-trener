@@ -2552,15 +2552,7 @@
     kundeBoxes.forEach(kb => { kundeBoxMap[`${kb.parentId}_${kb.childIdx}`] = kb; });
 
     // Extra links (purely visual, no structure changes)
-    // Snap to nearest side midpoint (top/bottom/left/right center) — same as normal lines
-    function sfSideAnchor(x, y, w, h, dx, dy) {
-      const cx = x + w / 2, cy = y + h / 2;
-      if (Math.abs(dy) >= Math.abs(dx)) {
-        return dy >= 0 ? [cx, y + h] : [cx, y];      // bottom or top
-      } else {
-        return dx >= 0 ? [x + w, cy] : [x, cy];      // right or left
-      }
-    }
+    // Lines exit bottom-center and enter top-center, same as normal tree lines
     (data.extraLinks || []).forEach(link => {
       let fx, fy, fw, fh, tx, ty, tw, th;
       if (link.from === 'jegsier') {
@@ -2576,10 +2568,8 @@
         fx = fb.x; fy = fb.y; fw = KUNDE_W; fh = KUNDE_H;
         tx = tp.x; ty = tp.y; tw = NODE_W;  th = NODE_H;
       }
-      const dx = (tx + tw / 2) - (fx + fw / 2);
-      const dy = (ty + th / 2) - (fy + fh / 2);
-      const [x1, y1] = sfSideAnchor(fx, fy, fw, fh,  dx,  dy);
-      const [x2, y2] = sfSideAnchor(tx, ty, tw, th, -dx, -dy);
+      const [x1, y1] = [fx + fw / 2, fy + fh];   // always exit bottom-center
+      const [x2, y2] = [tx + tw / 2, ty];          // always enter top-center
       svgContent += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>`;
     });
 
