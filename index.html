@@ -870,23 +870,23 @@
     .sf-node {
       position: absolute;
       width: 200px;
-      background: white;
-      border: 2px solid #e2e8f0;
+      background: #eff6ff;
+      border: 2px solid #bfdbfe;
       border-radius: 10px;
       padding: 12px 14px;
       cursor: pointer;
       transition: border-color 0.15s, box-shadow 0.15s;
       font-size: 0.82rem;
-      color: #1e293b;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      color: #1e3a8a;
+      box-shadow: 0 1px 4px rgba(59,130,246,0.08);
       user-select: none;
     }
-    .sf-node:hover { border-color: #29a8e0; }
+    .sf-node:hover { border-color: #3b82f6; }
     .sf-node.selected {
-      border-color: #29a8e0;
-      box-shadow: 0 0 0 3px rgba(41,168,224,0.18);
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
     }
-    .sf-node.root-node { border-color: #1e293b; }
+    .sf-node.root-node { border-color: #1d4ed8; background: #dbeafe; }
 
     .sf-node-preview {
       font-size: 0.78rem;
@@ -961,24 +961,25 @@
     }
 
     .sf-kunde-label {
-      background: #f1f5f9;
-      color: #64748b;
+      background: #dcfce7;
+      color: #16a34a;
     }
 
     #sf-detail-script {
       width: 100%;
       padding: 12px 14px;
-      border: 1.5px solid #e2e8f0;
+      border: 1.5px solid #93c5fd;
       border-radius: 8px;
       font-size: 0.95rem;
       font-family: inherit;
       resize: vertical;
       min-height: 90px;
-      color: #1e293b;
+      color: #1e3a8a;
+      background: #f8fbff;
       line-height: 1.55;
-      margin-bottom: 16px;
+      margin-bottom: 0;
     }
-    #sf-detail-script:focus { outline: none; border-color: #29a8e0; }
+    #sf-detail-script:focus { outline: none; border-color: #3b82f6; }
 
     .sf-branch-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
 
@@ -990,13 +991,14 @@
     .sf-branch-label-input {
       flex: 1;
       padding: 9px 12px;
-      border: 1.5px solid #e2e8f0;
+      border: 1.5px solid #86efac;
       border-radius: 8px;
       font-size: 0.88rem;
       font-family: inherit;
-      color: #1e293b;
+      color: #166534;
+      background: #f0fdf4;
     }
-    .sf-branch-label-input:focus { outline: none; border-color: #29a8e0; }
+    .sf-branch-label-input:focus { outline: none; border-color: #22c55e; }
 
     .sf-branch-del-btn {
       padding: 8px 12px;
@@ -1047,17 +1049,19 @@
     .sf-save-node-btn:hover { opacity: 0.85; }
 
     .sf-add-branch-btn {
-      padding: 9px 18px;
-      border: 1.5px dashed #cbd5e1;
+      padding: 11px 20px;
+      border: 2px dashed #86efac;
       border-radius: 8px;
-      background: white;
-      color: #64748b;
+      background: #f0fdf4;
+      color: #16a34a;
       cursor: pointer;
-      font-size: 0.85rem;
-      font-weight: 600;
+      font-size: 0.9rem;
+      font-weight: 700;
       transition: all 0.15s;
+      width: 100%;
+      margin-top: 4px;
     }
-    .sf-add-branch-btn:hover { border-color: #29a8e0; color: #0369a1; }
+    .sf-add-branch-btn:hover { border-color: #22c55e; background: #dcfce7; color: #15803d; }
 
     .sf-delete-node-btn {
       padding: 9px 16px;
@@ -1118,9 +1122,46 @@
 
     .sf-arrow-label {
       font-size: 11px;
-      fill: #64748b;
+      fill: #16a34a;
       font-family: 'Inter', 'Segoe UI', sans-serif;
     }
+
+    /* Colored section boxes in detail panel */
+    .sf-jeg-section {
+      background: #eff6ff;
+      border: 1.5px solid #bfdbfe;
+      border-radius: 10px;
+      padding: 14px 16px 16px;
+      margin-bottom: 14px;
+    }
+    .sf-jeg-section .sf-section-label { margin-bottom: 10px; }
+
+    .sf-kunde-section {
+      background: #f0fdf4;
+      border: 1.5px solid #bbf7d0;
+      border-radius: 10px;
+      padding: 14px 16px 16px;
+      margin-bottom: 14px;
+    }
+    .sf-kunde-section .sf-section-label { margin-bottom: 10px; }
+
+    /* Quick add button on node cards */
+    .sf-node-add-btn {
+      display: block;
+      width: 100%;
+      margin-top: 8px;
+      padding: 4px 6px;
+      background: white;
+      border: 1px dashed #86efac;
+      border-radius: 6px;
+      color: #16a34a;
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .sf-node-add-btn:hover { background: #dcfce7; border-color: #22c55e; }
   </style>
 </head>
 <body>
@@ -1265,11 +1306,11 @@
         </div>
       </div>
       <div id="sf-detail">
-        <div class="sf-detail-section">
+        <div class="sf-detail-section sf-jeg-section">
           <div class="sf-section-label sf-jeg-label">Jeg sier</div>
           <textarea id="sf-detail-script" placeholder="Skriv inn hva du sier..."></textarea>
         </div>
-        <div class="sf-detail-section">
+        <div class="sf-detail-section sf-kunde-section">
           <div class="sf-section-label sf-kunde-label">Kunden kan svare</div>
           <div class="sf-branch-list" id="sf-branch-list"></div>
           <button class="sf-add-branch-btn" onclick="sfAddBranch()">+ Legg til kundesvar</button>
@@ -2340,6 +2381,7 @@
       div.innerHTML = `
         ${isRoot ? '<div class="sf-node-label">Start</div>' : ''}
         <div class="sf-node-preview">${sfEsc(shortPrev)}</div>
+        <button class="sf-node-add-btn" onclick="event.stopPropagation();sfQuickAddBranch('${node.id}')">+ Legg til svar</button>
       `;
       div.onclick = () => sfSelectNode(node.id);
       canvas.appendChild(div);
@@ -2351,6 +2393,21 @@
   function sfSelectNode(id) {
     sfSelectedId = id;
     renderSamtaleflyt();
+    setTimeout(() => {
+      const panel = document.getElementById('sf-detail');
+      if (panel && panel.classList.contains('open')) {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 50);
+  }
+
+  function sfQuickAddBranch(nodeId) {
+    sfSelectedId = nodeId;
+    sfAddBranch();
+    setTimeout(() => {
+      const panel = document.getElementById('sf-detail');
+      if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 80);
   }
 
   function sfRenderDetail(data) {
