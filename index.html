@@ -1879,7 +1879,7 @@
       container.innerHTML = '<p class="empty-state">Ingen forsøk registrert ennå.</p>';
       return;
     }
-    container.innerHTML = history.map(h => `
+    container.innerHTML = history.map((h, i) => `
       <div class="history-item">
         <div>${escHtml(h.text)}</div>
         <div class="meta">
@@ -1887,9 +1887,17 @@
             Opptak: ${h.opptak === 'ja' ? 'Ja' : 'Nei'}
           </span>
           <span>${h.tid}</span>
+          <button class="delete-entry-btn" onclick="deleteIntroAttempt(${i})" title="Slett dette forsøket">×</button>
         </div>
       </div>
     `).join('');
+  }
+
+  function deleteIntroAttempt(index) {
+    const history = getIntroHistory();
+    history.splice(index, 1);
+    localStorage.setItem('introHistory', JSON.stringify(history));
+    renderIntroHistory();
   }
 
   // ---- Objections ----
