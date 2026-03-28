@@ -2585,7 +2585,7 @@
       const [x2r, y2r] = sfEdgePt(toCx, toCy, toHW, toHH, -nx, -ny);
       // Pull endpoint back by ~10px so arrowhead tip lands on the box border
       const x2 = x2r + nx * 10, y2 = y2r + ny * 10;
-      svgContent += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#7c3aed" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arr-link)"/>`;
+      svgContent += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>`;
     });
 
     svg.innerHTML = svgContent;
