@@ -572,13 +572,15 @@
     .stats-section { max-width: 1100px; margin: 0 auto 32px auto; }
 
     .stats-section-title {
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
+      font-size: 1rem;
+      font-weight: 800;
+      color: #1e293b;
       margin-bottom: 14px;
+      padding-left: 12px;
+      border-left: 4px solid #3b82f6;
     }
+    .stats-section-title.st-purple { border-left-color: #8b5cf6; }
+    .stats-section-title.st-green  { border-left-color: #22c55e; }
 
     .stats-grid {
       display: grid;
@@ -599,9 +601,20 @@
       text-align: center;
       border: 1px solid var(--border);
       box-shadow: 0 2px 12px rgba(41,168,224,0.09);
+      border-top: 4px solid var(--border);
     }
 
     .stat-card.day-card { padding: 26px 18px; }
+
+    .stat-card.sc-blue   { border-top-color: #3b82f6; background: #eff6ff; }
+    .stat-card.sc-purple { border-top-color: #8b5cf6; background: #f5f3ff; }
+    .stat-card.sc-teal   { border-top-color: #14b8a6; background: #f0fdfa; }
+    .stat-card.sc-gold   { border-top-color: #f59e0b; background: #fffbeb; }
+
+    .stat-card.sc-blue   .stat-value { color: #1d4ed8; }
+    .stat-card.sc-purple .stat-value { color: #6d28d9; }
+    .stat-card.sc-teal   .stat-value { color: #0f766e; }
+    .stat-card.sc-gold   .stat-value { color: #b45309; }
 
     .quick-register-card { padding-bottom: 16px !important; position: relative; }
 
@@ -738,8 +751,21 @@
       border: 1px solid var(--border);
       box-shadow: 0 2px 12px rgba(41,168,224,0.09);
     }
+    .chart-card.cc-purple { background: #f5f3ff; border-color: #ddd6fe; }
+    .chart-card.cc-green  { background: #f0fdf4; border-color: #bbf7d0; }
 
-    .chart-card-title {
+    .bar-fill {
+      width: 100%;
+      background: linear-gradient(to top, #3b82f6, #60a5fa);
+      border-radius: 6px 6px 0 0;
+      min-height: 4px;
+      transition: height 0.4s ease;
+      position: relative;
+    }
+    .bar-fill.bf-purple { background: linear-gradient(to top, #8b5cf6, #a78bfa); }
+    .bar-fill.bf-green  { background: linear-gradient(to top, #22c55e, #4ade80); }
+
+    .bar-fill:hover { filter: brightness(1.1); }
       font-size: 0.78rem;
       font-weight: 700;
       color: var(--muted);
@@ -1601,21 +1627,20 @@
     return { total, opptak, over5, salg, hitrate };
   }
 
-  function statCard(value, label, big = false) {
-    return `<div class="stat-card${big ? ' day-card' : ''}">
+  function statCard(value, label, big = false, color = '') {
+    return `<div class="stat-card${big ? ' day-card' : ''}${color ? ' sc-' + color : ''}">
       <div class="stat-value${big ? ' big' : ''}">${value}</div>
       <div class="stat-label">${label}</div>
     </div>`;
   }
 
-  function barChart(data) {
-    // data = [{label, value}]
+  function barChart(data, barClass = '') {
     const max = Math.max(...data.map(d => d.value), 1);
     return `<div class="bar-chart">` + data.map(d => {
       const h = Math.round((d.value / max) * 100);
       return `<div class="bar-col">
         <div class="bar-val">${d.value > 0 ? d.value : ''}</div>
-        <div class="bar-fill" style="height:${h}%"></div>
+        <div class="bar-fill${barClass ? ' ' + barClass : ''}" style="height:${h}%"></div>
         <div class="bar-lbl">${d.label}</div>
       </div>`;
     }).join('') + `</div>`;
@@ -1686,43 +1711,43 @@
       <div class="stats-section">
         <div class="stats-section-title">I dag</div>
         <div class="stats-grid stats-grid-4">
-          ${statCard(dag.total, 'Forsøk', true)}
-          ${statCard(dag.hitrate !== null ? `<span style="color:${pctColor(dag.hitrate)}">${dag.hitrate}%</span>` : '–', 'Hitrate opptak', true)}
-          ${statCard(dag.over5, '5-minutters', true)}
-          ${statCard(dag.salg, 'Salg', true)}
+          ${statCard(dag.total, 'Forsøk', true, 'blue')}
+          ${statCard(dag.hitrate !== null ? `<span style="color:${pctColor(dag.hitrate)}">${dag.hitrate}%</span>` : '–', 'Hitrate opptak', true, 'purple')}
+          ${statCard(dag.over5, '5-minutters', true, 'teal')}
+          ${statCard(dag.salg, 'Salg', true, 'gold')}
         </div>
       </div>
 
       <!-- UKE -->
       <div class="stats-section">
-        <div class="stats-section-title">Denne uken</div>
+        <div class="stats-section-title st-purple">Denne uken</div>
         <div class="stats-grid stats-grid-2" style="margin-bottom:14px;">
-          <div class="chart-card">
+          <div class="chart-card cc-purple">
             <div class="chart-card-title">5-minutters per dag</div>
-            ${barChart(weekData)}
+            ${barChart(weekData, 'bf-purple')}
           </div>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
-            ${statCard(uke.total, 'Forsøk totalt')}
-            ${statCard(uke.hitrate !== null ? `<span style="color:${pctColor(uke.hitrate)}">${uke.hitrate}%</span>` : '–', 'Hitrate opptak')}
-            ${statCard(uke.over5, '5-minutters totalt')}
-            ${statCard(uke.salg, 'Salg')}
+            ${statCard(uke.total, 'Forsøk totalt', false, 'blue')}
+            ${statCard(uke.hitrate !== null ? `<span style="color:${pctColor(uke.hitrate)}">${uke.hitrate}%</span>` : '–', 'Hitrate opptak', false, 'purple')}
+            ${statCard(uke.over5, '5-minutters totalt', false, 'teal')}
+            ${statCard(uke.salg, 'Salg', false, 'gold')}
           </div>
         </div>
       </div>
 
       <!-- MÅNED -->
       <div class="stats-section">
-        <div class="stats-section-title">${now.toLocaleString('no-NO', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase())}</div>
+        <div class="stats-section-title st-green">${now.toLocaleString('no-NO', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase())}</div>
         <div class="stats-grid stats-grid-2">
-          <div class="chart-card">
+          <div class="chart-card cc-green">
             <div class="chart-card-title">5-minutters per uke</div>
-            ${barChart(weekBuckets)}
+            ${barChart(weekBuckets, 'bf-green')}
           </div>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
-            ${statCard(mnd.total, 'Forsøk totalt')}
-            ${statCard(mnd.hitrate !== null ? `<span style="color:${pctColor(mnd.hitrate)}">${mnd.hitrate}%</span>` : '–', 'Hitrate opptak')}
-            ${statCard(mnd.over5, '5-minutters totalt')}
-            ${statCard(mnd.salg, 'Salg')}
+            ${statCard(mnd.total, 'Forsøk totalt', false, 'blue')}
+            ${statCard(mnd.hitrate !== null ? `<span style="color:${pctColor(mnd.hitrate)}">${mnd.hitrate}%</span>` : '–', 'Hitrate opptak', false, 'purple')}
+            ${statCard(mnd.over5, '5-minutters totalt', false, 'teal')}
+            ${statCard(mnd.salg, 'Salg', false, 'gold')}
           </div>
         </div>
       </div>
