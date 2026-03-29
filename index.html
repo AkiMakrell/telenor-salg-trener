@@ -1352,7 +1352,7 @@
         <div class="sf-phase-card-num">1</div>
         <div class="sf-phase-card-name">Intro</div>
       </button>
-      <button class="sf-phase-card" onclick="sfOpenPhase('behovsanalyse')">
+      <button class="sf-phase-card" onclick="sfShowBehovsanalyse()">
         <div class="sf-phase-card-num">2</div>
         <div class="sf-phase-card-name">Behovsanalyse</div>
       </button>
@@ -1363,6 +1363,27 @@
       <button class="sf-phase-card" onclick="sfOpenPhase('losning')">
         <div class="sf-phase-card-num">4</div>
         <div class="sf-phase-card-name">Løsningspresentasjon</div>
+      </button>
+    </div>
+  </div>
+  <!-- Behovsanalyse sub-picker -->
+  <div id="sf-behovsanalyse-picker" style="display:none;max-width:900px;margin:0 auto;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <button class="sf-back-phase-btn" onclick="sfBackFromBehovsanalyse()">← Tilbake</button>
+      <span style="font-size:1.1rem;font-weight:700;color:#1e293b;">Behovsanalyse</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:700px;margin:0 auto;">
+      <button class="sf-phase-card" onclick="sfOpenPhase('behovsanalyse_bildelagring')">
+        <div class="sf-phase-card-num">📸</div>
+        <div class="sf-phase-card-name">Bildelagring</div>
+      </button>
+      <button class="sf-phase-card" onclick="sfOpenPhase('behovsanalyse_dekning')">
+        <div class="sf-phase-card-num">📶</div>
+        <div class="sf-phase-card-name">Dekning</div>
+      </button>
+      <button class="sf-phase-card" onclick="sfOpenPhase('behovsanalyse_nettsikkerhet')">
+        <div class="sf-phase-card-num">🔒</div>
+        <div class="sf-phase-card-name">Nettsikkerhet</div>
       </button>
     </div>
   </div>
@@ -1425,7 +1446,8 @@
 
   function getAllData() {
     const keys = ['savedIntros', 'introHistory', 'produktFakta', 'samtaleflyt',
-      'samtaleflyt2_intro', 'samtaleflyt2_behovsanalyse', 'samtaleflyt2_oppsummering', 'samtaleflyt2_losning'];
+      'samtaleflyt2_intro', 'samtaleflyt2_behovsanalyse', 'samtaleflyt2_oppsummering', 'samtaleflyt2_losning',
+      'samtaleflyt2_behovsanalyse_bildelagring', 'samtaleflyt2_behovsanalyse_dekning', 'samtaleflyt2_behovsanalyse_nettsikkerhet'];
     const data = {};
     keys.forEach(k => { const v = _origGetItem(k); if (v) data[k] = JSON.parse(v); });
     return data;
@@ -2131,10 +2153,12 @@
   // ===== SAMTALEFLYT v2 =====
 
   const SF_PHASES = [
-    { id: 'intro',          name: 'Intro' },
-    { id: 'behovsanalyse',  name: 'Behovsanalyse' },
-    { id: 'oppsummering',   name: 'Oppsummering' },
-    { id: 'losning',        name: 'Løsningspresentasjon' },
+    { id: 'intro',                        name: 'Intro' },
+    { id: 'behovsanalyse_bildelagring',   name: 'Behovsanalyse – Bildelagring' },
+    { id: 'behovsanalyse_dekning',        name: 'Behovsanalyse – Dekning' },
+    { id: 'behovsanalyse_nettsikkerhet',  name: 'Behovsanalyse – Nettsikkerhet' },
+    { id: 'oppsummering',                 name: 'Oppsummering' },
+    { id: 'losning',                      name: 'Løsningspresentasjon' },
   ];
 
   let sfCurrentPhase = null;
@@ -2203,14 +2227,29 @@
     renderSamtaleflyt();
   }
 
+  function sfShowBehovsanalyse() {
+    document.getElementById('sf-phase-picker').style.display        = 'none';
+    document.getElementById('sf-behovsanalyse-picker').style.display = 'block';
+  }
+
+  function sfBackFromBehovsanalyse() {
+    document.getElementById('sf-behovsanalyse-picker').style.display = 'none';
+    document.getElementById('sf-phase-picker').style.display         = 'block';
+  }
+
   function sfBackToPhases() {
+    const wasBehovsanalyse = sfCurrentPhase && sfCurrentPhase.startsWith('behovsanalyse_');
     sfCurrentPhase = null;
     sfSelectedId   = null;
     sfKobleMode    = false;
     sfKobleSource  = null;
     sfHistory      = [];
-    document.getElementById('sf-tree-view').style.display   = 'none';
-    document.getElementById('sf-phase-picker').style.display = 'block';
+    document.getElementById('sf-tree-view').style.display = 'none';
+    if (wasBehovsanalyse) {
+      document.getElementById('sf-behovsanalyse-picker').style.display = 'block';
+    } else {
+      document.getElementById('sf-phase-picker').style.display = 'block';
+    }
   }
 
   // ── Layout ──────────────────────────────────────────────────────────────
