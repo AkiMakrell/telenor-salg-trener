@@ -306,6 +306,146 @@
       color: var(--muted);
     }
 
+    .notes-page {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .notes-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(41,168,224,0.08);
+      padding: 20px;
+    }
+
+    .notes-card h2 {
+      color: var(--primary-dark);
+      font-size: 1.05rem;
+      margin-bottom: 14px;
+    }
+
+    .notes-helper {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+
+    .notes-field {
+      margin-bottom: 14px;
+    }
+
+    .notes-field label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .notes-field input,
+    .notes-field textarea {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.92rem;
+      font-family: inherit;
+      background: var(--primary-xlight);
+      color: var(--text);
+    }
+
+    .notes-field input:focus,
+    .notes-field textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: white;
+    }
+
+    .notes-field textarea {
+      min-height: 96px;
+      resize: vertical;
+    }
+
+    .notes-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .notes-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .conversation-step {
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 14px 12px;
+      background: white;
+    }
+
+    .conversation-step.completed {
+      border-color: #86efac;
+      background: #f0fdf4;
+    }
+
+    .conversation-step-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .conversation-step-title {
+      font-weight: 800;
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+
+    .conversation-step-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .conversation-step-check input {
+      width: 16px;
+      height: 16px;
+    }
+
+    .notes-summary-box {
+      margin-top: 16px;
+      background: #eff6ff;
+      border: 1.5px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .notes-summary-box textarea {
+      min-height: 170px;
+      background: white;
+    }
+
+    @media (max-width: 900px) {
+      .notes-page,
+      .notes-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .fakta-theme-section {
       background: var(--card);
       border-radius: 16px;
@@ -440,6 +580,11 @@
       color: var(--primary-dark);
       font-size: 0.74rem;
       font-weight: 700;
+    }
+
+    .objection-chip.favorite {
+      background: #fff7ed;
+      color: #c2410c;
     }
 
     .objection-section-title {
@@ -1352,6 +1497,7 @@
     <button class="tab-btn active" onclick="switchTab('intro')">Registrer</button>
     <button class="tab-btn" onclick="switchTab('hjem')">Stats</button>
     <button class="tab-btn" onclick="switchTab('innvendinger')">Innvendinger</button>
+    <button class="tab-btn" onclick="switchTab('notater')">Notater</button>
     <button class="tab-btn" onclick="switchTab('samtaleflyt')">Flyt (avansert)</button>
   </div>
   <div class="backup-btns">
@@ -1445,6 +1591,48 @@
     <div id="fakta-search-meta" class="objection-results-meta"></div>
   </div>
   <div class="fakta-page" id="fakta-page"></div>
+</div>
+
+<div id="tab-notater" class="tab-content">
+  <div class="notes-page">
+    <div class="notes-card">
+      <h2>Samtalenotater</h2>
+      <div class="notes-helper">Bruk denne siden under samtalen for aa holde struktur, huske kundens smerter og bygge en sterk oppsummering senere i dialogen.</div>
+
+      <div class="notes-field">
+        <label for="notes-provider">Navaerende selskap</label>
+        <input id="notes-provider" type="text" placeholder="F.eks. Telia, Ice eller OneCall" oninput="saveConversationNotes()" />
+      </div>
+
+      <div class="notes-field">
+        <label for="notes-data-amount">Hvor mye data har kunden?</label>
+        <input id="notes-data-amount" type="text" placeholder="F.eks. 10 GB, ubegrenset eller vet ikke" oninput="saveConversationNotes()" />
+      </div>
+
+      <div class="notes-field">
+        <label for="notes-general-pain">Overordnet smerte eller viktigste behov</label>
+        <textarea id="notes-general-pain" placeholder="Hva er det viktigste problemet kunden vil lose?" oninput="saveConversationNotes()"></textarea>
+      </div>
+
+      <div class="notes-actions">
+        <button class="save-btn" style="margin-top:0;" onclick="copyConversationSummary()">Kopier oppsummering</button>
+        <button class="backup-btn" style="font-size:0.9rem;padding:10px 14px;border-radius:8px;color:var(--muted);" onclick="resetConversationNotes()">Ny samtale</button>
+      </div>
+
+      <div class="notes-summary-box">
+        <div class="notes-field" style="margin-bottom:0;">
+          <label for="notes-summary-output">Oppsummering til senere i samtalen</label>
+          <textarea id="notes-summary-output" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="notes-card">
+      <h2>Samtalestruktur</h2>
+      <div class="notes-helper">Hak av etter hvert som du har vært innom temaet. Skriv smerter, innvendinger eller detaljer du vil bruke senere.</div>
+      <div id="conversation-steps" class="notes-grid"></div>
+    </div>
+  </div>
 </div>
 
 <div id="tab-samtaleflyt" class="tab-content">
@@ -1542,6 +1730,7 @@
     'introSessionAssignments',
     'introLastSelectedId',
     'produktFakta',
+    'conversationNotes',
     'samtaleflyt',
     'samtaleflyt2_intro',
     'samtaleflyt2_behovsanalyse',
@@ -1712,6 +1901,7 @@
     document.getElementById('tab-' + name).classList.add('active');
     event.target.classList.add('active');
     if (name === 'samtaleflyt') renderSamtaleflyt();
+    if (name === 'notater') renderConversationNotes();
   }
 
   let selectedOpptak = null;
@@ -2328,6 +2518,120 @@
     { key: 'bildelagring',  label: 'Bilde-lagring',  cls: 'fakta-theme-purple' },
   ];
 
+  const CONVERSATION_STEPS = [
+    { key: 'minSky', label: 'Min Sky', placeholder: 'Hva sier kunden om lagring, bilder, deling eller sky?' },
+    { key: 'nettsikkerhet', label: 'Nettsikkerhet', placeholder: 'Hvilke bekymringer eller behov har kunden rundt trygghet?' },
+    { key: 'data', label: 'Data', placeholder: 'Hva slags data-behov eller frustrasjon har kunden?' },
+    { key: 'dekning', label: 'Dekning', placeholder: 'Hvor opplever kunden daarlig dekning eller ustabilitet?' },
+    { key: 'datakort', label: 'Datakort', placeholder: 'Har kunden behov for nett paa andre enheter eller i bil?' },
+    { key: 'oppsummering', label: 'Oppsummering', placeholder: 'Hva maa du trekke frem igjen senere i samtalen?' },
+    { key: 'losningspresentasjon', label: 'Løsningspresentasjon', placeholder: 'Hvilke argumenter vil best knytte behovet til losningen?' }
+  ];
+
+  function getDefaultConversationNotes() {
+    const steps = {};
+    CONVERSATION_STEPS.forEach(step => {
+      steps[step.key] = { completed: false, notes: '' };
+    });
+    return { provider: '', dataAmount: '', generalPain: '', steps };
+  }
+
+  function getConversationNotes() {
+    const raw = localStorage.getItem('conversationNotes');
+    const parsed = raw ? JSON.parse(raw) : getDefaultConversationNotes();
+    if (!parsed.steps) parsed.steps = {};
+    let changed = !raw;
+    CONVERSATION_STEPS.forEach(step => {
+      if (!parsed.steps[step.key]) {
+        parsed.steps[step.key] = { completed: false, notes: '' };
+        changed = true;
+      }
+    });
+    if (changed) localStorage.setItem('conversationNotes', JSON.stringify(parsed));
+    return parsed;
+  }
+
+  function buildConversationSummary(notes = getConversationNotes()) {
+    const lines = [];
+    if (notes.provider) lines.push(`Navaerende selskap: ${notes.provider}`);
+    if (notes.dataAmount) lines.push(`Data i dag: ${notes.dataAmount}`);
+    if (notes.generalPain) lines.push(`Viktigste behov: ${notes.generalPain}`);
+    CONVERSATION_STEPS.forEach(step => {
+      const stepData = notes.steps[step.key] || {};
+      if (stepData.notes) lines.push(`${step.label}: ${stepData.notes}`);
+    });
+    return lines.join('\n');
+  }
+
+  function updateConversationSummary(notes = getConversationNotes()) {
+    const output = document.getElementById('notes-summary-output');
+    if (output) output.value = buildConversationSummary(notes);
+  }
+
+  function renderConversationNotes() {
+    const provider = document.getElementById('notes-provider');
+    const dataAmount = document.getElementById('notes-data-amount');
+    const generalPain = document.getElementById('notes-general-pain');
+    const stepsWrap = document.getElementById('conversation-steps');
+    if (!provider || !dataAmount || !generalPain || !stepsWrap) return;
+
+    const notes = getConversationNotes();
+    provider.value = notes.provider || '';
+    dataAmount.value = notes.dataAmount || '';
+    generalPain.value = notes.generalPain || '';
+    stepsWrap.innerHTML = CONVERSATION_STEPS.map(step => {
+      const stepData = notes.steps[step.key] || { completed: false, notes: '' };
+      return `
+        <div class="conversation-step ${stepData.completed ? 'completed' : ''}" id="conversation-step-${step.key}">
+          <div class="conversation-step-header">
+            <div class="conversation-step-title">${step.label}</div>
+            <label class="conversation-step-check">
+              <input id="notes-check-${step.key}" type="checkbox" ${stepData.completed ? 'checked' : ''} onchange="saveConversationNotes()" />
+              Ferdig
+            </label>
+          </div>
+          <div class="notes-field" style="margin-bottom:0;">
+            <label for="notes-step-${step.key}">Notater / smerter</label>
+            <textarea id="notes-step-${step.key}" placeholder="${step.placeholder}" oninput="saveConversationNotes()">${escHtml(stepData.notes || '')}</textarea>
+          </div>
+        </div>
+      `;
+    }).join('');
+    updateConversationSummary(notes);
+  }
+
+  function saveConversationNotes() {
+    const current = getConversationNotes();
+    current.provider = (document.getElementById('notes-provider')?.value || '').trim();
+    current.dataAmount = (document.getElementById('notes-data-amount')?.value || '').trim();
+    current.generalPain = (document.getElementById('notes-general-pain')?.value || '').trim();
+    CONVERSATION_STEPS.forEach(step => {
+      current.steps[step.key] = {
+        completed: !!document.getElementById(`notes-check-${step.key}`)?.checked,
+        notes: (document.getElementById(`notes-step-${step.key}`)?.value || '').trim()
+      };
+      const card = document.getElementById(`conversation-step-${step.key}`);
+      if (card) card.classList.toggle('completed', current.steps[step.key].completed);
+    });
+    localStorage.setItem('conversationNotes', JSON.stringify(current));
+    updateConversationSummary(current);
+  }
+
+  function resetConversationNotes() {
+    if (!confirm('Starte en ny samtale og tømme notatene?')) return;
+    localStorage.setItem('conversationNotes', JSON.stringify(getDefaultConversationNotes()));
+    renderConversationNotes();
+  }
+
+  function copyConversationSummary() {
+    const summary = buildConversationSummary();
+    const output = document.getElementById('notes-summary-output');
+    if (output) output.value = summary;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(summary);
+    }
+  }
+
   function normalizeFaktaItem(item, themeKey, index) {
     if (!item) return null;
     const objection = (item.objection || item.title || '').trim();
@@ -2342,7 +2646,8 @@
       objection,
       response,
       notes,
-      keywords
+      keywords,
+      favorite: Boolean(item.favorite)
     };
   }
 
@@ -2407,9 +2712,9 @@
     if (!data[themeKey]) data[themeKey] = [];
     if (editId) {
       const idx = data[themeKey].findIndex(x => x.id === editId);
-      if (idx !== -1) data[themeKey][idx] = { id: editId, objection, response, notes, keywords };
+      if (idx !== -1) data[themeKey][idx] = { ...data[themeKey][idx], id: editId, objection, response, notes, keywords };
     } else {
-      data[themeKey].push({ id: themeKey + '_' + Date.now(), objection, response, notes, keywords });
+      data[themeKey].push({ id: themeKey + '_' + Date.now(), objection, response, notes, keywords, favorite: false });
     }
     saveFakta(data);
     renderFakta();
@@ -2429,6 +2734,15 @@
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(item.response);
     }
+  }
+
+  function toggleFaktaFavorite(themeKey, id) {
+    const data = getFakta();
+    const item = (data[themeKey] || []).find(x => x.id === id);
+    if (!item) return;
+    item.favorite = !item.favorite;
+    saveFakta(data);
+    renderFakta();
   }
 
   function renderFakta() {
@@ -2451,6 +2765,9 @@
           ...(item.keywords || [])
         ].join(' ').toLowerCase();
         return haystack.includes(query);
+      }).sort((a, b) => {
+        if (a.favorite !== b.favorite) return a.favorite ? -1 : 1;
+        return a.objection.localeCompare(b.objection, 'no');
       });
       totalMatches += items.length;
       if (items.length) categoryMatches++;
@@ -2463,6 +2780,7 @@
                 <div class="fakta-card-subtitle">${item.response ? 'Har forslag til svar klart' : 'Ingen svar lagt inn ennå'}</div>
               </div>
               <div class="fakta-card-actions" onclick="event.stopPropagation()">
+                <button class="fakta-action-btn" onclick="toggleFaktaFavorite('${key}','${item.id}')" title="${item.favorite ? 'Fjern favoritt' : 'Marker som favoritt'}">${item.favorite ? '★' : '☆'}</button>
                 <button class="fakta-action-btn" onclick="showFaktaForm('${key}','${item.id}')" title="Rediger">✏️</button>
                 <button class="fakta-action-btn" onclick="copyFaktaResponse('${key}','${item.id}')" title="Kopier svar">⧉</button>
                 <button class="fakta-action-btn delete" onclick="deleteFaktaCard('${key}','${item.id}')" title="Slett">×</button>
@@ -2470,7 +2788,7 @@
               <span class="fakta-card-icon">▼</span>
             </div>
             <div class="fakta-card-body">
-              ${(item.keywords || []).length ? `<div class="objection-chip-row">${item.keywords.map(tag => `<span class="objection-chip">${escHtml(tag)}</span>`).join('')}</div>` : ''}
+              ${(item.favorite || (item.keywords || []).length) ? `<div class="objection-chip-row">${item.favorite ? '<span class="objection-chip favorite">Favoritt</span>' : ''}${(item.keywords || []).map(tag => `<span class="objection-chip">${escHtml(tag)}</span>`).join('')}</div>` : ''}
               <div class="objection-section-title">Forslag til svar</div>
               <div>${escHtml(item.response || 'Ingen svar lagt inn ennå.')}</div>
               ${item.notes ? `<div class="objection-section-title">Notater</div><div>${escHtml(item.notes)}</div>` : ''}
@@ -2521,6 +2839,7 @@
     renderIntroLibraryInline();
     renderIntroHistory();
     renderFakta();
+    renderConversationNotes();
     renderSamtaleflyt();
   })();
 
