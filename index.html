@@ -2593,8 +2593,10 @@
 
   function buildConversationSummary(notes = getConversationNotes()) {
     const lines = [];
-    if (notes.provider) lines.push(`Navaerende selskap: ${notes.provider}`);
-    if (notes.customDataAmount || notes.dataAmount) lines.push(`Data i dag: ${notes.customDataAmount || notes.dataAmount}`);
+    const dataAmount = notes.customDataAmount || notes.dataAmount;
+    if (notes.provider && dataAmount) lines.push(`${notes.provider} med ${dataAmount}GB`);
+    else if (notes.provider) lines.push(notes.provider);
+    else if (dataAmount) lines.push(`${dataAmount}GB`);
     CONVERSATION_STEPS.forEach(step => {
       const stepData = notes.steps[step.key] || {};
       if (stepData.notes) lines.push(`${step.label}: ${stepData.notes}`);
