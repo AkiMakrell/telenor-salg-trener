@@ -2592,7 +2592,7 @@
       const stepData = notes.steps[step.key] || {};
       if (stepData.notes) lines.push(`${step.label}: ${stepData.notes}`);
     });
-    return lines.join('\n');
+    return lines.join('\n\n');
   }
 
   function updateConversationSummary(notes = getConversationNotes()) {
