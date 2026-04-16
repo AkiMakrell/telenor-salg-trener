@@ -478,7 +478,7 @@
     }
 
     .notes-summary-output {
-      min-height: 240px;
+      min-height: 340px;
       background: white;
       resize: vertical;
     }
@@ -2677,6 +2677,10 @@
     current.summaryVisible = true;
     localStorage.setItem('conversationNotes', JSON.stringify(current));
     renderConversationNotes();
+    setTimeout(() => {
+      const summaryPanel = document.getElementById('notes-summary-panel');
+      if (summaryPanel) summaryPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 30);
   }
 
   function copyConversationSummary() {
