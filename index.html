@@ -1280,22 +1280,27 @@
     <!-- LEFT: scorecard form -->
     <div>
       <div class="card" style="margin:0 0 16px 0;">
-        <h2>Registrer samtale</h2>
+        <h2>Registrer suksess</h2>
+
+        <div id="session-status" style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:14px 16px;border:1px solid var(--border);border-radius:10px;background:var(--primary-xlight);margin-bottom:16px;">
+          <div>
+            <div id="session-status-title" style="font-weight:700;color:var(--primary-dark);">Laster aktiv økt...</div>
+            <div id="session-status-subtitle" style="font-size:0.86rem;color:var(--muted);margin-top:4px;"></div>
+          </div>
+          <div id="session-status-intro" style="font-size:0.82rem;color:var(--primary-dark);background:white;border:1px solid var(--border);border-radius:999px;padding:6px 10px;max-width:48%;text-align:right;"></div>
+        </div>
 
         <label class="form-label">Introtekst:</label>
         <textarea id="intro-text" placeholder="Hei, jeg ringer fra Telenor..."></textarea>
 
         <div id="intro-library-inline" style="display:none;"></div>
 
-        <div style="margin-top: 18px; display:flex; flex-direction:column; gap:14px;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
+          <button class="save-btn" style="margin-top:0;background:#e8f4fb;color:var(--primary-dark);box-shadow:none;" onclick="saveIntro()">Lagre intro i bibliotek</button>
+          <button class="backup-btn" style="font-size:0.9rem;padding:10px 14px;border-radius:8px;color:var(--muted);" onclick="clearIntroSelection()">Ny intro</button>
+        </div>
 
-          <div>
-            <strong>Kom du forbi opptaksspørsmålet?</strong>
-            <div class="toggle-group">
-              <button class="toggle-btn" id="opptak-ja" onclick="selectOpptak('ja')">Ja</button>
-              <button class="toggle-btn" id="opptak-nei" onclick="selectOpptak('nei')">Nei</button>
-            </div>
-          </div>
+        <div style="margin-top: 18px; display:flex; flex-direction:column; gap:14px;">
 
           <div>
             <strong>Over 5 minutter? <span style="font-weight:400;color:var(--muted);font-size:0.85rem;">(valgfri)</span></strong>
@@ -1315,7 +1320,7 @@
 
         </div>
 
-        <button class="save-btn" style="width:100%;margin-top:22px;padding:14px;font-size:1.1rem;" onclick="saveIntro()">Lagre samtale</button>
+        <button class="save-btn" style="width:100%;margin-top:22px;padding:14px;font-size:1.1rem;" onclick="registerIntroSuccess()">Registrer suksess</button>
 
         <button class="history-toggle-btn" onclick="toggleHistory()">Vis historikk</button>
         <div id="history-panel" class="history-panel">
@@ -1330,7 +1335,7 @@
 
     <!-- RIGHT: leaderboard -->
     <div class="leaderboard-card">
-      <h2>Intro Leaderboard</h2>
+      <h2>Introer</h2>
       <div id="intro-library" class="intro-library"></div>
     </div>
 
@@ -1429,6 +1434,21 @@
   // ---- Google Sheets sync ----
   // Paste your Google Apps Script URL below after deploying (see instructions)
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyj9bEAfEKDC_fuQYP821nOWFiQo9ZAPkL8olEw8VhdYmuihprilbOLxgMOxjL8VoQvFA/exec';
+  const STORAGE_KEYS = [
+    'savedIntros',
+    'introHistory',
+    'introSessionAssignments',
+    'introLastSelectedId',
+    'produktFakta',
+    'samtaleflyt',
+    'samtaleflyt2_intro',
+    'samtaleflyt2_behovsanalyse',
+    'samtaleflyt2_oppsummering',
+    'samtaleflyt2_losning',
+    'samtaleflyt2_behovsanalyse_bildelagring',
+    'samtaleflyt2_behovsanalyse_dekning',
+    'samtaleflyt2_behovsanalyse_nettsikkerhet'
+  ];
 
   const _origSetItem    = localStorage.setItem.bind(localStorage);
   const _origRemoveItem = localStorage.removeItem.bind(localStorage);
@@ -1444,12 +1464,95 @@
     syncTimeout = setTimeout(syncToCloud, 800);
   }
 
+  function readStoredValue(key, reader = _origGetItem) {
+    const raw = reader(key);
+    if (!raw) return null;
+    try { return JSON.parse(raw); } catch { return null; }
+  }
+
+  function stableStringify(value) {
+    return JSON.stringify(value, Object.keys(value || {}).sort());
+  }
+
+  function entryFingerprint(entry) {
+    return [
+      entry.type || '',
+      entry.introId || '',
+      entry.text || '',
+      entry.isoDate || '',
+      entry.sessionId || '',
+      entry.over5min || '',
+      entry.salg || '',
+      entry.opptak || '',
+      entry.quickEntry ? '1' : '0'
+    ].join('|');
+  }
+
+  function mergeSavedIntros(localValue, cloudValue) {
+    const merged = [];
+    const seenIds = new Set();
+    const seenTexts = new Set();
+    [...(cloudValue || []), ...(localValue || [])].forEach(item => {
+      if (!item || !item.text) return;
+      const textKey = item.text.trim();
+      if ((item.id && seenIds.has(item.id)) || seenTexts.has(textKey)) return;
+      if (item.id) seenIds.add(item.id);
+      seenTexts.add(textKey);
+      merged.push(item);
+    });
+    return merged;
+  }
+
+  function mergeIntroHistory(localValue, cloudValue) {
+    const merged = [];
+    const seen = new Set();
+    [...(localValue || []), ...(cloudValue || [])].forEach(entry => {
+      if (!entry || !entry.isoDate) return;
+      const fingerprint = entryFingerprint(entry);
+      if (seen.has(fingerprint)) return;
+      seen.add(fingerprint);
+      merged.push(entry);
+    });
+    merged.sort((a, b) => new Date(b.isoDate) - new Date(a.isoDate));
+    return merged;
+  }
+
+  function mergeFakta(localValue, cloudValue) {
+    const keys = new Set([
+      ...Object.keys(cloudValue || {}),
+      ...Object.keys(localValue || {})
+    ]);
+    const merged = {};
+    keys.forEach(key => {
+      const items = [...(cloudValue?.[key] || []), ...(localValue?.[key] || [])];
+      const seen = new Set();
+      merged[key] = items.filter(item => {
+        if (!item) return false;
+        const fingerprint = item.id || `${item.title || ''}|${item.desc || ''}`;
+        if (seen.has(fingerprint)) return false;
+        seen.add(fingerprint);
+        return true;
+      });
+    });
+    return merged;
+  }
+
+  function mergeCloudValue(key, localValue, cloudValue) {
+    if (cloudValue === null || cloudValue === undefined) return localValue;
+    if (localValue === null || localValue === undefined) return cloudValue;
+    if (key === 'savedIntros') return mergeSavedIntros(localValue, cloudValue);
+    if (key === 'introHistory') return mergeIntroHistory(localValue, cloudValue);
+    if (key === 'produktFakta') return mergeFakta(localValue, cloudValue);
+    if (key === 'introSessionAssignments') return { ...cloudValue, ...localValue };
+    return localValue;
+  }
+
   function getAllData() {
-    const keys = ['savedIntros', 'introHistory', 'produktFakta', 'samtaleflyt',
-      'samtaleflyt2_intro', 'samtaleflyt2_behovsanalyse', 'samtaleflyt2_oppsummering', 'samtaleflyt2_losning',
-      'samtaleflyt2_behovsanalyse_bildelagring', 'samtaleflyt2_behovsanalyse_dekning', 'samtaleflyt2_behovsanalyse_nettsikkerhet'];
     const data = {};
-    keys.forEach(k => { const v = _origGetItem(k); if (v) data[k] = JSON.parse(v); });
+    STORAGE_KEYS.forEach(k => {
+      const v = readStoredValue(k, _origGetItem);
+      if (v !== null) data[k] = v;
+    });
     return data;
   }
 
@@ -1471,7 +1574,15 @@
       const r = await fetch(SCRIPT_URL, { redirect: 'follow' });
       const data = await r.json();
       if (data && typeof data === 'object' && Object.keys(data).length > 0) {
-        Object.entries(data).forEach(([k, v]) => _origSetItem(k, JSON.stringify(v)));
+        STORAGE_KEYS.forEach(key => {
+          const localValue = readStoredValue(key, _origGetItem);
+          const cloudValue = Object.prototype.hasOwnProperty.call(data, key) ? data[key] : null;
+          const mergedValue = mergeCloudValue(key, localValue, cloudValue);
+          if (mergedValue === null || mergedValue === undefined) return;
+          if (stableStringify(localValue) !== stableStringify(mergedValue)) {
+            _origSetItem(key, JSON.stringify(mergedValue));
+          }
+        });
       }
       setSyncStatus('ok');
     } catch { setSyncStatus('error'); }
@@ -1533,40 +1644,188 @@
 
   // ---- Intro ----
   let selectedIntroId = null;
+  const CALL_SESSIONS = [
+    { id: 'session1', label: 'Økt 1', start: '08:30', end: '10:15' },
+    { id: 'session2', label: 'Økt 2', start: '10:15', end: '12:00' },
+    { id: 'session3', label: 'Økt 3', start: '12:00', end: '14:15' },
+    { id: 'session4', label: 'Økt 4', start: '14:15', end: '16:15' },
+  ];
+
+  function makeLocalDateKey(date = new Date()) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function timeToMinutes(time) {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
+  function getCurrentCallSession(date = new Date()) {
+    const nowMinutes = date.getHours() * 60 + date.getMinutes();
+    return CALL_SESSIONS.find(session => nowMinutes >= timeToMinutes(session.start) && nowMinutes < timeToMinutes(session.end)) || null;
+  }
+
+  function getNextCallSession(date = new Date()) {
+    const nowMinutes = date.getHours() * 60 + date.getMinutes();
+    return CALL_SESSIONS.find(session => nowMinutes < timeToMinutes(session.start)) || null;
+  }
+
+  function getSessionAssignments() {
+    return JSON.parse(localStorage.getItem('introSessionAssignments') || '{}');
+  }
+
+  function saveSessionAssignments(assignments) {
+    localStorage.setItem('introSessionAssignments', JSON.stringify(assignments));
+  }
+
+  function sessionAssignmentKey(sessionId, date = new Date()) {
+    return `${makeLocalDateKey(date)}_${sessionId}`;
+  }
+
+  function getStoredSelectedIntroId() {
+    return localStorage.getItem('introLastSelectedId');
+  }
+
+  function setStoredSelectedIntroId(introId) {
+    if (introId) localStorage.setItem('introLastSelectedId', introId);
+    else localStorage.removeItem('introLastSelectedId');
+  }
 
   function getSavedIntros() {
-    return JSON.parse(localStorage.getItem('savedIntros') || '[]');
+    const raw = JSON.parse(localStorage.getItem('savedIntros') || '[]');
+    let changed = false;
+    const baseTs = Date.now();
+    const intros = raw
+      .map((item, index) => {
+        if (typeof item === 'string') {
+          changed = true;
+          return { id: `intro_${baseTs}_${index}`, text: item, createdAt: new Date().toISOString() };
+        }
+        if (!item || !item.text || !item.text.trim()) return null;
+        if (!item.id) {
+          changed = true;
+          return { ...item, id: `intro_${baseTs}_${index}` };
+        }
+        return item;
+      })
+      .filter(Boolean);
+    if (changed) localStorage.setItem('savedIntros', JSON.stringify(intros));
+    return intros;
+  }
+
+  function getIntroById(id) {
+    return getSavedIntros().find(intro => intro.id === id) || null;
+  }
+
+  function fillIntroText(intro) {
+    const ta = document.getElementById('intro-text');
+    if (!ta) return;
+    ta.value = intro ? intro.text : '';
+  }
+
+  function getAssignedIntroIdForSession(session, date = new Date()) {
+    if (!session) return null;
+    const assignments = getSessionAssignments();
+    const key = sessionAssignmentKey(session.id, date);
+    if (assignments[key] && getIntroById(assignments[key])) return assignments[key];
+    const carryForwardId = getStoredSelectedIntroId();
+    if (carryForwardId && getIntroById(carryForwardId)) {
+      assignments[key] = carryForwardId;
+      saveSessionAssignments(assignments);
+      return carryForwardId;
+    }
+    return null;
+  }
+
+  function assignIntroToCurrentSession(id, date = new Date()) {
+    setStoredSelectedIntroId(id);
+    const session = getCurrentCallSession(date);
+    if (!session) return;
+    const assignments = getSessionAssignments();
+    assignments[sessionAssignmentKey(session.id, date)] = id;
+    saveSessionAssignments(assignments);
+  }
+
+  function syncSelectedIntroFromSession() {
+    const currentSession = getCurrentCallSession();
+    const assignedId = currentSession ? getAssignedIntroIdForSession(currentSession) : null;
+    const fallbackId = assignedId || getStoredSelectedIntroId();
+    if (!fallbackId) return;
+    const intro = getIntroById(fallbackId);
+    if (!intro) return;
+    selectedIntroId = intro.id;
+    fillIntroText(intro);
+  }
+
+  function renderSessionStatus() {
+    const title = document.getElementById('session-status-title');
+    const subtitle = document.getElementById('session-status-subtitle');
+    const introBadge = document.getElementById('session-status-intro');
+    if (!title || !subtitle || !introBadge) return;
+
+    const now = new Date();
+    const currentSession = getCurrentCallSession(now);
+    const nextSession = getNextCallSession(now);
+    const activeIntroId = currentSession ? getAssignedIntroIdForSession(currentSession, now) : getStoredSelectedIntroId();
+    const activeIntro = activeIntroId ? getIntroById(activeIntroId) : null;
+
+    if (currentSession) {
+      title.textContent = `${currentSession.label} er aktiv nå`;
+      subtitle.textContent = `${currentSession.start}–${currentSession.end}. Sist valgt intro følger automatisk til neste økt.`;
+    } else if (nextSession) {
+      title.textContent = `Neste økt: ${nextSession.label}`;
+      subtitle.textContent = `${nextSession.start}–${nextSession.end}. Valgt intro blir brukt automatisk når økten starter.`;
+    } else {
+      title.textContent = 'Arbeidsdagen er ferdig';
+      subtitle.textContent = 'Sist valgte intro blir klar neste gang du åpner appen.';
+    }
+
+    introBadge.textContent = activeIntro ? `Aktiv intro: ${activeIntro.text}` : 'Ingen intro valgt ennå';
   }
 
   function addToIntroLibrary(text) {
     const intros = getSavedIntros();
-    const exists = intros.some(i => i.text.trim() === text.trim());
-    if (exists) return;
-    intros.push({ id: Date.now().toString(), text, createdAt: new Date().toISOString() });
+    const existing = intros.find(i => i.text.trim() === text.trim());
+    if (existing) return existing;
+    const intro = { id: Date.now().toString(), text, createdAt: new Date().toISOString() };
+    intros.push(intro);
     localStorage.setItem('savedIntros', JSON.stringify(intros));
+    return intro;
   }
 
   function deleteSavedIntro(id) {
     if (!confirm('Slette denne introen fra biblioteket?')) return;
     const intros = getSavedIntros().filter(i => i.id !== id);
     localStorage.setItem('savedIntros', JSON.stringify(intros));
+    const assignments = getSessionAssignments();
+    Object.keys(assignments).forEach(key => {
+      if (assignments[key] === id) delete assignments[key];
+    });
+    saveSessionAssignments(assignments);
+    if (getStoredSelectedIntroId() === id) setStoredSelectedIntroId(null);
     if (selectedIntroId === id) {
       selectedIntroId = null;
       document.getElementById('intro-text').value = '';
     }
+    syncSelectedIntroFromSession();
     renderIntroLibrary();
+    renderSessionStatus();
   }
 
   function selectIntro(id) {
-    const intros = getSavedIntros();
-    const intro = intros.find(i => i.id === id);
+    const intro = getIntroById(id);
     if (!intro) return;
     selectedIntroId = id;
+    fillIntroText(intro);
+    assignIntroToCurrentSession(id);
     const ta = document.getElementById('intro-text');
-    ta.value = intro.text;
     ta.scrollIntoView({ behavior: 'smooth', block: 'center' });
     ta.focus();
     renderIntroLibrary();
+    renderSessionStatus();
   }
 
   function clearIntroSelection() {
@@ -1574,6 +1833,28 @@
     document.getElementById('intro-text').value = '';
     document.getElementById('intro-text').focus();
     renderIntroLibrary();
+    renderSessionStatus();
+  }
+
+  function resolveEntryIntro(entry, intros = getSavedIntros()) {
+    if (entry.introId) {
+      const byId = intros.find(intro => intro.id === entry.introId);
+      if (byId) return byId;
+    }
+    if (!entry.text) return null;
+    return intros.find(intro => intro.text.trim() === entry.text.trim()) || null;
+  }
+
+  function isIntroSuccessEntry(entry) {
+    return entry.type === 'introSuccess' || (!entry.quickEntry && entry.opptak === 'ja');
+  }
+
+  function getSuccessStats(entries) {
+    return {
+      introSuccesses: entries.filter(isIntroSuccessEntry).length,
+      over5: entries.filter(h => h.over5min === 'ja').length,
+      salg: entries.filter(h => h.salg === 'ja').length,
+    };
   }
 
   // ---- Stats helpers ----
@@ -1599,15 +1880,7 @@
     return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth();
   }
 
-  function statsFor(entries) {
-    const introEntries = entries.filter(h => !h.quickEntry);
-    const total = introEntries.length;
-    const opptak = introEntries.filter(h => h.opptak === 'ja').length;
-    const over5 = entries.filter(h => h.over5min === 'ja').length;
-    const salg = entries.filter(h => h.salg === 'ja').length;
-    const hitrate = total > 0 ? Math.round(opptak / total * 100) : null;
-    return { total, opptak, over5, salg, hitrate };
-  }
+  function statsFor(entries) { return getSuccessStats(entries); }
 
   function statCard(value, label, big = false, color = '') {
     return `<div class="stat-card${big ? ' day-card' : ''}${color ? ' sc-' + color : ''}">
@@ -1661,13 +1934,12 @@
 
     // Motivation
     const motivations = [
-      [80, 'Du er i toppform i dag! Fortsett slik!'],
-      [60, 'Bra jobbet! Du er på rett vei!'],
-      [40, 'God innsats! Øvelse gjør mester!'],
-      [0,  'Hvert forsøk teller – hold det gående!'],
+      [6, 'Sterk dag! Du bygger gode vaner i dag.'],
+      [3, 'Bra flyt! Fortsett med samme intro gjennom økten.'],
+      [1, 'Fin start! Fortsett å logge det som fungerer.'],
+      [0, 'Ingen suksesser registrert ennå i dag – lykke til!'],
     ];
-    const msg = dag.total === 0 ? 'Ingen forsøk registrert i dag ennå – lykke til!' :
-      motivations.find(([min]) => (dag.hitrate ?? 0) >= min)[1];
+    const msg = motivations.find(([min]) => dag.introSuccesses >= min)[1];
 
     // Week bar chart: 5-min per weekday (Mon–Fri only)
     const days = ['Man','Tir','Ons','Tor','Fre'];
@@ -1706,8 +1978,6 @@
       wMon = new Date(wMon); wMon.setDate(wMon.getDate() + 7);
     }
 
-    const pctColor = (p) => p === null ? 'var(--primary-dark)' : p >= 70 ? '#1a7a34' : p >= 40 ? '#9a6800' : '#b52030';
-
     const dateStr = now.toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
       .replace(/^\w/, c => c.toUpperCase());
 
@@ -1719,10 +1989,10 @@
       <div class="stats-section">
         <div class="stats-section-title">I dag</div>
         <div class="stats-grid stats-grid-4">
-          ${statCard(dag.total, 'Forsøk', true, 'blue')}
-          ${statCard(dag.hitrate !== null ? `<span style="color:${pctColor(dag.hitrate)}">${dag.hitrate}%</span>` : '–', 'Hitrate opptak', true, 'purple')}
-          ${statCard(dag.over5, '5-minutters', true, 'teal')}
+          ${statCard(dag.introSuccesses, 'Intro-suksesser', true, 'blue')}
+          ${statCard(dag.over5, 'Over 5 min', true, 'teal')}
           ${statCard(dag.salg, 'Salg', true, 'gold')}
+          ${statCard(getCurrentCallSession() ? getCurrentCallSession().label : 'Ingen aktiv', 'Aktiv økt', true, 'purple')}
         </div>
       </div>
 
@@ -1735,10 +2005,10 @@
             ${stackedBarChart(weekData)}
           </div>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
-            ${statCard(uke.total, 'Forsøk totalt', false, 'blue')}
-            ${statCard(uke.hitrate !== null ? `<span style="color:${pctColor(uke.hitrate)}">${uke.hitrate}%</span>` : '–', 'Hitrate opptak', false, 'purple')}
-            ${statCard(uke.over5, '5-minutters totalt', false, 'teal')}
+            ${statCard(uke.introSuccesses, 'Intro-suksesser', false, 'blue')}
+            ${statCard(uke.over5, 'Over 5 min', false, 'teal')}
             ${statCard(uke.salg, 'Salg', false, 'gold')}
+            ${statCard(CALL_SESSIONS.length, 'Økter per dag', false, 'purple')}
           </div>
         </div>
       </div>
@@ -1752,21 +2022,14 @@
             ${stackedBarChart(weekBuckets)}
           </div>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
-            ${statCard(mnd.total, 'Forsøk totalt', false, 'blue')}
-            ${statCard(mnd.hitrate !== null ? `<span style="color:${pctColor(mnd.hitrate)}">${mnd.hitrate}%</span>` : '–', 'Hitrate opptak', false, 'purple')}
-            ${statCard(mnd.over5, '5-minutters totalt', false, 'teal')}
+            ${statCard(mnd.introSuccesses, 'Intro-suksesser', false, 'blue')}
+            ${statCard(mnd.over5, 'Over 5 min', false, 'teal')}
             ${statCard(mnd.salg, 'Salg', false, 'gold')}
+            ${statCard(CALL_SESSIONS.length, 'Økter per dag', false, 'purple')}
           </div>
         </div>
       </div>
     `;
-  }
-
-  function hitrateClass(pct) {
-    if (pct === null) return { bar: '', pct: '', border: '' };
-    if (pct >= 70) return { bar: 'bar-green', pct: 'pct-green', border: 'border-green' };
-    if (pct >= 40) return { bar: 'bar-yellow', pct: 'pct-yellow', border: 'border-yellow' };
-    return { bar: 'bar-red', pct: 'pct-red', border: 'border-red' };
   }
 
   function renderIntroLibraryInline() { /* removed — leaderboard click fills the text box instead */ }
@@ -1781,50 +2044,43 @@
       return;
     }
     const history = getIntroHistory();
+    const activeSession = getCurrentCallSession();
+    const activeIntroId = activeSession ? getAssignedIntroIdForSession(activeSession) : getStoredSelectedIntroId();
 
     const withStats = intros.map(i => {
-      const attempts = history.filter(h => h.text.trim() === i.text.trim());
-      const total = attempts.length;
-      const ja = attempts.filter(h => h.opptak === 'ja').length;
-      return { i, total, ja, nei: total - ja, hitrate: total > 0 ? ja / total : null };
+      const entries = history.filter(h => {
+        const entryIntro = resolveEntryIntro(h, intros);
+        return entryIntro && entryIntro.id === i.id;
+      });
+      return {
+        i,
+        successes: entries.filter(isIntroSuccessEntry).length,
+        over5: entries.filter(h => h.over5min === 'ja').length,
+        sales: entries.filter(h => h.salg === 'ja').length,
+      };
     });
 
     withStats.sort((a, b) => {
-      const aTop = a.total > 10;
-      const bTop = b.total > 10;
-      if (aTop && !bTop) return -1;
-      if (!aTop && bTop) return 1;
-      if (aTop && bTop) return b.hitrate - a.hitrate;
-      return 0;
+      if (b.sales !== a.sales) return b.sales - a.sales;
+      if (b.over5 !== a.over5) return b.over5 - a.over5;
+      return b.successes - a.successes;
     });
 
-    const medals = ['', '', ''];
-
-    container.innerHTML = withStats.map(({ i, total, ja, nei, hitrate }, idx) => {
-      const pct = hitrate !== null ? Math.round(hitrate * 100) : null;
-      const cls = hitrateClass(pct);
-
-      const barHtml = total > 0 ? `
-        <div class="intro-chip-bar-wrap">
-          <div class="intro-chip-bar ${cls.bar}" style="width:${pct}%"></div>
-        </div>` : '';
-
-      const statsRow = total > 0
-        ? `<div class="intro-chip-stats" style="margin-top:5px;">${total} forsøk &nbsp;${ja} / ${nei}</div>`
-        : `<div class="intro-chip-stats" style="margin-top:5px;">Ingen forsøk ennå</div>`;
-
-      const pctHtml = pct !== null
-        ? `<div class="intro-chip-pct ${cls.pct}">${pct}%</div>`
+    container.innerHTML = withStats.map(({ i, successes, over5, sales }) => {
+      const statsRow = successes || over5 || sales
+        ? `<div class="intro-chip-stats" style="margin-top:5px;">${successes} intro-suksesser &nbsp; ${over5} over 5 min &nbsp; ${sales} salg</div>`
+        : `<div class="intro-chip-stats" style="margin-top:5px;">Ingen suksesser registrert ennå</div>`;
+      const activeBadge = activeIntroId === i.id
+        ? `<div style="font-size:0.75rem;font-weight:700;color:#0f766e;margin-bottom:6px;">Aktiv for økten</div>`
         : '';
-
       return `
-        <div class="intro-chip ${cls.border} ${selectedIntroId === i.id ? 'selected' : ''}" onclick="selectIntro('${i.id}')">
+        <div class="intro-chip ${selectedIntroId === i.id ? 'selected' : ''}" onclick="selectIntro('${i.id}')">
           <div style="flex:1;min-width:0;">
+            ${activeBadge}
             <div>${escHtml(i.text)}</div>
             ${statsRow}
-            ${barHtml}
+            <button class="save-btn" style="margin-top:10px;padding:8px 12px;font-size:0.85rem;box-shadow:none;" onclick="event.stopPropagation(); registerIntroSuccessById('${i.id}')">+ Registrer suksess</button>
           </div>
-          ${pctHtml}
           <button class="intro-chip-delete" title="Slett intro" onclick="event.stopPropagation(); deleteSavedIntro('${i.id}')">×</button>
         </div>
       `;
@@ -1833,30 +2089,31 @@
 
   function saveIntro() {
     const text = document.getElementById('intro-text').value.trim();
-    if (!text) { alert('Skriv inn introen din først.'); return; }
-    if (!selectedOpptak) { alert('Marker om du kom forbi opptaksspørsmålet.'); return; }
+    if (!text) { alert('Skriv inn introen din først.'); return null; }
+    const intros = getSavedIntros();
+    const existing = intros.find(i => i.text.trim() === text.trim() && i.id !== selectedIntroId);
+    if (existing) {
+      selectedIntroId = existing.id;
+      fillIntroText(existing);
+      assignIntroToCurrentSession(existing.id);
+      renderIntroLibrary();
+      renderSessionStatus();
+      return existing;
+    }
 
-    addToIntroLibrary(text);
+    let savedIntro = selectedIntroId ? intros.find(i => i.id === selectedIntroId) : null;
+    if (savedIntro) {
+      savedIntro.text = text;
+      localStorage.setItem('savedIntros', JSON.stringify(intros));
+    } else {
+      savedIntro = addToIntroLibrary(text);
+      selectedIntroId = savedIntro.id;
+    }
 
-    const history = getIntroHistory();
-    history.unshift({
-      text,
-      opptak: selectedOpptak,
-      over5min: selectedOver5min || null,
-      salg: selectedSalg || null,
-      isoDate: new Date().toISOString(),
-      tid: new Date().toLocaleString('no-NO')
-    });
-    localStorage.setItem('introHistory', JSON.stringify(history));
-
-    if (selectedSalg === 'ja') showCelebrationGif('salg');
-    else if (selectedOver5min === 'ja') showCelebrationGif('over5min');
-
-    resetOpptak();
-    renderStatsHome();
+    assignIntroToCurrentSession(savedIntro.id);
     renderIntroLibrary();
-    renderIntroLibraryInline();
-    renderIntroHistory();
+    renderSessionStatus();
+    return savedIntro;
   }
 
   function getIntroHistory() {
@@ -1867,24 +2124,86 @@
     if (confirm('Slette all intro-historikk?')) {
       localStorage.removeItem('introHistory');
       renderIntroHistory();
+      renderStatsHome();
+      renderIntroLibrary();
     }
+  }
+
+  function buildSuccessEntry(intro, options = {}) {
+    const now = new Date();
+    const currentSession = getCurrentCallSession(now);
+    return {
+      type: 'introSuccess',
+      introId: intro.id,
+      text: intro.text,
+      opptak: 'ja',
+      over5min: options.over5min || 'nei',
+      salg: options.salg || 'nei',
+      isoDate: now.toISOString(),
+      tid: now.toLocaleString('no-NO'),
+      sessionId: currentSession ? currentSession.id : null,
+      sessionLabel: currentSession ? currentSession.label : null,
+      sessionDate: makeLocalDateKey(now),
+    };
+  }
+
+  function registerIntroSuccessById(id) {
+    const intro = getIntroById(id);
+    if (!intro) return;
+    selectedIntroId = intro.id;
+    fillIntroText(intro);
+    assignIntroToCurrentSession(intro.id);
+    const history = getIntroHistory();
+    history.unshift(buildSuccessEntry(intro));
+    localStorage.setItem('introHistory', JSON.stringify(history));
+    resetOpptak();
+    renderStatsHome();
+    renderIntroLibrary();
+    renderIntroHistory();
+    renderSessionStatus();
+  }
+
+  function registerIntroSuccess() {
+    let intro = selectedIntroId ? getIntroById(selectedIntroId) : null;
+    const typedText = document.getElementById('intro-text').value.trim();
+    if (!intro || (typedText && intro.text.trim() !== typedText)) {
+      intro = saveIntro();
+    }
+    if (!intro) return;
+
+    const history = getIntroHistory();
+    history.unshift(buildSuccessEntry(intro, {
+      over5min: selectedOver5min === 'ja' ? 'ja' : 'nei',
+      salg: selectedSalg === 'ja' ? 'ja' : 'nei',
+    }));
+    localStorage.setItem('introHistory', JSON.stringify(history));
+
+    if (selectedSalg === 'ja') showCelebrationGif('salg');
+    else if (selectedOver5min === 'ja') showCelebrationGif('over5min');
+
+    resetOpptak();
+    renderStatsHome();
+    renderIntroLibrary();
+    renderIntroHistory();
+    renderSessionStatus();
   }
 
   function renderIntroHistory() {
     const container = document.getElementById('intro-history');
     const history = getIntroHistory();
+    const intros = getSavedIntros();
     if (!history.length) {
       container.innerHTML = '<p class="empty-state">Ingen forsøk registrert ennå.</p>';
       return;
     }
     container.innerHTML = history.map((h, i) => `
       <div class="history-item">
-        <div>${escHtml(h.text)}</div>
+        <div>${escHtml((resolveEntryIntro(h, intros) || {}).text || h.text || 'Ukjent intro')}</div>
         <div class="meta">
-          <span class="result-badge ${h.opptak === 'ja' ? 'badge-yes' : 'badge-no'}">
-            Opptak: ${h.opptak === 'ja' ? 'Ja' : 'Nei'}
+          <span class="result-badge ${isIntroSuccessEntry(h) ? 'badge-yes' : 'badge-no'}">
+            ${isIntroSuccessEntry(h) ? 'Suksess' : 'Tidligere forsøk'}
           </span>
-          <span>${h.tid}</span>
+          <span>${h.sessionLabel ? `${h.sessionLabel} · ` : ''}${h.tid}</span>
           <button class="delete-entry-btn" onclick="deleteIntroAttempt(${i})" title="Slett dette forsøket">×</button>
         </div>
       </div>
@@ -1895,14 +2214,6 @@
     const history = getIntroHistory();
     history.splice(index, 1);
     localStorage.setItem('introHistory', JSON.stringify(history));
-
-    // Remove any saved intros that now have zero attempts left in history
-    const intros = getSavedIntros();
-    const trimmed = intros.filter(i => history.some(h => h.text.trim() === i.text.trim()));
-    if (trimmed.length !== intros.length) {
-      localStorage.setItem('savedIntros', JSON.stringify(trimmed));
-    }
-
     renderIntroHistory();
     renderStatsHome();
     renderIntroLibrary();
@@ -2024,6 +2335,8 @@
   // ---- Init ----
   (async () => {
     await loadFromCloud();
+    syncSelectedIntroFromSession();
+    renderSessionStatus();
     renderStatsHome();
     renderIntroLibrary();
     renderIntroLibraryInline();
@@ -2125,9 +2438,11 @@
   }
 
   function exportData() {
-    const keys = ['savedIntros', 'introHistory', 'produktFakta', 'sf_data'];
     const data = {};
-    keys.forEach(k => { const v = localStorage.getItem(k); if (v) data[k] = JSON.parse(v); });
+    STORAGE_KEYS.forEach(k => {
+      const v = readStoredValue(k, _origGetItem);
+      if (v !== null) data[k] = v;
+    });
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -2142,7 +2457,11 @@
     reader.onload = e => {
       try {
         const data = JSON.parse(e.target.result);
-        Object.entries(data).forEach(([k, v]) => localStorage.setItem(k, JSON.stringify(v)));
+        STORAGE_KEYS.forEach(key => _origRemoveItem(key));
+        STORAGE_KEYS.forEach(key => {
+          if (!Object.prototype.hasOwnProperty.call(data, key)) return;
+          _origSetItem(key, JSON.stringify(data[key]));
+        });
         alert('Data importert! Siden lastes inn på nytt.');
         location.reload();
       } catch { alert('Feil: ugyldig backup-fil.'); }
