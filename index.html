@@ -307,142 +307,176 @@
     }
 
     .notes-page {
-      max-width: 1100px;
+      max-width: 760px;
       margin: 0 auto;
-      display: grid;
-      grid-template-columns: 340px 1fr;
-      gap: 18px;
-      align-items: start;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
     }
 
-    .notes-card {
+    .notes-step-card {
+      width: 100%;
       background: var(--card);
       border: 1.5px solid var(--border);
-      border-radius: 16px;
+      border-radius: 18px;
       box-shadow: 0 2px 12px rgba(41,168,224,0.08);
-      padding: 20px;
+      padding: 22px 24px;
+      text-align: center;
     }
 
-    .notes-card h2 {
+    .notes-step-spacer {
+      width: 2px;
+      height: 28px;
+      background: linear-gradient(to bottom, #bfdbfe, #e2e8f0);
+    }
+
+    .notes-step-card h2 {
       color: var(--primary-dark);
-      font-size: 1.05rem;
-      margin-bottom: 14px;
+      font-size: 1.08rem;
+      margin-bottom: 8px;
     }
 
     .notes-helper {
       color: var(--muted);
-      font-size: 0.88rem;
+      font-size: 0.89rem;
       line-height: 1.5;
+      margin-bottom: 16px;
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .notes-question {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text);
       margin-bottom: 14px;
     }
 
-    .notes-field {
-      margin-bottom: 14px;
+    .choice-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
     }
 
-    .notes-field label {
+    .choice-chip {
+      padding: 10px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 999px;
+      background: white;
+      color: var(--text);
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .choice-chip:hover {
+      border-color: var(--primary);
+      background: var(--primary-xlight);
+    }
+
+    .choice-chip.active {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 3px 10px rgba(41,168,224,0.25);
+    }
+
+    .notes-inline-field {
+      max-width: 240px;
+      margin: 14px auto 0 auto;
+    }
+
+    .notes-inline-field label,
+    .notes-notes-field label {
       display: block;
       font-size: 0.8rem;
       font-weight: 700;
       color: var(--muted);
       margin-bottom: 6px;
+      text-align: center;
     }
 
-    .notes-field input,
-    .notes-field textarea {
+    .notes-inline-field input,
+    .notes-notes-field textarea,
+    .notes-summary-output {
       width: 100%;
       border: 1.5px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 12px;
+      border-radius: 12px;
+      padding: 11px 12px;
       font-size: 0.92rem;
       font-family: inherit;
       background: var(--primary-xlight);
       color: var(--text);
     }
 
-    .notes-field input:focus,
-    .notes-field textarea:focus {
+    .notes-inline-field input:focus,
+    .notes-notes-field textarea:focus,
+    .notes-summary-output:focus {
       outline: none;
       border-color: var(--primary);
       background: white;
     }
 
-    .notes-field textarea {
-      min-height: 96px;
+    .notes-categories {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      text-align: left;
+    }
+
+    .notes-notes-field {
+      width: 100%;
+    }
+
+    .notes-notes-field textarea {
+      min-height: 92px;
       resize: vertical;
+    }
+
+    .notes-category-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 6px;
+      text-align: center;
     }
 
     .notes-actions {
       display: flex;
+      justify-content: center;
       gap: 10px;
       flex-wrap: wrap;
-      margin-top: 8px;
-    }
-
-    .notes-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
-    }
-
-    .conversation-step {
-      border: 1.5px solid var(--border);
-      border-radius: 14px;
-      padding: 14px 14px 12px;
-      background: white;
-    }
-
-    .conversation-step.completed {
-      border-color: #86efac;
-      background: #f0fdf4;
-    }
-
-    .conversation-step-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 10px;
-    }
-
-    .conversation-step-title {
-      font-weight: 800;
-      color: var(--text);
-      font-size: 0.95rem;
-    }
-
-    .conversation-step-check {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.8rem;
-      color: var(--muted);
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
-    .conversation-step-check input {
-      width: 16px;
-      height: 16px;
-    }
-
-    .notes-summary-box {
       margin-top: 16px;
+    }
+
+    .notes-summary-panel {
+      display: none;
+      width: 100%;
+      margin-top: 16px;
+      text-align: left;
       background: #eff6ff;
       border: 1.5px solid #bfdbfe;
-      border-radius: 12px;
-      padding: 14px;
+      border-radius: 14px;
+      padding: 16px;
     }
 
-    .notes-summary-box textarea {
-      min-height: 170px;
+    .notes-summary-panel.visible {
+      display: block;
+    }
+
+    .notes-summary-output {
+      min-height: 240px;
       background: white;
+      resize: vertical;
     }
 
     @media (max-width: 900px) {
-      .notes-page,
-      .notes-grid {
-        grid-template-columns: 1fr;
+      .notes-page {
+        max-width: 100%;
       }
     }
 
@@ -1595,42 +1629,41 @@
 
 <div id="tab-notater" class="tab-content">
   <div class="notes-page">
-    <div class="notes-card">
-      <h2>Samtalenotater</h2>
-      <div class="notes-helper">Bruk denne siden under samtalen for aa holde struktur, huske kundens smerter og bygge en sterk oppsummering senere i dialogen.</div>
+    <div class="notes-step-card">
+      <h2>Samtalesti</h2>
+      <div class="notes-helper">Folg denne stien nedover under samtalen. Notatene lagres mens du skriver, og oppsummeringen kommer helt til slutt.</div>
+      <div class="notes-question">Hvilken operatør har kunden?</div>
+      <div id="notes-provider-options" class="choice-row"></div>
+    </div>
 
-      <div class="notes-field">
-        <label for="notes-provider">Navaerende selskap</label>
-        <input id="notes-provider" type="text" placeholder="F.eks. Telia, Ice eller OneCall" oninput="saveConversationNotes()" />
-      </div>
+    <div class="notes-step-spacer"></div>
 
-      <div class="notes-field">
-        <label for="notes-data-amount">Hvor mye data har kunden?</label>
-        <input id="notes-data-amount" type="text" placeholder="F.eks. 10 GB, ubegrenset eller vet ikke" oninput="saveConversationNotes()" />
-      </div>
-
-      <div class="notes-field">
-        <label for="notes-general-pain">Overordnet smerte eller viktigste behov</label>
-        <textarea id="notes-general-pain" placeholder="Hva er det viktigste problemet kunden vil lose?" oninput="saveConversationNotes()"></textarea>
-      </div>
-
-      <div class="notes-actions">
-        <button class="save-btn" style="margin-top:0;" onclick="copyConversationSummary()">Kopier oppsummering</button>
-        <button class="backup-btn" style="font-size:0.9rem;padding:10px 14px;border-radius:8px;color:var(--muted);" onclick="resetConversationNotes()">Ny samtale</button>
-      </div>
-
-      <div class="notes-summary-box">
-        <div class="notes-field" style="margin-bottom:0;">
-          <label for="notes-summary-output">Oppsummering til senere i samtalen</label>
-          <textarea id="notes-summary-output" readonly></textarea>
-        </div>
+    <div class="notes-step-card">
+      <div class="notes-question">Hvor mye data?</div>
+      <div id="notes-data-options" class="choice-row"></div>
+      <div class="notes-inline-field">
+        <label for="notes-data-custom">Eget tall</label>
+        <input id="notes-data-custom" type="text" placeholder="Skriv inn eget datanivaa" oninput="saveConversationNotes()" />
       </div>
     </div>
 
-    <div class="notes-card">
-      <h2>Samtalestruktur</h2>
-      <div class="notes-helper">Hak av etter hvert som du har vært innom temaet. Skriv smerter, innvendinger eller detaljer du vil bruke senere.</div>
-      <div id="conversation-steps" class="notes-grid"></div>
+    <div class="notes-step-spacer"></div>
+
+    <div class="notes-step-card">
+      <div class="notes-question">Notater underveis</div>
+      <div class="notes-helper">Skriv fritt i kategoriene mens samtalen gaar. Du trenger ikke trykke ferdig.</div>
+      <div id="conversation-steps" class="notes-categories"></div>
+      <div class="notes-actions">
+        <button class="save-btn" style="margin-top:0;" onclick="showConversationSummary()">Se oppsummering</button>
+        <button class="backup-btn" style="font-size:0.9rem;padding:10px 14px;border-radius:8px;color:var(--muted);" onclick="resetConversationNotes()">Ny samtale</button>
+      </div>
+      <div id="notes-summary-panel" class="notes-summary-panel">
+        <div class="notes-question" style="margin-bottom:10px;">Oppsummering</div>
+        <textarea id="notes-summary-output" class="notes-summary-output" readonly></textarea>
+        <div class="notes-actions" style="margin-top:12px;">
+          <button class="save-btn" style="margin-top:0;" onclick="copyConversationSummary()">Kopier oppsummering</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -2518,22 +2551,22 @@
     { key: 'bildelagring',  label: 'Bilde-lagring',  cls: 'fakta-theme-purple' },
   ];
 
+  const PROVIDER_OPTIONS = ['Telia', 'Ice', 'Fonero', 'TalkMore', 'Pingaway', 'Unifon'];
+  const DATA_OPTIONS = ['0', '5', '8', '10', '15', '20', '30', '50', '100'];
   const CONVERSATION_STEPS = [
-    { key: 'minSky', label: 'Min Sky', placeholder: 'Hva sier kunden om lagring, bilder, deling eller sky?' },
+    { key: 'minSky', label: 'Min Sky', placeholder: 'Hva sier kunden om lagring, bilder eller bruk av sky?' },
     { key: 'nettsikkerhet', label: 'Nettsikkerhet', placeholder: 'Hvilke bekymringer eller behov har kunden rundt trygghet?' },
     { key: 'data', label: 'Data', placeholder: 'Hva slags data-behov eller frustrasjon har kunden?' },
     { key: 'dekning', label: 'Dekning', placeholder: 'Hvor opplever kunden daarlig dekning eller ustabilitet?' },
-    { key: 'datakort', label: 'Datakort', placeholder: 'Har kunden behov for nett paa andre enheter eller i bil?' },
-    { key: 'oppsummering', label: 'Oppsummering', placeholder: 'Hva maa du trekke frem igjen senere i samtalen?' },
-    { key: 'losningspresentasjon', label: 'Løsningspresentasjon', placeholder: 'Hvilke argumenter vil best knytte behovet til losningen?' }
+    { key: 'datakort', label: 'Datakort', placeholder: 'Har kunden behov for nett paa andre enheter eller i bil?' }
   ];
 
   function getDefaultConversationNotes() {
     const steps = {};
     CONVERSATION_STEPS.forEach(step => {
-      steps[step.key] = { completed: false, notes: '' };
+      steps[step.key] = { notes: '' };
     });
-    return { provider: '', dataAmount: '', generalPain: '', steps };
+    return { provider: '', dataAmount: '', customDataAmount: '', steps, summaryVisible: false };
   }
 
   function getConversationNotes() {
@@ -2554,8 +2587,7 @@
   function buildConversationSummary(notes = getConversationNotes()) {
     const lines = [];
     if (notes.provider) lines.push(`Navaerende selskap: ${notes.provider}`);
-    if (notes.dataAmount) lines.push(`Data i dag: ${notes.dataAmount}`);
-    if (notes.generalPain) lines.push(`Viktigste behov: ${notes.generalPain}`);
+    if (notes.customDataAmount || notes.dataAmount) lines.push(`Data i dag: ${notes.customDataAmount || notes.dataAmount}`);
     CONVERSATION_STEPS.forEach(step => {
       const stepData = notes.steps[step.key] || {};
       if (stepData.notes) lines.push(`${step.label}: ${stepData.notes}`);
@@ -2569,49 +2601,60 @@
   }
 
   function renderConversationNotes() {
-    const provider = document.getElementById('notes-provider');
-    const dataAmount = document.getElementById('notes-data-amount');
-    const generalPain = document.getElementById('notes-general-pain');
+    const providerWrap = document.getElementById('notes-provider-options');
+    const dataWrap = document.getElementById('notes-data-options');
+    const customData = document.getElementById('notes-data-custom');
     const stepsWrap = document.getElementById('conversation-steps');
-    if (!provider || !dataAmount || !generalPain || !stepsWrap) return;
+    const summaryPanel = document.getElementById('notes-summary-panel');
+    if (!providerWrap || !dataWrap || !customData || !stepsWrap || !summaryPanel) return;
 
     const notes = getConversationNotes();
-    provider.value = notes.provider || '';
-    dataAmount.value = notes.dataAmount || '';
-    generalPain.value = notes.generalPain || '';
+    providerWrap.innerHTML = PROVIDER_OPTIONS.map(option => `
+      <button class="choice-chip ${notes.provider === option ? 'active' : ''}" onclick="selectConversationProvider('${option}')">${option}</button>
+    `).join('');
+    dataWrap.innerHTML = DATA_OPTIONS.map(option => `
+      <button class="choice-chip ${(notes.customDataAmount ? false : notes.dataAmount === option) ? 'active' : ''}" onclick="selectConversationData('${option}')">${option}</button>
+    `).join('');
+    customData.value = notes.customDataAmount || '';
     stepsWrap.innerHTML = CONVERSATION_STEPS.map(step => {
-      const stepData = notes.steps[step.key] || { completed: false, notes: '' };
+      const stepData = notes.steps[step.key] || { notes: '' };
       return `
-        <div class="conversation-step ${stepData.completed ? 'completed' : ''}" id="conversation-step-${step.key}">
-          <div class="conversation-step-header">
-            <div class="conversation-step-title">${step.label}</div>
-            <label class="conversation-step-check">
-              <input id="notes-check-${step.key}" type="checkbox" ${stepData.completed ? 'checked' : ''} onchange="saveConversationNotes()" />
-              Ferdig
-            </label>
-          </div>
-          <div class="notes-field" style="margin-bottom:0;">
+        <div class="conversation-step" id="conversation-step-${step.key}">
+          <div class="notes-category-title">${step.label}</div>
+          <div class="notes-notes-field">
             <label for="notes-step-${step.key}">Notater / smerter</label>
             <textarea id="notes-step-${step.key}" placeholder="${step.placeholder}" oninput="saveConversationNotes()">${escHtml(stepData.notes || '')}</textarea>
           </div>
         </div>
       `;
     }).join('');
+    summaryPanel.classList.toggle('visible', !!notes.summaryVisible);
     updateConversationSummary(notes);
+  }
+
+  function selectConversationProvider(provider) {
+    const current = getConversationNotes();
+    current.provider = provider;
+    localStorage.setItem('conversationNotes', JSON.stringify(current));
+    renderConversationNotes();
+  }
+
+  function selectConversationData(amount) {
+    const current = getConversationNotes();
+    current.dataAmount = amount;
+    current.customDataAmount = '';
+    localStorage.setItem('conversationNotes', JSON.stringify(current));
+    renderConversationNotes();
   }
 
   function saveConversationNotes() {
     const current = getConversationNotes();
-    current.provider = (document.getElementById('notes-provider')?.value || '').trim();
-    current.dataAmount = (document.getElementById('notes-data-amount')?.value || '').trim();
-    current.generalPain = (document.getElementById('notes-general-pain')?.value || '').trim();
+    current.customDataAmount = (document.getElementById('notes-data-custom')?.value || '').trim();
+    if (current.customDataAmount) current.dataAmount = '';
     CONVERSATION_STEPS.forEach(step => {
       current.steps[step.key] = {
-        completed: !!document.getElementById(`notes-check-${step.key}`)?.checked,
         notes: (document.getElementById(`notes-step-${step.key}`)?.value || '').trim()
       };
-      const card = document.getElementById(`conversation-step-${step.key}`);
-      if (card) card.classList.toggle('completed', current.steps[step.key].completed);
     });
     localStorage.setItem('conversationNotes', JSON.stringify(current));
     updateConversationSummary(current);
@@ -2620,6 +2663,13 @@
   function resetConversationNotes() {
     if (!confirm('Starte en ny samtale og tømme notatene?')) return;
     localStorage.setItem('conversationNotes', JSON.stringify(getDefaultConversationNotes()));
+    renderConversationNotes();
+  }
+
+  function showConversationSummary() {
+    const current = getConversationNotes();
+    current.summaryVisible = true;
+    localStorage.setItem('conversationNotes', JSON.stringify(current));
     renderConversationNotes();
   }
 
