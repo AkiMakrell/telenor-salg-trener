@@ -1374,7 +1374,7 @@
     <!-- LEFT: scorecard form -->
     <div>
       <div class="card" style="margin:0 0 16px 0;">
-        <h2>Registrer suksess</h2>
+        <h2>Registrer opptak</h2>
 
         <div id="session-status" style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:14px 16px;border:1px solid var(--border);border-radius:10px;background:var(--primary-xlight);margin-bottom:16px;">
           <div>
@@ -1414,7 +1414,7 @@
 
         </div>
 
-        <button class="save-btn" style="width:100%;margin-top:22px;padding:14px;font-size:1.1rem;" onclick="registerIntroSuccess()">Registrer suksess</button>
+        <button class="save-btn" style="width:100%;margin-top:22px;padding:14px;font-size:1.1rem;" onclick="registerIntroSuccess()">Registrer opptak</button>
 
         <button class="history-toggle-btn" onclick="toggleHistory()">Vis historikk</button>
         <div id="history-panel" class="history-panel">
@@ -2181,7 +2181,7 @@
             ${activeBadge}
             <div>${escHtml(i.text)}</div>
             ${statsRow}
-            <button class="save-btn" style="margin-top:10px;padding:8px 12px;font-size:0.85rem;box-shadow:none;" onclick="event.stopPropagation(); registerIntroSuccessById('${i.id}')">+ Registrer suksess</button>
+            <button class="save-btn" style="margin-top:10px;padding:8px 12px;font-size:0.85rem;box-shadow:none;" onclick="event.stopPropagation(); registerIntroSuccessById('${i.id}')">+ Registrer opptak</button>
           </div>
           <button class="intro-chip-delete" title="Slett intro" onclick="event.stopPropagation(); deleteSavedIntro('${i.id}')">×</button>
         </div>
