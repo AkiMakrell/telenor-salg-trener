@@ -10,20 +10,22 @@
     :root {
       --primary:       #29a8e0;
       --primary-dark:  #1a7fb5;
-      --primary-light: #d6eef9;
-      --primary-xlight:#f8fafc;
-      --bg:            #f5f7fa;
-      --card:          #ffffff;
-      --text:          #1e293b;
-      --muted:         #64748b;
-      --border:        #e2e8f0;
+      --primary-light: #16324a;
+      --primary-xlight:#0f172a;
+      --bg:            #020817;
+      --card:          #0f172a;
+      --text:          #e5eefb;
+      --muted:         #94a3b8;
+      --border:        #223049;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Inter', 'Segoe UI', sans-serif;
-      background: var(--bg);
+      background:
+        radial-gradient(circle at top, rgba(41,168,224,0.18), transparent 35%),
+        linear-gradient(180deg, #07101d 0%, var(--bg) 38%, #030712 100%);
       color: var(--text);
       padding: 30px 20px;
       min-height: 100vh;
@@ -31,7 +33,7 @@
 
     h1 {
       text-align: center;
-      color: #1e293b;
+      color: var(--text);
       margin-bottom: 8px;
       font-size: 1.75rem;
       letter-spacing: -0.02em;
@@ -1521,7 +1523,201 @@
       background: #fff7ed;
     }
     .sf-kunde-node.shared-edge .sf-kunde-node-label { color: #ea580c; }
-  </style>
+
+    .tabs {
+      background: #0b1220;
+      border: 1px solid var(--border);
+    }
+
+    .backup-btn,
+    .tab-btn.active,
+    .tab-btn:hover,
+    textarea:focus,
+    .objection-search:focus,
+    .notes-inline-field input:focus,
+    .notes-notes-field textarea:focus,
+    .notes-summary-output:focus,
+    .fakta-add-form input:focus,
+    .fakta-add-form textarea:focus,
+    #sf-detail-script:focus,
+    .sf-branch-label-input:focus {
+      background: #111827;
+    }
+
+    .backup-btn,
+    .choice-chip,
+    .fakta-card,
+    .fakta-add-form,
+    .sf-toolbar-btn,
+    .sf-go-btn,
+    .sf-branch-del-btn,
+    #sf-add-root-btn,
+    #sf-detail,
+    .chart-card,
+    .quick-undo-btn {
+      background: #111827;
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    .backup-btn,
+    .tab-btn,
+    .quick-undo-btn,
+    .fakta-action-btn,
+    .intro-chip-delete {
+      color: var(--muted);
+    }
+
+    .tab-btn.active,
+    .tab-btn:hover {
+      color: var(--text);
+      box-shadow: 0 1px 8px rgba(0,0,0,0.35);
+    }
+
+    textarea,
+    .objection-search,
+    .notes-inline-field input,
+    .notes-notes-field textarea,
+    .notes-summary-output,
+    .fakta-add-form input,
+    .fakta-add-form textarea,
+    #sf-detail-script,
+    .sf-branch-label-input {
+      background: #0b1220;
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .history-item,
+    .intro-chip,
+    .toggle-btn,
+    .choice-chip,
+    .history-toggle-btn,
+    .sf-save-node-btn {
+      background: #111827;
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .toggle-btn:hover,
+    .intro-chip:hover,
+    .intro-chip.selected,
+    .history-toggle-btn:hover,
+    .choice-chip:hover {
+      background: #162235;
+    }
+
+    .leaderboard-card,
+    .objection-hero,
+    .notes-step-card,
+    .sf-info-card,
+    .card,
+    .fakta-theme-section,
+    .stat-card {
+      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+    }
+
+    .fakta-card-header:hover,
+    .sf-toolbar-btn:hover,
+    .sf-go-btn:hover,
+    .sf-branch-del-btn:hover {
+      background: #162235;
+    }
+
+    .fakta-add-form,
+    .notes-summary-panel {
+      background: #0b1220;
+    }
+
+    .fakta-theme-blue  .fakta-section-header { background: #10233c; border-left-color: #3b82f6; }
+    .fakta-theme-blue  .fakta-section-header h2 { color: #93c5fd; }
+    .fakta-theme-teal  .fakta-section-header { background: #0f2b2b; border-left-color: #14b8a6; }
+    .fakta-theme-teal  .fakta-section-header h2 { color: #5eead4; }
+    .fakta-theme-purple .fakta-section-header { background: #24183c; border-left-color: #8b5cf6; }
+    .fakta-theme-purple .fakta-section-header h2 { color: #c4b5fd; }
+
+    .objection-chip {
+      background: #10233c;
+      color: #93c5fd;
+    }
+
+    .intro-chip-bar-wrap {
+      background: #223049;
+    }
+
+    .stats-section-title,
+    .stat-value,
+    .bar-val {
+      color: var(--text);
+    }
+
+    .today-date-banner {
+      color: #7dd3fc;
+    }
+
+    .chart-card.cc-purple { background: #24183c; border-color: #5b3aa8; }
+    .chart-card.cc-green  { background: #0f2b1f; border-color: #1f8a4c; }
+    .chart-card.cc-teal   { background: #0f2b2b; border-color: #0d9488; }
+
+    #sf-canvas-wrap {
+      border-color: var(--border);
+      background: #0b1220;
+    }
+
+    .sf-node {
+      background: #10233c;
+      border-color: #1d4ed8;
+      color: #dbeafe;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.28);
+    }
+
+    .sf-node:hover,
+    .sf-node.selected {
+      border-color: #60a5fa;
+    }
+
+    .sf-node.root-node {
+      border-color: #60a5fa;
+      background: #173a6a;
+    }
+
+    .sf-node-preview,
+    .sf-node-label,
+    .bar-lbl {
+      color: var(--muted);
+    }
+
+    .sf-kunde-node {
+      background: #132a1d;
+      border-color: #22c55e;
+      color: #dcfce7;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.28);
+    }
+
+    .sf-kunde-node-label {
+      color: #86efac;
+    }
+
+    .sf-jeg-section {
+      background: #10233c;
+      border-color: #1d4ed8;
+    }
+
+    .sf-kunde-section {
+      background: #132a1d;
+      border-color: #22c55e;
+    }
+
+    .sf-jeg-label {
+      background: #173a6a;
+      color: #93c5fd;
+    }
+
+    .sf-kunde-label {
+      background: #14532d;
+      color: #86efac;
+    }
+    </style>
 </head>
 <body>
 
