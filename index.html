@@ -1843,8 +1843,8 @@
 <div id="tab-innvendinger" class="tab-content">
   <div class="objection-hero">
     <div class="objection-hero-title">Innvendingsbibliotek</div>
-    <div class="objection-hero-text">Finn vanlige innvendinger og gode svar raskt mens du er i samtalen. Bruk soket under for aa hoppe rett til det du trenger.</div>
-    <input id="fakta-search" class="objection-search" type="text" placeholder="Sok etter innvending, svar, notat eller nokkelord..." oninput="renderFakta()" />
+    <div class="objection-hero-text">Finn vanlige innvendinger og gode svar raskt mens du er i samtalen. Bruk søket under for å hoppe rett til det du trenger.</div>
+    <input id="fakta-search" class="objection-search" type="text" placeholder="Søk etter innvending, svar, notat eller nøkkelord..." oninput="renderFakta()" />
     <div id="fakta-search-meta" class="objection-results-meta"></div>
   </div>
   <div class="fakta-page" id="fakta-page"></div>
@@ -1865,7 +1865,7 @@
       <div id="notes-data-options" class="choice-row"></div>
       <div class="notes-inline-field">
         <label for="notes-data-custom">Eget tall</label>
-        <input id="notes-data-custom" type="text" placeholder="Skriv inn eget datanivaa" oninput="saveConversationNotes()" />
+        <input id="notes-data-custom" type="text" placeholder="Skriv inn eget datanivå" oninput="saveConversationNotes()" />
       </div>
     </div>
 
@@ -1873,7 +1873,7 @@
 
     <div class="notes-step-card">
       <div class="notes-question">Notater underveis</div>
-      <div class="notes-helper">Skriv fritt i kategoriene mens samtalen gaar. Du trenger ikke trykke ferdig.</div>
+      <div class="notes-helper">Skriv fritt i kategoriene mens samtalen går. Du trenger ikke trykke ferdig.</div>
       <div id="conversation-steps" class="notes-categories"></div>
       <div class="notes-actions">
         <button class="save-btn" style="margin-top:0;" onclick="showConversationSummary()">Se oppsummering</button>
@@ -2778,8 +2778,8 @@
     { key: 'minSky', label: 'Min Sky', placeholder: 'Hva sier kunden om lagring, bilder eller bruk av sky?' },
     { key: 'nettsikkerhet', label: 'Nettsikkerhet', placeholder: 'Hvilke bekymringer eller behov har kunden rundt trygghet?' },
     { key: 'data', label: 'Data', placeholder: 'Hva slags data-behov eller frustrasjon har kunden?' },
-    { key: 'dekning', label: 'Dekning', placeholder: 'Hvor opplever kunden daarlig dekning eller ustabilitet?' },
-    { key: 'datakort', label: 'Datakort', placeholder: 'Har kunden behov for nett paa andre enheter eller i bil?' }
+    { key: 'dekning', label: 'Dekning', placeholder: 'Hvor opplever kunden dårlig dekning eller ustabilitet?' },
+    { key: 'datakort', label: 'Datakort', placeholder: 'Har kunden behov for nett på andre enheter eller i bil?' }
   ];
 
   function getDefaultConversationNotes() {
@@ -3097,8 +3097,8 @@
 
     if (metaEl) {
       metaEl.textContent = query
-        ? `${totalMatches} treff fordelt pa ${categoryMatches} kategorier.`
-        : 'Sok pa innvending, svar, notat eller nokkelord.';
+        ? `${totalMatches} treff fordelt på ${categoryMatches} kategorier.`
+        : 'Søk på innvending, svar, notat eller nøkkelord.';
     }
   }
 
