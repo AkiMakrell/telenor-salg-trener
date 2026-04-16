@@ -260,6 +260,52 @@
       padding-bottom: 32px;
     }
 
+    .objection-hero {
+      max-width: 720px;
+      margin: 0 auto 18px auto;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(41,168,224,0.08);
+      padding: 20px 22px;
+    }
+
+    .objection-hero-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      margin-bottom: 6px;
+    }
+
+    .objection-hero-text {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+
+    .objection-search {
+      width: 100%;
+      padding: 11px 13px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      background: var(--primary-xlight);
+      color: var(--text);
+    }
+
+    .objection-search:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: white;
+    }
+
+    .objection-results-meta {
+      margin-top: 10px;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
     .fakta-theme-section {
       background: var(--card);
       border-radius: 16px;
@@ -372,6 +418,39 @@
     }
     .fakta-card.expanded .fakta-card-body { display: block; }
 
+    .fakta-card-subtitle {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .objection-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .objection-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: #eef6fb;
+      color: var(--primary-dark);
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+
+    .objection-section-title {
+      font-size: 0.76rem;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin: 12px 0 6px 0;
+    }
+
     .fakta-add-form {
       background: #f8faff;
       border-top: 1px solid var(--border);
@@ -424,6 +503,21 @@
       cursor: pointer;
     }
     .fakta-cancel-btn:hover { border-color: #999; color: #555; }
+
+    .sf-info-card {
+      max-width: 900px;
+      margin: 0 auto 18px auto;
+      background: #eff6ff;
+      border: 1.5px solid #bfdbfe;
+      border-radius: 14px;
+      padding: 16px 18px;
+      color: #1e3a8a;
+    }
+
+    .sf-info-card strong {
+      display: block;
+      margin-bottom: 6px;
+    }
 
     /* Intro library */
     .intro-library {
@@ -1257,8 +1351,8 @@
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('intro')">Registrer</button>
     <button class="tab-btn" onclick="switchTab('hjem')">Stats</button>
-    <button class="tab-btn" onclick="switchTab('innvendinger')">Fakta</button>
-    <button class="tab-btn" onclick="switchTab('samtaleflyt')">Samtaleflyt</button>
+    <button class="tab-btn" onclick="switchTab('innvendinger')">Innvendinger</button>
+    <button class="tab-btn" onclick="switchTab('samtaleflyt')">Flyt (avansert)</button>
   </div>
   <div class="backup-btns">
     <span id="sync-status" style="font-size:0.75rem;color:#888;padding:5px 8px;white-space:nowrap;"></span>
@@ -1344,12 +1438,20 @@
 
 <!-- ===== INNVENDINGER TAB ===== -->
 <div id="tab-innvendinger" class="tab-content">
-
+  <div class="objection-hero">
+    <div class="objection-hero-title">Innvendingsbibliotek</div>
+    <div class="objection-hero-text">Finn vanlige innvendinger og gode svar raskt mens du er i samtalen. Bruk soket under for aa hoppe rett til det du trenger.</div>
+    <input id="fakta-search" class="objection-search" type="text" placeholder="Sok etter innvending, svar, notat eller nokkelord..." oninput="renderFakta()" />
+    <div id="fakta-search-meta" class="objection-results-meta"></div>
+  </div>
   <div class="fakta-page" id="fakta-page"></div>
-
 </div>
 
 <div id="tab-samtaleflyt" class="tab-content">
+  <div class="sf-info-card">
+    <strong>Bruk helst innvendinger for vanlige samtaler.</strong>
+    Samtaleflyt er beholdt som et avansert verktøy for lengre eller mer spesielle forlop. For gjentatte innvendinger er biblioteket i fanen "Innvendinger" den raskeste losningen.
+  </div>
   <!-- Phase picker -->
   <div id="sf-phase-picker" style="max-width:900px;margin:0 auto;">
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:600px;margin:0 auto;">
@@ -2226,10 +2328,38 @@
     { key: 'bildelagring',  label: 'Bilde-lagring',  cls: 'fakta-theme-purple' },
   ];
 
+  function normalizeFaktaItem(item, themeKey, index) {
+    if (!item) return null;
+    const objection = (item.objection || item.title || '').trim();
+    const response = (item.response || item.desc || '').trim();
+    const notes = (item.notes || '').trim();
+    const keywords = Array.isArray(item.keywords)
+      ? item.keywords.map(x => String(x).trim()).filter(Boolean)
+      : String(item.keywords || '').split(',').map(x => x.trim()).filter(Boolean);
+    if (!objection && !response && !notes) return null;
+    return {
+      id: item.id || `${themeKey}_${Date.now()}_${index}`,
+      objection,
+      response,
+      notes,
+      keywords
+    };
+  }
+
   function getFakta() {
     const raw = localStorage.getItem('produktFakta');
-    if (raw) return JSON.parse(raw);
-    return { dekning: [], nettsikkerhet: [], bildelagring: [] };
+    let parsed = raw ? JSON.parse(raw) : { dekning: [], nettsikkerhet: [], bildelagring: [] };
+    let changed = !raw;
+    const normalized = {};
+    FAKTA_THEMES.forEach(({ key }) => {
+      const source = Array.isArray(parsed[key]) ? parsed[key] : [];
+      normalized[key] = source.map((item, index) => normalizeFaktaItem(item, key, index)).filter(Boolean);
+      if (!Array.isArray(parsed[key]) || normalized[key].length !== source.length || source.some(item => item && (item.title !== undefined || item.desc !== undefined || typeof item.keywords === 'string'))) {
+        changed = true;
+      }
+    });
+    if (changed) saveFakta(normalized);
+    return normalized;
   }
 
   function saveFakta(data) {
@@ -2249,8 +2379,10 @@
     if (!form) return;
     form.style.display = '';
     form.dataset.editId = editId || '';
-    document.getElementById('fakta-input-title-' + themeKey).value = editItem ? editItem.title : '';
-    document.getElementById('fakta-input-desc-' + themeKey).value = editItem ? editItem.desc : '';
+    document.getElementById('fakta-input-title-' + themeKey).value = editItem ? editItem.objection : '';
+    document.getElementById('fakta-input-desc-' + themeKey).value = editItem ? editItem.response : '';
+    document.getElementById('fakta-input-notes-' + themeKey).value = editItem ? editItem.notes : '';
+    document.getElementById('fakta-input-tags-' + themeKey).value = editItem ? (editItem.keywords || []).join(', ') : '';
     document.getElementById('fakta-input-title-' + themeKey).focus();
   }
 
@@ -2261,63 +2393,104 @@
 
   function saveFaktaCard(themeKey) {
     const titleEl = document.getElementById('fakta-input-title-' + themeKey);
-    const title = titleEl.value.trim();
-    if (!title) { titleEl.focus(); return; }
-    const desc = document.getElementById('fakta-input-desc-' + themeKey).value.trim();
+    const objection = titleEl.value.trim();
+    if (!objection) { titleEl.focus(); return; }
+    const response = document.getElementById('fakta-input-desc-' + themeKey).value.trim();
+    const notes = document.getElementById('fakta-input-notes-' + themeKey).value.trim();
+    const keywords = document.getElementById('fakta-input-tags-' + themeKey).value
+      .split(',')
+      .map(x => x.trim())
+      .filter(Boolean);
     const form = document.getElementById('fakta-form-' + themeKey);
     const editId = form.dataset.editId;
     const data = getFakta();
     if (!data[themeKey]) data[themeKey] = [];
     if (editId) {
       const idx = data[themeKey].findIndex(x => x.id === editId);
-      if (idx !== -1) data[themeKey][idx] = { id: editId, title, desc };
+      if (idx !== -1) data[themeKey][idx] = { id: editId, objection, response, notes, keywords };
     } else {
-      data[themeKey].push({ id: themeKey + '_' + Date.now(), title, desc });
+      data[themeKey].push({ id: themeKey + '_' + Date.now(), objection, response, notes, keywords });
     }
     saveFakta(data);
     renderFakta();
   }
 
   function deleteFaktaCard(themeKey, id) {
-    if (!confirm('Slette dette fakta-kortet?')) return;
+    if (!confirm('Slette denne innvendingen?')) return;
     const data = getFakta();
     data[themeKey] = (data[themeKey] || []).filter(x => x.id !== id);
     saveFakta(data);
     renderFakta();
   }
 
+  function copyFaktaResponse(themeKey, id) {
+    const item = (getFakta()[themeKey] || []).find(x => x.id === id);
+    if (!item || !item.response) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(item.response);
+    }
+  }
+
   function renderFakta() {
     const data = getFakta();
     const page = document.getElementById('fakta-page');
+    const searchEl = document.getElementById('fakta-search');
+    const metaEl = document.getElementById('fakta-search-meta');
     if (!page) return;
+    const query = (searchEl ? searchEl.value : '').trim().toLowerCase();
+    let totalMatches = 0;
+    let categoryMatches = 0;
+
     page.innerHTML = FAKTA_THEMES.map(({ key, label, cls }) => {
-      const items = data[key] || [];
+      const items = (data[key] || []).filter(item => {
+        if (!query) return true;
+        const haystack = [
+          item.objection,
+          item.response,
+          item.notes,
+          ...(item.keywords || [])
+        ].join(' ').toLowerCase();
+        return haystack.includes(query);
+      });
+      totalMatches += items.length;
+      if (items.length) categoryMatches++;
       const cards = items.length
         ? items.map(item => `
           <div class="fakta-card" id="fcard-${item.id}">
             <div class="fakta-card-header" onclick="toggleFaktaCard('${item.id}')">
-              <span class="fakta-card-title">${escHtml(item.title)}</span>
+              <div style="flex:1;min-width:0;">
+                <span class="fakta-card-title">${escHtml(item.objection)}</span>
+                <div class="fakta-card-subtitle">${item.response ? 'Har forslag til svar klart' : 'Ingen svar lagt inn ennå'}</div>
+              </div>
               <div class="fakta-card-actions" onclick="event.stopPropagation()">
                 <button class="fakta-action-btn" onclick="showFaktaForm('${key}','${item.id}')" title="Rediger">✏️</button>
+                <button class="fakta-action-btn" onclick="copyFaktaResponse('${key}','${item.id}')" title="Kopier svar">⧉</button>
                 <button class="fakta-action-btn delete" onclick="deleteFaktaCard('${key}','${item.id}')" title="Slett">×</button>
               </div>
               <span class="fakta-card-icon">▼</span>
             </div>
-            ${item.desc ? `<div class="fakta-card-body">${escHtml(item.desc)}</div>` : ''}
+            <div class="fakta-card-body">
+              ${(item.keywords || []).length ? `<div class="objection-chip-row">${item.keywords.map(tag => `<span class="objection-chip">${escHtml(tag)}</span>`).join('')}</div>` : ''}
+              <div class="objection-section-title">Forslag til svar</div>
+              <div>${escHtml(item.response || 'Ingen svar lagt inn ennå.')}</div>
+              ${item.notes ? `<div class="objection-section-title">Notater</div><div>${escHtml(item.notes)}</div>` : ''}
+            </div>
           </div>
         `).join('')
-        : `<p class="empty-state" style="padding:12px 4px;margin:0;">Ingen fakta lagt til ennå.</p>`;
+        : `<p class="empty-state" style="padding:12px 4px;margin:0;">${query ? 'Ingen treff i denne kategorien.' : 'Ingen innvendinger lagt til ennå.'}</p>`;
 
       return `
         <div class="fakta-theme-section ${cls}">
           <div class="fakta-section-header">
             <h2>${label}</h2>
-            <button class="add-fakta-btn" onclick="showFaktaForm('${key}')">+ Legg til fakta</button>
+            <button class="add-fakta-btn" onclick="showFaktaForm('${key}')">+ Legg til innvending</button>
           </div>
           <div class="fakta-cards-list">${cards}</div>
           <div class="fakta-add-form" id="fakta-form-${key}" style="display:none">
-            <input id="fakta-input-title-${key}" type="text" placeholder="Tittel (f.eks. '99% 4G-dekning i Norge')" />
-            <textarea id="fakta-input-desc-${key}" placeholder="Beskrivelse / tilleggsinfo (valgfritt)..."></textarea>
+            <input id="fakta-input-title-${key}" type="text" placeholder="Innvending (f.eks. 'Det er for dyrt')" />
+            <textarea id="fakta-input-desc-${key}" placeholder="Hva kan du svare kunden?"></textarea>
+            <textarea id="fakta-input-notes-${key}" placeholder="Ekstra notater, oppfolging eller huskeregler (valgfritt)..."></textarea>
+            <input id="fakta-input-tags-${key}" type="text" placeholder="Nokkelord, separert med komma (valgfritt)" />
             <div class="fakta-form-actions">
               <button class="fakta-cancel-btn" onclick="hideFaktaForm('${key}')">Avbryt</button>
               <button class="fakta-save-btn" onclick="saveFaktaCard('${key}')">Lagre</button>
@@ -2326,6 +2499,12 @@
         </div>
       `;
     }).join('');
+
+    if (metaEl) {
+      metaEl.textContent = query
+        ? `${totalMatches} treff fordelt pa ${categoryMatches} kategorier.`
+        : 'Sok pa innvending, svar, notat eller nokkelord.';
+    }
   }
 
   function escHtml(str) {
