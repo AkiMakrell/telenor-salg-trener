@@ -867,6 +867,15 @@
       padding: 26px 18px;
     }
 
+    .stat-card.day-card.metric-card {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 164px;
+      padding: 22px 18px 50px;
+    }
+
     .stat-card.sc-blue   { border-top-color: #3b82f6; background: #10233c; }
     .stat-card.sc-purple { border-top-color: #8b5cf6; background: #24183c; }
     .stat-card.sc-teal   { border-top-color: #14b8a6; background: #0f2b2b; }
@@ -929,7 +938,7 @@
       color: #1e293b;
       line-height: 1;
     }
-    .stat-value.big { font-size: 3rem; }
+    .stat-card.day-card.metric-card .stat-value.big { font-size: 3.45rem; }
 
     .stat-label {
       font-size: 0.72rem;
@@ -937,6 +946,14 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
       margin-top: 6px;
+    }
+
+    .stat-card.day-card.metric-card .stat-label {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 16px;
+      margin-top: 0;
     }
 
     /* Motivational banner */
@@ -2409,8 +2426,8 @@
 
   function statsFor(entries) { return getSuccessStats(entries); }
 
-  function statCard(value, label, big = false, color = '') {
-    return `<div class="stat-card${big ? ' day-card' : ''}${color ? ' sc-' + color : ''}">
+  function statCard(value, label, big = false, color = '', extraClass = '') {
+    return `<div class="stat-card${big ? ' day-card' : ''}${color ? ' sc-' + color : ''}${extraClass ? ' ' + extraClass : ''}">
       <div class="stat-value${big ? ' big' : ''}">${value}</div>
       <div class="stat-label">${label}</div>
     </div>`;
@@ -2516,9 +2533,9 @@
       <div class="stats-section">
         <div class="stats-section-title">I dag</div>
         <div class="stats-grid stats-grid-4">
-          ${statCard(dag.introSuccesses, 'Intro-suksesser', true, 'blue')}
-          ${statCard(dag.over5, 'Over 5 min', true, 'teal')}
-          ${statCard(dag.salg, 'Salg', true, 'gold')}
+          ${statCard(dag.introSuccesses, 'Opptak', true, 'blue', 'metric-card')}
+          ${statCard(dag.over5, 'Over 5 min', true, 'teal', 'metric-card')}
+          ${statCard(dag.salg, 'Salg', true, 'gold', 'metric-card')}
           ${statCard(getCurrentCallSession() ? getCurrentCallSession().label : 'Ingen aktiv', 'Aktiv økt', true, 'purple')}
         </div>
       </div>
