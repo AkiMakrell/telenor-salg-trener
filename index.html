@@ -87,6 +87,150 @@
       color: var(--primary-dark);
     }
 
+    .auth-card,
+    .user-bar {
+      max-width: 720px;
+      margin: 0 auto 20px auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 2px 16px rgba(41,168,224,0.10);
+    }
+
+    .auth-card {
+      padding: 22px 24px;
+    }
+
+    .auth-card-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .auth-card-text {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+      margin-bottom: 18px;
+    }
+
+    .auth-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .auth-field label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .auth-field input {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      background: var(--primary-xlight);
+      color: var(--text);
+    }
+
+    .auth-field input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: white;
+      color: #0f172a;
+    }
+
+    .auth-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+      align-items: center;
+    }
+
+    .auth-message {
+      display: none;
+      margin-top: 14px;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+
+    .auth-message.visible { display: block; }
+    .auth-message-info {
+      background: #0f172a;
+      border: 1px solid #1d4ed8;
+      color: #bfdbfe;
+    }
+    .auth-message-success {
+      background: #052e16;
+      border: 1px solid #16a34a;
+      color: #bbf7d0;
+    }
+    .auth-message-error {
+      background: #3f0d12;
+      border: 1px solid #ef4444;
+      color: #fecaca;
+    }
+    .auth-message-warning {
+      background: #3b2505;
+      border: 1px solid #f59e0b;
+      color: #fde68a;
+    }
+
+    .auth-helper {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.5;
+    }
+
+    .user-bar {
+      padding: 14px 18px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .user-bar-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .user-bar-subtitle {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .user-bar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .user-sync-status {
+      font-size: 0.78rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .app-shell {
+      display: none;
+    }
+
     .tab-btn {
       padding: 8px 22px;
       border: none;
@@ -486,6 +630,20 @@
     }
 
     @media (max-width: 900px) {
+      .auth-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .user-bar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .user-bar-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
       .notes-page {
         max-width: 100%;
       }
@@ -1749,6 +1907,53 @@
 
 <h1>Aki salgs trener</h1>
 
+<div id="auth-card" class="auth-card">
+  <div class="auth-card-title">Logg inn for din egen data</div>
+  <div class="auth-card-text">
+    For at venner skal kunne bruke samme nettside uten å se hverandres data, må hver bruker ha sin egen konto.
+    Denne versjonen bruker Supabase for innlogging og personlig lagring.
+  </div>
+
+  <div id="auth-config-warning" class="auth-message auth-message-warning"></div>
+
+  <div class="auth-grid">
+    <div class="auth-field">
+      <label for="auth-email">E-post</label>
+      <input id="auth-email" type="email" placeholder="navn@example.com" autocomplete="email" />
+    </div>
+    <div class="auth-field">
+      <label for="auth-password">Passord</label>
+      <input id="auth-password" type="password" placeholder="Minst 6 tegn" autocomplete="current-password" />
+    </div>
+  </div>
+
+  <div class="auth-actions">
+    <button class="save-btn" style="margin-top:0;" onclick="signInWithEmail()">Logg inn</button>
+    <button class="backup-btn" style="font-size:0.95rem;padding:11px 16px;border-radius:10px;" onclick="signUpWithEmail()">Opprett konto</button>
+    <button class="backup-btn" style="font-size:0.95rem;padding:11px 16px;border-radius:10px;" onclick="resetAuthForm()">Tøm felter</button>
+  </div>
+
+  <div id="auth-status" class="auth-message auth-message-info"></div>
+
+  <div class="auth-helper">
+    Fyll inn Supabase URL og anon key i script-konfigurasjonen før du publiserer siden.
+    Når en bruker logger inn, lastes bare den brukerens data.
+  </div>
+</div>
+
+<div id="user-bar" class="user-bar">
+  <div>
+    <div id="user-bar-email" class="user-bar-title"></div>
+    <div class="user-bar-subtitle">Din konto har sitt eget datasett. Andre brukere ser bare sitt eget innhold.</div>
+  </div>
+  <div class="user-bar-actions">
+    <span id="auth-sync-status" class="user-sync-status"></span>
+    <button class="backup-btn" style="font-size:0.9rem;padding:9px 14px;border-radius:10px;" onclick="signOutUser()">Logg ut</button>
+  </div>
+</div>
+
+<div id="app-shell" class="app-shell">
+
 <div class="top-bar">
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('intro')">Registrer</button>
@@ -1968,14 +2173,16 @@
         </div>
       </div>
     </div>
-  </div>
+</div>
 </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // ---- Google Sheets sync ----
-  // Paste your Google Apps Script URL below after deploying (see instructions)
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyj9bEAfEKDC_fuQYP821nOWFiQo9ZAPkL8olEw8VhdYmuihprilbOLxgMOxjL8VoQvFA/exec';
+  // ---- Supabase auth + per-user state sync ----
+  const SUPABASE_URL = 'https://ptdehitxlzzqblvjmjra.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_HFO3PiVNLlBcSechlL_esA_5CaK2nrl';
+  const SUPABASE_STATE_TABLE = 'user_app_state';
   const STORAGE_KEYS = [
     'savedIntros',
     'introHistory',
@@ -1993,101 +2200,117 @@
     'samtaleflyt2_behovsanalyse_nettsikkerhet'
   ];
 
+  const APP_META_LAST_IMPORT_USER = 'telenorSalgTrainer:lastImportedUserId';
   const _origSetItem    = localStorage.setItem.bind(localStorage);
   const _origRemoveItem = localStorage.removeItem.bind(localStorage);
   const _origGetItem    = localStorage.getItem.bind(localStorage);
 
-  // Auto-sync 800ms after any localStorage write
+  let supabaseClient = null;
+  let currentUser = null;
+  let isHydratingRemoteState = false;
+  let authChangeToken = 0;
   let syncTimeout = null;
-  localStorage.setItem    = function(k, v) { _origSetItem(k, v);    scheduleSync(); };
-  localStorage.removeItem = function(k)    { _origRemoveItem(k);     scheduleSync(); };
+  const pendingSyncKeys = new Set();
+
+  localStorage.setItem = function(k, v) {
+    _origSetItem(k, v);
+    queueSyncKey(k);
+  };
+  localStorage.removeItem = function(k) {
+    _origRemoveItem(k);
+    queueSyncKey(k);
+  };
+
+  function isSupabaseConfigured() {
+    return (
+      !!SUPABASE_URL &&
+      !!SUPABASE_ANON_KEY &&
+      !SUPABASE_URL.includes('YOUR_SUPABASE') &&
+      !SUPABASE_ANON_KEY.includes('YOUR_SUPABASE')
+    );
+  }
+
+  function setElementMessage(id, message, tone = 'info') {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = message || '';
+    el.className = `auth-message auth-message-${tone}`;
+    if (message) el.classList.add('visible');
+  }
+
+  function clearElementMessage(id, tone = 'info') {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = '';
+    el.className = `auth-message auth-message-${tone}`;
+  }
+
+  function setAuthStatus(message, tone = 'info') {
+    if (!message) {
+      clearElementMessage('auth-status');
+      return;
+    }
+    setElementMessage('auth-status', message, tone);
+  }
+
+  function setAuthConfigWarning(message) {
+    if (!message) {
+      clearElementMessage('auth-config-warning', 'warning');
+      return;
+    }
+    setElementMessage('auth-config-warning', message, 'warning');
+  }
+
+  function setAppVisible(isVisible) {
+    const appShell = document.getElementById('app-shell');
+    const authCard = document.getElementById('auth-card');
+    const userBar = document.getElementById('user-bar');
+    if (appShell) appShell.style.display = isVisible ? 'block' : 'none';
+    if (authCard) authCard.style.display = isVisible ? 'none' : 'block';
+    if (userBar) userBar.style.display = isVisible ? 'flex' : 'none';
+  }
+
+  function updateUserBar(user) {
+    const emailEl = document.getElementById('user-bar-email');
+    if (emailEl) emailEl.textContent = user?.email || 'Innlogget bruker';
+  }
+
+  function getAuthCredentials() {
+    const email = document.getElementById('auth-email')?.value.trim() || '';
+    const password = document.getElementById('auth-password')?.value || '';
+    return { email, password };
+  }
+
+  function resetAuthForm() {
+    const emailInput = document.getElementById('auth-email');
+    const passwordInput = document.getElementById('auth-password');
+    if (emailInput) emailInput.value = '';
+    if (passwordInput) passwordInput.value = '';
+  }
+
+  function getLocalImportMarker() {
+    return _origGetItem(APP_META_LAST_IMPORT_USER) || '';
+  }
+
+  function setLocalImportMarker(userId) {
+    _origSetItem(APP_META_LAST_IMPORT_USER, userId);
+  }
 
   function scheduleSync() {
     clearTimeout(syncTimeout);
     syncTimeout = setTimeout(syncToCloud, 800);
   }
 
+  function queueSyncKey(key) {
+    if (!STORAGE_KEYS.includes(key) || isHydratingRemoteState || !currentUser) return;
+    pendingSyncKeys.add(key);
+    scheduleSync();
+  }
+
   function readStoredValue(key, reader = _origGetItem) {
     const raw = reader(key);
     if (!raw) return null;
-    try { return JSON.parse(raw); } catch { return null; }
-  }
-
-  function stableStringify(value) {
-    return JSON.stringify(value, Object.keys(value || {}).sort());
-  }
-
-  function entryFingerprint(entry) {
-    return [
-      entry.type || '',
-      entry.introId || '',
-      entry.text || '',
-      entry.isoDate || '',
-      entry.sessionId || '',
-      entry.over5min || '',
-      entry.salg || '',
-      entry.opptak || '',
-      entry.quickEntry ? '1' : '0'
-    ].join('|');
-  }
-
-  function mergeSavedIntros(localValue, cloudValue) {
-    const merged = [];
-    const seenIds = new Set();
-    const seenTexts = new Set();
-    [...(cloudValue || []), ...(localValue || [])].forEach(item => {
-      if (!item || !item.text) return;
-      const textKey = item.text.trim();
-      if ((item.id && seenIds.has(item.id)) || seenTexts.has(textKey)) return;
-      if (item.id) seenIds.add(item.id);
-      seenTexts.add(textKey);
-      merged.push(item);
-    });
-    return merged;
-  }
-
-  function mergeIntroHistory(localValue, cloudValue) {
-    const merged = [];
-    const seen = new Set();
-    [...(localValue || []), ...(cloudValue || [])].forEach(entry => {
-      if (!entry || !entry.isoDate) return;
-      const fingerprint = entryFingerprint(entry);
-      if (seen.has(fingerprint)) return;
-      seen.add(fingerprint);
-      merged.push(entry);
-    });
-    merged.sort((a, b) => new Date(b.isoDate) - new Date(a.isoDate));
-    return merged;
-  }
-
-  function mergeFakta(localValue, cloudValue) {
-    const keys = new Set([
-      ...Object.keys(cloudValue || {}),
-      ...Object.keys(localValue || {})
-    ]);
-    const merged = {};
-    keys.forEach(key => {
-      const items = [...(cloudValue?.[key] || []), ...(localValue?.[key] || [])];
-      const seen = new Set();
-      merged[key] = items.filter(item => {
-        if (!item) return false;
-        const fingerprint = item.id || `${item.title || ''}|${item.desc || ''}`;
-        if (seen.has(fingerprint)) return false;
-        seen.add(fingerprint);
-        return true;
-      });
-    });
-    return merged;
-  }
-
-  function mergeCloudValue(key, localValue, cloudValue) {
-    if (cloudValue === null || cloudValue === undefined) return localValue;
-    if (localValue === null || localValue === undefined) return cloudValue;
-    if (key === 'savedIntros') return mergeSavedIntros(localValue, cloudValue);
-    if (key === 'introHistory') return mergeIntroHistory(localValue, cloudValue);
-    if (key === 'produktFakta') return mergeFakta(localValue, cloudValue);
-    if (key === 'introSessionAssignments') return { ...cloudValue, ...localValue };
-    return localValue;
+    return JSON.parse(raw);
   }
 
   function getAllData() {
@@ -2099,45 +2322,281 @@
     return data;
   }
 
-  function syncToCloud() {
-    if (!SCRIPT_URL || SCRIPT_URL.includes('YOUR_SCRIPT')) return;
+  function clearTrackedLocalData() {
+    pendingSyncKeys.clear();
+    isHydratingRemoteState = true;
+    STORAGE_KEYS.forEach(key => _origRemoveItem(key));
+    isHydratingRemoteState = false;
+  }
+
+  function replaceTrackedLocalData(data) {
+    clearTrackedLocalData();
+    isHydratingRemoteState = true;
+    STORAGE_KEYS.forEach(key => {
+      if (!Object.prototype.hasOwnProperty.call(data, key)) return;
+      _origSetItem(key, JSON.stringify(data[key]));
+    });
+    isHydratingRemoteState = false;
+  }
+
+  function rowsToState(rows) {
+    const state = {};
+    (rows || []).forEach(row => {
+      if (!row || !row.state_key) return;
+      state[row.state_key] = row.state_value;
+    });
+    return state;
+  }
+
+  async function overwriteCloudData(data) {
+    if (!supabaseClient || !currentUser) return;
     setSyncStatus('syncing');
-    fetch(SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(getAllData())
-    }).then(() => setSyncStatus('ok')).catch(() => setSyncStatus('error'));
+    const { error: deleteError } = await supabaseClient
+      .from(SUPABASE_STATE_TABLE)
+      .delete()
+      .eq('user_id', currentUser.id);
+    if (deleteError) throw deleteError;
+
+    const rows = STORAGE_KEYS
+      .filter(key => Object.prototype.hasOwnProperty.call(data, key))
+      .map(key => ({
+        user_id: currentUser.id,
+        state_key: key,
+        state_value: data[key]
+      }));
+
+    if (rows.length) {
+      const { error: upsertError } = await supabaseClient
+        .from(SUPABASE_STATE_TABLE)
+        .upsert(rows, { onConflict: 'user_id,state_key' });
+      if (upsertError) throw upsertError;
+    }
+
+    pendingSyncKeys.clear();
+    setSyncStatus('ok');
+  }
+
+  async function syncToCloud() {
+    if (!supabaseClient || !currentUser || !pendingSyncKeys.size) return;
+    const keysToSync = [...pendingSyncKeys];
+    pendingSyncKeys.clear();
+    setSyncStatus('syncing');
+
+    const upsertRows = [];
+    const deleteKeys = [];
+
+    keysToSync.forEach(key => {
+      const value = readStoredValue(key, _origGetItem);
+      if (value === null) deleteKeys.push(key);
+      else {
+        upsertRows.push({
+          user_id: currentUser.id,
+          state_key: key,
+          state_value: value
+        });
+      }
+    });
+
+    if (deleteKeys.length) {
+      const { error: deleteError } = await supabaseClient
+        .from(SUPABASE_STATE_TABLE)
+        .delete()
+        .eq('user_id', currentUser.id)
+        .in('state_key', deleteKeys);
+      if (deleteError) {
+        deleteKeys.forEach(key => pendingSyncKeys.add(key));
+        setSyncStatus('error');
+        setAuthStatus(deleteError.message, 'error');
+        return;
+      }
+    }
+
+    if (upsertRows.length) {
+      const { error: upsertError } = await supabaseClient
+        .from(SUPABASE_STATE_TABLE)
+        .upsert(upsertRows, { onConflict: 'user_id,state_key' });
+      if (upsertError) {
+        upsertRows.forEach(row => pendingSyncKeys.add(row.state_key));
+        setSyncStatus('error');
+        setAuthStatus(upsertError.message, 'error');
+        return;
+      }
+    }
+
+    setSyncStatus('ok');
   }
 
   async function loadFromCloud() {
-    if (!SCRIPT_URL || SCRIPT_URL.includes('YOUR_SCRIPT')) return;
+    if (!supabaseClient || !currentUser) return {};
     setSyncStatus('loading');
-    try {
-      const r = await fetch(SCRIPT_URL, { redirect: 'follow' });
-      const data = await r.json();
-      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
-        STORAGE_KEYS.forEach(key => {
-          const localValue = readStoredValue(key, _origGetItem);
-          const cloudValue = Object.prototype.hasOwnProperty.call(data, key) ? data[key] : null;
-          const mergedValue = mergeCloudValue(key, localValue, cloudValue);
-          if (mergedValue === null || mergedValue === undefined) return;
-          if (stableStringify(localValue) !== stableStringify(mergedValue)) {
-            _origSetItem(key, JSON.stringify(mergedValue));
-          }
-        });
-      }
-      setSyncStatus('ok');
-    } catch { setSyncStatus('error'); }
+    const { data, error } = await supabaseClient
+      .from(SUPABASE_STATE_TABLE)
+      .select('state_key, state_value')
+      .eq('user_id', currentUser.id);
+
+    if (error) {
+      setSyncStatus('error');
+      throw error;
+    }
+
+    const state = rowsToState(data);
+    replaceTrackedLocalData(state);
+    setSyncStatus('ok');
+    return state;
   }
 
   function setSyncStatus(s) {
     const el = document.getElementById('sync-status');
-    if (!el) return;
-    const map = { ok: 'Synkronisert', syncing: 'Synkroniserer...', loading: 'Laster data...', error: 'Synk feilet' };
-    el.textContent = map[s] || '';
+    const authEl = document.getElementById('auth-sync-status');
+    const map = {
+      ok: 'Synkronisert',
+      syncing: 'Synkroniserer...',
+      loading: 'Laster data...',
+      error: 'Synk feilet',
+      signedout: ''
+    };
+    const text = map[s] || '';
+    if (el) el.textContent = text;
+    if (authEl) authEl.textContent = text;
   }
-  // ---- End Google Sheets sync ----
+
+  function renderAll() {
+    syncSelectedIntroFromSession();
+    renderSessionStatus();
+    renderStatsHome();
+    renderIntroLibrary();
+    renderIntroLibraryInline();
+    renderIntroHistory();
+    renderFakta();
+    renderConversationNotes();
+    renderSamtaleflyt();
+  }
+
+  async function activateAuthenticatedApp(user, previousDeviceData) {
+    const remoteState = await loadFromCloud();
+    const hasRemoteState = Object.keys(remoteState).length > 0;
+    const hasDeviceState = Object.keys(previousDeviceData).length > 0;
+
+    if (!hasRemoteState && hasDeviceState && getLocalImportMarker() !== user.id) {
+      const shouldImport = confirm('Fant lokal data på denne enheten. Vil du importere den til kontoen din?');
+      if (shouldImport) {
+        replaceTrackedLocalData(previousDeviceData);
+        await overwriteCloudData(previousDeviceData);
+        setLocalImportMarker(user.id);
+      }
+    }
+
+    updateUserBar(user);
+    setAppVisible(true);
+    setAuthStatus('');
+    renderAll();
+  }
+
+  async function handleAuthState(session) {
+    const token = ++authChangeToken;
+    const previousDeviceData = getAllData();
+
+    if (!session?.user) {
+      currentUser = null;
+      clearTrackedLocalData();
+      setAppVisible(false);
+      setSyncStatus('signedout');
+      return;
+    }
+
+    currentUser = session.user;
+    setAuthStatus('Laster kontoen din...', 'info');
+
+    try {
+      await activateAuthenticatedApp(session.user, previousDeviceData);
+    } catch (error) {
+      if (token !== authChangeToken) return;
+      currentUser = null;
+      clearTrackedLocalData();
+      setAppVisible(false);
+      setSyncStatus('error');
+      setAuthStatus(error.message || 'Kunne ikke laste brukerdata.', 'error');
+    }
+  }
+
+  async function initializeSupabaseAuth() {
+    if (!isSupabaseConfigured()) {
+      setAppVisible(false);
+      setSyncStatus('signedout');
+      setAuthConfigWarning('Legg inn Supabase URL og anon key i toppen av scriptet før du deler siden.');
+      return;
+    }
+
+    setAuthConfigWarning('');
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    supabaseClient.auth.onAuthStateChange((_event, session) => {
+      Promise.resolve(handleAuthState(session)).catch(error => {
+        setAuthStatus(error.message || 'Uventet feil ved innlogging.', 'error');
+      });
+    });
+
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error) {
+      setAuthStatus(error.message, 'error');
+      return;
+    }
+
+    await handleAuthState(data.session);
+  }
+
+  async function signInWithEmail() {
+    if (!supabaseClient) return;
+    const { email, password } = getAuthCredentials();
+    if (!email || !password) {
+      setAuthStatus('Skriv inn både e-post og passord.', 'warning');
+      return;
+    }
+
+    setAuthStatus('Logger inn...', 'info');
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) {
+      setAuthStatus(error.message, 'error');
+      return;
+    }
+
+    setAuthStatus('Innlogging fullfort.', 'success');
+  }
+
+  async function signUpWithEmail() {
+    if (!supabaseClient) return;
+    const { email, password } = getAuthCredentials();
+    if (!email || !password) {
+      setAuthStatus('Skriv inn både e-post og passord.', 'warning');
+      return;
+    }
+    if (password.length < 6) {
+      setAuthStatus('Passordet ma vare minst 6 tegn.', 'warning');
+      return;
+    }
+
+    setAuthStatus('Oppretter konto...', 'info');
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+    if (error) {
+      setAuthStatus(error.message, 'error');
+      return;
+    }
+
+    if (data.session) setAuthStatus('Konto opprettet og logget inn.', 'success');
+    else setAuthStatus('Konto opprettet. Bekreft e-posten din hvis prosjektet krever det.', 'success');
+  }
+
+  async function signOutUser() {
+    if (!supabaseClient) return;
+    setAuthStatus('Logger ut...', 'info');
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) {
+      setAuthStatus(error.message, 'error');
+      return;
+    }
+    resetAuthForm();
+  }
+  // ---- End Supabase auth + per-user state sync ----
 
   function toggleHistory() {
     const panel = document.getElementById('history-panel');
@@ -3107,18 +3566,9 @@
   }
 
   // ---- Init ----
-  (async () => {
-    await loadFromCloud();
-    syncSelectedIntroFromSession();
-    renderSessionStatus();
-    renderStatsHome();
-    renderIntroLibrary();
-    renderIntroLibraryInline();
-    renderIntroHistory();
-    renderFakta();
-    renderConversationNotes();
-    renderSamtaleflyt();
-  })();
+  initializeSupabaseAuth().catch(error => {
+    setAuthStatus(error.message || 'Kunne ikke starte appen.', 'error');
+  });
 
   // ---- Celebration confetti ----
   let gifTimer = null;
@@ -3229,17 +3679,29 @@
     const file = event.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = e => {
+    reader.onload = async e => {
+      let data;
       try {
-        const data = JSON.parse(e.target.result);
-        STORAGE_KEYS.forEach(key => _origRemoveItem(key));
-        STORAGE_KEYS.forEach(key => {
-          if (!Object.prototype.hasOwnProperty.call(data, key)) return;
-          _origSetItem(key, JSON.stringify(data[key]));
-        });
-        alert('Data importert! Siden lastes inn på nytt.');
-        location.reload();
-      } catch { alert('Feil: ugyldig backup-fil.'); }
+        data = JSON.parse(e.target.result);
+      } catch (error) {
+        alert('Feil: ugyldig backup-fil.');
+        return;
+      }
+
+      replaceTrackedLocalData(data);
+
+      if (currentUser) {
+        try {
+          await overwriteCloudData(getAllData());
+        } catch (error) {
+          alert('Importert lokalt, men kunne ikke lagre til kontoen: ' + error.message);
+          renderAll();
+          return;
+        }
+      }
+
+      renderAll();
+      alert('Data importert!');
     };
     reader.readAsText(file);
   }
@@ -3829,6 +4291,7 @@
   // ===== END SAMTALEFLYT v2 =====
 
 </script>
+</div>
 </body>
 </html>
 
