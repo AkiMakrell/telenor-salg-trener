@@ -434,37 +434,6 @@
 
     .save-btn:hover { background: var(--primary-dark); box-shadow: 0 4px 14px rgba(41,168,224,0.4); }
 
-    .intro-action-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 22px;
-    }
-
-    .intro-action-row .save-btn,
-    .intro-action-row .backup-btn {
-      display: inline-flex;
-      align-items: center;
-      flex: 1 1 220px;
-      margin-top: 0;
-      min-height: 50px;
-      justify-content: center;
-    }
-
-    .fail-btn {
-      border-color: #7f1d1d;
-      background: #3f0d12;
-      color: #fecaca;
-      font-size: 1rem;
-      font-weight: 700;
-    }
-
-    .fail-btn:hover {
-      border-color: #b91c1c;
-      background: #5b1118;
-      color: #fee2e2;
-    }
-
     .result-badge {
       display: inline-block;
       padding: 3px 10px;
@@ -2199,10 +2168,7 @@
 
         </div>
 
-        <div class="intro-action-row">
-          <button class="save-btn" style="padding:14px;font-size:1.05rem;" onclick="registerIntroSuccess()">Registrer opptak</button>
-          <button class="backup-btn fail-btn" type="button" style="padding:14px;border-radius:8px;" onclick="registerIntroFailure()">Registrer ikke-opptak</button>
-        </div>
+        <button class="save-btn" style="width:100%;margin-top:22px;padding:14px;font-size:1.1rem;" onclick="registerIntroSuccess()">Registrer opptak</button>
 
         <button class="history-toggle-btn" onclick="toggleHistory()">Vis historikk</button>
         <div id="history-panel" class="history-panel">
@@ -3044,33 +3010,58 @@
     return intros.find(intro => intro.text.trim() === entry.text.trim()) || null;
   }
 
-  function isTrackedIntroAttempt(entry) {
-    if (!entry || entry.quickEntry) return false;
-    if (entry.type === 'introSuccess' || entry.type === 'introAttempt') return true;
-    return entry.opptak === 'ja' || entry.opptak === 'nei';
-  }
-
   function isIntroSuccessEntry(entry) {
-    return isTrackedIntroAttempt(entry) && (entry.type === 'introSuccess' || entry.opptak === 'ja');
+    return entry.type === 'introSuccess' || (!entry.quickEntry && entry.opptak === 'ja');
   }
 
-  function getSuccessRate(successes, attempts) {
-    if (!attempts) return null;
-    return Math.round((successes / attempts) * 100);
-  }
-
-  function formatSuccessRate(successes, attempts) {
-    const rate = getSuccessRate(successes, attempts);
-    return rate === null ? '—' : `${rate}%`;
+  function isBusinessDay(date) {
+    const day = date.getDay();
+    return day >= 1 && day <= 5;
   }
 
   function getSuccessStats(entries) {
     return {
-      attempts: entries.filter(isTrackedIntroAttempt).length,
       introSuccesses: entries.filter(isIntroSuccessEntry).length,
       over5: entries.filter(h => h.over5min === 'ja').length,
       salg: entries.filter(h => h.salg === 'ja').length,
     };
+  }
+
+  function getStartedSessionCountForDate(date, reference = new Date()) {
+    if (!isBusinessDay(date)) return 0;
+
+    const target = new Date(date);
+    target.setHours(0, 0, 0, 0);
+
+    const today = new Date(reference);
+    today.setHours(0, 0, 0, 0);
+
+    if (target.getTime() < today.getTime()) return CALL_SESSIONS.length;
+    if (target.getTime() > today.getTime()) return 0;
+
+    const nowMinutes = reference.getHours() * 60 + reference.getMinutes();
+    return CALL_SESSIONS.filter(session => nowMinutes >= timeToMinutes(session.start)).length;
+  }
+
+  function countStartedSessionsInRange(startDate, endDate, reference = new Date()) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    let total = 0;
+    for (const day = new Date(start); day <= end; day.setDate(day.getDate() + 1)) {
+      total += getStartedSessionCountForDate(day, reference);
+    }
+    return total;
+  }
+
+  function formatAveragePerSession(total, sessionCount) {
+    if (!sessionCount) return '—';
+    const average = total / sessionCount;
+    return Number.isInteger(average)
+      ? String(average)
+      : average.toFixed(1).replace('.', ',');
   }
 
   // ---- Stats helpers ----
@@ -3143,13 +3134,21 @@
     const dagEntries = history.filter(h => isToday(h.isoDate));
     const ukeEntries = history.filter(h => isThisWeek(h.isoDate));
     const mndEntries = history.filter(h => isThisMonth(h.isoDate));
+    const now = new Date();
 
     const dag = statsFor(dagEntries);
     const uke = statsFor(ukeEntries);
     const mnd = statsFor(mndEntries);
     const activeSession = getCurrentCallSession();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+    startOfWeek.setHours(0, 0, 0, 0);
+    const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const todaySessionCount = getStartedSessionCountForDate(now, now);
+    const weekSessionCount = countStartedSessionsInRange(startOfWeek, now, now);
+    const monthSessionCount = countStartedSessionsInRange(firstOfMonth, now, now);
     const sessionStats = CALL_SESSIONS.map(session => {
-      const entries = dagEntries.filter(entry => isTrackedIntroAttempt(entry) && (
+      const entries = dagEntries.filter(entry => isIntroSuccessEntry(entry) && (
         entry.sessionId === session.id ||
         (!entry.sessionId && entry.sessionLabel === session.label)
       ));
@@ -3170,7 +3169,6 @@
 
     // Week bar chart: 5-min per weekday (Mon–Fri only)
     const days = ['Man','Tir','Ons','Tor','Fre'];
-    const now = new Date();
     const monOffset = (now.getDay() + 6) % 7;
     const weekData = days.map((lbl, i) => {
       const day = new Date(now); day.setDate(now.getDate() - monOffset + i); day.setHours(0,0,0,0);
@@ -3181,7 +3179,6 @@
     });
 
     // Month bar chart: work weeks (Mon–Fri) that overlap with the current month
-    const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     // Find the Monday of the first week overlapping this month
     const firstMon = new Date(firstOfMonth);
@@ -3217,21 +3214,19 @@
         <div class="stats-section-title">I dag</div>
         <div class="stats-grid stats-grid-4">
           ${statCard(dag.introSuccesses, 'Opptak', true, 'blue', 'metric-card')}
-          ${statCard(dag.attempts, 'Forsøk', true, 'purple', 'metric-card')}
-          ${statCard(formatSuccessRate(dag.introSuccesses, dag.attempts), `Treffrate (${dag.introSuccesses}/${dag.attempts})`, true, 'teal', 'metric-card')}
+          ${statCard(formatAveragePerSession(dag.introSuccesses, todaySessionCount), todaySessionCount ? `Snitt per økt (${dag.introSuccesses}/${todaySessionCount})` : 'Snitt per økt', true, 'purple', 'metric-card')}
+          ${statCard(dag.over5, 'Over 5 min', true, 'teal', 'metric-card')}
           ${statCard(dag.salg, 'Salg', true, 'gold', 'metric-card')}
         </div>
       </div>
 
       <div class="stats-section">
         <div class="stats-section-title st-purple">Økter i dag</div>
-        <div class="stats-section-subtitle">Treffrate per økt basert på registrerte forsøk.</div>
+        <div class="stats-section-subtitle">Opptak registrert i hver økt i dag.</div>
         <div class="stats-grid stats-grid-4">
           ${sessionStats.map(session => statCard(
-            formatSuccessRate(session.introSuccesses, session.attempts),
-            session.attempts
-              ? `${session.label}${activeSession?.id === session.id ? ' · Aktiv' : ''} (${session.introSuccesses}/${session.attempts})`
-              : `${session.label}${activeSession?.id === session.id ? ' · Aktiv' : ''} · Ingen forsøk`,
+            session.introSuccesses,
+            `${session.label}${activeSession?.id === session.id ? ' · Aktiv' : ''}`,
             false,
             activeSession?.id === session.id ? 'purple' : 'blue'
           )).join('')}
@@ -3247,11 +3242,10 @@
             ${stackedBarChart(weekData)}
           </div>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
-            ${statCard(uke.introSuccesses, 'Intro-suksesser', false, 'blue')}
-            ${statCard(uke.attempts, 'Forsøk', false, 'purple')}
+            ${statCard(uke.introSuccesses, 'Opptak', false, 'blue')}
+            ${statCard(formatAveragePerSession(uke.introSuccesses, weekSessionCount), weekSessionCount ? `Snitt per økt (${uke.introSuccesses}/${weekSessionCount})` : 'Snitt per økt', false, 'purple')}
             ${statCard(uke.over5, 'Over 5 min', false, 'teal')}
             ${statCard(uke.salg, 'Salg', false, 'gold')}
-            ${statCard(formatSuccessRate(uke.introSuccesses, uke.attempts), `Treffrate (${uke.introSuccesses}/${uke.attempts})`, false, 'purple')}
           </div>
         </div>
       </div>
@@ -3265,11 +3259,10 @@
             ${stackedBarChart(weekBuckets)}
           </div>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
-            ${statCard(mnd.introSuccesses, 'Intro-suksesser', false, 'blue')}
-            ${statCard(mnd.attempts, 'Forsøk', false, 'purple')}
+            ${statCard(mnd.introSuccesses, 'Opptak', false, 'blue')}
+            ${statCard(formatAveragePerSession(mnd.introSuccesses, monthSessionCount), monthSessionCount ? `Snitt per økt (${mnd.introSuccesses}/${monthSessionCount})` : 'Snitt per økt', false, 'purple')}
             ${statCard(mnd.over5, 'Over 5 min', false, 'teal')}
             ${statCard(mnd.salg, 'Salg', false, 'gold')}
-            ${statCard(formatSuccessRate(mnd.introSuccesses, mnd.attempts), `Treffrate (${mnd.introSuccesses}/${mnd.attempts})`, false, 'purple')}
           </div>
         </div>
       </div>
@@ -3312,8 +3305,8 @@
 
     container.innerHTML = withStats.map(({ i, successes, over5, sales }) => {
       const statsRow = successes || over5 || sales
-        ? `<div class="intro-chip-stats" style="margin-top:5px;">${successes} intro-suksesser &nbsp; ${over5} over 5 min &nbsp; ${sales} salg</div>`
-        : `<div class="intro-chip-stats" style="margin-top:5px;">Ingen suksesser registrert ennå</div>`;
+        ? `<div class="intro-chip-stats" style="margin-top:5px;">${successes} opptak &nbsp; ${over5} over 5 min &nbsp; ${sales} salg</div>`
+        : `<div class="intro-chip-stats" style="margin-top:5px;">Ingen opptak registrert ennå</div>`;
       const activeBadge = activeIntroId === i.id
         ? `<div style="font-size:0.75rem;font-weight:700;color:#0f766e;margin-bottom:6px;">Aktiv for økten</div>`
         : '';
@@ -3373,17 +3366,16 @@
     }
   }
 
-  function buildHistoryEntry(intro, options = {}) {
+  function buildOpptakEntry(intro, options = {}) {
     const now = new Date();
     const currentSession = getCurrentCallSession(now);
-    const success = options.success !== false;
     return {
-      type: success ? 'introSuccess' : 'introAttempt',
+      type: 'introSuccess',
       introId: intro.id,
       text: intro.text,
-      opptak: success ? 'ja' : 'nei',
-      over5min: success && options.over5min === 'ja' ? 'ja' : 'nei',
-      salg: success && options.salg === 'ja' ? 'ja' : 'nei',
+      opptak: 'ja',
+      over5min: options.over5min === 'ja' ? 'ja' : 'nei',
+      salg: options.salg === 'ja' ? 'ja' : 'nei',
       isoDate: now.toISOString(),
       tid: now.toLocaleString('no-NO'),
       sessionId: currentSession ? currentSession.id : null,
@@ -3399,7 +3391,7 @@
     fillIntroText(intro);
     assignIntroToCurrentSession(intro.id);
     const history = getIntroHistory();
-    history.unshift(buildHistoryEntry(intro));
+    history.unshift(buildOpptakEntry(intro));
     localStorage.setItem('introHistory', JSON.stringify(history));
     resetOpptak();
     renderStatsHome();
@@ -3422,7 +3414,7 @@
     if (!intro) return;
 
     const history = getIntroHistory();
-    history.unshift(buildHistoryEntry(intro, {
+    history.unshift(buildOpptakEntry(intro, {
       over5min: selectedOver5min === 'ja' ? 'ja' : 'nei',
       salg: selectedSalg === 'ja' ? 'ja' : 'nei',
     }));
@@ -3438,27 +3430,12 @@
     renderSessionStatus();
   }
 
-  function registerIntroFailure() {
-    const intro = resolveIntroForRegistration();
-    if (!intro) return;
-
-    const history = getIntroHistory();
-    history.unshift(buildHistoryEntry(intro, { success: false }));
-    localStorage.setItem('introHistory', JSON.stringify(history));
-
-    resetOpptak();
-    renderStatsHome();
-    renderIntroLibrary();
-    renderIntroHistory();
-    renderSessionStatus();
-  }
-
   function renderIntroHistory() {
     const container = document.getElementById('intro-history');
     const history = getIntroHistory();
     const intros = getSavedIntros();
     if (!history.length) {
-      container.innerHTML = '<p class="empty-state">Ingen forsøk registrert ennå.</p>';
+      container.innerHTML = '<p class="empty-state">Ingen opptak registrert ennå.</p>';
       return;
     }
     container.innerHTML = history.map((h, i) => `
@@ -3466,7 +3443,7 @@
         <div>${escHtml((resolveEntryIntro(h, intros) || {}).text || h.text || 'Ukjent intro')}</div>
         <div class="meta">
           <span class="result-badge ${isIntroSuccessEntry(h) ? 'badge-yes' : 'badge-no'}">
-            ${isIntroSuccessEntry(h) ? 'Suksess' : isTrackedIntroAttempt(h) ? 'Ikke opptak' : 'Tidligere forsøk'}
+            ${isIntroSuccessEntry(h) ? 'Opptak' : 'Tidligere forsøk'}
           </span>
           <span>${h.sessionLabel ? `${h.sessionLabel} · ` : ''}${h.tid}</span>
           <button class="delete-entry-btn" onclick="deleteIntroAttempt(${i})" title="Slett dette forsøket">×</button>
