@@ -48,25 +48,100 @@
 
     .top-bar {
       position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 28px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: start;
+      gap: 14px;
+      max-width: 1100px;
+      margin: 0 auto 28px auto;
     }
 
     .tabs {
+      grid-column: 2;
       display: inline-flex;
+      flex-wrap: wrap;
+      justify-content: center;
       background: #e2e8f0;
       padding: 4px;
       border-radius: 30px;
-      gap: 2px;
+      gap: 4px;
     }
 
-    .backup-btns {
+    .top-bar-settings {
+      grid-column: 3;
+      justify-self: end;
+      position: relative;
+    }
+
+    .settings-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      border-radius: 999px;
+    }
+
+    .settings-trigger-icon {
+      font-size: 0.95rem;
+      line-height: 1;
+    }
+
+    .settings-menu {
       position: absolute;
+      top: calc(100% + 10px);
       right: 0;
+      min-width: 240px;
+      max-width: min(280px, calc(100vw - 40px));
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--card);
+      box-shadow: 0 18px 36px rgba(2, 6, 23, 0.32);
+      display: none;
+      z-index: 40;
+    }
+
+    .settings-menu.open {
       display: flex;
-      gap: 6px;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .settings-status-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 2px 2px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .settings-status-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .settings-status-value {
+      min-height: 1.2em;
+      font-size: 0.84rem;
+      color: var(--text);
+    }
+
+    .settings-menu .backup-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+    }
+
+    .settings-menu label.backup-btn {
+      display: flex;
     }
 
     .backup-btn {
@@ -630,6 +705,19 @@
     }
 
     @media (max-width: 900px) {
+      .top-bar {
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+
+      .tabs {
+        grid-column: 1;
+        justify-content: flex-start;
+      }
+
+      .top-bar-settings {
+        grid-column: 2;
+      }
+
       .auth-grid {
         grid-template-columns: 1fr;
       }
@@ -942,6 +1030,31 @@
 
     @media (max-width: 700px) {
       .intro-layout { grid-template-columns: 1fr; }
+
+      .top-bar {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+      }
+
+      .tabs {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .tab-btn {
+        padding: 8px 16px;
+      }
+
+      .settings-trigger {
+        padding: 8px 11px;
+      }
+
+      .settings-trigger-label {
+        display: none;
+      }
     }
 
     .leaderboard-card {
@@ -1962,10 +2075,27 @@
     <button class="tab-btn" onclick="switchTab('notater')">Notater</button>
     <button class="tab-btn" onclick="switchTab('samtaleflyt')">Flyt (avansert)</button>
   </div>
-  <div class="backup-btns">
-    <span id="sync-status" style="font-size:0.75rem;color:#888;padding:5px 8px;white-space:nowrap;"></span>
-    <button class="backup-btn" onclick="exportData()" title="Last ned sikkerhetskopi">Eksporter data</button>
-    <label class="backup-btn" title="Gjenopprett fra sikkerhetskopi">Importer data<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+  <div id="top-bar-settings" class="top-bar-settings">
+    <button
+      id="top-bar-settings-button"
+      class="backup-btn settings-trigger"
+      type="button"
+      aria-expanded="false"
+      aria-controls="top-bar-settings-menu"
+      aria-label="Åpne innstillinger"
+      onclick="toggleTopBarSettings()"
+    >
+      <span class="settings-trigger-icon" aria-hidden="true">&#9881;</span>
+      <span class="settings-trigger-label">Innstillinger</span>
+    </button>
+    <div id="top-bar-settings-menu" class="settings-menu" role="menu">
+      <div class="settings-status-row">
+        <span class="settings-status-label">Skystatus</span>
+        <span id="sync-status" class="settings-status-value"></span>
+      </div>
+      <button class="backup-btn" type="button" onclick="exportData(); closeTopBarSettings();" title="Last ned sikkerhetskopi">Eksporter data</button>
+      <label class="backup-btn" title="Gjenopprett fra sikkerhetskopi">Importer data<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+    </div>
   </div>
 </div>
 
@@ -2459,6 +2589,33 @@
     if (el) el.textContent = text;
     if (authEl) authEl.textContent = text;
   }
+
+  function toggleTopBarSettings(forceOpen) {
+    const menu = document.getElementById('top-bar-settings-menu');
+    const button = document.getElementById('top-bar-settings-button');
+    if (!menu || !button) return;
+
+    const shouldOpen = typeof forceOpen === 'boolean'
+      ? forceOpen
+      : !menu.classList.contains('open');
+
+    menu.classList.toggle('open', shouldOpen);
+    button.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+  }
+
+  function closeTopBarSettings() {
+    toggleTopBarSettings(false);
+  }
+
+  document.addEventListener('click', event => {
+    const settings = document.getElementById('top-bar-settings');
+    if (!settings || settings.contains(event.target)) return;
+    closeTopBarSettings();
+  });
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeTopBarSettings();
+  });
 
   function renderAll() {
     syncSelectedIntroFromSession();
@@ -3677,7 +3834,12 @@
 
   function importData(event) {
     const file = event.target.files[0];
-    if (!file) return;
+    if (!file) {
+      closeTopBarSettings();
+      return;
+    }
+    closeTopBarSettings();
+    event.target.value = '';
     const reader = new FileReader();
     reader.onload = async e => {
       let data;
