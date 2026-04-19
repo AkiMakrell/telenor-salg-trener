@@ -48,38 +48,47 @@
 
     .top-bar {
       position: relative;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-      align-items: start;
-      gap: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
       max-width: 1100px;
       margin: 0 auto 28px auto;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: rgba(11, 18, 32, 0.82);
+      box-shadow: 0 12px 28px rgba(2, 6, 23, 0.18);
+      backdrop-filter: blur(12px);
     }
 
     .tabs {
-      grid-column: 2;
       display: inline-flex;
+      flex: 1 1 auto;
       flex-wrap: wrap;
-      justify-content: center;
-      background: #e2e8f0;
+      justify-content: flex-start;
+      min-width: 0;
+      background: #0b1220;
+      border: 1px solid var(--border);
       padding: 4px;
       border-radius: 30px;
       gap: 4px;
     }
 
     .top-bar-settings {
-      grid-column: 3;
-      justify-self: end;
       position: relative;
+      flex: 0 0 auto;
     }
 
     .settings-trigger {
       display: inline-flex;
       align-items: center;
       gap: 8px;
+      min-height: 42px;
       padding: 8px 14px;
-      font-size: 0.85rem;
-      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border-radius: 12px;
     }
 
     .settings-trigger-icon {
@@ -91,13 +100,13 @@
       position: absolute;
       top: calc(100% + 10px);
       right: 0;
-      min-width: 240px;
-      max-width: min(280px, calc(100vw - 40px));
+      min-width: 280px;
+      max-width: min(320px, calc(100vw - 40px));
       padding: 12px;
       border: 1px solid var(--border);
       border-radius: 14px;
-      background: var(--card);
-      box-shadow: 0 18px 36px rgba(2, 6, 23, 0.32);
+      background: #0b1220;
+      box-shadow: 0 18px 36px rgba(2, 6, 23, 0.42);
       display: none;
       z-index: 40;
     }
@@ -108,12 +117,46 @@
       gap: 10px;
     }
 
+    .settings-menu-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .settings-menu-section + .settings-menu-section {
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .settings-menu-heading {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .settings-user-email {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .settings-user-note {
+      font-size: 0.8rem;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
     .settings-status-row {
       display: flex;
       flex-direction: column;
       gap: 4px;
-      padding: 2px 2px 8px;
-      border-bottom: 1px solid var(--border);
+      padding: 2px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(17, 24, 39, 0.85);
     }
 
     .settings-status-label {
@@ -144,6 +187,18 @@
       display: flex;
     }
 
+    .settings-menu .logout-btn {
+      color: #fca5a5;
+      border-color: #7f1d1d;
+      background: rgba(69, 10, 10, 0.45);
+    }
+
+    .settings-menu .logout-btn:hover {
+      color: #fecaca;
+      border-color: #b91c1c;
+      background: rgba(127, 29, 29, 0.45);
+    }
+
     .backup-btn {
       padding: 5px 10px;
       border: 1px solid #ccc;
@@ -162,8 +217,7 @@
       color: var(--primary-dark);
     }
 
-    .auth-card,
-    .user-bar {
+    .auth-card {
       max-width: 720px;
       margin: 0 auto 20px auto;
       background: var(--card);
@@ -266,40 +320,6 @@
       color: var(--muted);
       font-size: 0.84rem;
       line-height: 1.5;
-    }
-
-    .user-bar {
-      padding: 14px 18px;
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .user-bar-title {
-      font-size: 0.92rem;
-      font-weight: 700;
-      color: var(--text);
-    }
-
-    .user-bar-subtitle {
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 0.82rem;
-    }
-
-    .user-bar-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    .user-sync-status {
-      font-size: 0.78rem;
-      color: var(--muted);
-      white-space: nowrap;
     }
 
     .app-shell {
@@ -706,30 +726,11 @@
 
     @media (max-width: 900px) {
       .top-bar {
-        grid-template-columns: minmax(0, 1fr) auto;
-      }
-
-      .tabs {
-        grid-column: 1;
-        justify-content: flex-start;
-      }
-
-      .top-bar-settings {
-        grid-column: 2;
+        align-items: flex-start;
       }
 
       .auth-grid {
         grid-template-columns: 1fr;
-      }
-
-      .user-bar {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
-      .user-bar-actions {
-        width: 100%;
-        justify-content: flex-start;
       }
 
       .notes-page {
@@ -1032,14 +1033,16 @@
       .intro-layout { grid-template-columns: 1fr; }
 
       .top-bar {
-        display: flex;
+        flex-direction: column;
         align-items: flex-start;
-        justify-content: space-between;
       }
 
       .tabs {
-        flex: 1 1 auto;
-        min-width: 0;
+        width: 100%;
+      }
+
+      .top-bar-settings {
+        align-self: flex-end;
       }
     }
 
@@ -1048,12 +1051,21 @@
         padding: 8px 16px;
       }
 
+      .top-bar {
+        padding: 10px;
+      }
+
       .settings-trigger {
         padding: 8px 11px;
       }
 
       .settings-trigger-label {
         display: none;
+      }
+
+      .settings-menu {
+        right: 0;
+        min-width: min(280px, calc(100vw - 32px));
       }
     }
 
@@ -2054,17 +2066,6 @@
   </div>
 </div>
 
-<div id="user-bar" class="user-bar">
-  <div>
-    <div id="user-bar-email" class="user-bar-title"></div>
-    <div class="user-bar-subtitle">Din konto har sitt eget datasett. Andre brukere ser bare sitt eget innhold.</div>
-  </div>
-  <div class="user-bar-actions">
-    <span id="auth-sync-status" class="user-sync-status"></span>
-    <button class="backup-btn" style="font-size:0.9rem;padding:9px 14px;border-radius:10px;" onclick="signOutUser()">Logg ut</button>
-  </div>
-</div>
-
 <div id="app-shell" class="app-shell">
 
 <div class="top-bar">
@@ -2089,12 +2090,21 @@
       <span class="settings-trigger-label">Innstillinger</span>
     </button>
     <div id="top-bar-settings-menu" class="settings-menu" role="menu">
-      <div class="settings-status-row">
-        <span class="settings-status-label">Skystatus</span>
-        <span id="sync-status" class="settings-status-value"></span>
+      <div class="settings-menu-section">
+        <span class="settings-menu-heading">Konto</span>
+        <div id="settings-user-email" class="settings-user-email"></div>
+        <div class="settings-user-note">Din konto har sitt eget datasett. Andre brukere ser bare sitt eget innhold.</div>
+        <div class="settings-status-row">
+          <span class="settings-status-label">Skystatus</span>
+          <span id="sync-status" class="settings-status-value"></span>
+        </div>
+        <button class="backup-btn logout-btn" type="button" onclick="signOutUser(); closeTopBarSettings();">Logg ut</button>
       </div>
-      <button class="backup-btn" type="button" onclick="exportData(); closeTopBarSettings();" title="Last ned sikkerhetskopi">Eksporter data</button>
-      <label class="backup-btn" title="Gjenopprett fra sikkerhetskopi">Importer data<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+      <div class="settings-menu-section">
+        <span class="settings-menu-heading">Data</span>
+        <button class="backup-btn" type="button" onclick="exportData(); closeTopBarSettings();" title="Last ned sikkerhetskopi">Eksporter data</button>
+        <label class="backup-btn" title="Gjenopprett fra sikkerhetskopi">Importer data<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+      </div>
     </div>
   </div>
 </div>
@@ -2394,14 +2404,13 @@
   function setAppVisible(isVisible) {
     const appShell = document.getElementById('app-shell');
     const authCard = document.getElementById('auth-card');
-    const userBar = document.getElementById('user-bar');
     if (appShell) appShell.style.display = isVisible ? 'block' : 'none';
     if (authCard) authCard.style.display = isVisible ? 'none' : 'block';
-    if (userBar) userBar.style.display = isVisible ? 'flex' : 'none';
+    if (!isVisible) closeTopBarSettings();
   }
 
   function updateUserBar(user) {
-    const emailEl = document.getElementById('user-bar-email');
+    const emailEl = document.getElementById('settings-user-email');
     if (emailEl) emailEl.textContent = user?.email || 'Innlogget bruker';
   }
 
@@ -2577,7 +2586,6 @@
 
   function setSyncStatus(s) {
     const el = document.getElementById('sync-status');
-    const authEl = document.getElementById('auth-sync-status');
     const map = {
       ok: 'Synkronisert',
       syncing: 'Synkroniserer...',
@@ -2587,7 +2595,6 @@
     };
     const text = map[s] || '';
     if (el) el.textContent = text;
-    if (authEl) authEl.textContent = text;
   }
 
   function toggleTopBarSettings(forceOpen) {
