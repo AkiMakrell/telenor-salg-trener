@@ -434,6 +434,37 @@
 
     .save-btn:hover { background: var(--primary-dark); box-shadow: 0 4px 14px rgba(41,168,224,0.4); }
 
+    .intro-action-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 22px;
+    }
+
+    .intro-action-row .save-btn,
+    .intro-action-row .backup-btn {
+      display: inline-flex;
+      align-items: center;
+      flex: 1 1 220px;
+      margin-top: 0;
+      min-height: 50px;
+      justify-content: center;
+    }
+
+    .fail-btn {
+      border-color: #7f1d1d;
+      background: #3f0d12;
+      color: #fecaca;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .fail-btn:hover {
+      border-color: #b91c1c;
+      background: #5b1118;
+      color: #fee2e2;
+    }
+
     .result-badge {
       display: inline-block;
       padding: 3px 10px;
@@ -1123,6 +1154,12 @@
     .stats-section-title.st-purple { border-left-color: #8b5cf6; }
     .stats-section-title.st-green  { border-left-color: #22c55e; }
     .stats-section-title.st-teal   { border-left-color: #14b8a6; }
+
+    .stats-section-subtitle {
+      margin: -4px 0 14px 12px;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
 
     .stats-grid {
       display: grid;
@@ -2162,7 +2199,10 @@
 
         </div>
 
-        <button class="save-btn" style="width:100%;margin-top:22px;padding:14px;font-size:1.1rem;" onclick="registerIntroSuccess()">Registrer opptak</button>
+        <div class="intro-action-row">
+          <button class="save-btn" style="padding:14px;font-size:1.05rem;" onclick="registerIntroSuccess()">Registrer opptak</button>
+          <button class="backup-btn fail-btn" type="button" style="padding:14px;border-radius:8px;" onclick="registerIntroFailure()">Registrer ikke-opptak</button>
+        </div>
 
         <button class="history-toggle-btn" onclick="toggleHistory()">Vis historikk</button>
         <div id="history-panel" class="history-panel">
@@ -2779,15 +2819,8 @@
     if (name === 'notater') renderConversationNotes();
   }
 
-  let selectedOpptak = null;
   let selectedOver5min = null;
   let selectedSalg = null;
-
-  function selectOpptak(val) {
-    selectedOpptak = val;
-    document.getElementById('opptak-ja').className = 'toggle-btn' + (val === 'ja' ? ' selected-ja' : '');
-    document.getElementById('opptak-nei').className = 'toggle-btn' + (val === 'nei' ? ' selected-nei' : '');
-  }
 
   function selectOver5min(val) {
     selectedOver5min = val;
@@ -2802,10 +2835,9 @@
   }
 
   function resetOpptak() {
-    selectedOpptak = null;
     selectedOver5min = null;
     selectedSalg = null;
-    ['opptak-ja','opptak-nei','over5min-ja','over5min-nei','salg-ja','salg-nei']
+    ['over5min-ja','over5min-nei','salg-ja','salg-nei']
       .forEach(id => { const el = document.getElementById(id); if (el) el.className = 'toggle-btn'; });
   }
 
@@ -3012,12 +3044,29 @@
     return intros.find(intro => intro.text.trim() === entry.text.trim()) || null;
   }
 
+  function isTrackedIntroAttempt(entry) {
+    if (!entry || entry.quickEntry) return false;
+    if (entry.type === 'introSuccess' || entry.type === 'introAttempt') return true;
+    return entry.opptak === 'ja' || entry.opptak === 'nei';
+  }
+
   function isIntroSuccessEntry(entry) {
-    return entry.type === 'introSuccess' || (!entry.quickEntry && entry.opptak === 'ja');
+    return isTrackedIntroAttempt(entry) && (entry.type === 'introSuccess' || entry.opptak === 'ja');
+  }
+
+  function getSuccessRate(successes, attempts) {
+    if (!attempts) return null;
+    return Math.round((successes / attempts) * 100);
+  }
+
+  function formatSuccessRate(successes, attempts) {
+    const rate = getSuccessRate(successes, attempts);
+    return rate === null ? '—' : `${rate}%`;
   }
 
   function getSuccessStats(entries) {
     return {
+      attempts: entries.filter(isTrackedIntroAttempt).length,
       introSuccesses: entries.filter(isIntroSuccessEntry).length,
       over5: entries.filter(h => h.over5min === 'ja').length,
       salg: entries.filter(h => h.salg === 'ja').length,
@@ -3098,6 +3147,17 @@
     const dag = statsFor(dagEntries);
     const uke = statsFor(ukeEntries);
     const mnd = statsFor(mndEntries);
+    const activeSession = getCurrentCallSession();
+    const sessionStats = CALL_SESSIONS.map(session => {
+      const entries = dagEntries.filter(entry => isTrackedIntroAttempt(entry) && (
+        entry.sessionId === session.id ||
+        (!entry.sessionId && entry.sessionLabel === session.label)
+      ));
+      return {
+        ...session,
+        ...statsFor(entries)
+      };
+    });
 
     // Motivation
     const motivations = [
@@ -3157,9 +3217,24 @@
         <div class="stats-section-title">I dag</div>
         <div class="stats-grid stats-grid-4">
           ${statCard(dag.introSuccesses, 'Opptak', true, 'blue', 'metric-card')}
-          ${statCard(dag.over5, 'Over 5 min', true, 'teal', 'metric-card')}
+          ${statCard(dag.attempts, 'Forsøk', true, 'purple', 'metric-card')}
+          ${statCard(formatSuccessRate(dag.introSuccesses, dag.attempts), `Treffrate (${dag.introSuccesses}/${dag.attempts})`, true, 'teal', 'metric-card')}
           ${statCard(dag.salg, 'Salg', true, 'gold', 'metric-card')}
-          ${statCard(getCurrentCallSession() ? getCurrentCallSession().label : 'Ingen aktiv', 'Aktiv økt', true, 'purple', 'metric-card')}
+        </div>
+      </div>
+
+      <div class="stats-section">
+        <div class="stats-section-title st-purple">Økter i dag</div>
+        <div class="stats-section-subtitle">Treffrate per økt basert på registrerte forsøk.</div>
+        <div class="stats-grid stats-grid-4">
+          ${sessionStats.map(session => statCard(
+            formatSuccessRate(session.introSuccesses, session.attempts),
+            session.attempts
+              ? `${session.label}${activeSession?.id === session.id ? ' · Aktiv' : ''} (${session.introSuccesses}/${session.attempts})`
+              : `${session.label}${activeSession?.id === session.id ? ' · Aktiv' : ''} · Ingen forsøk`,
+            false,
+            activeSession?.id === session.id ? 'purple' : 'blue'
+          )).join('')}
         </div>
       </div>
 
@@ -3173,9 +3248,10 @@
           </div>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
             ${statCard(uke.introSuccesses, 'Intro-suksesser', false, 'blue')}
+            ${statCard(uke.attempts, 'Forsøk', false, 'purple')}
             ${statCard(uke.over5, 'Over 5 min', false, 'teal')}
             ${statCard(uke.salg, 'Salg', false, 'gold')}
-            ${statCard(CALL_SESSIONS.length, 'Økter per dag', false, 'purple')}
+            ${statCard(formatSuccessRate(uke.introSuccesses, uke.attempts), `Treffrate (${uke.introSuccesses}/${uke.attempts})`, false, 'purple')}
           </div>
         </div>
       </div>
@@ -3190,9 +3266,10 @@
           </div>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
             ${statCard(mnd.introSuccesses, 'Intro-suksesser', false, 'blue')}
+            ${statCard(mnd.attempts, 'Forsøk', false, 'purple')}
             ${statCard(mnd.over5, 'Over 5 min', false, 'teal')}
             ${statCard(mnd.salg, 'Salg', false, 'gold')}
-            ${statCard(CALL_SESSIONS.length, 'Økter per dag', false, 'purple')}
+            ${statCard(formatSuccessRate(mnd.introSuccesses, mnd.attempts), `Treffrate (${mnd.introSuccesses}/${mnd.attempts})`, false, 'purple')}
           </div>
         </div>
       </div>
@@ -3296,16 +3373,17 @@
     }
   }
 
-  function buildSuccessEntry(intro, options = {}) {
+  function buildHistoryEntry(intro, options = {}) {
     const now = new Date();
     const currentSession = getCurrentCallSession(now);
+    const success = options.success !== false;
     return {
-      type: 'introSuccess',
+      type: success ? 'introSuccess' : 'introAttempt',
       introId: intro.id,
       text: intro.text,
-      opptak: 'ja',
-      over5min: options.over5min || 'nei',
-      salg: options.salg || 'nei',
+      opptak: success ? 'ja' : 'nei',
+      over5min: success && options.over5min === 'ja' ? 'ja' : 'nei',
+      salg: success && options.salg === 'ja' ? 'ja' : 'nei',
       isoDate: now.toISOString(),
       tid: now.toLocaleString('no-NO'),
       sessionId: currentSession ? currentSession.id : null,
@@ -3321,7 +3399,7 @@
     fillIntroText(intro);
     assignIntroToCurrentSession(intro.id);
     const history = getIntroHistory();
-    history.unshift(buildSuccessEntry(intro));
+    history.unshift(buildHistoryEntry(intro));
     localStorage.setItem('introHistory', JSON.stringify(history));
     resetOpptak();
     renderStatsHome();
@@ -3330,16 +3408,21 @@
     renderSessionStatus();
   }
 
-  function registerIntroSuccess() {
+  function resolveIntroForRegistration() {
     let intro = selectedIntroId ? getIntroById(selectedIntroId) : null;
     const typedText = document.getElementById('intro-text').value.trim();
     if (!intro || (typedText && intro.text.trim() !== typedText)) {
       intro = saveIntro();
     }
+    return intro;
+  }
+
+  function registerIntroSuccess() {
+    const intro = resolveIntroForRegistration();
     if (!intro) return;
 
     const history = getIntroHistory();
-    history.unshift(buildSuccessEntry(intro, {
+    history.unshift(buildHistoryEntry(intro, {
       over5min: selectedOver5min === 'ja' ? 'ja' : 'nei',
       salg: selectedSalg === 'ja' ? 'ja' : 'nei',
     }));
@@ -3347,6 +3430,21 @@
 
     if (selectedSalg === 'ja') showCelebrationGif('salg');
     else if (selectedOver5min === 'ja') showCelebrationGif('over5min');
+
+    resetOpptak();
+    renderStatsHome();
+    renderIntroLibrary();
+    renderIntroHistory();
+    renderSessionStatus();
+  }
+
+  function registerIntroFailure() {
+    const intro = resolveIntroForRegistration();
+    if (!intro) return;
+
+    const history = getIntroHistory();
+    history.unshift(buildHistoryEntry(intro, { success: false }));
+    localStorage.setItem('introHistory', JSON.stringify(history));
 
     resetOpptak();
     renderStatsHome();
@@ -3368,7 +3466,7 @@
         <div>${escHtml((resolveEntryIntro(h, intros) || {}).text || h.text || 'Ukjent intro')}</div>
         <div class="meta">
           <span class="result-badge ${isIntroSuccessEntry(h) ? 'badge-yes' : 'badge-no'}">
-            ${isIntroSuccessEntry(h) ? 'Suksess' : 'Tidligere forsøk'}
+            ${isIntroSuccessEntry(h) ? 'Suksess' : isTrackedIntroAttempt(h) ? 'Ikke opptak' : 'Tidligere forsøk'}
           </span>
           <span>${h.sessionLabel ? `${h.sessionLabel} · ` : ''}${h.tid}</span>
           <button class="delete-entry-btn" onclick="deleteIntroAttempt(${i})" title="Slett dette forsøket">×</button>
