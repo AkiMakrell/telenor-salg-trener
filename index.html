@@ -1019,6 +1019,46 @@
       font-weight: 700;
     }
 
+    .intro-chip-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .intro-chip-rank {
+      font-size: 0.76rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      background: rgba(41,168,224,0.12);
+      border-radius: 999px;
+      padding: 3px 8px;
+      white-space: nowrap;
+    }
+
+    .intro-chip-metric {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .intro-chip-score {
+      display: block;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      line-height: 1;
+    }
+
+    .intro-chip-score-label {
+      display: block;
+      margin-top: 3px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
     /* Intro two-column layout */
     .intro-layout {
       display: grid;
@@ -2329,11 +2369,14 @@
   const SUPABASE_URL = 'https://ptdehitxlzzqblvjmjra.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_HFO3PiVNLlBcSechlL_esA_5CaK2nrl';
   const SUPABASE_STATE_TABLE = 'user_app_state';
+  const INTRO_LEADERBOARD_DATA_VERSION = '2';
+  const INTRO_LEADERBOARD_DATA_VERSION_KEY = 'introLeaderboardDataVersion';
   const STORAGE_KEYS = [
     'savedIntros',
     'introHistory',
     'introSessionAssignments',
     'introLastSelectedId',
+    INTRO_LEADERBOARD_DATA_VERSION_KEY,
     'produktFakta',
     'conversationNotes',
     'samtaleflyt',
@@ -2631,6 +2674,7 @@
   });
 
   function renderAll() {
+    ensureIntroLeaderboardDataVersion();
     syncSelectedIntroFromSession();
     renderSessionStatus();
     renderStatsHome();
@@ -3064,6 +3108,80 @@
       : average.toFixed(1).replace('.', ',');
   }
 
+  function resetIntroLeaderboardData() {
+    ['savedIntros', 'introHistory', 'introSessionAssignments', 'introLastSelectedId'].forEach(key => {
+      localStorage.removeItem(key);
+    });
+    selectedIntroId = null;
+    resetOpptak();
+  }
+
+  function ensureIntroLeaderboardDataVersion() {
+    if (localStorage.getItem(INTRO_LEADERBOARD_DATA_VERSION_KEY) === INTRO_LEADERBOARD_DATA_VERSION) return;
+    resetIntroLeaderboardData();
+    localStorage.setItem(INTRO_LEADERBOARD_DATA_VERSION_KEY, INTRO_LEADERBOARD_DATA_VERSION);
+  }
+
+  function parseLocalDateKey(dateKey) {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateKey || '');
+    if (!match) return null;
+    return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  }
+
+  function parseSessionAssignmentKey(key) {
+    const match = /^(\d{4}-\d{2}-\d{2})_(.+)$/.exec(key || '');
+    if (!match) return null;
+    return { dateKey: match[1], sessionId: match[2] };
+  }
+
+  function getSessionInstanceKey(sessionId, dateKey) {
+    return sessionId && dateKey ? `${dateKey}_${sessionId}` : null;
+  }
+
+  function getEntrySessionInstanceKey(entry) {
+    if (!entry) return null;
+    const sessionId = entry.sessionId || CALL_SESSIONS.find(session => session.label === entry.sessionLabel)?.id;
+    if (!sessionId) return null;
+    const dateKey = entry.sessionDate || (entry.isoDate ? makeLocalDateKey(new Date(entry.isoDate)) : null);
+    return getSessionInstanceKey(sessionId, dateKey);
+  }
+
+  function hasSessionStarted(sessionId, dateKey, reference = new Date()) {
+    const session = CALL_SESSIONS.find(item => item.id === sessionId);
+    const targetDate = parseLocalDateKey(dateKey);
+    if (!session || !targetDate || !isBusinessDay(targetDate)) return false;
+
+    targetDate.setHours(0, 0, 0, 0);
+    const today = new Date(reference);
+    today.setHours(0, 0, 0, 0);
+
+    if (targetDate.getTime() < today.getTime()) return true;
+    if (targetDate.getTime() > today.getTime()) return false;
+
+    const nowMinutes = reference.getHours() * 60 + reference.getMinutes();
+    return nowMinutes >= timeToMinutes(session.start);
+  }
+
+  function getStartedSessionKeysForIntro(introId, intros, history, assignments, reference = new Date()) {
+    const sessionKeys = new Set();
+
+    Object.entries(assignments).forEach(([key, assignedIntroId]) => {
+      if (assignedIntroId !== introId) return;
+      const parsed = parseSessionAssignmentKey(key);
+      if (!parsed) return;
+      if (hasSessionStarted(parsed.sessionId, parsed.dateKey, reference)) sessionKeys.add(key);
+    });
+
+    history.forEach(entry => {
+      const entryIntro = resolveEntryIntro(entry, intros);
+      if (!entryIntro || entryIntro.id !== introId) return;
+      const sessionKey = getEntrySessionInstanceKey(entry);
+      if (sessionKey) sessionKeys.add(sessionKey);
+    });
+
+    return sessionKeys;
+  }
+
   // ---- Stats helpers ----
   function isoToDate(iso) { return iso ? new Date(iso) : null; }
 
@@ -3281,6 +3399,8 @@
       return;
     }
     const history = getIntroHistory();
+    const assignments = getSessionAssignments();
+    const now = new Date();
     const activeSession = getCurrentCallSession();
     const activeIntroId = activeSession ? getAssignedIntroIdForSession(activeSession) : getStoredSelectedIntroId();
 
@@ -3289,30 +3409,40 @@
         const entryIntro = resolveEntryIntro(h, intros);
         return entryIntro && entryIntro.id === i.id;
       });
+      const sessionCount = getStartedSessionKeysForIntro(i.id, intros, history, assignments, now).size;
+      const successes = entries.filter(isIntroSuccessEntry).length;
       return {
         i,
-        successes: entries.filter(isIntroSuccessEntry).length,
+        successes,
+        sessionCount,
+        averagePerSession: sessionCount ? successes / sessionCount : 0,
         over5: entries.filter(h => h.over5min === 'ja').length,
         sales: entries.filter(h => h.salg === 'ja').length,
       };
     });
 
     withStats.sort((a, b) => {
-      if (b.sales !== a.sales) return b.sales - a.sales;
-      if (b.over5 !== a.over5) return b.over5 - a.over5;
+      if (b.averagePerSession !== a.averagePerSession) return b.averagePerSession - a.averagePerSession;
       return b.successes - a.successes;
     });
 
-    container.innerHTML = withStats.map(({ i, successes, over5, sales }) => {
-      const statsRow = successes || over5 || sales
-        ? `<div class="intro-chip-stats" style="margin-top:5px;">${successes} opptak &nbsp; ${over5} over 5 min &nbsp; ${sales} salg</div>`
-        : `<div class="intro-chip-stats" style="margin-top:5px;">Ingen opptak registrert ennå</div>`;
+    container.innerHTML = withStats.map(({ i, successes, sessionCount, averagePerSession, over5, sales }, index) => {
+      const statsRow = sessionCount
+        ? `<div class="intro-chip-stats" style="margin-top:5px;">${successes} opptak på ${sessionCount} ${sessionCount === 1 ? 'økt' : 'økter'} &nbsp; ${over5} over 5 min &nbsp; ${sales} salg</div>`
+        : `<div class="intro-chip-stats" style="margin-top:5px;">Ingen økter registrert ennå</div>`;
       const activeBadge = activeIntroId === i.id
         ? `<div style="font-size:0.75rem;font-weight:700;color:#0f766e;margin-bottom:6px;">Aktiv for økten</div>`
         : '';
       return `
         <div class="intro-chip ${selectedIntroId === i.id ? 'selected' : ''}" onclick="selectIntro('${i.id}')">
           <div style="flex:1;min-width:0;">
+            <div class="intro-chip-header">
+              <span class="intro-chip-rank">#${index + 1}</span>
+              <span class="intro-chip-metric">
+                <span class="intro-chip-score">${formatAveragePerSession(successes, sessionCount)}</span>
+                <span class="intro-chip-score-label">Opptak per økt</span>
+              </span>
+            </div>
             ${activeBadge}
             <div>${escHtml(i.text)}</div>
             ${statsRow}
