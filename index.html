@@ -3334,7 +3334,13 @@
     const intros = getSavedIntros();
     const existing = intros.find(i => i.text.trim() === text.trim());
     if (existing) return existing;
-    const intro = { id: Date.now().toString(), text, createdAt: new Date().toISOString() };
+    const intro = {
+      id: (window.crypto && typeof window.crypto.randomUUID === 'function')
+        ? window.crypto.randomUUID()
+        : `intro_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
+      text,
+      createdAt: new Date().toISOString()
+    };
     intros.push(intro);
     localStorage.setItem('savedIntros', JSON.stringify(intros));
     return intro;
@@ -3793,7 +3799,18 @@
     const text = document.getElementById('intro-text').value.trim();
     if (!text) { alert('Skriv inn introen din først.'); return null; }
     const intros = getSavedIntros();
+    const selectedIntro = selectedIntroId ? intros.find(i => i.id === selectedIntroId) : null;
+    const currentSelectedText = selectedIntro ? selectedIntro.text.trim() : '';
     const existing = intros.find(i => i.text.trim() === text.trim() && i.id !== selectedIntroId);
+
+    if (selectedIntro && currentSelectedText === text.trim()) {
+      assignIntroToCurrentSession(selectedIntro.id);
+      fillIntroText(selectedIntro);
+      renderIntroLibrary();
+      renderSessionStatus();
+      return selectedIntro;
+    }
+
     if (existing) {
       selectedIntroId = existing.id;
       fillIntroText(existing);
@@ -3803,16 +3820,11 @@
       return existing;
     }
 
-    let savedIntro = selectedIntroId ? intros.find(i => i.id === selectedIntroId) : null;
-    if (savedIntro) {
-      savedIntro.text = text;
-      localStorage.setItem('savedIntros', JSON.stringify(intros));
-    } else {
-      savedIntro = addToIntroLibrary(text);
-      selectedIntroId = savedIntro.id;
-    }
+    const savedIntro = addToIntroLibrary(text);
+    selectedIntroId = savedIntro.id;
 
     assignIntroToCurrentSession(savedIntro.id);
+    fillIntroText(savedIntro);
     renderIntroLibrary();
     renderSessionStatus();
     return savedIntro;
