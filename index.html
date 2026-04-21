@@ -883,6 +883,45 @@
       margin: 0;
     }
 
+    .notes-price-card-basis {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+
+    .notes-price-card-basis .notes-price-card-title {
+      color: #0f172a;
+    }
+
+    .notes-price-card-basis .notes-price-card-price {
+      color: #334155;
+    }
+
+    .notes-price-card-flyt {
+      background: #eff6ff;
+      border-color: #93c5fd;
+    }
+
+    .notes-price-card-flyt .notes-price-card-title {
+      color: #1d4ed8;
+    }
+
+    .notes-price-card-flyt .notes-price-card-price {
+      color: #1e40af;
+    }
+
+    .notes-price-card-frihet {
+      background: #f5f3ff;
+      border-color: #c4b5fd;
+    }
+
+    .notes-price-card-frihet .notes-price-card-title {
+      color: #6d28d9;
+    }
+
+    .notes-price-card-frihet .notes-price-card-price {
+      color: #7c3aed;
+    }
+
     @media (max-width: 900px) {
       .top-bar {
         align-items: flex-start;
@@ -2446,7 +2485,7 @@
           <div class="notes-question" style="margin-bottom:0;">Telenor abonnement og priser</div>
           <div class="notes-price-list-intro">Alle abonnement inkluderer nettvern, nummervarsel og Min Sky Ubegrenset.</div>
           <div class="notes-price-list-grid">
-            <div class="notes-price-card">
+            <div class="notes-price-card notes-price-card-basis">
               <div class="notes-price-card-title">Basis</div>
               <div class="notes-price-card-price">69,-/md</div>
               <ol class="notes-price-card-list">
@@ -2455,7 +2494,7 @@
                 <li>kr 1,99 per MMS</li>
               </ol>
             </div>
-            <div class="notes-price-card">
+            <div class="notes-price-card notes-price-card-basis">
               <div class="notes-price-card-title">Basis Tale</div>
               <div class="notes-price-card-price">239,-/md</div>
               <ul class="notes-price-card-list">
@@ -2463,7 +2502,7 @@
                 <li>200 MB</li>
               </ul>
             </div>
-            <div class="notes-price-card">
+            <div class="notes-price-card notes-price-card-basis">
               <div class="notes-price-card-title">Basis Data</div>
               <div class="notes-price-card-price">339,-/md</div>
               <ul class="notes-price-card-list">
@@ -2471,7 +2510,7 @@
                 <li>2 GB data</li>
               </ul>
             </div>
-            <div class="notes-price-card">
+            <div class="notes-price-card notes-price-card-flyt">
               <div class="notes-price-card-title">Flyt 5</div>
               <div class="notes-price-card-price">399,-/md</div>
               <ul class="notes-price-card-list">
@@ -2479,7 +2518,7 @@
                 <li>5 GB data</li>
               </ul>
             </div>
-            <div class="notes-price-card">
+            <div class="notes-price-card notes-price-card-flyt">
               <div class="notes-price-card-title">Flyt 20</div>
               <div class="notes-price-card-price">449,-/md</div>
               <ul class="notes-price-card-list">
@@ -2487,7 +2526,7 @@
                 <li>1 datakort</li>
               </ul>
             </div>
-            <div class="notes-price-card">
+            <div class="notes-price-card notes-price-card-flyt">
               <div class="notes-price-card-title">Flyt 50</div>
               <div class="notes-price-card-price">499,-/md</div>
               <ul class="notes-price-card-list">
@@ -2495,14 +2534,14 @@
                 <li>1 datakort</li>
               </ul>
             </div>
-            <div class="notes-price-card">
+            <div class="notes-price-card notes-price-card-frihet">
               <div class="notes-price-card-title">Frihet Start</div>
               <div class="notes-price-card-price">499,-/md</div>
               <ul class="notes-price-card-list">
                 <li>Fri bruk tale og SMS i EU/EØS</li>
               </ul>
             </div>
-            <div class="notes-price-card">
+            <div class="notes-price-card notes-price-card-frihet">
               <div class="notes-price-card-title">Frihet</div>
               <div class="notes-price-card-price">549,-/md</div>
               <ul class="notes-price-card-list">
@@ -2510,7 +2549,7 @@
                 <li>1 datakort</li>
               </ul>
             </div>
-            <div class="notes-price-card">
+            <div class="notes-price-card notes-price-card-frihet">
               <div class="notes-price-card-title">Frihet Premium</div>
               <div class="notes-price-card-price">649,-/md</div>
               <ul class="notes-price-card-list">
@@ -3847,7 +3886,7 @@
     { key: 'losningspresentasjon', label: 'Løsningspresentasjon', cls: 'fakta-theme-purple' },
   ];
 
-  const PROVIDER_OPTIONS = ['Telia', 'Ice', 'Fonero', 'TalkMore', 'Pingaway', 'Unifon'];
+  const PROVIDER_OPTIONS = ['Telia', 'Ice', 'Phonero', 'TalkMore', 'Pingaway', 'Unifon', 'OneCall', 'SMB', 'ChilliMobil', 'HappyBytes', 'Fjordkraft', 'Saga'];
   const DATA_BUCKET_OPTIONS = [
     { id: 'unlimited', label: 'Ubegrenset' },
     { id: '100', label: '100GB' },
