@@ -3999,12 +3999,11 @@
     return `${parts.slice(0, -1).join(', ')} og ${parts[parts.length - 1]}`;
   }
 
-  function getConversationDataSummary(notes = getConversationNotes()) {
+  function getConversationDataSummaryLines(notes = getConversationNotes()) {
     const buckets = Array.isArray(notes.dataBreakdown) ? notes.dataBreakdown : [];
-    const parts = buckets
+    return buckets
       .filter(bucket => Number(bucket.count) > 0)
       .map(bucket => `${bucket.count} abo på ${formatConversationSummaryDataLabel(bucket.label)}`);
-    return joinWithNorwegianAnd(parts);
   }
 
   function getConversationSelectedDataBucket(notes = getConversationNotes()) {
@@ -4084,16 +4083,28 @@
   }
 
   function buildConversationSummary(notes = getConversationNotes()) {
-    const lines = [];
-    const dataSummary = getConversationDataSummary(notes);
-    if (notes.provider && dataSummary) lines.push(`${notes.provider}: ${dataSummary}`);
-    else if (notes.provider) lines.push(notes.provider);
-    else if (dataSummary) lines.push(dataSummary);
+    const sections = [];
+    const dataSummaryLines = getConversationDataSummaryLines(notes);
+
+    if (notes.provider) {
+      sections.push(`Operatør:\n- ${notes.provider}`);
+    }
+
+    if (dataSummaryLines.length) {
+      sections.push(`Abonnement:\n${dataSummaryLines.map(line => `- ${line}`).join('\n')}`);
+    }
+
+    const noteLines = [];
     CONVERSATION_STEPS.forEach(step => {
       const stepData = notes.steps[step.key] || {};
-      if (stepData.notes) lines.push(`${step.label}: ${stepData.notes}`);
+      if (stepData.notes) noteLines.push(`- ${step.label}: ${stepData.notes}`);
     });
-    return lines.join('\n\n');
+
+    if (noteLines.length) {
+      sections.push(`Notater:\n${noteLines.join('\n')}`);
+    }
+
+    return sections.join('\n\n');
   }
 
   function updateConversationSummary(notes = getConversationNotes()) {
