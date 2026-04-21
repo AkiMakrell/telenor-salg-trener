@@ -640,6 +640,111 @@
       margin: 14px auto 0 auto;
     }
 
+    .notes-data-buckets {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      text-align: left;
+    }
+
+    .notes-data-bucket {
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.72);
+      padding: 14px;
+    }
+
+    .notes-data-bucket-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .notes-data-bucket-label-row {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .notes-data-bucket-label {
+      font-size: 0.98rem;
+      font-weight: 800;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .notes-data-bucket-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .notes-edit-btn {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 6px 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .notes-edit-btn:hover,
+    .notes-edit-btn.active {
+      border-color: var(--primary);
+      color: var(--text);
+      background: rgba(41,168,224,0.12);
+    }
+
+    .notes-stepper {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    .notes-stepper-btn {
+      width: 42px;
+      height: 42px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      background: var(--primary-xlight);
+      color: var(--text);
+      font-size: 1.2rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .notes-stepper-btn:hover:not(:disabled) {
+      border-color: var(--primary);
+      background: rgba(41,168,224,0.12);
+    }
+
+    .notes-stepper-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .notes-stepper-value {
+      min-width: 40px;
+      text-align: center;
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .notes-data-edit-field {
+      max-width: none;
+      margin: 12px 0 0 0;
+    }
+
     .notes-inline-field label,
     .notes-notes-field label {
       display: block;
@@ -724,6 +829,60 @@
       resize: vertical;
     }
 
+    .notes-price-list {
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .notes-price-list-intro {
+      color: #1e293b;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .notes-price-list-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .notes-price-card {
+      border: 1.5px solid #bfdbfe;
+      border-radius: 14px;
+      padding: 14px;
+      background: white;
+      color: #1e293b;
+    }
+
+    .notes-price-card-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+
+    .notes-price-card-price {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: #1d4ed8;
+      margin-bottom: 8px;
+    }
+
+    .notes-price-card-list {
+      margin: 0;
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .notes-price-card-list li {
+      margin: 0;
+    }
+
     @media (max-width: 900px) {
       .top-bar {
         align-items: flex-start;
@@ -735,6 +894,19 @@
 
       .notes-page {
         max-width: 100%;
+      }
+
+      .notes-data-bucket-main {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .notes-data-bucket-label-row {
+        align-items: center;
+      }
+
+      .notes-stepper {
+        justify-content: center;
       }
     }
 
@@ -2252,12 +2424,9 @@
     <div class="notes-step-spacer"></div>
 
     <div class="notes-step-card">
-      <div class="notes-question">Hvor mye data?</div>
-      <div id="notes-data-options" class="choice-row"></div>
-      <div class="notes-inline-field">
-        <label for="notes-data-custom">Eget tall</label>
-        <input id="notes-data-custom" type="text" placeholder="Skriv inn eget datanivå" oninput="saveConversationNotes()" />
-      </div>
+      <div class="notes-question">Hvor mange abonnement og hvor mye data har de?</div>
+      <div class="notes-helper">Trykk + og - mens du snakker. Rediger bare datamengden hvis kunden har noe annet enn standardvalgene.</div>
+      <div id="notes-data-buckets" class="notes-data-buckets"></div>
     </div>
 
     <div class="notes-step-spacer"></div>
@@ -2267,12 +2436,90 @@
       <div class="notes-helper">Skriv fritt i kategoriene mens samtalen går. Du trenger ikke trykke ferdig.</div>
       <div id="conversation-steps" class="notes-categories"></div>
       <div class="notes-actions">
-        <button class="save-btn" style="margin-top:0;" onclick="showConversationSummary()">Se oppsummering</button>
+        <button class="save-btn" style="margin-top:0;" onclick="showConversationSummary()">Se oppsummering/prisliste</button>
         <button class="backup-btn" style="font-size:0.9rem;padding:10px 14px;border-radius:8px;color:var(--muted);" onclick="resetConversationNotes()">Ny samtale</button>
       </div>
       <div id="notes-summary-panel" class="notes-summary-panel">
         <div class="notes-question" style="margin-bottom:10px;">Oppsummering</div>
         <textarea id="notes-summary-output" class="notes-summary-output" readonly></textarea>
+        <div class="notes-price-list">
+          <div class="notes-question" style="margin-bottom:0;">Telenor abonnement og priser</div>
+          <div class="notes-price-list-intro">Alle abonnement inkluderer nettvern, nummervarsel og Min Sky Ubegrenset.</div>
+          <div class="notes-price-list-grid">
+            <div class="notes-price-card">
+              <div class="notes-price-card-title">Basis</div>
+              <div class="notes-price-card-price">69,-/md</div>
+              <ol class="notes-price-card-list">
+                <li>kr 4,99 per MB, maks kr 999,-</li>
+                <li>kr 0,59 per minutt/SMS/startpris</li>
+                <li>kr 1,99 per MMS</li>
+              </ol>
+            </div>
+            <div class="notes-price-card">
+              <div class="notes-price-card-title">Basis Tale</div>
+              <div class="notes-price-card-price">239,-/md</div>
+              <ul class="notes-price-card-list">
+                <li>Fri bruk tale og SMS i EU/EØS</li>
+                <li>200 MB</li>
+              </ul>
+            </div>
+            <div class="notes-price-card">
+              <div class="notes-price-card-title">Basis Data</div>
+              <div class="notes-price-card-price">339,-/md</div>
+              <ul class="notes-price-card-list">
+                <li>Fri bruk tale og SMS i EU/EØS</li>
+                <li>2 GB data</li>
+              </ul>
+            </div>
+            <div class="notes-price-card">
+              <div class="notes-price-card-title">Flyt 5</div>
+              <div class="notes-price-card-price">399,-/md</div>
+              <ul class="notes-price-card-list">
+                <li>Fri bruk tale og SMS i EU/EØS</li>
+                <li>5 GB data</li>
+              </ul>
+            </div>
+            <div class="notes-price-card">
+              <div class="notes-price-card-title">Flyt 20</div>
+              <div class="notes-price-card-price">449,-/md</div>
+              <ul class="notes-price-card-list">
+                <li>Fri bruk tale og SMS i EU/EØS</li>
+                <li>1 datakort</li>
+              </ul>
+            </div>
+            <div class="notes-price-card">
+              <div class="notes-price-card-title">Flyt 50</div>
+              <div class="notes-price-card-price">499,-/md</div>
+              <ul class="notes-price-card-list">
+                <li>Fri bruk tale og SMS i EU/EØS</li>
+                <li>1 datakort</li>
+              </ul>
+            </div>
+            <div class="notes-price-card">
+              <div class="notes-price-card-title">Frihet Start</div>
+              <div class="notes-price-card-price">499,-/md</div>
+              <ul class="notes-price-card-list">
+                <li>Fri bruk tale og SMS i EU/EØS</li>
+              </ul>
+            </div>
+            <div class="notes-price-card">
+              <div class="notes-price-card-title">Frihet</div>
+              <div class="notes-price-card-price">549,-/md</div>
+              <ul class="notes-price-card-list">
+                <li>Fri bruk tale og SMS i EU/EØS</li>
+                <li>1 datakort</li>
+              </ul>
+            </div>
+            <div class="notes-price-card">
+              <div class="notes-price-card-title">Frihet Premium</div>
+              <div class="notes-price-card-price">649,-/md</div>
+              <ul class="notes-price-card-list">
+                <li>Fri bruk tale og SMS i EU/EØS</li>
+                <li>1 datakort og 1 tvillingkort</li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -3601,7 +3848,19 @@
   ];
 
   const PROVIDER_OPTIONS = ['Telia', 'Ice', 'Fonero', 'TalkMore', 'Pingaway', 'Unifon'];
-  const DATA_OPTIONS = ['0', '5', '8', '10', '15', '20', '30', '50', '100'];
+  const DATA_BUCKET_OPTIONS = [
+    { id: 'unlimited', label: 'Ubegrenset' },
+    { id: '100', label: '100GB' },
+    { id: '50', label: '50GB' },
+    { id: '30', label: '30GB' },
+    { id: '20', label: '20GB' },
+    { id: '15', label: '15GB' },
+    { id: '10', label: '10GB' },
+    { id: '8', label: '8GB' },
+    { id: '5', label: '5GB' },
+    { id: '0', label: '0GB' },
+    { id: 'custom', label: 'Egen datapakke' }
+  ];
   const CONVERSATION_STEPS = [
     { key: 'minSky', label: 'Min Sky', placeholder: 'Hva sier kunden om lagring, bilder eller bruk av sky?' },
     { key: 'nettsikkerhet', label: 'Nettsikkerhet', placeholder: 'Hvilke bekymringer eller behov har kunden rundt trygghet?' },
@@ -3609,13 +3868,106 @@
     { key: 'dekning', label: 'Dekning', placeholder: 'Hvor opplever kunden dårlig dekning eller ustabilitet?' },
     { key: 'datakort', label: 'Datakort', placeholder: 'Har kunden behov for nett på andre enheter eller i bil?' }
   ];
+  let activeConversationDataEditorId = null;
+
+  function getDefaultConversationDataBreakdown() {
+    return DATA_BUCKET_OPTIONS.map(option => ({
+      id: option.id,
+      label: option.label,
+      count: 0
+    }));
+  }
+
+  function getConversationDataOption(bucketId) {
+    return DATA_BUCKET_OPTIONS.find(option => option.id === bucketId);
+  }
+
+  function normalizeConversationDataLabel(value) {
+    return String(value || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '')
+      .replace(/data/g, '');
+  }
+
+  function formatConversationDataLabel(value, fallback = '') {
+    const trimmed = String(value || '').trim();
+    if (!trimmed) return fallback;
+    if (/^ubegrenset$/i.test(trimmed) || /^fri\s*data$/i.test(trimmed)) return 'Ubegrenset';
+    if (/^\d+$/.test(trimmed)) return `${trimmed}GB`;
+    return trimmed;
+  }
+
+  function formatConversationSummaryDataLabel(value) {
+    const formatted = formatConversationDataLabel(value, 'egen datapakke');
+    if (/^ubegrenset$/i.test(formatted)) return 'ubegrenset data';
+    if (/\bdata\b/i.test(formatted)) return formatted;
+    return `${formatted} data`;
+  }
+
+  function joinWithNorwegianAnd(parts) {
+    if (!parts.length) return '';
+    if (parts.length === 1) return parts[0];
+    if (parts.length === 2) return `${parts[0]} og ${parts[1]}`;
+    return `${parts.slice(0, -1).join(', ')} og ${parts[parts.length - 1]}`;
+  }
+
+  function getConversationDataSummary(notes = getConversationNotes()) {
+    const buckets = Array.isArray(notes.dataBreakdown) ? notes.dataBreakdown : [];
+    const parts = buckets
+      .filter(bucket => Number(bucket.count) > 0)
+      .map(bucket => `${bucket.count} abo på ${formatConversationSummaryDataLabel(bucket.label)}`);
+    return joinWithNorwegianAnd(parts);
+  }
+
+  function ensureConversationDataBreakdown(notes) {
+    const existing = Array.isArray(notes.dataBreakdown) ? notes.dataBreakdown : [];
+    const changedFromMissing = !Array.isArray(notes.dataBreakdown);
+    const breakdown = DATA_BUCKET_OPTIONS.map(option => {
+      const fromId = existing.find(item => item && item.id === option.id);
+      const fromLabel = existing.find(item => item && normalizeConversationDataLabel(item.label) === normalizeConversationDataLabel(option.label));
+      const source = fromId || fromLabel;
+      return {
+        id: option.id,
+        label: formatConversationDataLabel(source && source.label, option.label),
+        count: Math.max(0, Math.floor(Number(source && source.count) || 0))
+      };
+    });
+
+    if (!breakdown.some(bucket => bucket.count > 0)) {
+      const legacyValue = formatConversationDataLabel(notes.customDataAmount || notes.dataAmount);
+      if (legacyValue) {
+        const existingBucket = breakdown.find(bucket => normalizeConversationDataLabel(bucket.label) === normalizeConversationDataLabel(legacyValue));
+        if (existingBucket) existingBucket.count = 1;
+        else {
+          const customBucket = breakdown.find(bucket => bucket.id === 'custom');
+          if (customBucket) {
+            customBucket.label = legacyValue;
+            customBucket.count = 1;
+          }
+        }
+      }
+    }
+
+    const nextSerialized = JSON.stringify(breakdown);
+    const previousSerialized = JSON.stringify(existing);
+    notes.dataBreakdown = breakdown;
+    return changedFromMissing || nextSerialized !== previousSerialized;
+  }
 
   function getDefaultConversationNotes() {
     const steps = {};
     CONVERSATION_STEPS.forEach(step => {
       steps[step.key] = { notes: '' };
     });
-    return { provider: '', dataAmount: '', customDataAmount: '', steps, summaryVisible: false };
+    return {
+      provider: '',
+      dataAmount: '',
+      customDataAmount: '',
+      dataBreakdown: getDefaultConversationDataBreakdown(),
+      steps,
+      summaryVisible: false
+    };
   }
 
   function getConversationNotes() {
@@ -3623,6 +3975,7 @@
     const parsed = raw ? JSON.parse(raw) : getDefaultConversationNotes();
     if (!parsed.steps) parsed.steps = {};
     let changed = !raw;
+    if (ensureConversationDataBreakdown(parsed)) changed = true;
     CONVERSATION_STEPS.forEach(step => {
       if (!parsed.steps[step.key]) {
         parsed.steps[step.key] = { completed: false, notes: '' };
@@ -3635,10 +3988,10 @@
 
   function buildConversationSummary(notes = getConversationNotes()) {
     const lines = [];
-    const dataAmount = notes.customDataAmount || notes.dataAmount;
-    if (notes.provider && dataAmount) lines.push(`${notes.provider} med ${dataAmount}GB`);
+    const dataSummary = getConversationDataSummary(notes);
+    if (notes.provider && dataSummary) lines.push(`${notes.provider}: ${dataSummary}`);
     else if (notes.provider) lines.push(notes.provider);
-    else if (dataAmount) lines.push(`${dataAmount}GB`);
+    else if (dataSummary) lines.push(dataSummary);
     CONVERSATION_STEPS.forEach(step => {
       const stepData = notes.steps[step.key] || {};
       if (stepData.notes) lines.push(`${step.label}: ${stepData.notes}`);
@@ -3653,20 +4006,47 @@
 
   function renderConversationNotes() {
     const providerWrap = document.getElementById('notes-provider-options');
-    const dataWrap = document.getElementById('notes-data-options');
-    const customData = document.getElementById('notes-data-custom');
+    const dataWrap = document.getElementById('notes-data-buckets');
     const stepsWrap = document.getElementById('conversation-steps');
     const summaryPanel = document.getElementById('notes-summary-panel');
-    if (!providerWrap || !dataWrap || !customData || !stepsWrap || !summaryPanel) return;
+    if (!providerWrap || !dataWrap || !stepsWrap || !summaryPanel) return;
 
     const notes = getConversationNotes();
     providerWrap.innerHTML = PROVIDER_OPTIONS.map(option => `
       <button class="choice-chip ${notes.provider === option ? 'active' : ''}" onclick="selectConversationProvider('${option}')">${option}</button>
     `).join('');
-    dataWrap.innerHTML = DATA_OPTIONS.map(option => `
-      <button class="choice-chip ${(notes.customDataAmount ? false : notes.dataAmount === option) ? 'active' : ''}" onclick="selectConversationData('${option}')">${option}</button>
-    `).join('');
-    customData.value = notes.customDataAmount || '';
+    dataWrap.innerHTML = notes.dataBreakdown.map(bucket => {
+      const option = getConversationDataOption(bucket.id) || { label: 'Egen datapakke' };
+      const displayLabel = formatConversationDataLabel(bucket.label, option.label);
+      const isEditing = activeConversationDataEditorId === bucket.id;
+      const isEdited = displayLabel !== option.label;
+      const editLabel = bucket.id === 'custom' && !isEdited ? 'Sett data' : 'Rediger';
+      const editorValue = bucket.id === 'custom' && !isEdited ? '' : displayLabel;
+      return `
+        <div class="notes-data-bucket">
+          <div class="notes-data-bucket-main">
+            <div class="notes-data-bucket-label-row">
+              <div class="notes-data-bucket-label">${escHtml(displayLabel)}</div>
+              <div class="notes-data-bucket-actions">
+                <button class="notes-edit-btn ${isEditing ? 'active' : ''}" type="button" onclick="toggleConversationDataEditor('${bucket.id}')">${editLabel}</button>
+                ${isEdited ? `<button class="notes-edit-btn" type="button" onclick="resetConversationDataLabel('${bucket.id}')">Tilbakestill</button>` : ''}
+              </div>
+            </div>
+            <div class="notes-stepper">
+              <button class="notes-stepper-btn" type="button" onclick="changeConversationDataCount('${bucket.id}', -1)" ${bucket.count <= 0 ? 'disabled' : ''}>-</button>
+              <div class="notes-stepper-value">${bucket.count}</div>
+              <button class="notes-stepper-btn" type="button" onclick="changeConversationDataCount('${bucket.id}', 1)">+</button>
+            </div>
+          </div>
+          ${isEditing ? `
+            <div class="notes-inline-field notes-data-edit-field">
+              <label for="notes-data-edit-${bucket.id}">Datamengde</label>
+              <input id="notes-data-edit-${bucket.id}" type="text" placeholder="F.eks. 12GB" value="${escHtml(editorValue)}" oninput="updateConversationDataLabel('${bucket.id}', this.value)" />
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
     stepsWrap.innerHTML = CONVERSATION_STEPS.map(step => {
       const stepData = notes.steps[step.key] || { notes: '' };
       return `
@@ -3690,18 +4070,54 @@
     renderConversationNotes();
   }
 
-  function selectConversationData(amount) {
+  function toggleConversationDataEditor(bucketId) {
+    activeConversationDataEditorId = activeConversationDataEditorId === bucketId ? null : bucketId;
+    renderConversationNotes();
+    if (activeConversationDataEditorId === bucketId) {
+      setTimeout(() => {
+        const input = document.getElementById(`notes-data-edit-${bucketId}`);
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      }, 30);
+    }
+  }
+
+  function changeConversationDataCount(bucketId, delta) {
     const current = getConversationNotes();
-    current.dataAmount = amount;
-    current.customDataAmount = '';
+    const bucket = current.dataBreakdown.find(item => item.id === bucketId);
+    if (!bucket) return;
+    bucket.count = Math.max(0, bucket.count + delta);
+    if (bucketId === 'custom' && bucket.count > 0 && bucket.label === (getConversationDataOption('custom') || {}).label) {
+      activeConversationDataEditorId = bucketId;
+    }
+    localStorage.setItem('conversationNotes', JSON.stringify(current));
+    renderConversationNotes();
+  }
+
+  function updateConversationDataLabel(bucketId, value) {
+    const current = getConversationNotes();
+    const bucket = current.dataBreakdown.find(item => item.id === bucketId);
+    if (!bucket) return;
+    bucket.label = value;
+    localStorage.setItem('conversationNotes', JSON.stringify(current));
+    updateConversationSummary(current);
+  }
+
+  function resetConversationDataLabel(bucketId) {
+    const current = getConversationNotes();
+    const bucket = current.dataBreakdown.find(item => item.id === bucketId);
+    const option = getConversationDataOption(bucketId);
+    if (!bucket || !option) return;
+    bucket.label = option.label;
+    if (bucketId === 'custom') activeConversationDataEditorId = bucketId;
     localStorage.setItem('conversationNotes', JSON.stringify(current));
     renderConversationNotes();
   }
 
   function saveConversationNotes() {
     const current = getConversationNotes();
-    current.customDataAmount = (document.getElementById('notes-data-custom')?.value || '').trim();
-    if (current.customDataAmount) current.dataAmount = '';
     CONVERSATION_STEPS.forEach(step => {
       current.steps[step.key] = {
         notes: (document.getElementById(`notes-step-${step.key}`)?.value || '').trim()
