@@ -954,9 +954,16 @@
     }
 
     .price-calculator-plan-price {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
       font-size: 0.95rem;
       font-weight: 800;
-      color: var(--text);
+      color: #0f172a;
     }
 
     .price-calculator-plan-meta {
@@ -1051,8 +1058,22 @@
     }
 
     .price-calculator-metric-highlight {
-      border-color: #93c5fd;
-      background: #eff6ff;
+      border-color: #2563eb;
+      background: #dbeafe;
+      box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.14);
+    }
+
+    .price-calculator-metric-highlight .price-calculator-metric-label {
+      color: #1d4ed8;
+    }
+
+    .price-calculator-metric-highlight .price-calculator-metric-value {
+      color: #0f172a;
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(37, 99, 235, 0.16);
     }
 
     .price-calculator-feature-list {
