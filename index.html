@@ -695,6 +695,11 @@
       align-items: center;
     }
 
+    .notes-data-add-btn {
+      margin-top: 0;
+      white-space: nowrap;
+    }
+
     .notes-stepper {
       display: inline-flex;
       align-items: center;
@@ -744,24 +749,44 @@
       gap: 8px;
     }
 
-    .notes-data-summary-row {
+    .notes-data-summary-list {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 720px;
+      margin: 0 auto;
     }
 
-    .notes-data-summary-chip {
-      display: inline-flex;
+    .notes-data-summary-item {
+      display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 8px 12px;
-      border-radius: 999px;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 16px;
       border: 1px solid var(--border);
-      background: rgba(41,168,224,0.12);
-      color: var(--text);
-      font-size: 0.85rem;
+      background: var(--card);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      flex-wrap: wrap;
+    }
+
+    .notes-data-summary-item-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+      flex: 1 1 220px;
+    }
+
+    .notes-data-summary-item-title {
+      font-size: 0.98rem;
       font-weight: 700;
+      color: var(--text);
+    }
+
+    .notes-data-summary-item-meta {
+      font-size: 0.8rem;
+      color: var(--muted);
     }
 
     .notes-inline-field label,
@@ -966,8 +991,16 @@
         max-width: none;
       }
 
+      .notes-data-add-btn {
+        width: 100%;
+      }
+
       .notes-stepper {
         justify-content: center;
+      }
+
+      .notes-data-summary-item {
+        align-items: stretch;
       }
     }
 
@@ -4075,10 +4108,10 @@
     { id: 'custom', label: 'Egen datapakke' }
   ];
   const CONVERSATION_STEPS = [
-    { key: 'minSky', label: 'Min Sky', placeholder: 'Hva sier kunden om lagring, bilder eller bruk av sky?' },
-    { key: 'nettsikkerhet', label: 'Nettsikkerhet', placeholder: 'Hvilke bekymringer eller behov har kunden rundt trygghet?' },
     { key: 'data', label: 'Data', placeholder: 'Hva slags data-behov eller frustrasjon har kunden?' },
+    { key: 'minSky', label: 'Min Sky', placeholder: 'Hva sier kunden om lagring, bilder eller bruk av sky?' },
     { key: 'dekning', label: 'Dekning', placeholder: 'Hvor opplever kunden dårlig dekning eller ustabilitet?' },
+    { key: 'nettsikkerhet', label: 'Nettsikkerhet', placeholder: 'Hvilke bekymringer eller behov har kunden rundt trygghet?' },
     { key: 'datakort', label: 'Datakort', placeholder: 'Har kunden behov for nett på andre enheter eller i bil?' }
   ];
   function getDefaultConversationDataBreakdown() {
@@ -4184,6 +4217,7 @@
       dataAmount: '',
       customDataAmount: '',
       dataBreakdown: getDefaultConversationDataBreakdown(),
+      dataDraftCount: 1,
       selectedDataBucketId: getDefaultConversationDataBucketId(),
       steps,
       summaryVisible: false
@@ -4196,6 +4230,14 @@
     if (!parsed.steps) parsed.steps = {};
     let changed = !raw;
     if (ensureConversationDataBreakdown(parsed)) changed = true;
+    if (!Number.isFinite(Number(parsed.dataDraftCount)) || Number(parsed.dataDraftCount) < 1) {
+      parsed.dataDraftCount = 1;
+      changed = true;
+    } else {
+      const normalizedDraftCount = Math.max(1, Math.floor(Number(parsed.dataDraftCount)));
+      if (parsed.dataDraftCount !== normalizedDraftCount) changed = true;
+      parsed.dataDraftCount = normalizedDraftCount;
+    }
     if (!parsed.selectedDataBucketId || !parsed.dataBreakdown.some(bucket => bucket.id === parsed.selectedDataBucketId)) {
       parsed.selectedDataBucketId = getDefaultConversationDataBucketId();
       changed = true;
@@ -4253,9 +4295,21 @@
     const selectedLabel = formatConversationDataLabel(selectedBucket.label, selectedOption.label);
     const customBucket = notes.dataBreakdown.find(bucket => bucket.id === 'custom');
     const customLabel = customBucket ? formatConversationDataLabel(customBucket.label, 'Egen datapakke') : 'Egen datapakke';
-    const summaryChips = notes.dataBreakdown
+    const summaryRows = notes.dataBreakdown
       .filter(bucket => bucket.count > 0)
-      .map(bucket => `<div class="notes-data-summary-chip">${bucket.count} x ${escHtml(formatConversationDataLabel(bucket.label, getConversationDataOption(bucket.id)?.label || 'Egen datapakke'))}</div>`)
+      .map(bucket => `
+        <div class="notes-data-summary-item">
+          <div class="notes-data-summary-item-main">
+            <div class="notes-data-summary-item-title">${escHtml(formatConversationDataLabel(bucket.label, getConversationDataOption(bucket.id)?.label || 'Egen datapakke'))}</div>
+            <div class="notes-data-summary-item-meta">${bucket.count} abonnement registrert</div>
+          </div>
+          <div class="notes-stepper">
+            <button class="notes-stepper-btn" type="button" onclick="changeConversationDataCount('${bucket.id}', -1)" ${bucket.count <= 0 ? 'disabled' : ''}>-</button>
+            <div class="notes-stepper-value">${bucket.count}</div>
+            <button class="notes-stepper-btn" type="button" onclick="changeConversationDataCount('${bucket.id}', 1)">+</button>
+          </div>
+        </div>
+      `)
       .join('');
     providerWrap.innerHTML = PROVIDER_OPTIONS.map(option => `
       <button class="choice-chip ${notes.provider === option ? 'active' : ''}" onclick="selectConversationProvider('${option}')">${option}</button>
@@ -4274,13 +4328,14 @@
           </select>
         </div>
         <div class="notes-data-counter">
-          <div class="notes-data-counter-label">Antall abonnement</div>
+          <div class="notes-data-counter-label">Antall å legge til</div>
           <div class="notes-stepper">
-            <button class="notes-stepper-btn" type="button" onclick="changeConversationDataCount(-1)" ${selectedBucket.count <= 0 ? 'disabled' : ''}>-</button>
-            <div class="notes-stepper-value">${selectedBucket.count}</div>
-            <button class="notes-stepper-btn" type="button" onclick="changeConversationDataCount(1)">+</button>
+            <button class="notes-stepper-btn" type="button" onclick="changeConversationDraftCount(-1)" ${notes.dataDraftCount <= 1 ? 'disabled' : ''}>-</button>
+            <div class="notes-stepper-value">${notes.dataDraftCount}</div>
+            <button class="notes-stepper-btn" type="button" onclick="changeConversationDraftCount(1)">+</button>
           </div>
         </div>
+        <button class="save-btn notes-data-add-btn" type="button" onclick="addConversationDataSelection()">+ Legg til abonnementstype</button>
       </div>
       ${selectedBucket.id === 'custom' ? `
         <div class="notes-inline-field notes-data-edit-field">
@@ -4288,10 +4343,10 @@
           <input id="notes-data-custom-label" type="text" placeholder="F.eks. 12GB" value="${escHtml(selectedLabel === 'Egen datapakke' ? '' : selectedLabel)}" oninput="updateConversationCustomDataLabel(this.value)" />
         </div>
       ` : ''}
-      ${summaryChips ? `
+      ${summaryRows ? `
         <div class="notes-data-summary">
-          <div class="notes-data-summary-label">Registrert nå</div>
-          <div class="notes-data-summary-row">${summaryChips}</div>
+          <div class="notes-data-summary-label">Registrerte abonnement</div>
+          <div class="notes-data-summary-list">${summaryRows}</div>
         </div>
       ` : ''}
     `;
@@ -4334,9 +4389,36 @@
     }
   }
 
-  function changeConversationDataCount(delta) {
+  function changeConversationDraftCount(delta) {
+    const current = getConversationNotes();
+    current.dataDraftCount = Math.max(1, (current.dataDraftCount || 1) + delta);
+    localStorage.setItem('conversationNotes', JSON.stringify(current));
+    renderConversationNotes();
+  }
+
+  function addConversationDataSelection() {
     const current = getConversationNotes();
     const bucket = getConversationSelectedDataBucket(current);
+    if (!bucket) return;
+    if (bucket.id === 'custom') {
+      const formattedLabel = formatConversationDataLabel(bucket.label);
+      if (!formattedLabel) {
+        alert('Skriv inn datamengde før du legger til egen datapakke.');
+        const input = document.getElementById('notes-data-custom-label');
+        if (input) input.focus();
+        return;
+      }
+      bucket.label = formattedLabel;
+    }
+    bucket.count += Math.max(1, Math.floor(Number(current.dataDraftCount) || 1));
+    current.dataDraftCount = 1;
+    localStorage.setItem('conversationNotes', JSON.stringify(current));
+    renderConversationNotes();
+  }
+
+  function changeConversationDataCount(bucketId, delta) {
+    const current = getConversationNotes();
+    const bucket = current.dataBreakdown.find(item => item.id === bucketId);
     if (!bucket) return;
     bucket.count = Math.max(0, bucket.count + delta);
     localStorage.setItem('conversationNotes', JSON.stringify(current));
