@@ -4521,7 +4521,8 @@
                     step="1"
                     value="${count > 0 ? count : ''}"
                     aria-label="Antall for ${escHtml(plan.name)}"
-                    oninput="setPriceCalculatorItemCount('${plan.id}', this.value)"
+                    data-plan-id="${plan.id}"
+                    oninput="setPriceCalculatorItemCount('${prefix}', '${plan.id}', this.value)"
                   />
                 </td>
                 <td class="price-calculator-price-cell">${formatPriceCalculatorMoney(planPrice)}</td>
@@ -4559,9 +4560,14 @@
     `;
   }
 
-  function renderAllPriceCalculators() {
+  function renderAllPriceCalculators(focusTarget = null) {
     renderPriceCalculator('price-calculator');
     renderPriceCalculator('notes-price-calculator');
+    if (!focusTarget || !focusTarget.prefix || !focusTarget.planId) return;
+    requestAnimationFrame(() => {
+      const target = document.querySelector(`#${focusTarget.prefix}-table input[data-plan-id="${focusTarget.planId}"]`);
+      if (target) target.focus();
+    });
   }
 
   function setPriceCalculatorMode(modeId) {
@@ -4571,13 +4577,13 @@
     renderAllPriceCalculators();
   }
 
-  function setPriceCalculatorItemCount(planId, rawValue) {
+  function setPriceCalculatorItemCount(prefix, planId, rawValue) {
     const current = getPriceCalculatorState();
     const nextCount = Math.max(0, Math.floor(Number(rawValue) || 0));
     if (nextCount > 0) current.quantities[planId] = nextCount;
     else delete current.quantities[planId];
     savePriceCalculatorState(current);
-    renderAllPriceCalculators();
+    renderAllPriceCalculators({ prefix, planId });
   }
 
   function clearPriceCalculator() {
