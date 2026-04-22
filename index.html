@@ -4180,7 +4180,8 @@
   ];
   const PRICE_CALCULATOR_MODES = [
     { id: 'standard', label: 'Vanlige priser' },
-    { id: 'forbund', label: 'Forbundspriser' }
+    { id: 'forbund', label: 'Forbundspriser' },
+    { id: 'liste', label: 'Listepriser' }
   ];
   const PRICE_CALCULATOR_PLANS = [
     {
@@ -4189,6 +4190,7 @@
       themeClass: 'notes-price-card-basis',
       standardPrice: 69,
       forbundPrice: 69,
+      listPrice: 69,
       features: ['Nettvern inkludert', 'Nummervarsel inkludert', 'Min Sky Ubegrenset inkludert', 'kr 4,99 per MB, maks kr 999,-', 'kr 0,59 per minutt/SMS/startpris', 'kr 1,99 per MMS']
     },
     {
@@ -4197,6 +4199,7 @@
       themeClass: 'notes-price-card-basis',
       standardPrice: 239,
       forbundPrice: 189,
+      listPrice: 239,
       features: ['Nettvern inkludert', 'Nummervarsel inkludert', 'Min Sky Ubegrenset inkludert', 'Fri bruk tale og SMS i EU/EØS', '200 MB']
     },
     {
@@ -4205,6 +4208,7 @@
       themeClass: 'notes-price-card-basis',
       standardPrice: 339,
       forbundPrice: 239,
+      listPrice: 339,
       features: ['Nettvern inkludert', 'Nummervarsel inkludert', 'Min Sky Ubegrenset inkludert', 'Fri bruk tale og SMS i EU/EØS', '2 GB data']
     },
     {
@@ -4213,6 +4217,7 @@
       themeClass: 'notes-price-card-flyt',
       standardPrice: 399,
       forbundPrice: 299,
+      listPrice: 459,
       features: ['Nettvern inkludert', 'Nummervarsel inkludert', 'Min Sky Ubegrenset inkludert', 'Fri bruk tale og SMS i EU/EØS', '5 GB data']
     },
     {
@@ -4221,6 +4226,7 @@
       themeClass: 'notes-price-card-flyt',
       standardPrice: 449,
       forbundPrice: 399,
+      listPrice: 559,
       features: ['Nettvern inkludert', 'Nummervarsel inkludert', 'Min Sky Ubegrenset inkludert', 'Fri bruk tale og SMS i EU/EØS', '1 datakort']
     },
     {
@@ -4229,6 +4235,7 @@
       themeClass: 'notes-price-card-flyt',
       standardPrice: 499,
       forbundPrice: 499,
+      listPrice: 609,
       features: ['Nettvern inkludert', 'Nummervarsel inkludert', 'Min Sky Ubegrenset inkludert', 'Fri bruk tale og SMS i EU/EØS', '1 datakort']
     },
     {
@@ -4237,6 +4244,7 @@
       themeClass: 'notes-price-card-frihet',
       standardPrice: 499,
       forbundPrice: 499,
+      listPrice: 609,
       features: ['Nettvern inkludert', 'Nummervarsel inkludert', 'Min Sky Ubegrenset inkludert', 'Fri bruk tale og SMS i EU/EØS']
     },
     {
@@ -4245,6 +4253,7 @@
       themeClass: 'notes-price-card-frihet',
       standardPrice: 549,
       forbundPrice: 549,
+      listPrice: 659,
       features: ['Nettvern inkludert', 'Nummervarsel inkludert', 'Min Sky Ubegrenset inkludert', 'Fri bruk tale og SMS i EU/EØS', '1 datakort']
     },
     {
@@ -4253,6 +4262,7 @@
       themeClass: 'notes-price-card-frihet',
       standardPrice: 649,
       forbundPrice: 649,
+      listPrice: 709,
       features: ['Nettvern inkludert', 'Nummervarsel inkludert', 'Min Sky Ubegrenset inkludert', 'Fri bruk tale og SMS i EU/EØS', '1 datakort og 1 tvillingkort']
     },
     {
@@ -4261,6 +4271,7 @@
       themeClass: 'notes-price-card-flyt',
       standardPrice: 99,
       forbundPrice: 99,
+      listPrice: 99,
       features: ['Fast pris uansett prisnivå']
     }
   ];
@@ -4314,7 +4325,9 @@
   }
 
   function getPriceCalculatorUnitPrice(plan, pricingMode) {
-    return pricingMode === 'forbund' ? plan.forbundPrice : plan.standardPrice;
+    if (pricingMode === 'forbund') return plan.forbundPrice;
+    if (pricingMode === 'liste') return plan.listPrice;
+    return plan.standardPrice;
   }
 
   function getPriceCalculatorLineItems(state = getPriceCalculatorState()) {
