@@ -2767,6 +2767,7 @@
           <div id="notes-price-calculator-mode" class="choice-row"></div>
           <div id="notes-price-calculator-summary" class="price-calculator-summary-card"></div>
           <div id="notes-price-calculator-plans" class="price-calculator-plan-grid"></div>
+          <div id="notes-price-calculator-lines"></div>
         </div>
       </div>
     </div>
@@ -2795,6 +2796,12 @@
       <div class="notes-question">Velg abonnementstype</div>
       <div class="notes-helper">Trykk på abonnementet du vil regne på.</div>
       <div id="price-calculator-plans" class="price-calculator-plan-grid"></div>
+    </div>
+
+    <div class="notes-step-spacer"></div>
+
+    <div class="notes-step-card">
+      <div id="price-calculator-lines"></div>
     </div>
   </div>
 </div>
@@ -4480,7 +4487,8 @@
     const modeWrap = document.getElementById(`${prefix}-mode`);
     const plansWrap = document.getElementById(`${prefix}-plans`);
     const summaryWrap = document.getElementById(`${prefix}-summary`);
-    if (!modeWrap || !plansWrap || !summaryWrap) return;
+    const linesWrap = document.getElementById(`${prefix}-lines`);
+    if (!modeWrap || !plansWrap || !summaryWrap || !linesWrap) return;
 
     const state = getPriceCalculatorState();
     const modeLabel = getPriceCalculatorModeLabel(state.pricingMode);
@@ -4556,13 +4564,14 @@
           <div class="price-calculator-metric-value">${formatPriceCalculatorMoney(totalIncVat)}</div>
         </div>
       </div>
-      ${lineItems.length ? `
-        <div class="price-calculator-lines">
-          <div class="price-calculator-lines-title">Linjer i regnestykket</div>
-          ${lineItemsMarkup}
-        </div>
-      ` : lineItemsMarkup}
     `;
+
+    linesWrap.innerHTML = lineItems.length ? `
+      <div class="price-calculator-lines">
+        <div class="price-calculator-lines-title">Linjer i regnestykket</div>
+        ${lineItemsMarkup}
+      </div>
+    ` : lineItemsMarkup;
   }
 
   function renderAllPriceCalculators() {
