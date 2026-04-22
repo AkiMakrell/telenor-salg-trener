@@ -990,6 +990,27 @@
       gap: 8px;
     }
 
+    .price-calculator-empty {
+      padding: 14px 16px;
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.55);
+      color: var(--muted);
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .price-calculator-line-total {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: var(--text);
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      white-space: nowrap;
+    }
+
     .price-calculator-summary-card {
       display: flex;
       flex-direction: column;
@@ -2720,13 +2741,6 @@
           <div class="notes-price-list-intro">Bruk samme kalkulator her i oppsummeringen for a regne pris midt i samtalen.</div>
           <div id="notes-price-calculator-mode" class="choice-row"></div>
           <div id="notes-price-calculator-plans" class="price-calculator-plan-grid"></div>
-          <div class="price-calculator-quantity" style="margin-top:4px;">
-            <div class="notes-stepper">
-              <button id="notes-price-calculator-quantity-decrease" class="notes-stepper-btn" type="button" onclick="changePriceCalculatorQuantity(-1)">-</button>
-              <div id="notes-price-calculator-quantity-value" class="notes-stepper-value">1</div>
-              <button id="notes-price-calculator-quantity-increase" class="notes-stepper-btn" type="button" onclick="changePriceCalculatorQuantity(1)">+</button>
-            </div>
-          </div>
           <div id="notes-price-calculator-summary" class="price-calculator-summary-card"></div>
         </div>
       </div>
@@ -2749,19 +2763,6 @@
       <div class="notes-question">Velg abonnementstype</div>
       <div class="notes-helper">Trykk på abonnementet du vil regne på.</div>
       <div id="price-calculator-plans" class="price-calculator-plan-grid"></div>
-    </div>
-
-    <div class="notes-step-spacer"></div>
-
-    <div class="notes-step-card">
-      <div class="notes-question">Velg antall abonnement</div>
-      <div class="price-calculator-quantity">
-        <div class="notes-stepper">
-          <button id="price-calculator-quantity-decrease" class="notes-stepper-btn" type="button" onclick="changePriceCalculatorQuantity(-1)">-</button>
-          <div id="price-calculator-quantity-value" class="notes-stepper-value">1</div>
-          <button id="price-calculator-quantity-increase" class="notes-stepper-btn" type="button" onclick="changePriceCalculatorQuantity(1)">+</button>
-        </div>
-      </div>
     </div>
 
     <div class="notes-step-spacer"></div>
@@ -4212,8 +4213,7 @@
   function getDefaultPriceCalculatorState() {
     return {
       pricingMode: PRICE_CALCULATOR_MODES[0].id,
-      planId: PRICE_CALCULATOR_PLANS[0].id,
-      quantity: 1
+      quantities: {}
     };
   }
 
@@ -4229,13 +4229,22 @@
       parsed.pricingMode = PRICE_CALCULATOR_MODES[0].id;
       changed = true;
     }
-    if (!PRICE_CALCULATOR_PLANS.some(plan => plan.id === parsed.planId)) {
-      parsed.planId = PRICE_CALCULATOR_PLANS[0].id;
-      changed = true;
-    }
-    const normalizedQuantity = Math.max(1, Math.floor(Number(parsed.quantity) || 1));
-    if (parsed.quantity !== normalizedQuantity) changed = true;
-    parsed.quantity = normalizedQuantity;
+
+    const normalizedQuantities = {};
+    const sourceQuantities = parsed && typeof parsed.quantities === 'object' && parsed.quantities ? parsed.quantities : {};
+    PRICE_CALCULATOR_PLANS.forEach(plan => {
+      const legacyQuantity = parsed.planId === plan.id ? parsed.quantity : 0;
+      const nextCount = Math.max(0, Math.floor(Number(sourceQuantities[plan.id] || legacyQuantity || 0)));
+      if (nextCount > 0) normalizedQuantities[plan.id] = nextCount;
+    });
+
+    if (JSON.stringify(sourceQuantities) !== JSON.stringify(normalizedQuantities)) changed = true;
+    if (parsed.planId || parsed.quantity) changed = true;
+
+    parsed.quantities = normalizedQuantities;
+    delete parsed.planId;
+    delete parsed.quantity;
+
     if (changed) localStorage.setItem('priceCalculatorState', JSON.stringify(parsed));
     return parsed;
   }
@@ -4251,6 +4260,19 @@
 
   function getPriceCalculatorUnitPrice(plan, pricingMode) {
     return pricingMode === 'forbund' ? plan.forbundPrice : plan.standardPrice;
+  }
+
+  function getPriceCalculatorLineItems(state = getPriceCalculatorState()) {
+    return PRICE_CALCULATOR_PLANS
+      .map(plan => ({
+        plan,
+        count: Math.max(0, Math.floor(Number(state.quantities[plan.id]) || 0))
+      }))
+      .filter(item => item.count > 0);
+  }
+
+  function getPriceCalculatorTotalCount(state = getPriceCalculatorState()) {
+    return getPriceCalculatorLineItems(state).reduce((sum, item) => sum + item.count, 0);
   }
 
   function formatPriceCalculatorNumber(value) {
@@ -4436,16 +4458,14 @@
   function renderPriceCalculator(prefix = 'price-calculator') {
     const modeWrap = document.getElementById(`${prefix}-mode`);
     const plansWrap = document.getElementById(`${prefix}-plans`);
-    const quantityValue = document.getElementById(`${prefix}-quantity-value`);
-    const quantityDecrease = document.getElementById(`${prefix}-quantity-decrease`);
     const summaryWrap = document.getElementById(`${prefix}-summary`);
-    if (!modeWrap || !plansWrap || !quantityValue || !summaryWrap) return;
+    if (!modeWrap || !plansWrap || !summaryWrap) return;
 
     const state = getPriceCalculatorState();
-    const selectedPlan = getPriceCalculatorPlan(state.planId);
     const modeLabel = getPriceCalculatorModeLabel(state.pricingMode);
-    const unitPrice = getPriceCalculatorUnitPrice(selectedPlan, state.pricingMode);
-    const totalExVat = unitPrice * state.quantity;
+    const lineItems = getPriceCalculatorLineItems(state);
+    const totalCount = getPriceCalculatorTotalCount(state);
+    const totalExVat = lineItems.reduce((sum, item) => sum + (getPriceCalculatorUnitPrice(item.plan, state.pricingMode) * item.count), 0);
     const totalIncVat = totalExVat * 1.25;
 
     modeWrap.innerHTML = PRICE_CALCULATOR_MODES.map(mode => `
@@ -4453,15 +4473,15 @@
     `).join('');
 
     plansWrap.innerHTML = PRICE_CALCULATOR_PLANS.map(plan => {
-      const selected = plan.id === state.planId;
+      const count = state.quantities[plan.id] || 0;
       const planPrice = getPriceCalculatorUnitPrice(plan, state.pricingMode);
       const quickLabel = plan.features.find(feature => /\bGB\b|datakort|tvillingkort|200 MB/i.test(feature))
         || (plan.id === 'basis' ? 'Paygo' : 'Fri bruk tale og SMS');
       return `
-        <button class="notes-price-card ${plan.themeClass} price-calculator-plan-card ${selected ? 'active' : ''}" type="button" onclick="selectPriceCalculatorPlan('${plan.id}')">
+        <button class="notes-price-card ${plan.themeClass} price-calculator-plan-card ${count > 0 ? 'active' : ''}" type="button" onclick="addPriceCalculatorPlan('${plan.id}')">
           <div class="price-calculator-plan-top">
             <div class="notes-price-card-title">${escHtml(plan.name)}</div>
-            ${selected ? '<span class="price-calculator-selected-badge">Valgt</span>' : ''}
+            ${count > 0 ? `<span class="price-calculator-selected-badge">${count} stk</span>` : '<span class="price-calculator-selected-badge">+1</span>'}
           </div>
           <div class="price-calculator-plan-price">${formatPriceCalculatorMoney(planPrice)}</div>
           <div class="price-calculator-plan-meta">${escHtml(quickLabel)}</div>
@@ -4469,25 +4489,51 @@
       `;
     }).join('');
 
-    quantityValue.textContent = String(state.quantity);
-    if (quantityDecrease) quantityDecrease.disabled = state.quantity <= 1;
+    const lineItemsMarkup = lineItems.length
+      ? `
+        <div class="notes-data-summary-list">
+          ${lineItems.map(item => {
+            const unitPrice = getPriceCalculatorUnitPrice(item.plan, state.pricingMode);
+            const lineTotal = unitPrice * item.count;
+            return `
+              <div class="notes-data-summary-item">
+                <div class="notes-data-summary-item-main">
+                  <div class="notes-data-summary-item-title">${escHtml(item.plan.name)}</div>
+                  <div class="notes-data-summary-item-meta">${item.count} abo x ${formatPriceCalculatorMoney(unitPrice)}</div>
+                </div>
+                <div class="notes-stepper">
+                  <button class="notes-stepper-btn" type="button" onclick="changePriceCalculatorItemCount('${item.plan.id}', -1)">-</button>
+                  <div class="notes-stepper-value">${item.count}</div>
+                  <button class="notes-stepper-btn" type="button" onclick="changePriceCalculatorItemCount('${item.plan.id}', 1)">+</button>
+                </div>
+                <div class="price-calculator-line-total">${formatPriceCalculatorMoney(lineTotal)}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `
+      : `<div class="price-calculator-empty">Trykk pa et abonnementskort for a legge det til i regnestykket.</div>`;
 
     summaryWrap.innerHTML = `
       <div class="price-calculator-summary-top">
         <div>
-          <div class="price-calculator-summary-title">${escHtml(selectedPlan.name)}</div>
-          <div class="price-calculator-summary-subtitle">${state.quantity} abo med ${modeLabel.toLowerCase()}.</div>
+          <div class="price-calculator-summary-title">Regnestykke</div>
+          <div class="price-calculator-summary-subtitle">${totalCount ? `${totalCount} abo totalt med ${modeLabel.toLowerCase()}.` : 'Ingen abonnement lagt til ennå.'}</div>
         </div>
-        <div class="price-calculator-summary-mode">${modeLabel}</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <div class="price-calculator-summary-mode">${modeLabel}</div>
+          ${lineItems.length ? '<button class="backup-btn" type="button" style="margin-top:0;" onclick="clearPriceCalculator()">Tøm regnestykke</button>' : ''}
+        </div>
       </div>
+      ${lineItemsMarkup}
       <div class="price-calculator-metrics">
         <div class="price-calculator-metric">
-          <span class="price-calculator-metric-label">Pris per abo</span>
-          <div class="price-calculator-metric-value">${formatPriceCalculatorMoney(unitPrice)}</div>
+          <span class="price-calculator-metric-label">Typer i regnestykket</span>
+          <div class="price-calculator-metric-value">${lineItems.length || 0}</div>
         </div>
         <div class="price-calculator-metric">
-          <span class="price-calculator-metric-label">Antall</span>
-          <div class="price-calculator-metric-value">${state.quantity} abo</div>
+          <span class="price-calculator-metric-label">Antall abonnement</span>
+          <div class="price-calculator-metric-value">${totalCount} abo</div>
         </div>
         <div class="price-calculator-metric">
           <span class="price-calculator-metric-label">Sum eks. mva</span>
@@ -4497,12 +4543,6 @@
           <span class="price-calculator-metric-label">Sum inkl. mva (25%)</span>
           <div class="price-calculator-metric-value">${formatPriceCalculatorMoney(totalIncVat)}</div>
         </div>
-      </div>
-      <div>
-        <div class="price-calculator-summary-subtitle">Inkludert i abonnementet</div>
-        <ul class="price-calculator-feature-list">
-          ${selectedPlan.features.map(feature => `<li>${escHtml(feature)}</li>`).join('')}
-        </ul>
       </div>
     `;
   }
@@ -4519,16 +4559,25 @@
     renderAllPriceCalculators();
   }
 
-  function selectPriceCalculatorPlan(planId) {
+  function addPriceCalculatorPlan(planId) {
     const current = getPriceCalculatorState();
-    current.planId = planId;
+    current.quantities[planId] = (current.quantities[planId] || 0) + 1;
     savePriceCalculatorState(current);
     renderAllPriceCalculators();
   }
 
-  function changePriceCalculatorQuantity(delta) {
+  function changePriceCalculatorItemCount(planId, delta) {
     const current = getPriceCalculatorState();
-    current.quantity = Math.max(1, current.quantity + delta);
+    const nextCount = Math.max(0, (current.quantities[planId] || 0) + delta);
+    if (nextCount > 0) current.quantities[planId] = nextCount;
+    else delete current.quantities[planId];
+    savePriceCalculatorState(current);
+    renderAllPriceCalculators();
+  }
+
+  function clearPriceCalculator() {
+    const current = getPriceCalculatorState();
+    current.quantities = {};
     savePriceCalculatorState(current);
     renderAllPriceCalculators();
   }
