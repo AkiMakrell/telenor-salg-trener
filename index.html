@@ -965,6 +965,11 @@
       box-shadow: inset 3px 0 0 var(--primary);
     }
 
+    .price-calculator-table-row:focus-within {
+      background: rgba(41, 168, 224, 0.14);
+      box-shadow: inset 4px 0 0 var(--primary), 0 0 0 1px rgba(41, 168, 224, 0.12);
+    }
+
     .price-calculator-product-cell {
       min-width: 160px;
     }
@@ -1000,6 +1005,7 @@
       border-color: var(--primary);
       background: white;
       color: #0f172a;
+      box-shadow: 0 0 0 4px rgba(41, 168, 224, 0.22);
     }
 
     .price-calculator-price-cell {
@@ -4505,7 +4511,7 @@
                     inputmode="numeric"
                     min="0"
                     step="1"
-                    value="${count}"
+                    value="${count > 0 ? count : ''}"
                     aria-label="Antall for ${escHtml(plan.name)}"
                     oninput="setPriceCalculatorItemCount('${plan.id}', this.value)"
                   />
