@@ -899,6 +899,12 @@
       gap: 12px;
     }
 
+    .notes-summary-heading {
+      text-align: center;
+      font-size: 1.35rem;
+      margin-bottom: 12px;
+    }
+
     .notes-price-list-intro {
       color: #1e293b;
       font-size: 0.92rem;
@@ -2800,10 +2806,10 @@
         <button class="backup-btn" style="font-size:0.9rem;padding:10px 14px;border-radius:8px;color:var(--muted);" onclick="resetConversationNotes()">Ny samtale</button>
       </div>
       <div id="notes-summary-panel" class="notes-summary-panel">
-        <div class="notes-question" style="margin-bottom:10px;">Oppsummering</div>
+        <div class="notes-question notes-summary-heading">Oppsummering</div>
         <textarea id="notes-summary-output" class="notes-summary-output" readonly></textarea>
         <div class="notes-price-list">
-          <div class="notes-question" style="margin-bottom:0;">Pris kalkulator</div>
+          <div class="notes-question notes-summary-heading">Pris kalkulator</div>
           <div class="notes-price-list-intro">Legg inn antall per abonnement i tabellen og se totalprisen oppdatere seg live.</div>
           <div id="notes-price-calculator-mode" class="choice-row"></div>
           <div class="price-calculator-workspace">
