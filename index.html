@@ -920,120 +920,93 @@
       margin-bottom: 10px;
     }
 
-    .price-calculator-plan-grid {
+    .price-calculator-workspace {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
+      grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr);
+      gap: 14px;
+      align-items: start;
     }
 
-    .price-calculator-plan-card {
+    .price-calculator-table-card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--card);
+      overflow: hidden;
+    }
+
+    .price-calculator-table {
       width: 100%;
+      border-collapse: collapse;
+    }
+
+    .price-calculator-table th,
+    .price-calculator-table td {
+      padding: 12px 14px;
       text-align: left;
-      font-family: inherit;
-      cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
-      appearance: none;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
     }
 
-    .price-calculator-plan-card:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+    .price-calculator-table th {
+      font-size: 0.76rem;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      background: rgba(41, 168, 224, 0.06);
     }
 
-    .price-calculator-plan-card.active {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(41, 168, 224, 0.28), 0 14px 30px rgba(15, 23, 42, 0.18);
-      transform: translateY(-1px);
-      filter: saturate(1.08);
-      background-image: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0));
+    .price-calculator-table tbody tr:last-child td {
+      border-bottom: none;
     }
 
-    .price-calculator-plan-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 8px;
+    .price-calculator-table-row.active {
+      background: rgba(41, 168, 224, 0.1);
+      box-shadow: inset 3px 0 0 var(--primary);
     }
 
-    .price-calculator-plan-price {
-      display: inline-flex;
-      align-items: center;
-      padding: 6px 10px;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.88);
-      border: 1px solid rgba(15, 23, 42, 0.12);
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    .price-calculator-product-cell {
+      min-width: 160px;
+    }
+
+    .price-calculator-product-name {
       font-size: 0.95rem;
       font-weight: 800;
-      color: #0f172a;
+      color: var(--text);
     }
 
-    .price-calculator-plan-meta {
-      margin-top: 6px;
-      font-size: 0.82rem;
-      color: var(--muted);
-      line-height: 1.45;
-    }
-
-    .price-calculator-plan-status {
-      margin-top: 8px;
-      font-size: 0.8rem;
-      font-weight: 800;
+    .price-calculator-product-state {
+      margin-top: 4px;
+      font-size: 0.79rem;
+      font-weight: 700;
       color: var(--primary-dark);
     }
 
-    .price-calculator-selected-badge {
-      padding: 5px 10px;
-      border-radius: 999px;
-      background: var(--primary);
-      color: white;
-      font-size: 0.72rem;
+    .price-calculator-qty-input {
+      width: 88px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 10px;
+      font-size: 0.95rem;
       font-weight: 800;
-      white-space: nowrap;
-      box-shadow: 0 6px 14px rgba(41, 168, 224, 0.32);
-    }
-
-    .price-calculator-quantity {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .price-calculator-empty {
-      padding: 14px 16px;
-      border: 1px dashed var(--border);
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.55);
-      color: var(--muted);
+      font-family: inherit;
+      background: var(--primary-xlight);
+      color: var(--text);
       text-align: center;
-      font-size: 0.9rem;
     }
 
-    .price-calculator-line-total {
+    .price-calculator-qty-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: white;
+      color: #0f172a;
+    }
+
+    .price-calculator-price-cell {
       font-size: 0.92rem;
       font-weight: 800;
       color: var(--text);
-      padding: 6px 10px;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.78);
-      border: 1px solid rgba(15, 23, 42, 0.12);
       white-space: nowrap;
-    }
-
-    .price-calculator-lines {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding-top: 4px;
-      border-top: 1px solid var(--border);
-    }
-
-    .price-calculator-lines-title {
-      font-size: 0.88rem;
-      font-weight: 700;
-      color: var(--muted);
     }
 
     .price-calculator-summary-card {
@@ -1041,6 +1014,12 @@
       flex-direction: column;
       gap: 12px;
       text-align: left;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--card);
+      padding: 14px;
+      position: sticky;
+      top: 12px;
     }
 
     .price-calculator-summary-top {
@@ -1120,6 +1099,11 @@
       border-radius: 10px;
       background: rgba(255, 255, 255, 0.78);
       border: 1px solid rgba(37, 99, 235, 0.16);
+    }
+
+    .price-calculator-clear-btn {
+      margin-top: 0;
+      align-self: flex-start;
     }
 
     .price-calculator-feature-list {
@@ -1225,6 +1209,14 @@
 
       .price-calculator-summary-top {
         flex-direction: column;
+      }
+
+      .price-calculator-workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .price-calculator-summary-card {
+        position: static;
       }
     }
 
@@ -2763,11 +2755,12 @@
         <textarea id="notes-summary-output" class="notes-summary-output" readonly></textarea>
         <div class="notes-price-list">
           <div class="notes-question" style="margin-bottom:0;">Pris kalkulator</div>
-          <div class="notes-price-list-intro">Bruk samme kalkulator her i oppsummeringen for a regne pris midt i samtalen.</div>
+          <div class="notes-price-list-intro">Legg inn antall per abonnement i tabellen og se totalprisen oppdatere seg live.</div>
           <div id="notes-price-calculator-mode" class="choice-row"></div>
-          <div id="notes-price-calculator-summary" class="price-calculator-summary-card"></div>
-          <div id="notes-price-calculator-plans" class="price-calculator-plan-grid"></div>
-          <div id="notes-price-calculator-lines"></div>
+          <div class="price-calculator-workspace">
+            <div id="notes-price-calculator-table"></div>
+            <div id="notes-price-calculator-summary"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -2781,27 +2774,13 @@
       <div class="notes-question">Velg prisnivå</div>
       <div class="notes-helper">Bytt mellom vanlige priser og forbundspriser. Alle beløp oppdateres med en gang.</div>
       <div id="price-calculator-mode" class="choice-row"></div>
-    </div>
-
-    <div class="notes-step-spacer"></div>
-
-    <div class="notes-step-card">
+      <div class="notes-step-spacer"></div>
       <div class="notes-question">Prisoversikt</div>
-      <div id="price-calculator-summary" class="price-calculator-summary-card"></div>
-    </div>
-
-    <div class="notes-step-spacer"></div>
-
-    <div class="notes-step-card">
-      <div class="notes-question">Velg abonnementstype</div>
-      <div class="notes-helper">Trykk på abonnementet du vil regne på.</div>
-      <div id="price-calculator-plans" class="price-calculator-plan-grid"></div>
-    </div>
-
-    <div class="notes-step-spacer"></div>
-
-    <div class="notes-step-card">
-      <div id="price-calculator-lines"></div>
+      <div class="notes-helper">Fyll inn antall direkte i tabellen. Totalprisen vises til høyre hele tiden.</div>
+      <div class="price-calculator-workspace">
+        <div id="price-calculator-table"></div>
+        <div id="price-calculator-summary"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -4485,10 +4464,9 @@
 
   function renderPriceCalculator(prefix = 'price-calculator') {
     const modeWrap = document.getElementById(`${prefix}-mode`);
-    const plansWrap = document.getElementById(`${prefix}-plans`);
+    const tableWrap = document.getElementById(`${prefix}-table`);
     const summaryWrap = document.getElementById(`${prefix}-summary`);
-    const linesWrap = document.getElementById(`${prefix}-lines`);
-    if (!modeWrap || !plansWrap || !summaryWrap || !linesWrap) return;
+    if (!modeWrap || !tableWrap || !summaryWrap) return;
 
     const state = getPriceCalculatorState();
     const modeLabel = getPriceCalculatorModeLabel(state.pricingMode);
@@ -4500,78 +4478,71 @@
       <button class="choice-chip ${state.pricingMode === mode.id ? 'active' : ''}" type="button" onclick="setPriceCalculatorMode('${mode.id}')">${mode.label}</button>
     `).join('');
 
-    plansWrap.innerHTML = PRICE_CALCULATOR_PLANS.map(plan => {
+    tableWrap.innerHTML = `
+      <div class="price-calculator-table-card">
+        <table class="price-calculator-table">
+          <thead>
+            <tr>
+              <th>Produkt</th>
+              <th>Antall</th>
+              <th>Pris</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${PRICE_CALCULATOR_PLANS.map(plan => {
       const count = state.quantities[plan.id] || 0;
       const planPrice = getPriceCalculatorUnitPrice(plan, state.pricingMode);
-      const quickLabel = plan.features.find(feature => /\bGB\b|datakort|tvillingkort|200 MB/i.test(feature))
-        || (plan.id === 'basis' ? 'Paygo' : 'Fri bruk tale og SMS');
       return `
-        <button class="notes-price-card ${plan.themeClass} price-calculator-plan-card ${count > 0 ? 'active' : ''}" type="button" onclick="addPriceCalculatorPlan('${plan.id}')">
-          <div class="price-calculator-plan-top">
-            <div class="notes-price-card-title">${escHtml(plan.name)}</div>
-            ${count > 0 ? `<span class="price-calculator-selected-badge">Lagt til: ${count} abo</span>` : '<span class="price-calculator-selected-badge">Trykk for +1</span>'}
-          </div>
-          <div class="price-calculator-plan-price">${formatPriceCalculatorMoney(planPrice)}</div>
-          <div class="price-calculator-plan-meta">${escHtml(quickLabel)}</div>
-          ${count > 0 ? `<div class="price-calculator-plan-status">Dette abonnementet er med i regnestykket.</div>` : ''}
-        </button>
+              <tr class="price-calculator-table-row ${count > 0 ? 'active' : ''}">
+                <td class="price-calculator-product-cell">
+                  <div class="price-calculator-product-name">${escHtml(plan.name)}</div>
+                  ${count > 0 ? `<div class="price-calculator-product-state">${count} abo valgt</div>` : ''}
+                </td>
+                <td>
+                  <input
+                    class="price-calculator-qty-input"
+                    type="number"
+                    inputmode="numeric"
+                    min="0"
+                    step="1"
+                    value="${count}"
+                    aria-label="Antall for ${escHtml(plan.name)}"
+                    oninput="setPriceCalculatorItemCount('${plan.id}', this.value)"
+                  />
+                </td>
+                <td class="price-calculator-price-cell">${formatPriceCalculatorMoney(planPrice)}</td>
+              </tr>
       `;
-    }).join('');
-
-    const lineItemsMarkup = lineItems.length
-      ? `
-        <div class="notes-data-summary-list">
-          ${lineItems.map(item => {
-            const unitPrice = getPriceCalculatorUnitPrice(item.plan, state.pricingMode);
-            const lineTotal = unitPrice * item.count;
-            return `
-              <div class="notes-data-summary-item">
-                <div class="notes-data-summary-item-main">
-                  <div class="notes-data-summary-item-title">${escHtml(item.plan.name)}</div>
-                  <div class="notes-data-summary-item-meta">${item.count} abo x ${formatPriceCalculatorMoney(unitPrice)}</div>
-                </div>
-                <div class="notes-stepper">
-                  <button class="notes-stepper-btn" type="button" onclick="changePriceCalculatorItemCount('${item.plan.id}', -1)">-</button>
-                  <div class="notes-stepper-value">${item.count}</div>
-                  <button class="notes-stepper-btn" type="button" onclick="changePriceCalculatorItemCount('${item.plan.id}', 1)">+</button>
-                </div>
-                <div class="price-calculator-line-total">${formatPriceCalculatorMoney(lineTotal)}</div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      `
-      : `<div class="price-calculator-empty">Trykk pa et abonnementskort for a legge det til i regnestykket.</div>`;
-
-    summaryWrap.innerHTML = `
-      <div class="price-calculator-summary-top">
-        <div>
-          <div class="price-calculator-summary-title">Regnestykke</div>
-          <div class="price-calculator-summary-subtitle">${lineItems.length ? `Prisene oppdateres live med ${modeLabel.toLowerCase()}.` : 'Trykk pa et abonnementskort for a starte regnestykket.'}</div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <div class="price-calculator-summary-mode">${modeLabel}</div>
-          ${lineItems.length ? '<button class="backup-btn" type="button" style="margin-top:0;" onclick="clearPriceCalculator()">Tøm regnestykke</button>' : ''}
-        </div>
-      </div>
-      <div class="price-calculator-metrics">
-        <div class="price-calculator-metric">
-          <span class="price-calculator-metric-label">Sum eks. mva</span>
-          <div class="price-calculator-metric-value">${formatPriceCalculatorMoney(totalExVat)}</div>
-        </div>
-        <div class="price-calculator-metric price-calculator-metric-highlight">
-          <span class="price-calculator-metric-label">Sum inkl. mva (25%)</span>
-          <div class="price-calculator-metric-value">${formatPriceCalculatorMoney(totalIncVat)}</div>
-        </div>
+    }).join('')}
+          </tbody>
+        </table>
       </div>
     `;
 
-    linesWrap.innerHTML = lineItems.length ? `
-      <div class="price-calculator-lines">
-        <div class="price-calculator-lines-title">Linjer i regnestykket</div>
-        ${lineItemsMarkup}
+    summaryWrap.innerHTML = `
+      <div class="price-calculator-summary-card">
+        <div class="price-calculator-summary-top">
+          <div>
+            <div class="price-calculator-summary-title">Totalpris</div>
+            <div class="price-calculator-summary-subtitle">${lineItems.length ? `Prisene oppdateres live med ${modeLabel.toLowerCase()}.` : 'Legg inn antall i tabellen for a starte regnestykket.'}</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <div class="price-calculator-summary-mode">${modeLabel}</div>
+          </div>
+        </div>
+        <div class="price-calculator-metrics">
+          <div class="price-calculator-metric">
+            <span class="price-calculator-metric-label">Sum eks. mva</span>
+            <div class="price-calculator-metric-value">${formatPriceCalculatorMoney(totalExVat)}</div>
+          </div>
+          <div class="price-calculator-metric price-calculator-metric-highlight">
+            <span class="price-calculator-metric-label">Sum inkl. mva (25%)</span>
+            <div class="price-calculator-metric-value">${formatPriceCalculatorMoney(totalIncVat)}</div>
+          </div>
+        </div>
+        ${lineItems.length ? '<button class="backup-btn price-calculator-clear-btn" type="button" onclick="clearPriceCalculator()">Tøm regnestykke</button>' : ''}
       </div>
-    ` : lineItemsMarkup;
+    `;
   }
 
   function renderAllPriceCalculators() {
@@ -4586,16 +4557,9 @@
     renderAllPriceCalculators();
   }
 
-  function addPriceCalculatorPlan(planId) {
+  function setPriceCalculatorItemCount(planId, rawValue) {
     const current = getPriceCalculatorState();
-    current.quantities[planId] = (current.quantities[planId] || 0) + 1;
-    savePriceCalculatorState(current);
-    renderAllPriceCalculators();
-  }
-
-  function changePriceCalculatorItemCount(planId, delta) {
-    const current = getPriceCalculatorState();
-    const nextCount = Math.max(0, (current.quantities[planId] || 0) + delta);
+    const nextCount = Math.max(0, Math.floor(Number(rawValue) || 0));
     if (nextCount > 0) current.quantities[planId] = nextCount;
     else delete current.quantities[planId];
     savePriceCalculatorState(current);
