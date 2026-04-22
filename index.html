@@ -920,6 +920,152 @@
       margin-bottom: 10px;
     }
 
+    .price-calculator-plan-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .price-calculator-plan-card {
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+      appearance: none;
+    }
+
+    .price-calculator-plan-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+    }
+
+    .price-calculator-plan-card.active {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(41, 168, 224, 0.22);
+    }
+
+    .price-calculator-plan-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .price-calculator-plan-price {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .price-calculator-plan-meta {
+      margin-top: 6px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .price-calculator-selected-badge {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(41, 168, 224, 0.16);
+      color: var(--primary-dark);
+      font-size: 0.72rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .price-calculator-quantity {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .price-calculator-summary-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      text-align: left;
+    }
+
+    .price-calculator-summary-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .price-calculator-summary-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .price-calculator-summary-subtitle {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .price-calculator-summary-mode {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(41, 168, 224, 0.12);
+      color: var(--primary-dark);
+      font-size: 0.78rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .price-calculator-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .price-calculator-metric {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--card);
+    }
+
+    .price-calculator-metric-label {
+      display: block;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .price-calculator-metric-value {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.35;
+    }
+
+    .price-calculator-metric-highlight {
+      border-color: #93c5fd;
+      background: #eff6ff;
+    }
+
+    .price-calculator-feature-list {
+      margin: 0;
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.9rem;
+      color: var(--text);
+      line-height: 1.45;
+    }
+
     .notes-price-card-list {
       margin: 0;
       padding-left: 18px;
@@ -1008,6 +1154,10 @@
 
       .notes-data-summary-item {
         align-items: stretch;
+      }
+
+      .price-calculator-summary-top {
+        flex-direction: column;
       }
     }
 
@@ -2393,7 +2543,7 @@
     <button class="tab-btn" onclick="switchTab('hjem')">Stats</button>
     <button class="tab-btn" onclick="switchTab('innvendinger')">Innvendinger</button>
     <button class="tab-btn" onclick="switchTab('notater')">Notater</button>
-    <button class="tab-btn" onclick="switchTab('priser')">Priser</button>
+    <button class="tab-btn" onclick="switchTab('priser')">Pris kalkulator</button>
     <button class="tab-btn" onclick="switchTab('samtaleflyt')">Flyt (avansert)</button>
   </div>
   <div id="top-bar-settings" class="top-bar-settings">
@@ -2665,121 +2815,39 @@
 
 <div id="tab-priser" class="tab-content">
   <div class="notes-page">
-    <div class="notes-page-title">Telenor abonnement og priser</div>
+    <div class="notes-page-title">Pris kalkulator</div>
     <div class="notes-step-card">
-      <div class="notes-price-list" style="margin-top:0;">
-        <div class="notes-price-list-intro">Alle abonnement inkluderer nettvern, nummervarsel og Min Sky Ubegrenset. Prisene under er månedspris per abonnement, og forbundspris gjelder kunder som er medlem i aktuelle forbund.</div>
-        <div class="notes-price-list-grid">
-          <div class="notes-price-card notes-price-card-basis">
-            <div class="notes-price-card-title">Basis</div>
-            <div class="notes-price-card-price">Standard: 69,-/md</div>
-            <div class="notes-price-card-subprice">Forbund: 69,-/md</div>
-            <ol class="notes-price-card-list">
-              <li>Nettvern inkludert</li>
-              <li>Nummervarsel inkludert</li>
-              <li>Min Sky Ubegrenset inkludert</li>
-              <li>kr 4,99 per MB, maks kr 999,-</li>
-              <li>kr 0,59 per minutt/SMS/startpris</li>
-              <li>kr 1,99 per MMS</li>
-            </ol>
-          </div>
-          <div class="notes-price-card notes-price-card-basis">
-            <div class="notes-price-card-title">Basis Tale</div>
-            <div class="notes-price-card-price">Standard: 239,-/md</div>
-            <div class="notes-price-card-subprice">Forbund: 189,-/md</div>
-            <ul class="notes-price-card-list">
-              <li>Nettvern inkludert</li>
-              <li>Nummervarsel inkludert</li>
-              <li>Min Sky Ubegrenset inkludert</li>
-              <li>Fri bruk tale og SMS i EU/EØS</li>
-              <li>200 MB</li>
-            </ul>
-          </div>
-          <div class="notes-price-card notes-price-card-basis">
-            <div class="notes-price-card-title">Basis Data</div>
-            <div class="notes-price-card-price">Standard: 339,-/md</div>
-            <div class="notes-price-card-subprice">Forbund: 239,-/md</div>
-            <ul class="notes-price-card-list">
-              <li>Nettvern inkludert</li>
-              <li>Nummervarsel inkludert</li>
-              <li>Min Sky Ubegrenset inkludert</li>
-              <li>Fri bruk tale og SMS i EU/EØS</li>
-              <li>2 GB data</li>
-            </ul>
-          </div>
-          <div class="notes-price-card notes-price-card-flyt">
-            <div class="notes-price-card-title">Flyt 5</div>
-            <div class="notes-price-card-price">Standard: 399,-/md</div>
-            <div class="notes-price-card-subprice">Forbund: 299,-/md</div>
-            <ul class="notes-price-card-list">
-              <li>Nettvern inkludert</li>
-              <li>Nummervarsel inkludert</li>
-              <li>Min Sky Ubegrenset inkludert</li>
-              <li>Fri bruk tale og SMS i EU/EØS</li>
-              <li>5 GB data</li>
-            </ul>
-          </div>
-          <div class="notes-price-card notes-price-card-flyt">
-            <div class="notes-price-card-title">Flyt 20</div>
-            <div class="notes-price-card-price">Standard: 449,-/md</div>
-            <div class="notes-price-card-subprice">Forbund: 399,-/md</div>
-            <ul class="notes-price-card-list">
-              <li>Nettvern inkludert</li>
-              <li>Nummervarsel inkludert</li>
-              <li>Min Sky Ubegrenset inkludert</li>
-              <li>Fri bruk tale og SMS i EU/EØS</li>
-              <li>1 datakort</li>
-            </ul>
-          </div>
-          <div class="notes-price-card notes-price-card-flyt">
-            <div class="notes-price-card-title">Flyt 50</div>
-            <div class="notes-price-card-price">Standard: 499,-/md</div>
-            <div class="notes-price-card-subprice">Forbund: 499,-/md</div>
-            <ul class="notes-price-card-list">
-              <li>Nettvern inkludert</li>
-              <li>Nummervarsel inkludert</li>
-              <li>Min Sky Ubegrenset inkludert</li>
-              <li>Fri bruk tale og SMS i EU/EØS</li>
-              <li>1 datakort</li>
-            </ul>
-          </div>
-          <div class="notes-price-card notes-price-card-frihet">
-            <div class="notes-price-card-title">Frihet Start</div>
-            <div class="notes-price-card-price">Standard: 499,-/md</div>
-            <div class="notes-price-card-subprice">Forbund: 499,-/md</div>
-            <ul class="notes-price-card-list">
-              <li>Nettvern inkludert</li>
-              <li>Nummervarsel inkludert</li>
-              <li>Min Sky Ubegrenset inkludert</li>
-              <li>Fri bruk tale og SMS i EU/EØS</li>
-            </ul>
-          </div>
-          <div class="notes-price-card notes-price-card-frihet">
-            <div class="notes-price-card-title">Frihet</div>
-            <div class="notes-price-card-price">Standard: 549,-/md</div>
-            <div class="notes-price-card-subprice">Forbund: 549,-/md</div>
-            <ul class="notes-price-card-list">
-              <li>Nettvern inkludert</li>
-              <li>Nummervarsel inkludert</li>
-              <li>Min Sky Ubegrenset inkludert</li>
-              <li>Fri bruk tale og SMS i EU/EØS</li>
-              <li>1 datakort</li>
-            </ul>
-          </div>
-          <div class="notes-price-card notes-price-card-frihet">
-            <div class="notes-price-card-title">Frihet Premium</div>
-            <div class="notes-price-card-price">Standard: 649,-/md</div>
-            <div class="notes-price-card-subprice">Forbund: 649,-/md</div>
-            <ul class="notes-price-card-list">
-              <li>Nettvern inkludert</li>
-              <li>Nummervarsel inkludert</li>
-              <li>Min Sky Ubegrenset inkludert</li>
-              <li>Fri bruk tale og SMS i EU/EØS</li>
-              <li>1 datakort og 1 tvillingkort</li>
-            </ul>
-          </div>
+      <div class="notes-question">Velg prisnivå</div>
+      <div class="notes-helper">Bytt mellom vanlige priser og forbundspriser. Alle beløp oppdateres med en gang.</div>
+      <div id="price-calculator-mode" class="choice-row"></div>
+    </div>
+
+    <div class="notes-step-spacer"></div>
+
+    <div class="notes-step-card">
+      <div class="notes-question">Velg abonnementstype</div>
+      <div class="notes-helper">Trykk på abonnementet du vil regne på.</div>
+      <div id="price-calculator-plans" class="price-calculator-plan-grid"></div>
+    </div>
+
+    <div class="notes-step-spacer"></div>
+
+    <div class="notes-step-card">
+      <div class="notes-question">Velg antall abonnement</div>
+      <div class="price-calculator-quantity">
+        <div class="notes-stepper">
+          <button id="price-calculator-quantity-decrease" class="notes-stepper-btn" type="button" onclick="changePriceCalculatorQuantity(-1)">-</button>
+          <div id="price-calculator-quantity-value" class="notes-stepper-value">1</div>
+          <button id="price-calculator-quantity-increase" class="notes-stepper-btn" type="button" onclick="changePriceCalculatorQuantity(1)">+</button>
         </div>
       </div>
+    </div>
+
+    <div class="notes-step-spacer"></div>
+
+    <div class="notes-step-card">
+      <div class="notes-question">Prisoversikt</div>
+      <div id="price-calculator-summary" class="price-calculator-summary-card"></div>
     </div>
   </div>
 </div>
@@ -3189,6 +3257,7 @@
     renderIntroHistory();
     renderFakta();
     renderConversationNotes();
+    renderPriceCalculator();
     renderSamtaleflyt();
   }
 
@@ -3331,6 +3400,7 @@
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-' + name).classList.add('active');
     event.target.classList.add('active');
+    if (name === 'priser') renderPriceCalculator();
     if (name === 'samtaleflyt') renderSamtaleflyt();
     if (name === 'notater') renderConversationNotes();
   }
@@ -4139,6 +4209,141 @@
     { key: 'nettsikkerhet', label: 'Nettsikkerhet', placeholder: 'Hvilke bekymringer eller behov har kunden rundt trygghet?' },
     { key: 'datakort', label: 'Datakort', placeholder: 'Har kunden behov for nett på andre enheter eller i bil?' }
   ];
+  const PRICE_CALCULATOR_MODES = [
+    { id: 'standard', label: 'Vanlige priser' },
+    { id: 'forbund', label: 'Forbundspriser' }
+  ];
+  const PRICE_CALCULATOR_PLANS = [
+    {
+      id: 'basis',
+      name: 'Basis',
+      themeClass: 'notes-price-card-basis',
+      standardPrice: 69,
+      forbundPrice: 69,
+      features: ['Nettvern inkludert', 'Nummervarsel inkludert', 'Min Sky Ubegrenset inkludert', 'kr 4,99 per MB, maks kr 999,-', 'kr 0,59 per minutt/SMS/startpris', 'kr 1,99 per MMS']
+    },
+    {
+      id: 'basis-tale',
+      name: 'Basis Tale',
+      themeClass: 'notes-price-card-basis',
+      standardPrice: 239,
+      forbundPrice: 189,
+      features: ['Nettvern inkludert', 'Nummervarsel inkludert', 'Min Sky Ubegrenset inkludert', 'Fri bruk tale og SMS i EU/EØS', '200 MB']
+    },
+    {
+      id: 'basis-data',
+      name: 'Basis Data',
+      themeClass: 'notes-price-card-basis',
+      standardPrice: 339,
+      forbundPrice: 239,
+      features: ['Nettvern inkludert', 'Nummervarsel inkludert', 'Min Sky Ubegrenset inkludert', 'Fri bruk tale og SMS i EU/EØS', '2 GB data']
+    },
+    {
+      id: 'flyt-5',
+      name: 'Flyt 5',
+      themeClass: 'notes-price-card-flyt',
+      standardPrice: 399,
+      forbundPrice: 299,
+      features: ['Nettvern inkludert', 'Nummervarsel inkludert', 'Min Sky Ubegrenset inkludert', 'Fri bruk tale og SMS i EU/EØS', '5 GB data']
+    },
+    {
+      id: 'flyt-20',
+      name: 'Flyt 20',
+      themeClass: 'notes-price-card-flyt',
+      standardPrice: 449,
+      forbundPrice: 399,
+      features: ['Nettvern inkludert', 'Nummervarsel inkludert', 'Min Sky Ubegrenset inkludert', 'Fri bruk tale og SMS i EU/EØS', '1 datakort']
+    },
+    {
+      id: 'flyt-50',
+      name: 'Flyt 50',
+      themeClass: 'notes-price-card-flyt',
+      standardPrice: 499,
+      forbundPrice: 499,
+      features: ['Nettvern inkludert', 'Nummervarsel inkludert', 'Min Sky Ubegrenset inkludert', 'Fri bruk tale og SMS i EU/EØS', '1 datakort']
+    },
+    {
+      id: 'frihet-start',
+      name: 'Frihet Start',
+      themeClass: 'notes-price-card-frihet',
+      standardPrice: 499,
+      forbundPrice: 499,
+      features: ['Nettvern inkludert', 'Nummervarsel inkludert', 'Min Sky Ubegrenset inkludert', 'Fri bruk tale og SMS i EU/EØS']
+    },
+    {
+      id: 'frihet',
+      name: 'Frihet',
+      themeClass: 'notes-price-card-frihet',
+      standardPrice: 549,
+      forbundPrice: 549,
+      features: ['Nettvern inkludert', 'Nummervarsel inkludert', 'Min Sky Ubegrenset inkludert', 'Fri bruk tale og SMS i EU/EØS', '1 datakort']
+    },
+    {
+      id: 'frihet-premium',
+      name: 'Frihet Premium',
+      themeClass: 'notes-price-card-frihet',
+      standardPrice: 649,
+      forbundPrice: 649,
+      features: ['Nettvern inkludert', 'Nummervarsel inkludert', 'Min Sky Ubegrenset inkludert', 'Fri bruk tale og SMS i EU/EØS', '1 datakort og 1 tvillingkort']
+    }
+  ];
+
+  function getDefaultPriceCalculatorState() {
+    return {
+      pricingMode: PRICE_CALCULATOR_MODES[0].id,
+      planId: PRICE_CALCULATOR_PLANS[0].id,
+      quantity: 1
+    };
+  }
+
+  function getPriceCalculatorPlan(planId) {
+    return PRICE_CALCULATOR_PLANS.find(plan => plan.id === planId) || PRICE_CALCULATOR_PLANS[0];
+  }
+
+  function getPriceCalculatorState() {
+    const raw = localStorage.getItem('priceCalculatorState');
+    const parsed = raw ? JSON.parse(raw) : getDefaultPriceCalculatorState();
+    let changed = !raw;
+    if (!PRICE_CALCULATOR_MODES.some(mode => mode.id === parsed.pricingMode)) {
+      parsed.pricingMode = PRICE_CALCULATOR_MODES[0].id;
+      changed = true;
+    }
+    if (!PRICE_CALCULATOR_PLANS.some(plan => plan.id === parsed.planId)) {
+      parsed.planId = PRICE_CALCULATOR_PLANS[0].id;
+      changed = true;
+    }
+    const normalizedQuantity = Math.max(1, Math.floor(Number(parsed.quantity) || 1));
+    if (parsed.quantity !== normalizedQuantity) changed = true;
+    parsed.quantity = normalizedQuantity;
+    if (changed) localStorage.setItem('priceCalculatorState', JSON.stringify(parsed));
+    return parsed;
+  }
+
+  function savePriceCalculatorState(state) {
+    localStorage.setItem('priceCalculatorState', JSON.stringify(state));
+  }
+
+  function getPriceCalculatorModeLabel(modeId) {
+    const mode = PRICE_CALCULATOR_MODES.find(item => item.id === modeId);
+    return mode ? mode.label : PRICE_CALCULATOR_MODES[0].label;
+  }
+
+  function getPriceCalculatorUnitPrice(plan, pricingMode) {
+    return pricingMode === 'forbund' ? plan.forbundPrice : plan.standardPrice;
+  }
+
+  function formatPriceCalculatorNumber(value) {
+    const hasDecimals = Math.abs(value - Math.round(value)) > 0.0001;
+    return new Intl.NumberFormat('no-NO', {
+      minimumFractionDigits: hasDecimals ? 2 : 0,
+      maximumFractionDigits: 2
+    }).format(value);
+  }
+
+  function formatPriceCalculatorMoney(value) {
+    return `kr ${formatPriceCalculatorNumber(value)} / md`;
+  }
+
   function getDefaultConversationDataBreakdown() {
     return DATA_BUCKET_OPTIONS.map(option => ({
       id: option.id,
@@ -4305,6 +4510,101 @@
   function updateConversationSummary(notes = getConversationNotes()) {
     const output = document.getElementById('notes-summary-output');
     if (output) output.value = buildConversationSummary(notes);
+  }
+
+  function renderPriceCalculator() {
+    const modeWrap = document.getElementById('price-calculator-mode');
+    const plansWrap = document.getElementById('price-calculator-plans');
+    const quantityValue = document.getElementById('price-calculator-quantity-value');
+    const quantityDecrease = document.getElementById('price-calculator-quantity-decrease');
+    const summaryWrap = document.getElementById('price-calculator-summary');
+    if (!modeWrap || !plansWrap || !quantityValue || !summaryWrap) return;
+
+    const state = getPriceCalculatorState();
+    const selectedPlan = getPriceCalculatorPlan(state.planId);
+    const modeLabel = getPriceCalculatorModeLabel(state.pricingMode);
+    const unitPrice = getPriceCalculatorUnitPrice(selectedPlan, state.pricingMode);
+    const totalExVat = unitPrice * state.quantity;
+    const totalIncVat = totalExVat * 1.25;
+
+    modeWrap.innerHTML = PRICE_CALCULATOR_MODES.map(mode => `
+      <button class="choice-chip ${state.pricingMode === mode.id ? 'active' : ''}" type="button" onclick="setPriceCalculatorMode('${mode.id}')">${mode.label}</button>
+    `).join('');
+
+    plansWrap.innerHTML = PRICE_CALCULATOR_PLANS.map(plan => {
+      const selected = plan.id === state.planId;
+      const planPrice = getPriceCalculatorUnitPrice(plan, state.pricingMode);
+      const quickLabel = plan.features.find(feature => /\bGB\b|datakort|tvillingkort|200 MB/i.test(feature))
+        || (plan.id === 'basis' ? 'Paygo' : 'Fri bruk tale og SMS');
+      return `
+        <button class="notes-price-card ${plan.themeClass} price-calculator-plan-card ${selected ? 'active' : ''}" type="button" onclick="selectPriceCalculatorPlan('${plan.id}')">
+          <div class="price-calculator-plan-top">
+            <div class="notes-price-card-title">${escHtml(plan.name)}</div>
+            ${selected ? '<span class="price-calculator-selected-badge">Valgt</span>' : ''}
+          </div>
+          <div class="price-calculator-plan-price">${formatPriceCalculatorMoney(planPrice)}</div>
+          <div class="price-calculator-plan-meta">${escHtml(quickLabel)}</div>
+        </button>
+      `;
+    }).join('');
+
+    quantityValue.textContent = String(state.quantity);
+    if (quantityDecrease) quantityDecrease.disabled = state.quantity <= 1;
+
+    summaryWrap.innerHTML = `
+      <div class="price-calculator-summary-top">
+        <div>
+          <div class="price-calculator-summary-title">${escHtml(selectedPlan.name)}</div>
+          <div class="price-calculator-summary-subtitle">${state.quantity} abo med ${modeLabel.toLowerCase()}.</div>
+        </div>
+        <div class="price-calculator-summary-mode">${modeLabel}</div>
+      </div>
+      <div class="price-calculator-metrics">
+        <div class="price-calculator-metric">
+          <span class="price-calculator-metric-label">Pris per abo</span>
+          <div class="price-calculator-metric-value">${formatPriceCalculatorMoney(unitPrice)}</div>
+        </div>
+        <div class="price-calculator-metric">
+          <span class="price-calculator-metric-label">Antall</span>
+          <div class="price-calculator-metric-value">${state.quantity} abo</div>
+        </div>
+        <div class="price-calculator-metric">
+          <span class="price-calculator-metric-label">Sum eks. mva</span>
+          <div class="price-calculator-metric-value">${formatPriceCalculatorMoney(totalExVat)}</div>
+        </div>
+        <div class="price-calculator-metric price-calculator-metric-highlight">
+          <span class="price-calculator-metric-label">Sum inkl. mva (25%)</span>
+          <div class="price-calculator-metric-value">${formatPriceCalculatorMoney(totalIncVat)}</div>
+        </div>
+      </div>
+      <div>
+        <div class="price-calculator-summary-subtitle">Inkludert i abonnementet</div>
+        <ul class="price-calculator-feature-list">
+          ${selectedPlan.features.map(feature => `<li>${escHtml(feature)}</li>`).join('')}
+        </ul>
+      </div>
+    `;
+  }
+
+  function setPriceCalculatorMode(modeId) {
+    const current = getPriceCalculatorState();
+    current.pricingMode = modeId;
+    savePriceCalculatorState(current);
+    renderPriceCalculator();
+  }
+
+  function selectPriceCalculatorPlan(planId) {
+    const current = getPriceCalculatorState();
+    current.planId = planId;
+    savePriceCalculatorState(current);
+    renderPriceCalculator();
+  }
+
+  function changePriceCalculatorQuantity(delta) {
+    const current = getPriceCalculatorState();
+    current.quantity = Math.max(1, current.quantity + delta);
+    savePriceCalculatorState(current);
+    renderPriceCalculator();
   }
 
   function renderConversationNotes() {
