@@ -942,7 +942,9 @@
 
     .price-calculator-plan-card.active {
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(41, 168, 224, 0.22);
+      box-shadow: 0 0 0 3px rgba(41, 168, 224, 0.28), 0 14px 30px rgba(15, 23, 42, 0.18);
+      transform: translateY(-1px);
+      filter: saturate(1.08);
     }
 
     .price-calculator-plan-top {
@@ -976,11 +978,12 @@
     .price-calculator-selected-badge {
       padding: 4px 8px;
       border-radius: 999px;
-      background: rgba(41, 168, 224, 0.16);
-      color: var(--primary-dark);
+      background: var(--primary);
+      color: white;
       font-size: 0.72rem;
       font-weight: 800;
       white-space: nowrap;
+      box-shadow: 0 6px 14px rgba(41, 168, 224, 0.32);
     }
 
     .price-calculator-quantity {
@@ -1009,6 +1012,18 @@
       background: rgba(255, 255, 255, 0.78);
       border: 1px solid rgba(15, 23, 42, 0.12);
       white-space: nowrap;
+    }
+
+    .price-calculator-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .price-calculator-lines-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--muted);
     }
 
     .price-calculator-summary-card {
@@ -4525,7 +4540,6 @@
           ${lineItems.length ? '<button class="backup-btn" type="button" style="margin-top:0;" onclick="clearPriceCalculator()">Tøm regnestykke</button>' : ''}
         </div>
       </div>
-      ${lineItemsMarkup}
       <div class="price-calculator-metrics">
         <div class="price-calculator-metric">
           <span class="price-calculator-metric-label">Typer i regnestykket</span>
@@ -4544,6 +4558,12 @@
           <div class="price-calculator-metric-value">${formatPriceCalculatorMoney(totalIncVat)}</div>
         </div>
       </div>
+      ${lineItems.length ? `
+        <div class="price-calculator-lines">
+          <div class="price-calculator-lines-title">Linjer i regnestykket</div>
+          ${lineItemsMarkup}
+        </div>
+      ` : lineItemsMarkup}
     `;
   }
 
