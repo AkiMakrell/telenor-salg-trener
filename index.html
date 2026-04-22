@@ -998,6 +998,14 @@
       background: var(--primary-xlight);
       color: var(--text);
       text-align: center;
+      appearance: textfield;
+      -moz-appearance: textfield;
+    }
+
+    .price-calculator-qty-input::-webkit-outer-spin-button,
+    .price-calculator-qty-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
     }
 
     .price-calculator-qty-input:focus {
