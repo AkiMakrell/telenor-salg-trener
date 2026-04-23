@@ -832,8 +832,9 @@
     .samtalerating-item-title-row {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 8px;
-      flex-wrap: wrap;
+      width: 100%;
     }
 
     .samtalerating-item-subtitle,
@@ -5776,7 +5777,7 @@
                 <div>
                   <div class="samtalerating-item-title-row">
                     <div class="samtalerating-item-title">${escHtml(entry.interactionId || 'Uten InteractionID')}</div>
-                    <button class="backup-btn samtalerating-mini-btn" type="button" onclick="event.stopPropagation(); copySamtaleRatingInteractionId('${entry.id}')">Kopier</button>
+                    <button class="backup-btn samtalerating-mini-btn" type="button" onclick="event.stopPropagation(); copySamtaleRatingInteractionId('${entry.id}')">Kopier ID</button>
                   </div>
                   <div class="samtalerating-item-subtitle">${escHtml(formatSamtaleRatingDate(entry.date))}</div>
                 </div>
