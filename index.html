@@ -65,9 +65,11 @@
     .tabs {
       display: inline-flex;
       flex: 1 1 auto;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       justify-content: flex-start;
       min-width: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
       background: #0b1220;
       border: 1px solid var(--border);
       padding: 4px;
@@ -75,11 +77,28 @@
       gap: 4px;
     }
 
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .top-bar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 0 0 auto;
+    }
+
+    .top-bar-tools {
+      position: relative;
+      flex: 0 0 auto;
+    }
+
     .top-bar-settings {
       position: relative;
       flex: 0 0 auto;
     }
 
+    .menu-trigger,
     .settings-trigger {
       display: inline-flex;
       align-items: center;
@@ -91,11 +110,20 @@
       border-radius: 12px;
     }
 
+    .menu-trigger.active,
+    .menu-trigger:hover {
+      background: white;
+      color: #1e293b;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    }
+
+    .menu-trigger-icon,
     .settings-trigger-icon {
       font-size: 0.95rem;
       line-height: 1;
     }
 
+    .tools-menu,
     .settings-menu {
       position: absolute;
       top: calc(100% + 10px);
@@ -111,10 +139,41 @@
       z-index: 40;
     }
 
+    .tools-menu.open,
     .settings-menu.open {
       display: flex;
       flex-direction: column;
       gap: 10px;
+    }
+
+    .tools-menu {
+      min-width: 220px;
+      gap: 6px;
+    }
+
+    .more-tab-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 10px 12px;
+      border: none;
+      background: transparent;
+      color: #64748b;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      text-align: left;
+    }
+
+    .more-tab-btn-meta {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     .settings-menu-section {
@@ -336,9 +395,12 @@
       font-size: 0.95rem;
       font-weight: 600;
       transition: all 0.2s;
+      white-space: nowrap;
+      flex: 0 0 auto;
     }
 
-    .tab-btn.active, .tab-btn:hover {
+    .tab-btn.active, .tab-btn:hover,
+    .more-tab-btn.active, .more-tab-btn:hover {
       background: white;
       color: #1e293b;
       box-shadow: 0 1px 4px rgba(0,0,0,0.12);
@@ -2294,6 +2356,11 @@
         width: 100%;
       }
 
+      .top-bar-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+
       .top-bar-settings {
         align-self: flex-end;
       }
@@ -2359,6 +2426,10 @@
       .settings-menu {
         right: 0;
         min-width: min(280px, calc(100vw - 32px));
+      }
+
+      .tools-menu {
+        min-width: min(220px, calc(100vw - 32px));
       }
     }
 
@@ -3582,6 +3653,10 @@
     .backup-btn,
     .tab-btn.active,
     .tab-btn:hover,
+    .menu-trigger.active,
+    .menu-trigger:hover,
+    .more-tab-btn.active,
+    .more-tab-btn:hover,
     textarea:focus,
     .objection-search:focus,
     .notes-inline-field input:focus,
@@ -3612,6 +3687,8 @@
 
     .backup-btn,
     .tab-btn,
+    .menu-trigger,
+    .more-tab-btn,
     .quick-undo-btn,
     .fakta-action-btn,
     .intro-chip-delete {
@@ -3619,7 +3696,11 @@
     }
 
     .tab-btn.active,
-    .tab-btn:hover {
+    .tab-btn:hover,
+    .menu-trigger.active,
+    .menu-trigger:hover,
+    .more-tab-btn.active,
+    .more-tab-btn:hover {
       color: var(--text);
       box-shadow: 0 1px 8px rgba(0,0,0,0.35);
     }
@@ -3837,37 +3918,61 @@
     <button class="tab-btn" data-tab="notater" onclick="switchTab('notater', this)">Notater</button>
     <button class="tab-btn" data-tab="samtalerating" onclick="switchTab('samtalerating', this)">Samtalerating</button>
     <button class="tab-btn" data-tab="ov" onclick="switchTab('ov', this)">OV</button>
-    <button class="tab-btn" data-tab="priser" onclick="switchTab('priser', this)">Pris kalkulator</button>
-    <button class="tab-btn" data-tab="samtaleflyt" onclick="switchTab('samtaleflyt', this)">Flyt (avansert)</button>
   </div>
-  <div id="top-bar-settings" class="top-bar-settings">
-    <button
-      id="top-bar-settings-button"
-      class="backup-btn settings-trigger"
-      type="button"
-      aria-expanded="false"
-      aria-controls="top-bar-settings-menu"
-      aria-label="Åpne innstillinger"
-      onclick="toggleTopBarSettings()"
-    >
-      <span class="settings-trigger-icon" aria-hidden="true">&#9881;</span>
-      <span class="settings-trigger-label">Innstillinger</span>
-    </button>
-    <div id="top-bar-settings-menu" class="settings-menu" role="menu">
-      <div class="settings-menu-section">
-        <span class="settings-menu-heading">Konto</span>
-        <div id="settings-user-email" class="settings-user-email"></div>
-        <div class="settings-user-note">Din konto har sitt eget datasett. Andre brukere ser bare sitt eget innhold.</div>
-        <div class="settings-status-row">
-          <span class="settings-status-label">Skystatus</span>
-          <span id="sync-status" class="settings-status-value"></span>
-        </div>
-        <button class="backup-btn logout-btn" type="button" onclick="signOutUser(); closeTopBarSettings();">Logg ut</button>
+  <div class="top-bar-actions">
+    <div id="top-bar-tools" class="top-bar-tools">
+      <button
+        id="top-bar-tools-button"
+        class="backup-btn menu-trigger"
+        type="button"
+        aria-expanded="false"
+        aria-controls="top-bar-tools-menu"
+        aria-label="Åpne flere faner"
+        onclick="toggleTopBarTools()"
+      >
+        <span class="menu-trigger-icon" aria-hidden="true">&#8942;</span>
+        <span>Mer</span>
+      </button>
+      <div id="top-bar-tools-menu" class="tools-menu" role="menu">
+        <button class="more-tab-btn" data-tab="priser" type="button" onclick="switchTab('priser', this); closeTopBarTools();">
+          <span>Pris kalkulator</span>
+          <span class="more-tab-btn-meta">Verktøy</span>
+        </button>
+        <button class="more-tab-btn" data-tab="samtaleflyt" type="button" onclick="switchTab('samtaleflyt', this); closeTopBarTools();">
+          <span>Flyt</span>
+          <span class="more-tab-btn-meta">Avansert</span>
+        </button>
       </div>
-      <div class="settings-menu-section">
-        <span class="settings-menu-heading">Data</span>
-        <button class="backup-btn" type="button" onclick="exportData(); closeTopBarSettings();" title="Last ned sikkerhetskopi">Eksporter data</button>
-        <label class="backup-btn" title="Gjenopprett fra sikkerhetskopi">Importer data<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+    </div>
+    <div id="top-bar-settings" class="top-bar-settings">
+      <button
+        id="top-bar-settings-button"
+        class="backup-btn settings-trigger"
+        type="button"
+        aria-expanded="false"
+        aria-controls="top-bar-settings-menu"
+        aria-label="Åpne innstillinger"
+        onclick="toggleTopBarSettings()"
+      >
+        <span class="settings-trigger-icon" aria-hidden="true">&#9881;</span>
+        <span class="settings-trigger-label">Innstillinger</span>
+      </button>
+      <div id="top-bar-settings-menu" class="settings-menu" role="menu">
+        <div class="settings-menu-section">
+          <span class="settings-menu-heading">Konto</span>
+          <div id="settings-user-email" class="settings-user-email"></div>
+          <div class="settings-user-note">Din konto har sitt eget datasett. Andre brukere ser bare sitt eget innhold.</div>
+          <div class="settings-status-row">
+            <span class="settings-status-label">Skystatus</span>
+            <span id="sync-status" class="settings-status-value"></span>
+          </div>
+          <button class="backup-btn logout-btn" type="button" onclick="signOutUser(); closeTopBarSettings();">Logg ut</button>
+        </div>
+        <div class="settings-menu-section">
+          <span class="settings-menu-heading">Data</span>
+          <button class="backup-btn" type="button" onclick="exportData(); closeTopBarSettings();" title="Last ned sikkerhetskopi">Eksporter data</button>
+          <label class="backup-btn" title="Gjenopprett fra sikkerhetskopi">Importer data<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+        </div>
       </div>
     </div>
   </div>
@@ -4704,18 +4809,39 @@
     button.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
   }
 
+  function toggleTopBarTools(forceOpen) {
+    const menu = document.getElementById('top-bar-tools-menu');
+    const button = document.getElementById('top-bar-tools-button');
+    if (!menu || !button) return;
+
+    const shouldOpen = typeof forceOpen === 'boolean'
+      ? forceOpen
+      : !menu.classList.contains('open');
+
+    menu.classList.toggle('open', shouldOpen);
+    button.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+  }
+
   function closeTopBarSettings() {
     toggleTopBarSettings(false);
   }
 
+  function closeTopBarTools() {
+    toggleTopBarTools(false);
+  }
+
   document.addEventListener('click', event => {
     const settings = document.getElementById('top-bar-settings');
-    if (!settings || settings.contains(event.target)) return;
-    closeTopBarSettings();
+    if (settings && !settings.contains(event.target)) closeTopBarSettings();
+    const tools = document.getElementById('top-bar-tools');
+    if (tools && !tools.contains(event.target)) closeTopBarTools();
   });
 
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape') closeTopBarSettings();
+    if (event.key === 'Escape') {
+      closeTopBarSettings();
+      closeTopBarTools();
+    }
   });
 
   function renderAll() {
@@ -4882,10 +5008,15 @@
   // ---- Tab switching ----
   function activateTab(name, activeButtonName = name, triggerButton = null) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-btn, .more-tab-btn, .menu-trigger').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-' + name).classList.add('active');
-    const button = triggerButton || document.querySelector(`.tab-btn[data-tab="${activeButtonName}"]`);
+    const button = triggerButton || document.querySelector(`.tab-btn[data-tab="${activeButtonName}"], .more-tab-btn[data-tab="${activeButtonName}"]`);
     if (button) button.classList.add('active');
+    if (name === 'priser' || name === 'samtaleflyt') {
+      document.getElementById('top-bar-tools-button')?.classList.add('active');
+    }
+    closeTopBarTools();
+    closeTopBarSettings();
     if (name === 'hjem') {
       renderSessionStatus();
       renderStatsHome();
