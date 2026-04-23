@@ -7091,13 +7091,14 @@
                 <td>
                   <input
                     class="price-calculator-qty-input"
-                    type="number"
+                    type="text"
                     inputmode="numeric"
-                    min="0"
-                    step="1"
+                    pattern="[0-9]*"
                     value="${count > 0 ? count : ''}"
                     aria-label="Antall for ${escHtml(plan.name)}"
                     data-plan-id="${plan.id}"
+                    onfocus="movePriceCalculatorCaretToEnd(this)"
+                    onclick="movePriceCalculatorCaretToEnd(this)"
                     oninput="setPriceCalculatorItemCount('${prefix}', '${plan.id}', this.value)"
                   />
                 </td>
@@ -7150,6 +7151,14 @@
     current.pricingMode = modeId;
     savePriceCalculatorState(current);
     renderAllPriceCalculators();
+  }
+
+  function movePriceCalculatorCaretToEnd(input) {
+    if (!input) return;
+    requestAnimationFrame(() => {
+      const length = input.value.length;
+      input.setSelectionRange(length, length);
+    });
   }
 
   function setPriceCalculatorItemCount(prefix, planId, rawValue) {
