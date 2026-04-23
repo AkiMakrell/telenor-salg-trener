@@ -4880,9 +4880,9 @@
     { key: 'losningspresentasjon', label: 'Løsningspresentasjon' }
   ];
   const OV_STATUS_OPTIONS = [
-    { id: 'ikke-svart', label: 'Ikke svart' },
-    { id: 'vil-ikke-ha', label: 'Svart, men vil ikke ha' },
-    { id: 'har-byttet', label: 'Svart og har byttet' }
+    { id: 'ikke-svart', label: 'Ubesvart' },
+    { id: 'vil-ikke-ha', label: 'Avslag' },
+    { id: 'har-byttet', label: 'Byttet' }
   ];
   let samtaleRatingDraft = null;
   let samtaleRatingEditingId = '';
@@ -6176,7 +6176,7 @@
             <div class="ov-stat-value">${entries.length}</div>
           </div>
           <div class="ov-stat">
-            <div class="ov-stat-label">Ikke svart</div>
+            <div class="ov-stat-label">Ubesvart</div>
             <div class="ov-stat-value">${openCount}</div>
           </div>
           <div class="ov-stat">
