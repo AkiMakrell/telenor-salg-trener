@@ -3916,8 +3916,7 @@
     <button class="tab-btn" data-tab="hjem" onclick="switchTab('hjem', this)">Stats</button>
     <button class="tab-btn" data-tab="innvendinger" onclick="switchTab('innvendinger', this)">Innvendinger</button>
     <button class="tab-btn" data-tab="notater" onclick="switchTab('notater', this)">Notater</button>
-    <button class="tab-btn" data-tab="samtalerating" onclick="switchTab('samtalerating', this)">Samtalerating</button>
-    <button class="tab-btn" data-tab="ov" onclick="switchTab('ov', this)">OV</button>
+    <button class="tab-btn" data-tab="priser" onclick="switchTab('priser', this)">Pris kalkulator</button>
   </div>
   <div class="top-bar-actions">
     <div id="top-bar-tools" class="top-bar-tools">
@@ -3934,9 +3933,13 @@
         <span>Mer</span>
       </button>
       <div id="top-bar-tools-menu" class="tools-menu" role="menu">
-        <button class="more-tab-btn" data-tab="priser" type="button" onclick="switchTab('priser', this); closeTopBarTools();">
-          <span>Pris kalkulator</span>
-          <span class="more-tab-btn-meta">Verktøy</span>
+        <button class="more-tab-btn" data-tab="ov" type="button" onclick="switchTab('ov', this); closeTopBarTools();">
+          <span>OV</span>
+          <span class="more-tab-btn-meta">Oppfølging</span>
+        </button>
+        <button class="more-tab-btn" data-tab="samtalerating" type="button" onclick="switchTab('samtalerating', this); closeTopBarTools();">
+          <span>Samtalerating</span>
+          <span class="more-tab-btn-meta">Analyse</span>
         </button>
         <button class="more-tab-btn" data-tab="samtaleflyt" type="button" onclick="switchTab('samtaleflyt', this); closeTopBarTools();">
           <span>Flyt</span>
@@ -5012,7 +5015,7 @@
     document.getElementById('tab-' + name).classList.add('active');
     const button = triggerButton || document.querySelector(`.tab-btn[data-tab="${activeButtonName}"], .more-tab-btn[data-tab="${activeButtonName}"]`);
     if (button) button.classList.add('active');
-    if (name === 'priser' || name === 'samtaleflyt') {
+    if (name === 'ov' || name === 'samtalerating' || name === 'samtaleflyt') {
       document.getElementById('top-bar-tools-button')?.classList.add('active');
     }
     closeTopBarTools();
