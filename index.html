@@ -4593,15 +4593,58 @@
     });
 
     // Motivation
-    const motivations = [
+    const startOfYesterday = new Date(now);
+    startOfYesterday.setDate(now.getDate() - 1);
+    startOfYesterday.setHours(0, 0, 0, 0);
+    const endOfYesterday = new Date(startOfYesterday);
+    endOfYesterday.setDate(startOfYesterday.getDate() + 1);
+    const yesterdayEntries = history.filter(entry => {
+      const entryDate = isoToDate(entry.isoDate);
+      return entryDate && entryDate >= startOfYesterday && entryDate < endOfYesterday;
+    });
+    const yesterdayStats = statsFor(yesterdayEntries);
+
+    const startOfPreviousWeek = new Date(startOfWeek);
+    startOfPreviousWeek.setDate(startOfWeek.getDate() - 7);
+    const previousWeekComparisonEnd = new Date(now);
+    previousWeekComparisonEnd.setDate(now.getDate() - 7);
+    const previousWeekComparableEntries = history.filter(entry => {
+      const entryDate = isoToDate(entry.isoDate);
+      return entryDate && entryDate >= startOfPreviousWeek && entryDate <= previousWeekComparisonEnd;
+    });
+    const previousWeekComparableStats = statsFor(previousWeekComparableEntries);
+
+    const standardMotivations = [
       [6, 'Sterk dag! Du bygger gode vaner i dag.'],
       [3, 'Bra flyt! Fortsett med samme intro gjennom økten.'],
       [1, 'Fin start! Fortsett å logge det som fungerer.'],
-      [0, 'Ingen opptak registrert ennå i dag – lykke til!'],
     ];
-    const msg = dag.salg > 0
-      ? 'Salg i dag! Bygg videre på det som fungerte i samtalen.'
-      : motivations.find(([min]) => dag.introSuccesses >= min)[1];
+    const fallbackMotivations = [
+      'Ingen panikk – det kan snu helt på neste samtale.',
+      'Hold tempoet oppe. Neste ja kan komme når som helst.',
+      'Rolig start er fortsatt en start. Fortsett å mate på.',
+    ];
+    const funnyFallbackMessage = fallbackMotivations[now.getDate() % fallbackMotivations.length];
+    const isFirstCallSessionWithoutOpptak = activeSession?.id === CALL_SESSIONS[0].id && dag.introSuccesses === 0 && dag.salg === 0;
+    const weekStartedBetterThanPrevious = (
+      uke.introSuccesses > previousWeekComparableStats.introSuccesses ||
+      uke.over5 > previousWeekComparableStats.over5 ||
+      uke.salg > previousWeekComparableStats.salg
+    ) && (uke.introSuccesses > 0 || uke.over5 > 0 || uke.salg > 0);
+
+    let msg = funnyFallbackMessage;
+    if (dag.salg > 0) {
+      msg = 'Salg i dag! Bygg videre på det som fungerte i samtalen.';
+    } else if (weekStartedBetterThanPrevious) {
+      msg = 'Denne uka har startet bedre enn forrige – fin utvikling så langt.';
+    } else if (yesterdayStats.over5 >= 4) {
+      msg = `I går fikk du ${yesterdayStats.over5} samtaler over 6 min. Du har allerede vist at du får det til.`;
+    } else if (isFirstCallSessionWithoutOpptak) {
+      msg = 'Rolig start i første økt er helt normalt – det løsner ofte plutselig.';
+    } else {
+      const standardMessage = standardMotivations.find(([min]) => dag.introSuccesses >= min);
+      if (standardMessage) msg = standardMessage[1];
+    }
 
     // Week bar chart: 6-min per weekday (Mon–Fri only)
     const days = ['Man','Tir','Ons','Tor','Fre'];
