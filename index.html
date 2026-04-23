@@ -4656,19 +4656,6 @@
         </div>
       </div>
 
-      <div class="stats-section">
-        <div class="stats-section-title st-purple">Økter i dag</div>
-        <div class="stats-section-subtitle">Opptak registrert i hver økt i dag.</div>
-        <div class="stats-grid stats-grid-4">
-          ${sessionStats.map(session => statCard(
-            session.introSuccesses,
-            `${session.label}${activeSession?.id === session.id ? ' · Aktiv' : ''}`,
-            false,
-            activeSession?.id === session.id ? 'purple' : 'blue'
-          )).join('')}
-        </div>
-      </div>
-
       <!-- UKE -->
       <div class="stats-section">
         <div class="stats-section-title st-teal">Denne uken</div>
