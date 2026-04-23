@@ -2394,11 +2394,20 @@
     /* ===== STATS HOME PAGE ===== */
     .stats-section { max-width: 1100px; margin: 0 auto 32px auto; }
 
+    .stats-section-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
     .stats-section-title {
       font-size: 1rem;
       font-weight: 800;
       color: #1e293b;
-      margin-bottom: 14px;
+      margin-bottom: 0;
       padding-left: 12px;
       border-left: 4px solid #3b82f6;
     }
@@ -2412,6 +2421,79 @@
       font-size: 0.84rem;
     }
 
+    .stats-goal-btn {
+      margin-top: 0;
+      padding: 9px 14px;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      box-shadow: none;
+      white-space: nowrap;
+    }
+
+    .stats-goal-card {
+      margin-bottom: 16px;
+      background: rgba(11, 18, 32, 0.88);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 16px;
+    }
+
+    .stats-goal-title {
+      font-size: 0.86rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    .stats-goal-helper {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+      margin-top: 10px;
+    }
+
+    .stats-goal-progress-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .stats-goal-progress-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .stats-goal-progress-label,
+    .stats-goal-progress-value {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .stats-goal-progress-track {
+      position: relative;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.18);
+      overflow: hidden;
+    }
+
+    .stats-goal-progress-bar {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #29a8e0, #38bdf8);
+    }
+
+    .stats-goal-progress-bar.goal-over6 {
+      background: linear-gradient(90deg, #14b8a6, #2dd4bf);
+    }
+
+    .stats-goal-progress-bar.goal-sales {
+      background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    }
+
     .stats-grid {
       display: grid;
       gap: 14px;
@@ -2422,6 +2504,7 @@
     @media (max-width: 800px) {
       .stats-grid-4 { grid-template-columns: repeat(2, 1fr); }
       .stats-grid-2 { grid-template-columns: 1fr; }
+      .goals-grid { grid-template-columns: 1fr; }
     }
 
     .stat-card {
@@ -2548,6 +2631,109 @@
       font-size: 1.05rem;
       font-weight: 700;
       text-align: center;
+    }
+
+    .goals-page {
+      max-width: 940px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .goals-hero,
+    .goals-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+    }
+
+    .goals-hero {
+      padding: 22px 24px;
+    }
+
+    .goals-title {
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .goals-text {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 0.95rem;
+      max-width: 720px;
+    }
+
+    .goals-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .goals-card {
+      padding: 22px 24px;
+    }
+
+    .goals-card.highlight {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(41,168,224,0.12);
+    }
+
+    .goals-card-title {
+      font-size: 1.08rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .goals-card-text,
+    .goals-inline-helper {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .goals-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .goals-field label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .goals-field input {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 12px;
+      font-size: 0.94rem;
+      font-family: inherit;
+      background: var(--primary-xlight);
+      color: var(--text);
+    }
+
+    .goals-field input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(41,168,224,0.12);
+    }
+
+    .goals-card-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
     }
 
     /* Bar chart */
@@ -3370,14 +3556,14 @@
 
 <div class="top-bar">
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('intro')">Registrer</button>
-    <button class="tab-btn" onclick="switchTab('hjem')">Stats</button>
-    <button class="tab-btn" onclick="switchTab('innvendinger')">Innvendinger</button>
-    <button class="tab-btn" onclick="switchTab('notater')">Notater</button>
-    <button class="tab-btn" onclick="switchTab('samtalerating')">Samtalerating</button>
-    <button class="tab-btn" onclick="switchTab('ov')">OV</button>
-    <button class="tab-btn" onclick="switchTab('priser')">Pris kalkulator</button>
-    <button class="tab-btn" onclick="switchTab('samtaleflyt')">Flyt (avansert)</button>
+    <button class="tab-btn active" data-tab="intro" onclick="switchTab('intro', this)">Registrer</button>
+    <button class="tab-btn" data-tab="hjem" onclick="switchTab('hjem', this)">Stats</button>
+    <button class="tab-btn" data-tab="innvendinger" onclick="switchTab('innvendinger', this)">Innvendinger</button>
+    <button class="tab-btn" data-tab="notater" onclick="switchTab('notater', this)">Notater</button>
+    <button class="tab-btn" data-tab="samtalerating" onclick="switchTab('samtalerating', this)">Samtalerating</button>
+    <button class="tab-btn" data-tab="ov" onclick="switchTab('ov', this)">OV</button>
+    <button class="tab-btn" data-tab="priser" onclick="switchTab('priser', this)">Pris kalkulator</button>
+    <button class="tab-btn" data-tab="samtaleflyt" onclick="switchTab('samtaleflyt', this)">Flyt (avansert)</button>
   </div>
   <div id="top-bar-settings" class="top-bar-settings">
     <button
@@ -3415,6 +3601,10 @@
 <!-- ===== STATS TAB ===== -->
 <div id="tab-hjem" class="tab-content">
   <div id="stats-home"></div>
+</div>
+
+<div id="tab-goals" class="tab-content">
+  <div id="goals-page"></div>
 </div>
 
 <!-- ===== REGISTRER TAB ===== -->
@@ -3668,6 +3858,7 @@
     'conversationNotes',
     'samtaleRatings',
     'ovEntries',
+    'statsGoals',
     'samtaleflyt',
     'samtaleflyt2_intro',
     'samtaleflyt2_behovsanalyse',
@@ -3974,6 +4165,7 @@
     renderConversationNotes();
     renderSamtaleRating();
     renderOvPage();
+    renderGoalsPage();
     renderAllPriceCalculators();
     renderSamtaleflyt();
   }
@@ -4112,16 +4304,22 @@
   }
 
   // ---- Tab switching ----
-  function switchTab(name) {
+  function activateTab(name, activeButtonName = name, triggerButton = null) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-' + name).classList.add('active');
-    event.target.classList.add('active');
+    const button = triggerButton || document.querySelector(`.tab-btn[data-tab="${activeButtonName}"]`);
+    if (button) button.classList.add('active');
     if (name === 'priser' || name === 'notater') renderAllPriceCalculators();
     if (name === 'samtaleflyt') renderSamtaleflyt();
     if (name === 'notater') renderConversationNotes();
     if (name === 'samtalerating') renderSamtaleRating();
     if (name === 'ov') renderOvPage();
+    if (name === 'goals') renderGoalsPage();
+  }
+
+  function switchTab(name, triggerButton = null) {
+    activateTab(name, name, triggerButton);
   }
 
   let selectedOver5min = null;
@@ -4563,6 +4761,257 @@
     }).join('') + `</div>`;
   }
 
+  let pendingGoalsFocusPeriod = null;
+
+  function getStartOfWeek(date = new Date()) {
+    const start = new Date(date);
+    start.setDate(date.getDate() - ((date.getDay() + 6) % 7));
+    start.setHours(0, 0, 0, 0);
+    return start;
+  }
+
+  function getStatsMonthKey(date = new Date()) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  function getDefaultStatsGoals(date = new Date()) {
+    return {
+      day: {
+        periodKey: makeLocalDateKey(date),
+        over6Target: null,
+        salesTarget: null,
+      },
+      week: {
+        periodKey: makeLocalDateKey(getStartOfWeek(date)),
+        over6Target: null,
+        salesTarget: null,
+      },
+      month: {
+        periodKey: getStatsMonthKey(date),
+        over6Target: null,
+        salesTarget: null,
+      }
+    };
+  }
+
+  function normalizeStatsGoalTarget(value) {
+    if (value === '' || value === null || value === undefined) return null;
+    const normalized = Math.max(0, Math.floor(Number(value)));
+    return Number.isFinite(normalized) ? normalized : null;
+  }
+
+  function getStatsGoals(date = new Date()) {
+    const raw = localStorage.getItem('statsGoals');
+    const parsed = raw ? JSON.parse(raw) : getDefaultStatsGoals(date);
+    const defaults = getDefaultStatsGoals(date);
+    let changed = !raw;
+
+    ['day', 'week', 'month'].forEach(period => {
+      if (!parsed[period] || typeof parsed[period] !== 'object') {
+        parsed[period] = defaults[period];
+        changed = true;
+        return;
+      }
+      if (parsed[period].periodKey !== defaults[period].periodKey) {
+        parsed[period] = defaults[period];
+        changed = true;
+        return;
+      }
+      const over6Target = normalizeStatsGoalTarget(parsed[period].over6Target);
+      const salesTarget = normalizeStatsGoalTarget(parsed[period].salesTarget);
+      if (parsed[period].over6Target !== over6Target || parsed[period].salesTarget !== salesTarget) changed = true;
+      parsed[period].over6Target = over6Target;
+      parsed[period].salesTarget = salesTarget;
+      parsed[period].periodKey = defaults[period].periodKey;
+    });
+
+    if (changed) localStorage.setItem('statsGoals', JSON.stringify(parsed));
+    return parsed;
+  }
+
+  function saveStatsGoals(goals) {
+    localStorage.setItem('statsGoals', JSON.stringify(goals));
+  }
+
+  function hasStatsGoal(goal) {
+    return goal && (goal.over6Target !== null || goal.salesTarget !== null);
+  }
+
+  function formatGoalPerDay(target, businessDays) {
+    if (target === null || !businessDays) return null;
+    const value = target / businessDays;
+    return Number.isInteger(value) ? String(value) : value.toFixed(1).replace('.', ',');
+  }
+
+  function getBusinessDaysBetween(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    let count = 0;
+    for (const day = new Date(start); day <= end; day.setDate(day.getDate() + 1)) {
+      if (isBusinessDay(day)) count++;
+    }
+    return count;
+  }
+
+  function getStatsGoalBusinessDays(period, date = new Date()) {
+    if (period === 'day') return 1;
+    if (period === 'week') return 5;
+    const firstOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    const lastOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    return getBusinessDaysBetween(firstOfMonth, lastOfMonth);
+  }
+
+  function getStatsGoalButtonLabel(period, goal) {
+    if (hasStatsGoal(goal)) return 'Rediger mål';
+    if (period === 'day') return 'Sett mål for dagen';
+    if (period === 'week') return 'Sett mål for uken';
+    return 'Sett mål for måneden';
+  }
+
+  function renderStatsGoalSummary(period, goal, currentOver6, currentSales, businessDays) {
+    if (!hasStatsGoal(goal)) return '';
+    const items = [];
+    if (goal.over6Target !== null) {
+      items.push({
+        label: '6 min',
+        current: currentOver6,
+        target: goal.over6Target,
+        cls: 'goal-over6',
+      });
+    }
+    if (goal.salesTarget !== null) {
+      items.push({
+        label: 'Abo',
+        current: currentSales,
+        target: goal.salesTarget,
+        cls: 'goal-sales',
+      });
+    }
+    const perDayParts = [];
+    if (period !== 'day' && goal.over6Target !== null) perDayParts.push(`${formatGoalPerDay(goal.over6Target, businessDays)} over 6 min per arbeidsdag`);
+    if (period !== 'day' && goal.salesTarget !== null) perDayParts.push(`${formatGoalPerDay(goal.salesTarget, businessDays)} abo per arbeidsdag`);
+    return `
+      <div class="stats-goal-card">
+        <div class="stats-goal-title">Mål i denne ${period === 'day' ? 'dagen' : period === 'week' ? 'uken' : 'måneden'}</div>
+        <div class="stats-goal-progress-list">
+          ${items.map(item => {
+            const progress = item.target > 0 ? Math.min((item.current / item.target) * 100, 100) : 100;
+            return `
+              <div class="stats-goal-progress-row">
+                <span class="stats-goal-progress-label">${item.label}</span>
+                <div class="stats-goal-progress-track">
+                  <div class="stats-goal-progress-bar ${item.cls}" style="width:${progress}%"></div>
+                </div>
+                <span class="stats-goal-progress-value">${item.current}/${item.target}</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        ${perDayParts.length ? `<div class="stats-goal-helper">Tilsvarer ${perDayParts.join(' og ')}.</div>` : ''}
+      </div>
+    `;
+  }
+
+  function openGoalsPage(period) {
+    pendingGoalsFocusPeriod = period;
+    activateTab('goals', 'hjem');
+    requestAnimationFrame(() => {
+      const target = document.getElementById(`goals-card-${pendingGoalsFocusPeriod}`);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      pendingGoalsFocusPeriod = null;
+    });
+  }
+
+  function saveStatsGoal(period) {
+    const goals = getStatsGoals();
+    const over6Input = document.getElementById(`goal-${period}-over6`);
+    const salesInput = document.getElementById(`goal-${period}-sales`);
+    goals[period].over6Target = normalizeStatsGoalTarget(over6Input ? over6Input.value : null);
+    goals[period].salesTarget = normalizeStatsGoalTarget(salesInput ? salesInput.value : null);
+    saveStatsGoals(goals);
+    renderGoalsPage();
+    renderStatsHome();
+  }
+
+  function clearStatsGoal(period) {
+    const goals = getStatsGoals();
+    goals[period].over6Target = null;
+    goals[period].salesTarget = null;
+    saveStatsGoals(goals);
+    renderGoalsPage();
+    renderStatsHome();
+  }
+
+  function renderGoalsPage() {
+    const page = document.getElementById('goals-page');
+    if (!page) return;
+    const goals = getStatsGoals();
+    const now = new Date();
+    const businessDaysByPeriod = {
+      day: 1,
+      week: getStatsGoalBusinessDays('week', now),
+      month: getStatsGoalBusinessDays('month', now),
+    };
+    const cards = [
+      {
+        period: 'day',
+        title: 'Mål for dagen',
+        text: 'Sett mål for samtaler over 6 min og/eller abo i dag. La et felt stå tomt hvis du ikke vil bruke det.',
+      },
+      {
+        period: 'week',
+        title: 'Mål for uken',
+        text: 'Sett ukesmål og se hvor mye det tilsvarer per arbeidsdag.',
+      },
+      {
+        period: 'month',
+        title: 'Mål for måneden',
+        text: 'Sett månedsmål og få en enkel per-dag-pekepinn for tempoet du trenger.',
+      },
+    ];
+    page.innerHTML = `
+      <div class="goals-page">
+        <div class="goals-hero">
+          <div class="goals-title">Mål</div>
+          <div class="goals-text">Bruk mål bare hvis det hjelper deg. Du kan sette mål for dagen, uken og måneden, og progresjonen vises direkte på Stats-siden.</div>
+          <div class="goals-actions">
+            <button class="backup-btn" style="margin-top:0;" type="button" onclick="activateTab('hjem', 'hjem')">Tilbake til stats</button>
+          </div>
+        </div>
+        ${cards.map(card => {
+          const goal = goals[card.period];
+          const businessDays = businessDaysByPeriod[card.period];
+          const helperParts = [];
+          if (card.period !== 'day' && goal.over6Target !== null) helperParts.push(`${formatGoalPerDay(goal.over6Target, businessDays)} over 6 min per arbeidsdag`);
+          if (card.period !== 'day' && goal.salesTarget !== null) helperParts.push(`${formatGoalPerDay(goal.salesTarget, businessDays)} abo per arbeidsdag`);
+          return `
+            <div id="goals-card-${card.period}" class="goals-card ${pendingGoalsFocusPeriod === card.period ? 'highlight' : ''}">
+              <div class="goals-card-title">${card.title}</div>
+              <div class="goals-card-text">${card.text}</div>
+              <div class="goals-grid">
+                <div class="goals-field">
+                  <label for="goal-${card.period}-over6">Mål for samtaler over 6 min</label>
+                  <input id="goal-${card.period}-over6" type="number" min="0" step="1" placeholder="Tomt = ikke i bruk" value="${goal.over6Target ?? ''}" />
+                </div>
+                <div class="goals-field">
+                  <label for="goal-${card.period}-sales">Mål for abo</label>
+                  <input id="goal-${card.period}-sales" type="number" min="0" step="1" placeholder="Tomt = ikke i bruk" value="${goal.salesTarget ?? ''}" />
+                </div>
+              </div>
+              ${helperParts.length ? `<div class="goals-inline-helper" style="margin-top:12px;">Dette tilsvarer ${helperParts.join(' og ')}.</div>` : ''}
+              <div class="goals-card-actions">
+                <button class="save-btn" style="margin-top:0;" type="button" onclick="saveStatsGoal('${card.period}')">Lagre mål</button>
+                <button class="backup-btn" style="margin-top:0;" type="button" onclick="clearStatsGoal('${card.period}')">Tøm mål</button>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
   function renderStatsHome() {
     const history = getIntroHistory();
     const dagEntries = history.filter(h => isToday(h.isoDate));
@@ -4578,19 +5027,15 @@
     startOfWeek.setDate(now.getDate() - ((now.getDay() + 6) % 7));
     startOfWeek.setHours(0, 0, 0, 0);
     const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const statsGoals = getStatsGoals(now);
+    const dayGoal = statsGoals.day;
+    const weekGoal = statsGoals.week;
+    const monthGoal = statsGoals.month;
     const todaySessionCount = getStartedSessionCountForDate(now, now);
     const weekSessionCount = countStartedSessionsInRange(startOfWeek, now, now);
     const monthSessionCount = countStartedSessionsInRange(firstOfMonth, now, now);
-    const sessionStats = CALL_SESSIONS.map(session => {
-      const entries = dagEntries.filter(entry => isIntroSuccessEntry(entry) && (
-        entry.sessionId === session.id ||
-        (!entry.sessionId && entry.sessionLabel === session.label)
-      ));
-      return {
-        ...session,
-        ...statsFor(entries)
-      };
-    });
+    const weekGoalBusinessDays = getStatsGoalBusinessDays('week', now);
+    const monthGoalBusinessDays = getStatsGoalBusinessDays('month', now);
 
     // Motivation
     const startOfYesterday = new Date(now);
@@ -4694,7 +5139,11 @@
 
       <!-- DAG -->
       <div class="stats-section">
-        <div class="stats-section-title">I dag</div>
+        <div class="stats-section-head">
+          <div class="stats-section-title">I dag</div>
+          <button class="backup-btn stats-goal-btn" type="button" onclick="openGoalsPage('day')">${getStatsGoalButtonLabel('day', dayGoal)}</button>
+        </div>
+        ${renderStatsGoalSummary('day', dayGoal, dag.over5, dag.salg, 1)}
         <div class="stats-grid stats-grid-4">
           ${statCard(dag.introSuccesses, 'Opptak', true, 'blue', 'metric-card')}
           ${statCard(formatAveragePerSession(dag.introSuccesses, todaySessionCount), todaySessionCount ? `Snitt per økt (${dag.introSuccesses}/${todaySessionCount})` : 'Snitt per økt', true, 'purple', 'metric-card')}
@@ -4705,7 +5154,11 @@
 
       <!-- UKE -->
       <div class="stats-section">
-        <div class="stats-section-title st-teal">Denne uken</div>
+        <div class="stats-section-head">
+          <div class="stats-section-title st-teal">Denne uken</div>
+          <button class="backup-btn stats-goal-btn" type="button" onclick="openGoalsPage('week')">${getStatsGoalButtonLabel('week', weekGoal)}</button>
+        </div>
+        ${renderStatsGoalSummary('week', weekGoal, uke.over5, uke.salg, weekGoalBusinessDays)}
         <div class="stats-grid stats-grid-2" style="margin-bottom:14px;">
           <div class="chart-card cc-teal">
             <div class="chart-card-title">6-min & salg per dag</div>
@@ -4722,7 +5175,11 @@
 
       <!-- MÅNED -->
       <div class="stats-section">
-        <div class="stats-section-title st-teal">${now.toLocaleString('no-NO', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase())}</div>
+        <div class="stats-section-head">
+          <div class="stats-section-title st-teal">${now.toLocaleString('no-NO', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase())}</div>
+          <button class="backup-btn stats-goal-btn" type="button" onclick="openGoalsPage('month')">${getStatsGoalButtonLabel('month', monthGoal)}</button>
+        </div>
+        ${renderStatsGoalSummary('month', monthGoal, mnd.over5, mnd.salg, monthGoalBusinessDays)}
         <div class="stats-grid stats-grid-2">
           <div class="chart-card cc-teal">
             <div class="chart-card-title">6-min & salg per uke</div>
