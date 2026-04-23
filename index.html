@@ -2676,6 +2676,10 @@
       box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12), 0 10px 24px rgba(34, 197, 94, 0.08);
     }
 
+    .stats-goal-after-stats {
+      margin-top: 16px;
+    }
+
     .stats-goal-title {
       font-size: 0.86rem;
       font-weight: 800;
@@ -6440,7 +6444,7 @@
           ${statCard(dag.over5, 'Over 6 min', true, 'teal', 'metric-card')}
           ${statCard(dag.salg, 'Abo', true, 'gold', 'metric-card')}
         </div>
-        ${renderStatsGoalSummary(dayGoalStatus)}
+        <div class="stats-goal-after-stats">${renderStatsGoalSummary(dayGoalStatus)}</div>
       </div>
     `;
   }
@@ -6464,7 +6468,7 @@
             ${statCard(uke.salg, 'Abo', false, 'gold')}
           </div>
         </div>
-        ${renderStatsGoalSummary(weekGoalStatus)}
+        <div class="stats-goal-after-stats">${renderStatsGoalSummary(weekGoalStatus)}</div>
       </div>
     `;
   }
@@ -6488,7 +6492,7 @@
             ${statCard(mnd.salg, 'Abo', false, 'gold')}
           </div>
         </div>
-        ${renderStatsGoalSummary(monthGoalStatus)}
+        <div class="stats-goal-after-stats">${renderStatsGoalSummary(monthGoalStatus)}</div>
       </div>
     `;
   }
