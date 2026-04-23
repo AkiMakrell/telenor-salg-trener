@@ -4870,6 +4870,14 @@
     return { preset: 'custom', custom: String(value) };
   }
 
+  function getGoalHelperParts(period, businessDays, over6Target, salesTarget) {
+    if (period === 'day') return [];
+    const parts = [];
+    if (over6Target !== null) parts.push(`${formatGoalPerDay(over6Target, businessDays)} over 6 min per arbeidsdag`);
+    if (salesTarget !== null) parts.push(`${formatGoalPerDay(salesTarget, businessDays)} abo per arbeidsdag`);
+    return parts;
+  }
+
   function renderGoalField(period, metric, label, value) {
     if (period === 'day') {
       const presetState = getDayGoalPresetState(value);
@@ -4897,7 +4905,7 @@
     return `
       <div class="goals-field">
         <label for="goal-${period}-${metric}">${label}</label>
-        <input id="goal-${period}-${metric}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Tomt = ikke i bruk" value="${value ?? ''}" />
+        <input id="goal-${period}-${metric}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Tomt = ikke i bruk" value="${value ?? ''}" oninput="updateGoalsInlineHelper('${period}')" />
       </div>
     `;
   }
@@ -4924,6 +4932,23 @@
 
     const input = document.getElementById(`goal-${period}-${metric}`);
     return input ? input.value : null;
+  }
+
+  function updateGoalsInlineHelper(period) {
+    if (period === 'day') return;
+    const helper = document.getElementById(`goals-inline-helper-${period}`);
+    if (!helper) return;
+    const businessDays = Number(helper.dataset.businessDays || 0);
+    const over6Target = normalizeStatsGoalTarget(getGoalInputValue(period, 'over6'));
+    const salesTarget = normalizeStatsGoalTarget(getGoalInputValue(period, 'sales'));
+    const helperParts = getGoalHelperParts(period, businessDays, over6Target, salesTarget);
+    if (!helperParts.length) {
+      helper.textContent = '';
+      helper.style.display = 'none';
+      return;
+    }
+    helper.textContent = `Dette tilsvarer ${helperParts.join(' og ')}.`;
+    helper.style.display = 'block';
   }
 
   function getBusinessDaysBetween(startDate, endDate) {
@@ -5064,9 +5089,7 @@
         ${cards.map(card => {
           const goal = goals[card.period];
           const businessDays = businessDaysByPeriod[card.period];
-          const helperParts = [];
-          if (card.period !== 'day' && goal.over6Target !== null) helperParts.push(`${formatGoalPerDay(goal.over6Target, businessDays)} over 6 min per arbeidsdag`);
-          if (card.period !== 'day' && goal.salesTarget !== null) helperParts.push(`${formatGoalPerDay(goal.salesTarget, businessDays)} abo per arbeidsdag`);
+          const helperParts = getGoalHelperParts(card.period, businessDays, goal.over6Target, goal.salesTarget);
           return `
             <div id="goals-card-${card.period}" class="goals-card ${pendingGoalsFocusPeriod === card.period ? 'highlight' : ''}">
               <div class="goals-card-title">${card.title}</div>
@@ -5075,7 +5098,7 @@
                 ${renderGoalField(card.period, 'over6', 'Mål for samtaler over 6 min', goal.over6Target)}
                 ${renderGoalField(card.period, 'sales', 'Mål for abo', goal.salesTarget)}
               </div>
-              ${helperParts.length ? `<div class="goals-inline-helper" style="margin-top:12px;">Dette tilsvarer ${helperParts.join(' og ')}.</div>` : ''}
+              ${card.period !== 'day' ? `<div id="goals-inline-helper-${card.period}" class="goals-inline-helper" data-business-days="${businessDays}" style="margin-top:12px;display:${helperParts.length ? 'block' : 'none'};">${helperParts.length ? `Dette tilsvarer ${helperParts.join(' og ')}.` : ''}</div>` : ''}
               <div class="goals-card-actions">
                 <button class="save-btn" style="margin-top:0;" type="button" onclick="saveStatsGoal('${card.period}')">Lagre mål</button>
                 <button class="backup-btn" style="margin-top:0;" type="button" onclick="clearStatsGoal('${card.period}')">Tøm mål</button>
