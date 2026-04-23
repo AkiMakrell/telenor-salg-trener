@@ -2546,15 +2546,6 @@
       background: #0f2b2b;
     }
 
-    .personal-record-kicker {
-      font-size: 0.74rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-
     .personal-record-value {
       font-size: 2rem;
       font-weight: 900;
@@ -4932,7 +4923,6 @@
     const meta = value > 0 ? `Satt ${periodLabel}` : 'Ingen registreringer ennå';
     return `
       <div class="personal-record-card ${variant}">
-        <div class="personal-record-kicker">Personlig rekord</div>
         <div class="personal-record-value">${safeValue}</div>
         <div class="personal-record-label">${title}</div>
         <div class="personal-record-meta">${meta}</div>
