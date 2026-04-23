@@ -3892,6 +3892,8 @@
           </div>
         </div>
 
+        <div id="intro-daily-stats" class="stats-grid stats-grid-2" style="margin-bottom:16px;"></div>
+
         <label class="form-label">Introtekst:</label>
         <textarea id="intro-text" placeholder="Hei, jeg ringer fra Telenor..." oninput="autoResizeTextarea(this)"></textarea>
 
@@ -4757,6 +4759,8 @@
       title.textContent = 'Arbeidsdagen er ferdig';
       subtitle.textContent = 'Sist valgte intro blir klar neste gang du åpner appen.';
     }
+
+    renderIntroDailyStats(now);
   }
 
   function addToIntroLibrary(text) {
@@ -4880,6 +4884,48 @@
     return Number.isInteger(average)
       ? String(average)
       : average.toFixed(1).replace('.', ',');
+  }
+
+  function formatAverageForUnits(total, unitCount) {
+    if (!unitCount) return '—';
+    const average = total / unitCount;
+    return Number.isInteger(average)
+      ? String(average)
+      : average.toFixed(1).replace('.', ',');
+  }
+
+  function getBusinessDaysInRange(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    if (start > end) return 0;
+    return getBusinessDaysBetween(start, end);
+  }
+
+  function getElapsedMonthWeekCount(date = new Date()) {
+    const firstOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    const today = new Date(date);
+    today.setHours(0, 0, 0, 0);
+    const weekKeys = new Set();
+    for (const day = new Date(firstOfMonth); day <= today; day.setDate(day.getDate() + 1)) {
+      if (!isBusinessDay(day)) continue;
+      weekKeys.add(getWeekKeyFromDate(day));
+    }
+    return weekKeys.size;
+  }
+
+  function renderIntroDailyStats(reference = new Date()) {
+    const container = document.getElementById('intro-daily-stats');
+    if (!container) return;
+    const history = getIntroHistory();
+    const dayEntries = history.filter(entry => isToday(entry.isoDate));
+    const dayStats = statsFor(dayEntries);
+    const todaySessionCount = getStartedSessionCountForDate(reference, reference);
+    container.innerHTML = `
+      ${statCard(dayStats.introSuccesses, 'Opptak i dag', false, 'blue')}
+      ${statCard(formatAveragePerSession(dayStats.introSuccesses, todaySessionCount), todaySessionCount ? `Snitt per økt (${dayStats.introSuccesses}/${todaySessionCount})` : 'Snitt per økt', false, 'purple')}
+    `;
   }
 
   function resetIntroLeaderboardData() {
@@ -5635,8 +5681,8 @@
     const weekGoal = statsGoals.week;
     const monthGoal = statsGoals.month;
     const todaySessionCount = getStartedSessionCountForDate(now, now);
-    const weekSessionCount = countStartedSessionsInRange(startOfWeek, now, now);
-    const monthSessionCount = countStartedSessionsInRange(firstOfMonth, now, now);
+    const elapsedWeekBusinessDays = getBusinessDaysInRange(startOfWeek, now);
+    const elapsedMonthWeekCount = getElapsedMonthWeekCount(now);
     const weekGoalBusinessDays = getRemainingGoalBusinessDays('week', now);
     const monthGoalBusinessDays = getRemainingGoalBusinessDays('month', now);
     const dayGoalStatus = getGoalStatus('day', dayGoal, dag.over5, dag.salg, 1);
@@ -5763,7 +5809,7 @@
         ${renderStatsGoalSummary(dayGoalStatus)}
         <div class="stats-grid stats-grid-4">
           ${statCard(dag.introSuccesses, 'Opptak', true, 'blue', 'metric-card')}
-          ${statCard(formatAveragePerSession(dag.introSuccesses, todaySessionCount), todaySessionCount ? `Snitt per økt (${dag.introSuccesses}/${todaySessionCount})` : 'Snitt per økt', true, 'purple', 'metric-card')}
+          ${statCard(formatAveragePerSession(dag.over5, todaySessionCount), todaySessionCount ? `6 min per økt (${dag.over5}/${todaySessionCount})` : '6 min per økt', true, 'purple', 'metric-card')}
           ${statCard(dag.over5, 'Over 6 min', true, 'teal', 'metric-card')}
           ${statCard(dag.salg, 'Abo', true, 'gold', 'metric-card')}
         </div>
@@ -5783,7 +5829,7 @@
           </div>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
             ${statCard(uke.introSuccesses, 'Opptak', false, 'blue')}
-            ${statCard(formatAveragePerSession(uke.introSuccesses, weekSessionCount), weekSessionCount ? `Snitt per økt (${uke.introSuccesses}/${weekSessionCount})` : 'Snitt per økt', false, 'purple')}
+            ${statCard(formatAverageForUnits(uke.over5, elapsedWeekBusinessDays), elapsedWeekBusinessDays ? `6 min per dag (${uke.over5}/${elapsedWeekBusinessDays})` : '6 min per dag', false, 'purple')}
             ${statCard(uke.over5, 'Over 6 min', false, 'teal')}
             ${statCard(uke.salg, 'Abo', false, 'gold')}
           </div>
@@ -5804,7 +5850,7 @@
           </div>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
             ${statCard(mnd.introSuccesses, 'Opptak', false, 'blue')}
-            ${statCard(formatAveragePerSession(mnd.introSuccesses, monthSessionCount), monthSessionCount ? `Snitt per økt (${mnd.introSuccesses}/${monthSessionCount})` : 'Snitt per økt', false, 'purple')}
+            ${statCard(formatAverageForUnits(mnd.over5, elapsedMonthWeekCount), elapsedMonthWeekCount ? `6 min per uke (${mnd.over5}/${elapsedMonthWeekCount})` : '6 min per uke', false, 'purple')}
             ${statCard(mnd.over5, 'Over 6 min', false, 'teal')}
             ${statCard(mnd.salg, 'Abo', false, 'gold')}
           </div>
