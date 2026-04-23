@@ -6442,13 +6442,13 @@
           <div class="stats-section-title">I dag</div>
           <button class="backup-btn stats-goal-btn" type="button" onclick="openGoalsPage('day')">${getStatsGoalButtonLabel('day', dayGoal)}</button>
         </div>
-        ${renderStatsGoalSummary(dayGoalStatus)}
         <div class="stats-grid stats-grid-4">
           ${statCard(dag.introSuccesses, 'Opptak', true, 'blue', 'metric-card')}
           ${statCard(formatAveragePerSession(dag.over5, todaySessionCount), todaySessionCount ? `6 min per økt (${dag.over5}/${todaySessionCount})` : '6 min per økt', true, 'purple', 'metric-card')}
           ${statCard(dag.over5, 'Over 6 min', true, 'teal', 'metric-card')}
           ${statCard(dag.salg, 'Abo', true, 'gold', 'metric-card')}
         </div>
+        ${renderStatsGoalSummary(dayGoalStatus)}
       </div>
     `;
   }
@@ -6460,7 +6460,6 @@
           <div class="stats-section-title st-teal">Denne uken</div>
           <button class="backup-btn stats-goal-btn" type="button" onclick="openGoalsPage('week')">${getStatsGoalButtonLabel('week', weekGoal)}</button>
         </div>
-        ${renderStatsGoalSummary(weekGoalStatus)}
         <div class="stats-grid stats-grid-2" style="margin-bottom:14px;">
           <div class="chart-card cc-blue">
             <div class="chart-card-title">6-min & abo per dag</div>
@@ -6473,6 +6472,7 @@
             ${statCard(uke.salg, 'Abo', false, 'gold')}
           </div>
         </div>
+        ${renderStatsGoalSummary(weekGoalStatus)}
       </div>
     `;
   }
@@ -6484,7 +6484,6 @@
           <div class="stats-section-title st-teal">${monthTitle}</div>
           <button class="backup-btn stats-goal-btn" type="button" onclick="openGoalsPage('month')">${getStatsGoalButtonLabel('month', monthGoal)}</button>
         </div>
-        ${renderStatsGoalSummary(monthGoalStatus)}
         <div class="stats-grid stats-grid-2">
           <div class="chart-card cc-blue">
             <div class="chart-card-title">6-min & abo per uke</div>
@@ -6497,6 +6496,7 @@
             ${statCard(mnd.salg, 'Abo', false, 'gold')}
           </div>
         </div>
+        ${renderStatsGoalSummary(monthGoalStatus)}
       </div>
     `;
   }
