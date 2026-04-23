@@ -2549,8 +2549,21 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.15rem;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.14);
+    }
+
+    .personal-record-icon svg {
+      width: 24px;
+      height: 24px;
+      display: block;
+    }
+
+    .personal-record-icon .trophy-main {
+      fill: rgba(255,255,255,0.92);
+    }
+
+    .personal-record-icon .trophy-accent {
+      fill: rgba(255,255,255,0.62);
     }
 
     .personal-record-card.pr-abo {
@@ -4942,13 +4955,30 @@
     }, null);
   }
 
-  function renderPersonalRecordCard(title, value, periodLabel, variant, icon, iconClass) {
+  function renderPersonalRecordTrophy(accentVariant = 'center') {
+    const accents = {
+      left: '<circle class="trophy-accent" cx="7" cy="7.5" r="1.8"></circle>',
+      center: '<circle class="trophy-accent" cx="12" cy="7.5" r="1.8"></circle>',
+      right: '<circle class="trophy-accent" cx="17" cy="7.5" r="1.8"></circle>',
+      double: '<circle class="trophy-accent" cx="9" cy="7.5" r="1.6"></circle><circle class="trophy-accent" cx="15" cy="7.5" r="1.6"></circle>',
+      bar: '<rect class="trophy-accent" x="8.4" y="6.4" width="7.2" height="2.2" rx="1.1"></rect>',
+      star: '<path class="trophy-accent" d="M12 5.9l1 1.8 2 .3-1.5 1.4.4 2-1.9-.9-1.9.9.4-2L9 8l2-.3 1-1.8z"></path>',
+    };
+    return `
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path class="trophy-main" d="M8 3.5h8c0 2.8.5 5.2 2.9 6.3-.2 2.1-1.7 3.7-3.8 4.1-.7 1.5-1.7 2.6-2.6 3.1V19h3.2a1 1 0 010 2h-7.4a1 1 0 010-2H11v-1.9c-.9-.5-1.9-1.6-2.6-3.1-2.1-.4-3.6-2-3.8-4.1C7 8.7 8 6.3 8 3.5zm-1.2 2c-.2 1.3-.5 2.5-1.1 3.4-.1 1.1.6 2 1.6 2.5-.3-1.2-.5-2.4-.5-3.7 0-.7 0-1.4 0-2.2zm10.5 0c0 .8 0 1.5 0 2.2 0 1.3-.2 2.5-.5 3.7 1-.5 1.7-1.4 1.6-2.5-.6-.9-.9-2.1-1.1-3.4z"></path>
+        ${accents[accentVariant] || accents.center}
+      </svg>
+    `;
+  }
+
+  function renderPersonalRecordCard(title, value, periodLabel, variant, iconClass, trophyVariant) {
     const safeValue = value > 0 ? value : '—';
     const meta = value > 0 ? `Satt ${periodLabel}` : 'Ingen registreringer ennå';
     return `
       <div class="personal-record-card ${variant}">
         <div class="personal-record-head">
-          <span class="personal-record-icon ${iconClass}">${icon}</span>
+          <span class="personal-record-icon ${iconClass}">${renderPersonalRecordTrophy(trophyVariant)}</span>
         </div>
         <div class="personal-record-value">${safeValue}</div>
         <div class="personal-record-label">${title}</div>
@@ -5695,12 +5725,12 @@
           <div class="stats-section-title st-purple">Personlige rekorder</div>
         </div>
         <div class="personal-records-grid">
-          ${renderPersonalRecordCard('Mest abo på en dag', personalRecords.aboDay?.value || 0, formatStatsRecordPeriod('day', personalRecords.aboDay?.key), 'pr-abo', '🏆', 'icon-abo-day')}
-          ${renderPersonalRecordCard('Mest abo på en uke', personalRecords.aboWeek?.value || 0, formatStatsRecordPeriod('week', personalRecords.aboWeek?.key), 'pr-abo', '👑', 'icon-abo-week')}
-          ${renderPersonalRecordCard('Mest abo på en måned', personalRecords.aboMonth?.value || 0, formatStatsRecordPeriod('month', personalRecords.aboMonth?.key), 'pr-abo', '🌟', 'icon-abo-month')}
-          ${renderPersonalRecordCard('Mest 6 min på en dag', personalRecords.over6Day?.value || 0, formatStatsRecordPeriod('day', personalRecords.over6Day?.key), 'pr-over6', '⚡', 'icon-over6-day')}
-          ${renderPersonalRecordCard('Mest 6 min på en uke', personalRecords.over6Week?.value || 0, formatStatsRecordPeriod('week', personalRecords.over6Week?.key), 'pr-over6', '🔥', 'icon-over6-week')}
-          ${renderPersonalRecordCard('Mest 6 min på en måned', personalRecords.over6Month?.value || 0, formatStatsRecordPeriod('month', personalRecords.over6Month?.key), 'pr-over6', '🚀', 'icon-over6-month')}
+          ${renderPersonalRecordCard('Mest abo på en dag', personalRecords.aboDay?.value || 0, formatStatsRecordPeriod('day', personalRecords.aboDay?.key), 'pr-abo', 'icon-abo-day', 'left')}
+          ${renderPersonalRecordCard('Mest abo på en uke', personalRecords.aboWeek?.value || 0, formatStatsRecordPeriod('week', personalRecords.aboWeek?.key), 'pr-abo', 'icon-abo-week', 'double')}
+          ${renderPersonalRecordCard('Mest abo på en måned', personalRecords.aboMonth?.value || 0, formatStatsRecordPeriod('month', personalRecords.aboMonth?.key), 'pr-abo', 'icon-abo-month', 'star')}
+          ${renderPersonalRecordCard('Mest 6 min på en dag', personalRecords.over6Day?.value || 0, formatStatsRecordPeriod('day', personalRecords.over6Day?.key), 'pr-over6', 'icon-over6-day', 'right')}
+          ${renderPersonalRecordCard('Mest 6 min på en uke', personalRecords.over6Week?.value || 0, formatStatsRecordPeriod('week', personalRecords.over6Week?.key), 'pr-over6', 'icon-over6-week', 'bar')}
+          ${renderPersonalRecordCard('Mest 6 min på en måned', personalRecords.over6Month?.value || 0, formatStatsRecordPeriod('month', personalRecords.over6Month?.key), 'pr-over6', 'icon-over6-month', 'center')}
         </div>
       </div>
     `;
