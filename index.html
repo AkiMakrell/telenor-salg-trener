@@ -5409,11 +5409,11 @@
 
     let msg = funnyFallbackMessage;
     if (dag.salg > 0) {
-      msg = 'Salg i dag! Bygg videre på det som fungerte i samtalen.';
+      msg = 'Abo i dag! Bygg videre på det som fungerte i samtalen.';
     } else if (weekStartedBetterThanPrevious) {
       msg = 'Denne uka har startet bedre enn forrige – fin utvikling så langt.';
     } else if (yesterdayStats.salg > 0) {
-      msg = `I går fikk du ${yesterdayStats.salg} ${yesterdayStats.salg === 1 ? 'salg' : 'salg'} – du vet allerede at det går an å lykkes.`;
+      msg = `I går fikk du ${yesterdayStats.salg} ${yesterdayStats.salg === 1 ? 'abo' : 'abo'} – du vet allerede at det går an å lykkes.`;
     } else if (yesterdayStats.over5 >= 4) {
       msg = `I går fikk du ${yesterdayStats.over5} samtaler over 6 min. Du har allerede vist at du får det til.`;
     } else if (isFirstCallSessionWithoutOpptak) {
@@ -5478,7 +5478,7 @@
           ${statCard(dag.introSuccesses, 'Opptak', true, 'blue', 'metric-card')}
           ${statCard(formatAveragePerSession(dag.introSuccesses, todaySessionCount), todaySessionCount ? `Snitt per økt (${dag.introSuccesses}/${todaySessionCount})` : 'Snitt per økt', true, 'purple', 'metric-card')}
           ${statCard(dag.over5, 'Over 6 min', true, 'teal', 'metric-card')}
-          ${statCard(dag.salg, 'Salg', true, 'gold', 'metric-card')}
+          ${statCard(dag.salg, 'Abo', true, 'gold', 'metric-card')}
         </div>
       </div>
 
@@ -5491,14 +5491,14 @@
         ${renderStatsGoalSummary(weekGoalStatus)}
         <div class="stats-grid stats-grid-2" style="margin-bottom:14px;">
           <div class="chart-card cc-teal">
-            <div class="chart-card-title">6-min & salg per dag</div>
+            <div class="chart-card-title">6-min & abo per dag</div>
             ${stackedBarChart(weekData, stackedChartMax)}
           </div>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
             ${statCard(uke.introSuccesses, 'Opptak', false, 'blue')}
             ${statCard(formatAveragePerSession(uke.introSuccesses, weekSessionCount), weekSessionCount ? `Snitt per økt (${uke.introSuccesses}/${weekSessionCount})` : 'Snitt per økt', false, 'purple')}
             ${statCard(uke.over5, 'Over 6 min', false, 'teal')}
-            ${statCard(uke.salg, 'Salg', false, 'gold')}
+            ${statCard(uke.salg, 'Abo', false, 'gold')}
           </div>
         </div>
       </div>
@@ -5512,14 +5512,14 @@
         ${renderStatsGoalSummary(monthGoalStatus)}
         <div class="stats-grid stats-grid-2">
           <div class="chart-card cc-teal">
-            <div class="chart-card-title">6-min & salg per uke</div>
+            <div class="chart-card-title">6-min & abo per uke</div>
             ${stackedBarChart(weekBuckets, stackedChartMax)}
           </div>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
             ${statCard(mnd.introSuccesses, 'Opptak', false, 'blue')}
             ${statCard(formatAveragePerSession(mnd.introSuccesses, monthSessionCount), monthSessionCount ? `Snitt per økt (${mnd.introSuccesses}/${monthSessionCount})` : 'Snitt per økt', false, 'purple')}
             ${statCard(mnd.over5, 'Over 6 min', false, 'teal')}
-            ${statCard(mnd.salg, 'Salg', false, 'gold')}
+            ${statCard(mnd.salg, 'Abo', false, 'gold')}
           </div>
         </div>
       </div>
