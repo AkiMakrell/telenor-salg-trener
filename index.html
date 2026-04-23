@@ -758,7 +758,7 @@
     }
 
     .samtalerating-stats {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       margin-bottom: 14px;
     }
 
@@ -5741,9 +5741,6 @@
       ].join(' ').toLowerCase();
       return haystack.includes(query);
     });
-    const averageScore = filtered.length
-      ? filtered.reduce((sum, entry) => sum + getSamtaleRatingAverage(entry), 0) / filtered.length
-      : 0;
     const currentMonthKey = new Date().toISOString().slice(0, 7);
     const monthCount = entries.filter(entry => String(entry.date || '').slice(0, 7) === currentMonthKey).length;
     wrap.innerHTML = `
@@ -5762,10 +5759,6 @@
           <div class="samtalerating-stat">
             <div class="samtalerating-stat-label">Denne måneden</div>
             <div class="samtalerating-stat-value">${monthCount}</div>
-          </div>
-          <div class="samtalerating-stat">
-            <div class="samtalerating-stat-label">Snitt i søket</div>
-            <div class="samtalerating-stat-value">${formatSamtaleRatingAverage(averageScore)}</div>
           </div>
         </div>
         <input id="samtalerating-search" class="samtalerating-search" type="text" placeholder="Søk etter InteractionID, dato eller notater..." value="${escHtml(samtaleRatingSearchQuery)}" oninput="setSamtaleRatingSearch(this.value)" />
