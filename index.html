@@ -2722,15 +2722,15 @@
       padding: 22px 18px 50px;
     }
 
-    .stat-card.sc-blue   { border-top-color: #3b82f6; background: #10233c; }
-    .stat-card.sc-purple { border-top-color: #8b5cf6; background: #24183c; }
-    .stat-card.sc-teal   { border-top-color: #14b8a6; background: #0f2b2b; }
-    .stat-card.sc-gold   { border-top-color: #f59e0b; background: #35260f; }
+    .stat-card.sc-blue   { border-top-color: #38bdf8; background: linear-gradient(180deg, #14314a, #10233c); }
+    .stat-card.sc-purple { border-top-color: #a78bfa; background: linear-gradient(180deg, #321f4b, #24183c); }
+    .stat-card.sc-teal   { border-top-color: #2dd4bf; background: linear-gradient(180deg, #123535, #0f2b2b); }
+    .stat-card.sc-gold   { border-top-color: #fbbf24; background: linear-gradient(180deg, #473114, #35260f); }
 
     .stat-card.sc-blue   .stat-value { color: #93c5fd; }
-    .stat-card.sc-purple .stat-value { color: #c4b5fd; }
-    .stat-card.sc-teal   .stat-value { color: #5eead4; }
-    .stat-card.sc-gold   .stat-value { color: #fcd34d; }
+    .stat-card.sc-purple .stat-value { color: #ddd6fe; }
+    .stat-card.sc-teal   .stat-value { color: #7dd3fc; }
+    .stat-card.sc-gold   .stat-value { color: #fde68a; }
 
     .quick-register-card { padding-bottom: 16px !important; position: relative; }
 
@@ -3054,9 +3054,19 @@
       border: 1px solid var(--border);
       box-shadow: 0 2px 12px rgba(41,168,224,0.09);
     }
+    .chart-card.cc-blue   { background: #eff6ff; border-color: #bfdbfe; }
     .chart-card.cc-purple { background: #f5f3ff; border-color: #ddd6fe; }
     .chart-card.cc-green  { background: #f0fdf4; border-color: #bbf7d0; }
     .chart-card.cc-teal   { background: #f0fdfa; border-color: #99f6e4; }
+
+    .chart-card-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 14px;
+    }
 
     .bar-fill {
       width: 100%;
@@ -3711,9 +3721,10 @@
       color: #7dd3fc;
     }
 
-    .chart-card.cc-purple { background: #24183c; border-color: #5b3aa8; }
-    .chart-card.cc-green  { background: #0f2b1f; border-color: #1f8a4c; }
-    .chart-card.cc-teal   { background: #0f2b2b; border-color: #0d9488; }
+    .chart-card.cc-blue   { background: linear-gradient(180deg, #183a57, #102538); border-color: #4da3ff; }
+    .chart-card.cc-purple { background: linear-gradient(180deg, #31214d, #201734); border-color: #8b6bd6; }
+    .chart-card.cc-green  { background: linear-gradient(180deg, #123227, #0f241d); border-color: #2f8f64; }
+    .chart-card.cc-teal   { background: linear-gradient(180deg, #15383b, #0f2629); border-color: #1ca69d; }
 
     #sf-canvas-wrap {
       border-color: var(--border);
@@ -5823,7 +5834,7 @@
         </div>
         ${renderStatsGoalSummary(weekGoalStatus)}
         <div class="stats-grid stats-grid-2" style="margin-bottom:14px;">
-          <div class="chart-card cc-teal">
+          <div class="chart-card cc-blue">
             <div class="chart-card-title">6-min & abo per dag</div>
             ${stackedBarChart(weekData, stackedChartMax)}
           </div>
@@ -5844,7 +5855,7 @@
         </div>
         ${renderStatsGoalSummary(monthGoalStatus)}
         <div class="stats-grid stats-grid-2">
-          <div class="chart-card cc-teal">
+          <div class="chart-card cc-purple">
             <div class="chart-card-title">6-min & abo per uke</div>
             ${stackedBarChart(weekBuckets, stackedChartMax)}
           </div>
