@@ -5054,7 +5054,7 @@
     const meta = value > 0 ? `Satt ${periodLabel}` : 'Ingen registreringer ennå';
     return `
       <div class="personal-record-card ${variant}${isNew ? ' is-new-record' : ''}">
-        <div class="personal-record-badge">${isNew ? 'Ny rekord!' : 'Beste hittil'}</div>
+        ${isNew ? '<div class="personal-record-badge">Ny rekord!</div>' : ''}
         <div class="personal-record-value">${safeValue}</div>
         <div class="personal-record-label">${title}</div>
         <div class="personal-record-meta">${meta}</div>
