@@ -5054,7 +5054,7 @@
     };
   }
 
-  function renderGoalField(period, metric, label, value) {
+  function renderGoalField(period, metric, label, value, currentValue = 0, businessDays = 0) {
     if (period === 'day') {
       const presetState = getDayGoalPresetState(value);
       const customPlaceholder = metric === 'over6' ? 'Skriv inn 7 eller mer' : 'Skriv inn 7 eller mer';
@@ -5078,10 +5078,18 @@
       `;
     }
 
+    const helperText = getGoalHelperPart(metric === 'sales' ? 'Abo' : '6 min', currentValue, value, businessDays);
     return `
       <div class="goals-field">
         <label for="goal-${period}-${metric}">${label}</label>
-        <input id="goal-${period}-${metric}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Tomt = ikke i bruk" value="${value ?? ''}" oninput="updateGoalsInlineHelper('${period}')" />
+        <input id="goal-${period}-${metric}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Tomt = ikke i bruk" value="${value ?? ''}" oninput="updateGoalFieldHelper('${period}', '${metric}')" />
+        <div
+          id="goal-helper-${period}-${metric}"
+          class="goals-inline-helper"
+          data-business-days="${businessDays}"
+          data-current-value="${currentValue}"
+          style="margin-top:10px;display:${helperText ? 'block' : 'none'};"
+        >${helperText ? `${helperText}.` : ''}</div>
       </div>
     `;
   }
@@ -5110,22 +5118,20 @@
     return input ? input.value : null;
   }
 
-  function updateGoalsInlineHelper(period) {
+  function updateGoalFieldHelper(period, metric) {
     if (period === 'day') return;
-    const helper = document.getElementById(`goals-inline-helper-${period}`);
+    const helper = document.getElementById(`goal-helper-${period}-${metric}`);
     if (!helper) return;
     const businessDays = Number(helper.dataset.businessDays || 0);
-    const currentOver6 = Number(helper.dataset.currentOver6 || 0);
-    const currentSales = Number(helper.dataset.currentSales || 0);
-    const over6Target = normalizeStatsGoalTarget(getGoalInputValue(period, 'over6'));
-    const salesTarget = normalizeStatsGoalTarget(getGoalInputValue(period, 'sales'));
-    const helperParts = getGoalHelperParts(period, businessDays, over6Target, salesTarget, currentOver6, currentSales);
-    if (!helperParts.length) {
+    const currentValue = Number(helper.dataset.currentValue || 0);
+    const targetValue = normalizeStatsGoalTarget(getGoalInputValue(period, metric));
+    const helperText = getGoalHelperPart(metric === 'sales' ? 'Abo' : '6 min', currentValue, targetValue, businessDays);
+    if (!helperText) {
       helper.textContent = '';
       helper.style.display = 'none';
       return;
     }
-    helper.textContent = `${helperParts.join(' og ')}.`;
+    helper.textContent = `${helperText}.`;
     helper.style.display = 'block';
   }
 
@@ -5314,16 +5320,14 @@
           const goal = goals[card.period];
           const businessDays = businessDaysByPeriod[card.period];
           const currentStats = currentStatsByPeriod[card.period];
-          const helperParts = getGoalHelperParts(card.period, businessDays, goal.over6Target, goal.salesTarget, currentStats.over5, currentStats.salg);
           return `
             <div id="goals-card-${card.period}" class="goals-card ${pendingGoalsFocusPeriod === card.period ? 'highlight' : ''}">
               <div class="goals-card-title">${card.title}</div>
               <div class="goals-card-text">${card.text}</div>
               <div class="goals-grid">
-                ${renderGoalField(card.period, 'over6', 'Mål for samtaler over 6 min', goal.over6Target)}
-                ${renderGoalField(card.period, 'sales', 'Mål for abo', goal.salesTarget)}
+                ${renderGoalField(card.period, 'over6', 'Mål for samtaler over 6 min', goal.over6Target, currentStats.over5, businessDays)}
+                ${renderGoalField(card.period, 'sales', 'Mål for abo', goal.salesTarget, currentStats.salg, businessDays)}
               </div>
-              ${card.period !== 'day' ? `<div id="goals-inline-helper-${card.period}" class="goals-inline-helper" data-business-days="${businessDays}" data-current-over6="${currentStats.over5}" data-current-sales="${currentStats.salg}" style="margin-top:12px;display:${helperParts.length ? 'block' : 'none'};">${helperParts.length ? `${helperParts.join(' og ')}.` : ''}</div>` : ''}
               <div class="goals-card-actions">
                 <button id="goal-save-btn-${card.period}" class="save-btn goal-save-btn" style="margin-top:0;" type="button" onclick="saveStatsGoal('${card.period}')">Lagre mål</button>
                 <button class="backup-btn" style="margin-top:0;" type="button" onclick="clearStatsGoal('${card.period}')">Tøm mål</button>
