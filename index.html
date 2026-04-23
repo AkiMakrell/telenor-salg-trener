@@ -89,6 +89,7 @@
     }
 
     .top-bar-tools {
+      display: flex;
       position: relative;
       flex: 0 0 auto;
     }
@@ -4004,15 +4005,15 @@
     <div id="top-bar-tools" class="top-bar-tools">
       <button
         id="top-bar-tools-button"
-        class="backup-btn menu-trigger"
+        class="tab-btn menu-trigger"
         type="button"
         aria-expanded="false"
         aria-controls="top-bar-tools-menu"
         aria-label="Åpne flere faner"
         onclick="toggleTopBarTools()"
       >
-        <span class="menu-trigger-icon" aria-hidden="true">&#8942;</span>
         <span>Mer</span>
+        <span class="menu-trigger-icon" aria-hidden="true">&#9662;</span>
       </button>
       <div id="top-bar-tools-menu" class="tools-menu" role="menu">
         <button class="more-tab-btn" data-tab="ov" type="button" onclick="switchTab('ov', this); closeTopBarTools();">
