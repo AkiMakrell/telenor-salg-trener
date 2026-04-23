@@ -5779,6 +5779,7 @@
                 <span class="samtalerating-pill datakort">Datakort: ${entry.datakort === 'ja' ? 'Ja' : entry.datakort === 'nei' ? 'Nei' : '-'}</span>
               </div>
               <div class="samtalerating-item-actions">
+                <button class="backup-btn samtalerating-mini-btn" type="button" onclick="event.stopPropagation(); copySamtaleRatingInteractionId('${entry.id}')">Kopier InteractionID</button>
                 <button class="backup-btn samtalerating-mini-btn" type="button" onclick="event.stopPropagation(); openSamtaleRatingEntry('${entry.id}')">Rediger</button>
                 <button class="backup-btn samtalerating-mini-btn" type="button" onclick="event.stopPropagation(); deleteSamtaleRatingEntry('${entry.id}')">Slett</button>
               </div>
@@ -5795,6 +5796,15 @@
     if (field === 'interactionId' || field === 'date' || field === 'notes') {
       draft[field] = field === 'notes' ? value : String(value || '');
       clearSamtaleRatingFeedback();
+    }
+  }
+
+  function copySamtaleRatingInteractionId(id) {
+    const entry = getSamtaleRatings().find(item => item.id === id);
+    const interactionId = entry?.interactionId?.trim();
+    if (!interactionId) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(interactionId);
     }
   }
 
