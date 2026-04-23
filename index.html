@@ -4637,6 +4637,8 @@
       msg = 'Salg i dag! Bygg videre på det som fungerte i samtalen.';
     } else if (weekStartedBetterThanPrevious) {
       msg = 'Denne uka har startet bedre enn forrige – fin utvikling så langt.';
+    } else if (yesterdayStats.salg > 0) {
+      msg = `I går fikk du ${yesterdayStats.salg} ${yesterdayStats.salg === 1 ? 'salg' : 'salg'} – du vet allerede at det går an å lykkes.`;
     } else if (yesterdayStats.over5 >= 4) {
       msg = `I går fikk du ${yesterdayStats.over5} samtaler over 6 min. Du har allerede vist at du får det til.`;
     } else if (isFirstCallSessionWithoutOpptak) {
