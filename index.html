@@ -4334,6 +4334,10 @@
     'samtaleflyt2_behovsanalyse_dekning',
     'samtaleflyt2_behovsanalyse_nettsikkerhet'
   ];
+  const RAW_STORAGE_KEYS = [
+    'introLastSelectedId',
+    INTRO_LEADERBOARD_DATA_VERSION_KEY
+  ];
   const DEMO_SEED_EMAILS = ['aki.fackrell@gmail.com'];
 
   const APP_META_LAST_IMPORT_USER = 'telenorSalgTrainer:lastImportedUserId';
@@ -4445,6 +4449,7 @@
   function readStoredValue(key, reader = _origGetItem) {
     const raw = reader(key);
     if (!raw) return null;
+    if (RAW_STORAGE_KEYS.includes(key)) return raw;
     return JSON.parse(raw);
   }
 
@@ -4469,7 +4474,12 @@
     isHydratingRemoteState = true;
     STORAGE_KEYS.forEach(key => {
       if (!Object.prototype.hasOwnProperty.call(data, key)) return;
-      _origSetItem(key, JSON.stringify(data[key]));
+      _origSetItem(
+        key,
+        RAW_STORAGE_KEYS.includes(key)
+          ? String(data[key])
+          : JSON.stringify(data[key])
+      );
     });
     isHydratingRemoteState = false;
   }
