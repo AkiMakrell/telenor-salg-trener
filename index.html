@@ -3932,6 +3932,7 @@
         </div>
 
         <button class="save-btn" style="width:100%;margin-top:22px;padding:14px;font-size:1.1rem;" onclick="registerIntroSuccess()">Registrer opptak</button>
+        <div id="last-registered-note" style="margin-top:10px;font-size:0.82rem;color:var(--muted);text-align:center;"></div>
 
         <button class="history-toggle-btn" onclick="toggleHistory()">Vis historikk</button>
         <div id="history-panel" class="history-panel">
@@ -4768,6 +4769,7 @@
     }
 
     renderIntroDailyStats(now);
+    renderLastRegisteredNote();
   }
 
   function addToIntroLibrary(text) {
@@ -4933,6 +4935,19 @@
       ${statCard(dayStats.introSuccesses, 'Opptak i dag', false, 'blue')}
       ${statCard(formatAveragePerSession(dayStats.introSuccesses, todaySessionCount), todaySessionCount ? `Snitt per økt (${dayStats.introSuccesses}/${todaySessionCount})` : 'Snitt per økt', false, 'purple')}
     `;
+  }
+
+  function renderLastRegisteredNote() {
+    const note = document.getElementById('last-registered-note');
+    if (!note) return;
+    const latest = getIntroHistory().find(entry => entry && entry.isoDate);
+    if (!latest) {
+      note.textContent = '';
+      return;
+    }
+    const latestDate = new Date(latest.isoDate);
+    const timeText = latestDate.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
+    note.textContent = `Sist registrert kl. ${timeText}`;
   }
 
   function resetIntroLeaderboardData() {
