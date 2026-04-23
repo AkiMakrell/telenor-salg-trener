@@ -2712,7 +2712,8 @@
       font-weight: 800;
     }
 
-    .goals-field input {
+    .goals-field input,
+    .goals-field select {
       width: 100%;
       border: 1.5px solid var(--border);
       border-radius: 12px;
@@ -2723,10 +2724,30 @@
       color: var(--text);
     }
 
-    .goals-field input:focus {
+    .goals-field input:focus,
+    .goals-field select:focus {
       outline: none;
       border-color: var(--primary);
       box-shadow: 0 0 0 4px rgba(41,168,224,0.12);
+    }
+
+    .goals-field select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+        linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+      background-position:
+        calc(100% - 18px) calc(50% - 3px),
+        calc(100% - 12px) calc(50% - 3px);
+      background-size: 6px 6px, 6px 6px;
+      background-repeat: no-repeat;
+      padding-right: 34px;
+      cursor: pointer;
+    }
+
+    .goals-custom-input {
+      margin-top: 10px;
     }
 
     .goals-card-actions {
@@ -4843,6 +4864,68 @@
     return Number.isInteger(value) ? String(value) : value.toFixed(1).replace('.', ',');
   }
 
+  function getDayGoalPresetState(value) {
+    if (value === null) return { preset: '', custom: '' };
+    if (value >= 1 && value <= 6) return { preset: String(value), custom: '' };
+    return { preset: 'custom', custom: String(value) };
+  }
+
+  function renderGoalField(period, metric, label, value) {
+    if (period === 'day') {
+      const presetState = getDayGoalPresetState(value);
+      const customPlaceholder = metric === 'over6' ? 'Skriv inn 7 eller mer' : 'Skriv inn 7 eller mer';
+      return `
+        <div class="goals-field">
+          <label for="goal-day-${metric}-preset">${label}</label>
+          <select id="goal-day-${metric}-preset" onchange="toggleDayGoalCustomInput('${metric}')">
+            <option value="" ${presetState.preset === '' ? 'selected' : ''}>Ikke i bruk</option>
+            <option value="1" ${presetState.preset === '1' ? 'selected' : ''}>1</option>
+            <option value="2" ${presetState.preset === '2' ? 'selected' : ''}>2</option>
+            <option value="3" ${presetState.preset === '3' ? 'selected' : ''}>3</option>
+            <option value="4" ${presetState.preset === '4' ? 'selected' : ''}>4</option>
+            <option value="5" ${presetState.preset === '5' ? 'selected' : ''}>5</option>
+            <option value="6" ${presetState.preset === '6' ? 'selected' : ''}>6</option>
+            <option value="custom" ${presetState.preset === 'custom' ? 'selected' : ''}>7+</option>
+          </select>
+          <div id="goal-day-${metric}-custom-wrap" class="goals-custom-input" style="display:${presetState.preset === 'custom' ? 'block' : 'none'};">
+            <input id="goal-day-${metric}-custom" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="${customPlaceholder}" value="${presetState.custom}" />
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="goals-field">
+        <label for="goal-${period}-${metric}">${label}</label>
+        <input id="goal-${period}-${metric}" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Tomt = ikke i bruk" value="${value ?? ''}" />
+      </div>
+    `;
+  }
+
+  function toggleDayGoalCustomInput(metric) {
+    const presetSelect = document.getElementById(`goal-day-${metric}-preset`);
+    const customWrap = document.getElementById(`goal-day-${metric}-custom-wrap`);
+    const customInput = document.getElementById(`goal-day-${metric}-custom`);
+    if (!presetSelect || !customWrap) return;
+    const showCustom = presetSelect.value === 'custom';
+    customWrap.style.display = showCustom ? 'block' : 'none';
+    if (!showCustom && customInput) customInput.value = '';
+  }
+
+  function getGoalInputValue(period, metric) {
+    if (period === 'day') {
+      const presetSelect = document.getElementById(`goal-day-${metric}-preset`);
+      const customInput = document.getElementById(`goal-day-${metric}-custom`);
+      if (!presetSelect) return null;
+      if (presetSelect.value === '') return null;
+      if (presetSelect.value === 'custom') return customInput ? customInput.value : null;
+      return presetSelect.value;
+    }
+
+    const input = document.getElementById(`goal-${period}-${metric}`);
+    return input ? input.value : null;
+  }
+
   function getBusinessDaysBetween(startDate, endDate) {
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -4926,10 +5009,8 @@
 
   function saveStatsGoal(period) {
     const goals = getStatsGoals();
-    const over6Input = document.getElementById(`goal-${period}-over6`);
-    const salesInput = document.getElementById(`goal-${period}-sales`);
-    goals[period].over6Target = normalizeStatsGoalTarget(over6Input ? over6Input.value : null);
-    goals[period].salesTarget = normalizeStatsGoalTarget(salesInput ? salesInput.value : null);
+    goals[period].over6Target = normalizeStatsGoalTarget(getGoalInputValue(period, 'over6'));
+    goals[period].salesTarget = normalizeStatsGoalTarget(getGoalInputValue(period, 'sales'));
     saveStatsGoals(goals);
     renderGoalsPage();
     renderStatsHome();
@@ -4958,7 +5039,7 @@
       {
         period: 'day',
         title: 'Mål for dagen',
-        text: 'Sett mål for samtaler over 6 min og/eller abo i dag. La et felt stå tomt hvis du ikke vil bruke det.',
+        text: 'Velg dagsmål raskt fra listen. Hvis du vil over 6, velger du 7+ og skriver inn tallet selv.',
       },
       {
         period: 'week',
@@ -4991,14 +5072,8 @@
               <div class="goals-card-title">${card.title}</div>
               <div class="goals-card-text">${card.text}</div>
               <div class="goals-grid">
-                <div class="goals-field">
-                  <label for="goal-${card.period}-over6">Mål for samtaler over 6 min</label>
-                  <input id="goal-${card.period}-over6" type="number" min="0" step="1" placeholder="Tomt = ikke i bruk" value="${goal.over6Target ?? ''}" />
-                </div>
-                <div class="goals-field">
-                  <label for="goal-${card.period}-sales">Mål for abo</label>
-                  <input id="goal-${card.period}-sales" type="number" min="0" step="1" placeholder="Tomt = ikke i bruk" value="${goal.salesTarget ?? ''}" />
-                </div>
+                ${renderGoalField(card.period, 'over6', 'Mål for samtaler over 6 min', goal.over6Target)}
+                ${renderGoalField(card.period, 'sales', 'Mål for abo', goal.salesTarget)}
               </div>
               ${helperParts.length ? `<div class="goals-inline-helper" style="margin-top:12px;">Dette tilsvarer ${helperParts.join(' og ')}.</div>` : ''}
               <div class="goals-card-actions">
