@@ -587,6 +587,607 @@
       margin-bottom: 8px;
     }
 
+    .samtalerating-page {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .samtalerating-hero,
+    .samtalerating-form-card,
+    .samtalerating-history-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+    }
+
+    .samtalerating-hero {
+      padding: 22px 24px;
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .samtalerating-hero-title {
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .samtalerating-hero-text {
+      max-width: 680px;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 0.95rem;
+    }
+
+    .samtalerating-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .samtalerating-form-card,
+    .samtalerating-history-card {
+      padding: 22px 24px;
+    }
+
+    .samtalerating-section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .samtalerating-section-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .samtalerating-section-text {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .samtalerating-status {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(41,168,224,0.28);
+      background: rgba(41,168,224,0.12);
+      color: #7dd3fc;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .samtalerating-grid,
+    .samtalerating-score-grid,
+    .samtalerating-stats {
+      display: grid;
+      gap: 14px;
+    }
+
+    .samtalerating-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .samtalerating-score-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-top: 4px;
+    }
+
+    .samtalerating-field {
+      text-align: left;
+    }
+
+    .samtalerating-field-full {
+      grid-column: 1 / -1;
+    }
+
+    .samtalerating-field label,
+    .samtalerating-score-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .samtalerating-field input,
+    .samtalerating-field textarea,
+    .samtalerating-search {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 12px;
+      font-size: 0.94rem;
+      font-family: inherit;
+      background: var(--primary-xlight);
+      color: var(--text);
+    }
+
+    .samtalerating-field input:focus,
+    .samtalerating-field textarea:focus,
+    .samtalerating-search:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(41,168,224,0.12);
+    }
+
+    .samtalerating-field textarea {
+      min-height: 180px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .samtalerating-score-card {
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      background: rgba(11, 18, 32, 0.88);
+    }
+
+    .samtalerating-choice-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .samtalerating-choice {
+      min-width: 44px;
+      justify-content: center;
+      padding: 9px 14px;
+    }
+
+    .samtalerating-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .samtalerating-stats {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-bottom: 14px;
+    }
+
+    .samtalerating-stat {
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(11, 18, 32, 0.88);
+    }
+
+    .samtalerating-stat-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .samtalerating-stat-value {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .samtalerating-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .samtalerating-item {
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 15px 16px;
+      background: rgba(11, 18, 32, 0.88);
+      cursor: pointer;
+      transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .samtalerating-item:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .samtalerating-item.active {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(41,168,224,0.12);
+    }
+
+    .samtalerating-item-head,
+    .samtalerating-item-meta,
+    .samtalerating-item-actions,
+    .samtalerating-item-topline {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .samtalerating-item-head {
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .samtalerating-item-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .samtalerating-item-subtitle,
+    .samtalerating-item-notes,
+    .samtalerating-empty {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .samtalerating-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .samtalerating-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: #10233c;
+      color: #93c5fd;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .samtalerating-pill.datakort {
+      background: #132a1d;
+      color: #86efac;
+    }
+
+    .samtalerating-average {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(41,168,224,0.14);
+      color: #7dd3fc;
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .samtalerating-item-actions {
+      margin-top: 12px;
+    }
+
+    .samtalerating-mini-btn {
+      margin-top: 0;
+      padding: 8px 12px;
+      font-size: 0.84rem;
+      border-radius: 10px;
+      box-shadow: none;
+    }
+
+    .samtalerating-empty {
+      padding: 10px 2px 2px;
+    }
+
+    .ov-page {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .ov-hero,
+    .ov-form-card,
+    .ov-history-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+    }
+
+    .ov-hero {
+      padding: 22px 24px;
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .ov-hero-title {
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .ov-hero-text {
+      max-width: 680px;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 0.95rem;
+    }
+
+    .ov-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .ov-form-card,
+    .ov-history-card {
+      padding: 22px 24px;
+    }
+
+    .ov-section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .ov-section-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .ov-section-text {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .ov-status-message {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(41,168,224,0.28);
+      background: rgba(41,168,224,0.12);
+      color: #7dd3fc;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .ov-grid,
+    .ov-stats {
+      display: grid;
+      gap: 14px;
+    }
+
+    .ov-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ov-field {
+      text-align: left;
+    }
+
+    .ov-field-full {
+      grid-column: 1 / -1;
+    }
+
+    .ov-field label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .ov-field input,
+    .ov-field textarea,
+    .ov-search {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 12px;
+      font-size: 0.94rem;
+      font-family: inherit;
+      background: var(--primary-xlight);
+      color: var(--text);
+    }
+
+    .ov-field input:focus,
+    .ov-field textarea:focus,
+    .ov-search:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(41,168,224,0.12);
+    }
+
+    .ov-field textarea {
+      min-height: 130px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .ov-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .ov-stats {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-bottom: 14px;
+    }
+
+    .ov-stat {
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(11, 18, 32, 0.88);
+    }
+
+    .ov-stat-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .ov-stat-value {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .ov-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .ov-item {
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 15px 16px;
+      background: rgba(11, 18, 32, 0.88);
+      cursor: pointer;
+      transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .ov-item:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .ov-item.active {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(41,168,224,0.12);
+    }
+
+    .ov-item-head,
+    .ov-item-meta,
+    .ov-item-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .ov-item-head {
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .ov-item-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .ov-item-subtitle,
+    .ov-item-text,
+    .ov-empty {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .ov-item-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .ov-item-box {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 11px;
+      background: rgba(16, 35, 60, 0.45);
+    }
+
+    .ov-item-box-label {
+      display: block;
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: var(--muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .ov-item-box-value {
+      color: var(--text);
+      font-size: 0.9rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .ov-status-chip,
+    .ov-delta-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .ov-status-chip.status-ikke-svart {
+      background: rgba(59,130,246,0.16);
+      color: #93c5fd;
+    }
+
+    .ov-status-chip.status-vil-ikke-ha {
+      background: rgba(239,68,68,0.16);
+      color: #fca5a5;
+    }
+
+    .ov-status-chip.status-har-byttet {
+      background: rgba(34,197,94,0.16);
+      color: #86efac;
+    }
+
+    .ov-delta-chip {
+      background: rgba(41,168,224,0.14);
+      color: #7dd3fc;
+    }
+
+    .ov-item-actions {
+      margin-top: 12px;
+    }
+
+    .ov-mini-btn {
+      margin-top: 0;
+      padding: 8px 12px;
+      font-size: 0.84rem;
+      border-radius: 10px;
+      box-shadow: none;
+    }
+
+    .ov-empty {
+      padding: 10px 2px 2px;
+    }
+
     .notes-helper {
       color: var(--muted);
       font-size: 0.89rem;
@@ -1262,6 +1863,15 @@
       .price-calculator-summary-card {
         position: static;
       }
+
+      .samtalerating-layout,
+      .samtalerating-grid,
+      .samtalerating-score-grid,
+      .ov-layout,
+      .ov-grid,
+      .ov-item-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .fakta-theme-section {
@@ -1609,6 +2219,46 @@
 
       .top-bar-settings {
         align-self: flex-end;
+      }
+
+      .samtalerating-hero,
+      .samtalerating-section-head,
+      .samtalerating-item-head {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .samtalerating-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .samtalerating-actions {
+        flex-direction: column;
+      }
+
+      .samtalerating-actions .save-btn,
+      .samtalerating-actions .backup-btn {
+        width: 100%;
+      }
+
+      .ov-hero,
+      .ov-section-head,
+      .ov-item-head {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .ov-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .ov-actions {
+        flex-direction: column;
+      }
+
+      .ov-actions .save-btn,
+      .ov-actions .backup-btn {
+        width: 100%;
       }
     }
 
@@ -2658,6 +3308,8 @@
     <button class="tab-btn" onclick="switchTab('hjem')">Stats</button>
     <button class="tab-btn" onclick="switchTab('innvendinger')">Innvendinger</button>
     <button class="tab-btn" onclick="switchTab('notater')">Notater</button>
+    <button class="tab-btn" onclick="switchTab('samtalerating')">Samtalerating</button>
+    <button class="tab-btn" onclick="switchTab('ov')">OV</button>
     <button class="tab-btn" onclick="switchTab('priser')">Pris kalkulator</button>
     <button class="tab-btn" onclick="switchTab('samtaleflyt')">Flyt (avansert)</button>
   </div>
@@ -2822,6 +3474,14 @@
   </div>
 </div>
 
+<div id="tab-samtalerating" class="tab-content">
+  <div id="samtalerating-page" class="samtalerating-page"></div>
+</div>
+
+<div id="tab-ov" class="tab-content">
+  <div id="ov-page" class="ov-page"></div>
+</div>
+
 <div id="tab-priser" class="tab-content">
   <div class="notes-page">
     <div class="notes-page-title">Pris kalkulator</div>
@@ -2941,6 +3601,8 @@
     INTRO_LEADERBOARD_DATA_VERSION_KEY,
     'produktFakta',
     'conversationNotes',
+    'samtaleRatings',
+    'ovEntries',
     'samtaleflyt',
     'samtaleflyt2_intro',
     'samtaleflyt2_behovsanalyse',
@@ -3245,6 +3907,8 @@
     renderIntroHistory();
     renderFakta();
     renderConversationNotes();
+    renderSamtaleRating();
+    renderOvPage();
     renderAllPriceCalculators();
     renderSamtaleflyt();
   }
@@ -3391,6 +4055,8 @@
     if (name === 'priser' || name === 'notater') renderAllPriceCalculators();
     if (name === 'samtaleflyt') renderSamtaleflyt();
     if (name === 'notater') renderConversationNotes();
+    if (name === 'samtalerating') renderSamtaleRating();
+    if (name === 'ov') renderOvPage();
   }
 
   let selectedOver5min = null;
@@ -4197,6 +4863,27 @@
     { key: 'nettsikkerhet', label: 'Nettsikkerhet', placeholder: 'Hvilke bekymringer eller behov har kunden rundt trygghet?' },
     { key: 'datakort', label: 'Datakort', placeholder: 'Har kunden behov for nett på andre enheter eller i bil?' }
   ];
+  const SAMTALE_RATING_SCORE_FIELDS = [
+    { key: 'minSky', label: 'MinSky' },
+    { key: 'data', label: 'Data' },
+    { key: 'dekning', label: 'Dekning' },
+    { key: 'nettsikkerhet', label: 'Nettsikkerhet' },
+    { key: 'oppsummering', label: 'Oppsummering' },
+    { key: 'losningspresentasjon', label: 'Løsningspresentasjon' }
+  ];
+  const OV_STATUS_OPTIONS = [
+    { id: 'ikke-svart', label: 'Ikke svart' },
+    { id: 'vil-ikke-ha', label: 'Svart, men vil ikke ha' },
+    { id: 'har-byttet', label: 'Svart og har byttet' }
+  ];
+  let samtaleRatingDraft = null;
+  let samtaleRatingEditingId = '';
+  let samtaleRatingSearchQuery = '';
+  let samtaleRatingFeedback = '';
+  let ovDraft = null;
+  let ovEditingId = '';
+  let ovSearchQuery = '';
+  let ovFeedback = '';
   const PRICE_CALCULATOR_MODES = [
     { id: 'standard', label: 'Vanlige priser' },
     { id: 'forbund', label: 'Forbundspriser' },
@@ -4841,6 +5528,836 @@
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(summary);
     }
+  }
+
+  function getTodayIsoDate() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function getDefaultSamtaleRatingDraft() {
+    const scores = {};
+    SAMTALE_RATING_SCORE_FIELDS.forEach(field => {
+      scores[field.key] = 0;
+    });
+    return {
+      interactionId: '',
+      date: getTodayIsoDate(),
+      scores,
+      datakort: '',
+      notes: ''
+    };
+  }
+
+  function ensureSamtaleRatingDraft() {
+    if (!samtaleRatingDraft) samtaleRatingDraft = getDefaultSamtaleRatingDraft();
+    if (!samtaleRatingDraft.date) samtaleRatingDraft.date = getTodayIsoDate();
+    if (!samtaleRatingDraft.scores) samtaleRatingDraft.scores = {};
+    SAMTALE_RATING_SCORE_FIELDS.forEach(field => {
+      const value = Number(samtaleRatingDraft.scores[field.key]) || 0;
+      samtaleRatingDraft.scores[field.key] = value >= 1 && value <= 5 ? value : 0;
+    });
+    if (samtaleRatingDraft.datakort !== 'ja' && samtaleRatingDraft.datakort !== 'nei') samtaleRatingDraft.datakort = '';
+    samtaleRatingDraft.notes = String(samtaleRatingDraft.notes || '');
+    samtaleRatingDraft.interactionId = String(samtaleRatingDraft.interactionId || '');
+    return samtaleRatingDraft;
+  }
+
+  function normalizeSamtaleRatingEntry(entry, index) {
+    if (!entry || typeof entry !== 'object') return null;
+    const interactionId = String(entry.interactionId || entry.interactionID || '').trim();
+    const notes = String(entry.notes || entry.comment || '').trim();
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(String(entry.date || '')) ? String(entry.date) : getTodayIsoDate();
+    const scores = {};
+    SAMTALE_RATING_SCORE_FIELDS.forEach(field => {
+      const rawValue = Number(entry.scores?.[field.key] ?? entry[field.key] ?? 0);
+      scores[field.key] = rawValue >= 1 && rawValue <= 5 ? Math.round(rawValue) : 0;
+    });
+    return {
+      id: String(entry.id || `samtale-rating-${Date.now()}-${index}`),
+      interactionId,
+      date,
+      scores,
+      datakort: entry.datakort === 'ja' || entry.datakort === true ? 'ja' : entry.datakort === 'nei' || entry.datakort === false ? 'nei' : '',
+      notes,
+      createdAt: String(entry.createdAt || entry.updatedAt || new Date().toISOString()),
+      updatedAt: String(entry.updatedAt || entry.createdAt || new Date().toISOString())
+    };
+  }
+
+  function compareSamtaleRatings(a, b) {
+    const dateCompare = (b.date || '').localeCompare(a.date || '');
+    if (dateCompare !== 0) return dateCompare;
+    return (b.updatedAt || '').localeCompare(a.updatedAt || '');
+  }
+
+  function getSamtaleRatings() {
+    const raw = localStorage.getItem('samtaleRatings');
+    const parsed = raw ? JSON.parse(raw) : [];
+    let changed = !raw || !Array.isArray(parsed);
+    const source = Array.isArray(parsed) ? parsed : [];
+    const normalized = source
+      .map((entry, index) => normalizeSamtaleRatingEntry(entry, index))
+      .filter(Boolean)
+      .sort(compareSamtaleRatings);
+    if (JSON.stringify(source) !== JSON.stringify(normalized)) changed = true;
+    if (changed) localStorage.setItem('samtaleRatings', JSON.stringify(normalized));
+    return normalized;
+  }
+
+  function saveSamtaleRatings(entries) {
+    const normalized = entries
+      .map((entry, index) => normalizeSamtaleRatingEntry(entry, index))
+      .filter(Boolean)
+      .sort(compareSamtaleRatings);
+    localStorage.setItem('samtaleRatings', JSON.stringify(normalized));
+  }
+
+  function getSamtaleRatingAverage(entry) {
+    const values = SAMTALE_RATING_SCORE_FIELDS
+      .map(field => Number(entry?.scores?.[field.key]) || 0)
+      .filter(Boolean);
+    if (!values.length) return 0;
+    return values.reduce((sum, value) => sum + value, 0) / values.length;
+  }
+
+  function formatSamtaleRatingAverage(value) {
+    return value ? value.toFixed(1).replace('.', ',') : '0,0';
+  }
+
+  function formatSamtaleRatingDate(isoDate) {
+    if (!isoDate) return 'Uten dato';
+    const parsed = new Date(`${isoDate}T12:00:00`);
+    if (Number.isNaN(parsed.getTime())) return isoDate;
+    return parsed.toLocaleDateString('no-NO', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function getSamtaleRatingPreview(text) {
+    const normalized = String(text || '').trim().replace(/\s+/g, ' ');
+    if (!normalized) return 'Ingen notater lagt inn ennå.';
+    return normalized.length > 180 ? `${normalized.slice(0, 177)}...` : normalized;
+  }
+
+  function clearSamtaleRatingFeedback() {
+    samtaleRatingFeedback = '';
+  }
+
+  function renderSamtaleRating() {
+    const page = document.getElementById('samtalerating-page');
+    if (!page) return;
+    ensureSamtaleRatingDraft();
+    page.innerHTML = `
+      <div class="samtalerating-hero">
+        <div>
+          <div class="samtalerating-hero-title">Samtalerating</div>
+          <div class="samtalerating-hero-text">Loggfør hver samtale med InteractionID, dato, delscore for de viktigste delene av samtalen og egne notater. Oversikten til høyre viser tidligere samtaler på en rask og ryddig måte.</div>
+        </div>
+        <button class="save-btn" style="margin-top:0;" type="button" onclick="startNewSamtaleRating(true)">+ Ny samtale</button>
+      </div>
+      <div class="samtalerating-layout">
+        <div id="samtalerating-form"></div>
+        <div id="samtalerating-history"></div>
+      </div>
+    `;
+    renderSamtaleRatingForm();
+    renderSamtaleRatingHistory();
+  }
+
+  function renderSamtaleRatingForm() {
+    const wrap = document.getElementById('samtalerating-form');
+    if (!wrap) return;
+    const draft = ensureSamtaleRatingDraft();
+    const isEditing = !!samtaleRatingEditingId;
+    wrap.innerHTML = `
+      <div class="samtalerating-form-card">
+        <div class="samtalerating-section-head">
+          <div>
+            <div class="samtalerating-section-title">${isEditing ? 'Rediger samtale' : 'Legg til ny samtale'}</div>
+            <div class="samtalerating-section-text">${isEditing ? 'Oppdater ratingen og lagre når du er ferdig.' : 'Fyll ut feltene under og lagre. Etter lagring nullstilles skjemaet så neste samtale kan registreres med en gang.'}</div>
+          </div>
+          ${samtaleRatingFeedback ? `<div class="samtalerating-status">${escHtml(samtaleRatingFeedback)}</div>` : ''}
+        </div>
+        <div class="samtalerating-grid">
+          <div class="samtalerating-field">
+            <label for="samtalerating-interaction">InteractionID</label>
+            <input id="samtalerating-interaction" type="text" placeholder="F.eks. 123456789" value="${escHtml(draft.interactionId)}" oninput="updateSamtaleRatingDraftField('interactionId', this.value)" />
+          </div>
+          <div class="samtalerating-field">
+            <label for="samtalerating-date">Dato</label>
+            <input id="samtalerating-date" type="date" value="${escHtml(draft.date)}" oninput="updateSamtaleRatingDraftField('date', this.value)" />
+          </div>
+          <div class="samtalerating-field samtalerating-field-full">
+            <label>Rating per del av samtalen</label>
+            <div class="samtalerating-score-grid">
+              ${SAMTALE_RATING_SCORE_FIELDS.map(field => `
+                <div class="samtalerating-score-card">
+                  <div class="samtalerating-score-label">${field.label}</div>
+                  <div class="samtalerating-choice-row">
+                    ${[1, 2, 3, 4, 5].map(value => `
+                      <button
+                        class="choice-chip samtalerating-choice ${draft.scores[field.key] === value ? 'active' : ''}"
+                        type="button"
+                        onclick="setSamtaleRatingScore('${field.key}', ${value})"
+                      >${value}</button>
+                    `).join('')}
+                  </div>
+                </div>
+              `).join('')}
+              <div class="samtalerating-score-card">
+                <div class="samtalerating-score-label">Datakort</div>
+                <div class="samtalerating-choice-row">
+                  <button class="choice-chip samtalerating-choice ${draft.datakort === 'ja' ? 'active' : ''}" type="button" onclick="setSamtaleRatingDatakort('ja')">Ja</button>
+                  <button class="choice-chip samtalerating-choice ${draft.datakort === 'nei' ? 'active' : ''}" type="button" onclick="setSamtaleRatingDatakort('nei')">Nei</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="samtalerating-field samtalerating-field-full">
+            <label for="samtalerating-notes">Notater / kritikk</label>
+            <textarea id="samtalerating-notes" placeholder="Skriv konkrete styrker, svakheter, forbedringspunkter eller annen læring fra samtalen..." oninput="updateSamtaleRatingDraftField('notes', this.value)">${escHtml(draft.notes)}</textarea>
+          </div>
+        </div>
+        <div class="samtalerating-actions">
+          <button class="save-btn" style="margin-top:0;" type="button" onclick="saveSamtaleRating()">${isEditing ? 'Oppdater samtale' : 'Lagre samtale'}</button>
+          <button class="backup-btn" style="margin-top:0;" type="button" onclick="startNewSamtaleRating(true)">Nullstill skjema</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderSamtaleRatingHistory() {
+    const wrap = document.getElementById('samtalerating-history');
+    if (!wrap) return;
+    const entries = getSamtaleRatings();
+    const query = samtaleRatingSearchQuery.trim().toLowerCase();
+    const filtered = entries.filter(entry => {
+      if (!query) return true;
+      const haystack = [
+        entry.interactionId,
+        entry.date,
+        formatSamtaleRatingDate(entry.date),
+        entry.notes,
+        ...SAMTALE_RATING_SCORE_FIELDS.map(field => `${field.label} ${entry.scores[field.key] || ''}`),
+        entry.datakort
+      ].join(' ').toLowerCase();
+      return haystack.includes(query);
+    });
+    const averageScore = filtered.length
+      ? filtered.reduce((sum, entry) => sum + getSamtaleRatingAverage(entry), 0) / filtered.length
+      : 0;
+    const currentMonthKey = new Date().toISOString().slice(0, 7);
+    const monthCount = entries.filter(entry => String(entry.date || '').slice(0, 7) === currentMonthKey).length;
+    wrap.innerHTML = `
+      <div class="samtalerating-history-card">
+        <div class="samtalerating-section-head">
+          <div>
+            <div class="samtalerating-section-title">Tidligere samtaler</div>
+            <div class="samtalerating-section-text">Søk på InteractionID, dato eller notater. Klikk et kort for å redigere en tidligere rating.</div>
+          </div>
+        </div>
+        <div class="samtalerating-stats">
+          <div class="samtalerating-stat">
+            <div class="samtalerating-stat-label">Totalt loggført</div>
+            <div class="samtalerating-stat-value">${entries.length}</div>
+          </div>
+          <div class="samtalerating-stat">
+            <div class="samtalerating-stat-label">Denne måneden</div>
+            <div class="samtalerating-stat-value">${monthCount}</div>
+          </div>
+          <div class="samtalerating-stat">
+            <div class="samtalerating-stat-label">Snitt i søket</div>
+            <div class="samtalerating-stat-value">${formatSamtaleRatingAverage(averageScore)}</div>
+          </div>
+        </div>
+        <input id="samtalerating-search" class="samtalerating-search" type="text" placeholder="Søk etter InteractionID, dato eller notater..." value="${escHtml(samtaleRatingSearchQuery)}" oninput="setSamtaleRatingSearch(this.value)" />
+        <div class="samtalerating-list">
+          ${filtered.length ? filtered.map(entry => `
+            <div class="samtalerating-item ${entry.id === samtaleRatingEditingId ? 'active' : ''}" onclick="openSamtaleRatingEntry('${entry.id}')">
+              <div class="samtalerating-item-head">
+                <div>
+                  <div class="samtalerating-item-title">${escHtml(entry.interactionId || 'Uten InteractionID')}</div>
+                  <div class="samtalerating-item-subtitle">${escHtml(formatSamtaleRatingDate(entry.date))}</div>
+                </div>
+                <div class="samtalerating-average">Snitt ${formatSamtaleRatingAverage(getSamtaleRatingAverage(entry))}/5</div>
+              </div>
+              <div class="samtalerating-pill-row">
+                ${SAMTALE_RATING_SCORE_FIELDS.map(field => `
+                  <span class="samtalerating-pill">${field.label}: ${entry.scores[field.key] || '-'}</span>
+                `).join('')}
+                <span class="samtalerating-pill datakort">Datakort: ${entry.datakort === 'ja' ? 'Ja' : entry.datakort === 'nei' ? 'Nei' : '-'}</span>
+              </div>
+              <div class="samtalerating-item-actions">
+                <button class="backup-btn samtalerating-mini-btn" type="button" onclick="event.stopPropagation(); openSamtaleRatingEntry('${entry.id}')">Rediger</button>
+                <button class="backup-btn samtalerating-mini-btn" type="button" onclick="event.stopPropagation(); deleteSamtaleRatingEntry('${entry.id}')">Slett</button>
+              </div>
+              <div class="samtalerating-item-notes">${escHtml(getSamtaleRatingPreview(entry.notes))}</div>
+            </div>
+          `).join('') : `<div class="samtalerating-empty">${query ? 'Ingen samtaler matcher søket ditt.' : 'Ingen samtaler loggført ennå.'}</div>`}
+        </div>
+      </div>
+    `;
+  }
+
+  function updateSamtaleRatingDraftField(field, value) {
+    const draft = ensureSamtaleRatingDraft();
+    if (field === 'interactionId' || field === 'date' || field === 'notes') {
+      draft[field] = field === 'notes' ? value : String(value || '');
+      clearSamtaleRatingFeedback();
+    }
+  }
+
+  function setSamtaleRatingScore(fieldKey, value) {
+    const draft = ensureSamtaleRatingDraft();
+    draft.scores[fieldKey] = value;
+    clearSamtaleRatingFeedback();
+    renderSamtaleRatingForm();
+  }
+
+  function setSamtaleRatingDatakort(value) {
+    const draft = ensureSamtaleRatingDraft();
+    draft.datakort = value;
+    clearSamtaleRatingFeedback();
+    renderSamtaleRatingForm();
+  }
+
+  function setSamtaleRatingSearch(value) {
+    samtaleRatingSearchQuery = String(value || '');
+    renderSamtaleRatingHistory();
+    requestAnimationFrame(() => {
+      const input = document.getElementById('samtalerating-search');
+      if (!input) return;
+      const nextPos = input.value.length;
+      input.focus();
+      input.setSelectionRange(nextPos, nextPos);
+    });
+  }
+
+  function focusSamtaleRatingInteraction() {
+    requestAnimationFrame(() => {
+      const input = document.getElementById('samtalerating-interaction');
+      if (input) input.focus();
+    });
+  }
+
+  function startNewSamtaleRating(shouldFocus = false) {
+    samtaleRatingDraft = getDefaultSamtaleRatingDraft();
+    samtaleRatingEditingId = '';
+    clearSamtaleRatingFeedback();
+    renderSamtaleRating();
+    if (shouldFocus) focusSamtaleRatingInteraction();
+  }
+
+  function openSamtaleRatingEntry(id) {
+    const entry = getSamtaleRatings().find(item => item.id === id);
+    if (!entry) return;
+    samtaleRatingEditingId = id;
+    samtaleRatingDraft = {
+      interactionId: entry.interactionId,
+      date: entry.date,
+      scores: { ...entry.scores },
+      datakort: entry.datakort,
+      notes: entry.notes
+    };
+    clearSamtaleRatingFeedback();
+    renderSamtaleRating();
+    const formCard = document.querySelector('.samtalerating-form-card');
+    if (formCard) formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function validateSamtaleRatingDraft(draft) {
+    if (!draft.interactionId.trim()) {
+      alert('Legg inn InteractionID før du lagrer.');
+      focusSamtaleRatingInteraction();
+      return false;
+    }
+    if (!draft.date) {
+      alert('Velg dato for samtalen.');
+      return false;
+    }
+    const missingScore = SAMTALE_RATING_SCORE_FIELDS.find(field => !(draft.scores[field.key] >= 1 && draft.scores[field.key] <= 5));
+    if (missingScore) {
+      alert(`Velg en rating fra 1 til 5 for ${missingScore.label}.`);
+      return false;
+    }
+    if (draft.datakort !== 'ja' && draft.datakort !== 'nei') {
+      alert('Velg om datakort var aktuelt eller ikke.');
+      return false;
+    }
+    return true;
+  }
+
+  function saveSamtaleRating() {
+    const draft = ensureSamtaleRatingDraft();
+    if (!validateSamtaleRatingDraft(draft)) return;
+    const entries = getSamtaleRatings();
+    const timestamp = new Date().toISOString();
+    const nextEntry = {
+      id: samtaleRatingEditingId || `samtale-rating-${Date.now()}`,
+      interactionId: draft.interactionId.trim(),
+      date: draft.date,
+      scores: { ...draft.scores },
+      datakort: draft.datakort,
+      notes: draft.notes.trim(),
+      createdAt: timestamp,
+      updatedAt: timestamp
+    };
+
+    if (samtaleRatingEditingId) {
+      const existing = entries.find(item => item.id === samtaleRatingEditingId);
+      nextEntry.createdAt = existing?.createdAt || timestamp;
+      const index = entries.findIndex(item => item.id === samtaleRatingEditingId);
+      if (index >= 0) entries[index] = nextEntry;
+      else entries.unshift(nextEntry);
+      samtaleRatingFeedback = 'Samtalen ble oppdatert.';
+    } else {
+      entries.unshift(nextEntry);
+      samtaleRatingFeedback = 'Samtalen ble lagret.';
+    }
+
+    saveSamtaleRatings(entries);
+    samtaleRatingDraft = getDefaultSamtaleRatingDraft();
+    samtaleRatingEditingId = '';
+    renderSamtaleRating();
+    focusSamtaleRatingInteraction();
+  }
+
+  function deleteSamtaleRatingEntry(id) {
+    const entries = getSamtaleRatings();
+    const target = entries.find(entry => entry.id === id);
+    if (!target) return;
+    if (!confirm(`Slette samtalen ${target.interactionId || 'uten InteractionID'}?`)) return;
+    saveSamtaleRatings(entries.filter(entry => entry.id !== id));
+    if (samtaleRatingEditingId === id) {
+      samtaleRatingDraft = getDefaultSamtaleRatingDraft();
+      samtaleRatingEditingId = '';
+    }
+    samtaleRatingFeedback = 'Samtalen ble slettet.';
+    renderSamtaleRating();
+  }
+
+  function getDefaultOvDraft() {
+    return {
+      organizationNumber: '',
+      currentSolution: '',
+      currentPrice: '',
+      proposedSolution: '',
+      proposedPrice: '',
+      lastCalledDate: getTodayIsoDate(),
+      status: OV_STATUS_OPTIONS[0].id
+    };
+  }
+
+  function ensureOvDraft() {
+    if (!ovDraft) ovDraft = getDefaultOvDraft();
+    ovDraft.organizationNumber = String(ovDraft.organizationNumber || '');
+    ovDraft.currentSolution = String(ovDraft.currentSolution || '');
+    ovDraft.currentPrice = String(ovDraft.currentPrice || '');
+    ovDraft.proposedSolution = String(ovDraft.proposedSolution || '');
+    ovDraft.proposedPrice = String(ovDraft.proposedPrice || '');
+    ovDraft.lastCalledDate = /^\d{4}-\d{2}-\d{2}$/.test(String(ovDraft.lastCalledDate || ''))
+      ? String(ovDraft.lastCalledDate)
+      : getTodayIsoDate();
+    if (!OV_STATUS_OPTIONS.some(option => option.id === ovDraft.status)) ovDraft.status = OV_STATUS_OPTIONS[0].id;
+    return ovDraft;
+  }
+
+  function normalizeCurrencyInput(value) {
+    const raw = String(value || '').replace(',', '.').trim();
+    if (!raw) return '';
+    const amount = Number(raw);
+    return Number.isFinite(amount) ? amount.toFixed(2) : '';
+  }
+
+  function parseCurrencyValue(value) {
+    const normalized = normalizeCurrencyInput(value);
+    return normalized ? Number(normalized) : null;
+  }
+
+  function formatCurrencyValue(value) {
+    const amount = Number(value);
+    if (!Number.isFinite(amount)) return '-';
+    return amount.toLocaleString('no-NO', { style: 'currency', currency: 'NOK', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function getOvStatusMeta(statusId) {
+    return OV_STATUS_OPTIONS.find(option => option.id === statusId) || OV_STATUS_OPTIONS[0];
+  }
+
+  function formatOvStatusClass(statusId) {
+    return `status-${statusId}`;
+  }
+
+  function formatOvDelta(currentPrice, proposedPrice) {
+    const current = Number(currentPrice);
+    const proposed = Number(proposedPrice);
+    if (!Number.isFinite(current) || !Number.isFinite(proposed)) return 'Uten prisdifferanse';
+    const delta = proposed - current;
+    if (delta === 0) return 'Samme pris';
+    const prefix = delta > 0 ? '+' : '-';
+    return `${prefix}${formatCurrencyValue(Math.abs(delta))}`;
+  }
+
+  function normalizeOvEntry(entry, index) {
+    if (!entry || typeof entry !== 'object') return null;
+    const organizationNumber = String(entry.organizationNumber || entry.orgNumber || '').trim();
+    const currentSolution = String(entry.currentSolution || '').trim();
+    const proposedSolution = String(entry.proposedSolution || '').trim();
+    const normalizedStatus = OV_STATUS_OPTIONS.some(option => option.id === entry.status) ? entry.status : OV_STATUS_OPTIONS[0].id;
+    return {
+      id: String(entry.id || `ov-entry-${Date.now()}-${index}`),
+      organizationNumber,
+      currentSolution,
+      currentPrice: normalizeCurrencyInput(entry.currentPrice),
+      proposedSolution,
+      proposedPrice: normalizeCurrencyInput(entry.proposedPrice),
+      lastCalledDate: /^\d{4}-\d{2}-\d{2}$/.test(String(entry.lastCalledDate || '')) ? String(entry.lastCalledDate) : getTodayIsoDate(),
+      status: normalizedStatus,
+      createdAt: String(entry.createdAt || entry.updatedAt || new Date().toISOString()),
+      updatedAt: String(entry.updatedAt || entry.createdAt || new Date().toISOString())
+    };
+  }
+
+  function compareOvEntries(a, b) {
+    const dateCompare = (b.lastCalledDate || '').localeCompare(a.lastCalledDate || '');
+    if (dateCompare !== 0) return dateCompare;
+    return (b.updatedAt || '').localeCompare(a.updatedAt || '');
+  }
+
+  function getOvEntries() {
+    const raw = localStorage.getItem('ovEntries');
+    const parsed = raw ? JSON.parse(raw) : [];
+    let changed = !raw || !Array.isArray(parsed);
+    const source = Array.isArray(parsed) ? parsed : [];
+    const normalized = source
+      .map((entry, index) => normalizeOvEntry(entry, index))
+      .filter(Boolean)
+      .sort(compareOvEntries);
+    if (JSON.stringify(source) !== JSON.stringify(normalized)) changed = true;
+    if (changed) localStorage.setItem('ovEntries', JSON.stringify(normalized));
+    return normalized;
+  }
+
+  function saveOvEntries(entries) {
+    const normalized = entries
+      .map((entry, index) => normalizeOvEntry(entry, index))
+      .filter(Boolean)
+      .sort(compareOvEntries);
+    localStorage.setItem('ovEntries', JSON.stringify(normalized));
+  }
+
+  function clearOvFeedback() {
+    ovFeedback = '';
+  }
+
+  function renderOvPage() {
+    const page = document.getElementById('ov-page');
+    if (!page) return;
+    ensureOvDraft();
+    page.innerHTML = `
+      <div class="ov-hero">
+        <div>
+          <div class="ov-hero-title">OV-oppfølging</div>
+          <div class="ov-hero-text">Fang opp kunder som ikke svarte, men som sitter på privat løsning og trolig betaler for mye. Registrer nåværende og foreslått løsning, prisnivå og oppdater statusen fortløpende.</div>
+        </div>
+        <button class="save-btn" style="margin-top:0;" type="button" onclick="startNewOvEntry(true)">+ Ny OV</button>
+      </div>
+      <div class="ov-layout">
+        <div id="ov-form"></div>
+        <div id="ov-history"></div>
+      </div>
+    `;
+    renderOvForm();
+    renderOvHistory();
+  }
+
+  function renderOvForm() {
+    const wrap = document.getElementById('ov-form');
+    if (!wrap) return;
+    const draft = ensureOvDraft();
+    const isEditing = !!ovEditingId;
+    wrap.innerHTML = `
+      <div class="ov-form-card">
+        <div class="ov-section-head">
+          <div>
+            <div class="ov-section-title">${isEditing ? 'Rediger OV' : 'Legg til ny OV'}</div>
+            <div class="ov-section-text">${isEditing ? 'Oppdater oppføringen når status eller løsning endrer seg.' : 'Fyll inn kunden du vil følge opp. Etter lagring blir skjemaet klart for neste OV med én gang.'}</div>
+          </div>
+          ${ovFeedback ? `<div class="ov-status-message">${escHtml(ovFeedback)}</div>` : ''}
+        </div>
+        <div class="ov-grid">
+          <div class="ov-field">
+            <label for="ov-org-number">Organisasjonsnummer</label>
+            <input id="ov-org-number" type="text" inputmode="numeric" placeholder="F.eks. 123456789" value="${escHtml(draft.organizationNumber)}" oninput="updateOvDraftField('organizationNumber', this.value)" />
+          </div>
+          <div class="ov-field">
+            <label for="ov-last-called-date">Siste dato ringt</label>
+            <input id="ov-last-called-date" type="date" value="${escHtml(draft.lastCalledDate)}" oninput="updateOvDraftField('lastCalledDate', this.value)" />
+          </div>
+          <div class="ov-field">
+            <label for="ov-current-price">Pris nåværende løsning</label>
+            <input id="ov-current-price" type="number" inputmode="decimal" step="0.01" min="0" placeholder="F.eks. 699" value="${escHtml(draft.currentPrice)}" oninput="updateOvDraftField('currentPrice', this.value)" />
+          </div>
+          <div class="ov-field">
+            <label for="ov-proposed-price">Pris foreslått løsning</label>
+            <input id="ov-proposed-price" type="number" inputmode="decimal" step="0.01" min="0" placeholder="F.eks. 499" value="${escHtml(draft.proposedPrice)}" oninput="updateOvDraftField('proposedPrice', this.value)" />
+          </div>
+          <div class="ov-field ov-field-full">
+            <label for="ov-current-solution">Nåværende løsning</label>
+            <textarea id="ov-current-solution" placeholder="Beskriv hva kunden har i dag..." oninput="updateOvDraftField('currentSolution', this.value)">${escHtml(draft.currentSolution)}</textarea>
+          </div>
+          <div class="ov-field ov-field-full">
+            <label for="ov-proposed-solution">Foreslått løsning</label>
+            <textarea id="ov-proposed-solution" placeholder="Beskriv hva du vil flytte kunden over til..." oninput="updateOvDraftField('proposedSolution', this.value)">${escHtml(draft.proposedSolution)}</textarea>
+          </div>
+          <div class="ov-field ov-field-full">
+            <label>Status</label>
+            <div class="choice-row">
+              ${OV_STATUS_OPTIONS.map(option => `
+                <button class="choice-chip ${draft.status === option.id ? 'active' : ''}" type="button" onclick="setOvStatus('${option.id}')">${option.label}</button>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+        <div class="ov-actions">
+          <button class="save-btn" style="margin-top:0;" type="button" onclick="saveOvEntry()">${isEditing ? 'Oppdater OV' : 'Lagre OV'}</button>
+          <button class="backup-btn" style="margin-top:0;" type="button" onclick="startNewOvEntry(true)">Nullstill skjema</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderOvHistory() {
+    const wrap = document.getElementById('ov-history');
+    if (!wrap) return;
+    const entries = getOvEntries();
+    const query = ovSearchQuery.trim().toLowerCase();
+    const filtered = entries.filter(entry => {
+      if (!query) return true;
+      const status = getOvStatusMeta(entry.status);
+      const haystack = [
+        entry.organizationNumber,
+        entry.currentSolution,
+        entry.proposedSolution,
+        entry.currentPrice,
+        entry.proposedPrice,
+        entry.lastCalledDate,
+        formatSamtaleRatingDate(entry.lastCalledDate),
+        status.label
+      ].join(' ').toLowerCase();
+      return haystack.includes(query);
+    });
+    const currentMonthKey = new Date().toISOString().slice(0, 7);
+    const monthCount = entries.filter(entry => String(entry.lastCalledDate || '').slice(0, 7) === currentMonthKey).length;
+    const openCount = entries.filter(entry => entry.status === 'ikke-svart').length;
+    const wonCount = entries.filter(entry => entry.status === 'har-byttet').length;
+    wrap.innerHTML = `
+      <div class="ov-history-card">
+        <div class="ov-section-head">
+          <div>
+            <div class="ov-section-title">OV-oversikt</div>
+            <div class="ov-section-text">Søk på organisasjonsnummer, løsning eller status. Klikk et kort for å redigere oppføringen.</div>
+          </div>
+        </div>
+        <div class="ov-stats">
+          <div class="ov-stat">
+            <div class="ov-stat-label">Totalt</div>
+            <div class="ov-stat-value">${entries.length}</div>
+          </div>
+          <div class="ov-stat">
+            <div class="ov-stat-label">Ikke svart</div>
+            <div class="ov-stat-value">${openCount}</div>
+          </div>
+          <div class="ov-stat">
+            <div class="ov-stat-label">Har byttet</div>
+            <div class="ov-stat-value">${wonCount}</div>
+          </div>
+          <div class="ov-stat">
+            <div class="ov-stat-label">Denne måneden</div>
+            <div class="ov-stat-value">${monthCount}</div>
+          </div>
+        </div>
+        <input id="ov-search" class="ov-search" type="text" placeholder="Søk etter orgnr, løsning eller status..." value="${escHtml(ovSearchQuery)}" oninput="setOvSearch(this.value)" />
+        <div class="ov-list">
+          ${filtered.length ? filtered.map(entry => {
+            const status = getOvStatusMeta(entry.status);
+            return `
+              <div class="ov-item ${entry.id === ovEditingId ? 'active' : ''}" onclick="openOvEntry('${entry.id}')">
+                <div class="ov-item-head">
+                  <div>
+                    <div class="ov-item-title">${escHtml(entry.organizationNumber || 'Uten organisasjonsnummer')}</div>
+                    <div class="ov-item-subtitle">Sist ringt ${escHtml(formatSamtaleRatingDate(entry.lastCalledDate))}</div>
+                  </div>
+                  <div class="ov-item-meta">
+                    <span class="ov-status-chip ${formatOvStatusClass(entry.status)}">${status.label}</span>
+                    <span class="ov-delta-chip">Prisdiff ${escHtml(formatOvDelta(entry.currentPrice, entry.proposedPrice))}</span>
+                  </div>
+                </div>
+                <div class="ov-item-grid">
+                  <div class="ov-item-box">
+                    <span class="ov-item-box-label">Nåværende løsning</span>
+                    <div class="ov-item-box-value">${escHtml(entry.currentSolution || '-')}</div>
+                  </div>
+                  <div class="ov-item-box">
+                    <span class="ov-item-box-label">Foreslått løsning</span>
+                    <div class="ov-item-box-value">${escHtml(entry.proposedSolution || '-')}</div>
+                  </div>
+                  <div class="ov-item-box">
+                    <span class="ov-item-box-label">Pris nåværende løsning</span>
+                    <div class="ov-item-box-value">${escHtml(formatCurrencyValue(entry.currentPrice))}</div>
+                  </div>
+                  <div class="ov-item-box">
+                    <span class="ov-item-box-label">Pris foreslått løsning</span>
+                    <div class="ov-item-box-value">${escHtml(formatCurrencyValue(entry.proposedPrice))}</div>
+                  </div>
+                </div>
+                <div class="ov-item-actions">
+                  <button class="backup-btn ov-mini-btn" type="button" onclick="event.stopPropagation(); openOvEntry('${entry.id}')">Rediger</button>
+                  <button class="backup-btn ov-mini-btn" type="button" onclick="event.stopPropagation(); deleteOvEntry('${entry.id}')">Slett</button>
+                </div>
+              </div>
+            `;
+          }).join('') : `<div class="ov-empty">${query ? 'Ingen OV matcher søket ditt.' : 'Ingen OV registrert ennå.'}</div>`}
+        </div>
+      </div>
+    `;
+  }
+
+  function updateOvDraftField(field, value) {
+    const draft = ensureOvDraft();
+    draft[field] = String(value || '');
+    clearOvFeedback();
+  }
+
+  function setOvStatus(statusId) {
+    const draft = ensureOvDraft();
+    draft.status = statusId;
+    clearOvFeedback();
+    renderOvForm();
+  }
+
+  function setOvSearch(value) {
+    ovSearchQuery = String(value || '');
+    renderOvHistory();
+    requestAnimationFrame(() => {
+      const input = document.getElementById('ov-search');
+      if (!input) return;
+      const nextPos = input.value.length;
+      input.focus();
+      input.setSelectionRange(nextPos, nextPos);
+    });
+  }
+
+  function focusOvOrganizationNumber() {
+    requestAnimationFrame(() => {
+      const input = document.getElementById('ov-org-number');
+      if (input) input.focus();
+    });
+  }
+
+  function startNewOvEntry(shouldFocus = false) {
+    ovDraft = getDefaultOvDraft();
+    ovEditingId = '';
+    clearOvFeedback();
+    renderOvPage();
+    if (shouldFocus) focusOvOrganizationNumber();
+  }
+
+  function openOvEntry(id) {
+    const entry = getOvEntries().find(item => item.id === id);
+    if (!entry) return;
+    ovEditingId = id;
+    ovDraft = {
+      organizationNumber: entry.organizationNumber,
+      currentSolution: entry.currentSolution,
+      currentPrice: entry.currentPrice,
+      proposedSolution: entry.proposedSolution,
+      proposedPrice: entry.proposedPrice,
+      lastCalledDate: entry.lastCalledDate,
+      status: entry.status
+    };
+    clearOvFeedback();
+    renderOvPage();
+    const formCard = document.querySelector('.ov-form-card');
+    if (formCard) formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function validateOvDraft(draft) {
+    if (!draft.organizationNumber.trim()) {
+      alert('Legg inn organisasjonsnummer før du lagrer.');
+      focusOvOrganizationNumber();
+      return false;
+    }
+    if (!draft.currentSolution.trim()) {
+      alert('Skriv inn nåværende løsning.');
+      return false;
+    }
+    if (!draft.proposedSolution.trim()) {
+      alert('Skriv inn foreslått løsning.');
+      return false;
+    }
+    if (!draft.lastCalledDate) {
+      alert('Velg siste dato ringt.');
+      return false;
+    }
+    if (parseCurrencyValue(draft.currentPrice) === null) {
+      alert('Legg inn pris for nåværende løsning.');
+      return false;
+    }
+    if (parseCurrencyValue(draft.proposedPrice) === null) {
+      alert('Legg inn pris for foreslått løsning.');
+      return false;
+    }
+    return true;
+  }
+
+  function saveOvEntry() {
+    const draft = ensureOvDraft();
+    if (!validateOvDraft(draft)) return;
+    const entries = getOvEntries();
+    const timestamp = new Date().toISOString();
+    const nextEntry = {
+      id: ovEditingId || `ov-entry-${Date.now()}`,
+      organizationNumber: draft.organizationNumber.trim(),
+      currentSolution: draft.currentSolution.trim(),
+      currentPrice: normalizeCurrencyInput(draft.currentPrice),
+      proposedSolution: draft.proposedSolution.trim(),
+      proposedPrice: normalizeCurrencyInput(draft.proposedPrice),
+      lastCalledDate: draft.lastCalledDate,
+      status: draft.status,
+      createdAt: timestamp,
+      updatedAt: timestamp
+    };
+
+    if (ovEditingId) {
+      const existing = entries.find(item => item.id === ovEditingId);
+      nextEntry.createdAt = existing?.createdAt || timestamp;
+      const index = entries.findIndex(item => item.id === ovEditingId);
+      if (index >= 0) entries[index] = nextEntry;
+      else entries.unshift(nextEntry);
+      ovFeedback = 'OV-en ble oppdatert.';
+    } else {
+      entries.unshift(nextEntry);
+      ovFeedback = 'OV-en ble lagret.';
+    }
+
+    saveOvEntries(entries);
+    ovDraft = getDefaultOvDraft();
+    ovEditingId = '';
+    renderOvPage();
+    focusOvOrganizationNumber();
+  }
+
+  function deleteOvEntry(id) {
+    const entries = getOvEntries();
+    const target = entries.find(entry => entry.id === id);
+    if (!target) return;
+    if (!confirm(`Slette OV for ${target.organizationNumber || 'ukjent organisasjonsnummer'}?`)) return;
+    saveOvEntries(entries.filter(entry => entry.id !== id));
+    if (ovEditingId === id) {
+      ovDraft = getDefaultOvDraft();
+      ovEditingId = '';
+    }
+    ovFeedback = 'OV-en ble slettet.';
+    renderOvPage();
   }
 
   function normalizeFaktaItem(item, themeKey, index) {
