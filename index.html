@@ -91,7 +91,6 @@
     .top-bar-tools {
       position: relative;
       flex: 0 0 auto;
-      margin-left: auto;
     }
 
     .top-bar-settings {
@@ -99,7 +98,6 @@
       flex: 0 0 auto;
     }
 
-    .menu-trigger,
     .settings-trigger {
       display: inline-flex;
       align-items: center;
@@ -111,17 +109,21 @@
       border-radius: 12px;
     }
 
-    .menu-trigger.active,
-    .menu-trigger:hover {
-      background: white;
-      color: #1e293b;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    .menu-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    .menu-trigger-icon,
     .settings-trigger-icon {
       font-size: 0.95rem;
       line-height: 1;
+    }
+
+    .menu-trigger-icon {
+      font-size: 0.72rem;
+      line-height: 1;
+      transform: translateY(1px);
     }
 
     .tools-menu,
@@ -1675,6 +1677,7 @@
     }
 
     .price-calculator-workspace {
+      margin-top: 14px;
       display: grid;
       grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr);
       gap: 14px;
