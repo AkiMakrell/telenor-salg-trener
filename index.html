@@ -4147,6 +4147,7 @@
     'samtaleflyt2_behovsanalyse_dekning',
     'samtaleflyt2_behovsanalyse_nettsikkerhet'
   ];
+  const DEMO_SEED_EMAILS = ['aki.fackrell@gmail.com'];
 
   const APP_META_LAST_IMPORT_USER = 'telenorSalgTrainer:lastImportedUserId';
   const _origSetItem    = localStorage.setItem.bind(localStorage);
@@ -4293,6 +4294,259 @@
       state[row.state_key] = row.state_value;
     });
     return state;
+  }
+
+  function normalizeUserEmail(email) {
+    return String(email || '').trim().toLowerCase();
+  }
+
+  function isDemoSeedUser(user) {
+    return DEMO_SEED_EMAILS.includes(normalizeUserEmail(user?.email));
+  }
+
+  function isMeaningfulTrackedStateValue(key, value) {
+    if (value === null || value === undefined) return false;
+    if (key === INTRO_LEADERBOARD_DATA_VERSION_KEY) return false;
+    if (key === 'introLastSelectedId') return false;
+
+    if (key === 'savedIntros' || key === 'introHistory' || key === 'samtaleRatings' || key === 'ovEntries') {
+      return Array.isArray(value) && value.length > 0;
+    }
+
+    if (key === 'introSessionAssignments') {
+      return value && typeof value === 'object' && Object.keys(value).length > 0;
+    }
+
+    if (key === 'produktFakta') {
+      if (!value || typeof value !== 'object') return false;
+      return Object.values(value).some(items => Array.isArray(items) && items.length > 0);
+    }
+
+    if (key === 'conversationNotes') {
+      if (!value || typeof value !== 'object') return false;
+      if (String(value.provider || '').trim()) return true;
+      if (Array.isArray(value.dataBreakdown) && value.dataBreakdown.some(bucket => Number(bucket?.count) > 0)) return true;
+      if (value.steps && typeof value.steps === 'object') {
+        return Object.values(value.steps).some(step => String(step?.notes || '').trim());
+      }
+      return false;
+    }
+
+    if (key === 'statsGoals' || key === 'statsGoalCelebrations') {
+      if (!value || typeof value !== 'object') return false;
+      return ['day', 'week', 'month'].some(period => {
+        const goal = value[period];
+        return goal && (goal.over6Target !== null || goal.salesTarget !== null);
+      });
+    }
+
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === 'string') return value.trim().length > 0;
+    if (typeof value === 'number' || typeof value === 'boolean') return true;
+    if (typeof value === 'object') return Object.keys(value).length > 0;
+    return false;
+  }
+
+  function hasMeaningfulTrackedState(state) {
+    return Object.entries(state || {}).some(([key, value]) => isMeaningfulTrackedStateValue(key, value));
+  }
+
+  function getDemoSeedState(date = new Date()) {
+    const now = new Date(date);
+    const dayMs = 24 * 60 * 60 * 1000;
+    const hourMs = 60 * 60 * 1000;
+    const currentSession = getCurrentCallSession(now);
+    const intro1 = {
+      id: 'demo-intro-minsky',
+      text: 'Hei, jeg ser at dere allerede har flere abonnement. Hvordan fungerer data, dekning og lagring for de ansatte i dag?',
+      createdAt: new Date(now.getTime() - (20 * dayMs)).toISOString()
+    };
+    const intro2 = {
+      id: 'demo-intro-oversikt',
+      text: 'Hei, jeg ringer fordi mange bedrifter betaler for mer enn de trenger. Har dere oversikt over hva dere faktisk bruker per abonnement?',
+      createdAt: new Date(now.getTime() - (12 * dayMs)).toISOString()
+    };
+    const intro3 = {
+      id: 'demo-intro-oppfolging',
+      text: 'Hei, jeg ville bare følge opp forrige prat om mobilbruk. Har dere hatt noen utfordringer med fart, dekning eller sikkerhet siden sist?',
+      createdAt: new Date(now.getTime() - (5 * dayMs)).toISOString()
+    };
+    const savedIntros = [intro1, intro2, intro3];
+    const selectedIntroId = intro1.id;
+    const introSessionAssignments = {};
+
+    if (currentSession) {
+      introSessionAssignments[sessionAssignmentKey(currentSession.id, now)] = selectedIntroId;
+    }
+
+    const createHistoryEntry = (intro, offsetMs, options = {}) => {
+      const entryDate = new Date(now.getTime() - offsetMs);
+      const session = getCurrentCallSession(entryDate);
+      return {
+        type: 'introSuccess',
+        introId: intro.id,
+        text: intro.text,
+        opptak: 'ja',
+        over5min: options.over5min === 'ja' ? 'ja' : 'nei',
+        salg: options.salg === 'ja' ? 'ja' : 'nei',
+        isoDate: entryDate.toISOString(),
+        tid: entryDate.toLocaleString('no-NO'),
+        sessionId: session ? session.id : null,
+        sessionLabel: session ? session.label : null,
+        sessionDate: makeLocalDateKey(entryDate)
+      };
+    };
+
+    const conversationNotes = getDefaultConversationNotes();
+    conversationNotes.provider = 'Telia';
+    conversationNotes.dataDraftCount = 3;
+    conversationNotes.selectedDataBucketId = '20';
+    conversationNotes.summaryVisible = true;
+    conversationNotes.dataBreakdown = [
+      { id: 'unlimited', label: 'Ubegrenset', count: 1 },
+      { id: '100', label: '100GB', count: 0 },
+      { id: '50', label: '50GB', count: 0 },
+      { id: '30', label: '30GB', count: 1 },
+      { id: '20', label: '20GB', count: 2 },
+      { id: '15', label: '15GB', count: 0 },
+      { id: '10', label: '10GB', count: 4 },
+      { id: '8', label: '8GB', count: 0 },
+      { id: '5', label: '5GB', count: 0 },
+      { id: '0', label: '0GB', count: 0 },
+      { id: 'custom', label: '40GB', count: 1 }
+    ];
+    conversationNotes.steps.data.notes = 'Kunden har flere brukere på 10-20 GB, men to ledere trenger mer fleksibilitet og vil slippe bekymring for overforbruk.';
+    conversationNotes.steps.minSky.notes = 'Daglig bruk av bilder fra prosjekter ute hos kunde. De mangler en trygg og enkel løsning for deling og backup.';
+    conversationNotes.steps.dekning.notes = 'En montor klager på ustabil dekning i lagerhallen, ellers ganske fornoyd.';
+    conversationNotes.steps.nettsikkerhet.notes = 'Daglig leder liker tanken pa ekstra trygghet mot svindel og skadelige lenker.';
+    conversationNotes.steps.datakort.notes = 'Aktuelt for ett nettbrett i servicebil hvis prisen blir riktig.';
+
+    const statsGoals = getDefaultStatsGoals(now);
+    statsGoals.day.over6Target = 4;
+    statsGoals.day.salesTarget = 2;
+    statsGoals.week.over6Target = 15;
+    statsGoals.week.salesTarget = 5;
+    statsGoals.month.over6Target = 55;
+    statsGoals.month.salesTarget = 18;
+
+    const produktFakta = {
+      intro: [
+        {
+          id: 'demo-fakta-intro',
+          objection: 'Vi er egentlig fornoyd der vi er i dag.',
+          response: 'Det er bra. Da handler denne praten mest om a sjekke om dere kan fa samme eller bedre losning med mer trygghet og bedre oversikt.',
+          notes: 'Brukes tidlig i samtalen for a senke skuldrene.',
+          keywords: ['intro', 'trygg start'],
+          favorite: true
+        }
+      ],
+      dekning: [
+        {
+          id: 'demo-fakta-dekning',
+          objection: 'Dekning fungerer stort sett greit for oss.',
+          response: 'Flott. Da er det ekstra nyttig a kartlegge hvor det faktisk glipper, sa vi kan vurdere om det er noen ansatte eller lokasjoner som trenger en tryggere losning.',
+          notes: 'Still oppfolgingssporsmal om lager, kjeller og reise.',
+          keywords: ['dekning', 'kartlegging'],
+          favorite: true
+        }
+      ],
+      nettsikkerhet: [
+        {
+          id: 'demo-fakta-nettsikkerhet',
+          objection: 'Vi trenger ikke mer sikkerhet pa mobilene.',
+          response: 'Skjonner. Mange sier det samme helt til de far en hendelse. Derfor er det nyttig a ha et enkelt niva av beskyttelse mot svindel og farlige lenker uten ekstra jobb for brukerne.',
+          notes: 'Knyt til ekte hverdagsrisiko, ikke bare tekniske begrep.',
+          keywords: ['nettsikkerhet', 'svindel'],
+          favorite: false
+        }
+      ],
+      bildelagring: [
+        {
+          id: 'demo-fakta-bildelagring',
+          objection: 'Vi bruker allerede OneDrive og litt privat lagring.',
+          response: 'Da er neste steg gjerne a samle det bedre, slik at bilder ikke blir liggende spredt pa private mobiler uten backup og enkel deling.',
+          notes: 'Treff spesielt godt hos bedrifter med montorer eller prosjektbilder.',
+          keywords: ['bilder', 'backup'],
+          favorite: false
+        }
+      ],
+      losningspresentasjon: [
+        {
+          id: 'demo-fakta-losning',
+          objection: 'Hvorfor skal vi bytte akkurat na?',
+          response: 'Fordi dere kan fa bedre oversikt, tryggere bruk og en losning som er enklere a forklare internt uten at dere trenger a endre arbeidsmaate mye.',
+          notes: 'Oppsummer med verdi for drift, ikke bare pris.',
+          keywords: ['losning', 'verdi'],
+          favorite: true
+        }
+      ]
+    };
+
+    return {
+      savedIntros,
+      introHistory: [
+        createHistoryEntry(intro1, 2 * hourMs, { over5min: 'ja', salg: 'ja' }),
+        createHistoryEntry(intro2, 5 * hourMs, { over5min: 'ja', salg: 'nei' }),
+        createHistoryEntry(intro3, 1 * dayMs + 3 * hourMs, { over5min: 'nei', salg: 'nei' }),
+        createHistoryEntry(intro1, 2 * dayMs + 2 * hourMs, { over5min: 'ja', salg: 'nei' }),
+        createHistoryEntry(intro2, 4 * dayMs + 4 * hourMs, { over5min: 'ja', salg: 'ja' })
+      ],
+      introSessionAssignments,
+      introLastSelectedId: selectedIntroId,
+      [INTRO_LEADERBOARD_DATA_VERSION_KEY]: INTRO_LEADERBOARD_DATA_VERSION,
+      produktFakta,
+      conversationNotes,
+      samtaleRatings: [
+        {
+          id: 'demo-samtale-rating-1',
+          interactionId: '41023918',
+          date: new Date(now.getTime() - dayMs).toISOString().slice(0, 10),
+          scores: { minSky: 4, data: 5, dekning: 3, nettsikkerhet: 4, oppsummering: 4, losningspresentasjon: 3 },
+          datakort: 'ja',
+          notes: 'God behovsavdekking og tydelig oppsummering. Burde blitt enda skarpere pa closing og neste steg.',
+          createdAt: new Date(now.getTime() - dayMs).toISOString(),
+          updatedAt: new Date(now.getTime() - dayMs).toISOString()
+        },
+        {
+          id: 'demo-samtale-rating-2',
+          interactionId: '41018452',
+          date: new Date(now.getTime() - (3 * dayMs)).toISOString().slice(0, 10),
+          scores: { minSky: 3, data: 4, dekning: 4, nettsikkerhet: 2, oppsummering: 3, losningspresentasjon: 4 },
+          datakort: 'nei',
+          notes: 'Fin flyt i samtalen, men nettsikkerhet ble for lite konkret. Bra driv i losningspresentasjonen.',
+          createdAt: new Date(now.getTime() - (3 * dayMs)).toISOString(),
+          updatedAt: new Date(now.getTime() - (3 * dayMs)).toISOString()
+        }
+      ],
+      ovEntries: [
+        {
+          id: 'demo-ov-1',
+          organizationNumber: '912345678',
+          currentSolution: '6 abonnement hos Telia, 2 nettbrett og varierende datapakker.',
+          currentPrice: '3890.00',
+          proposedSolution: 'Flyt 20 til de fleste brukere, Frihet til daglig leder og ett datakort til servicebil.',
+          proposedPrice: '3325.00',
+          lastCalledDate: new Date(now.getTime() - dayMs).toISOString().slice(0, 10),
+          status: 'ikke-svart',
+          createdAt: new Date(now.getTime() - (2 * dayMs)).toISOString(),
+          updatedAt: new Date(now.getTime() - dayMs).toISOString()
+        },
+        {
+          id: 'demo-ov-2',
+          organizationNumber: '998877665',
+          currentSolution: '4 abonnement med fri data og ingen ekstra tjenester.',
+          currentPrice: '2796.00',
+          proposedSolution: 'Kombinasjon av 20 GB og Frihet med Min Sky og bedre sikkerhet.',
+          proposedPrice: '2549.00',
+          lastCalledDate: new Date(now.getTime() - (4 * dayMs)).toISOString().slice(0, 10),
+          status: 'vil-ikke-ha',
+          createdAt: new Date(now.getTime() - (6 * dayMs)).toISOString(),
+          updatedAt: new Date(now.getTime() - (4 * dayMs)).toISOString()
+        }
+      ],
+      statsGoals,
+      statsGoalCelebrations: getDefaultStatsGoalCelebrations(now)
+    };
   }
 
   async function overwriteCloudData(data) {
@@ -4451,7 +4705,7 @@
 
   async function activateAuthenticatedApp(user, previousDeviceData) {
     const remoteState = await loadFromCloud();
-    const hasRemoteState = Object.keys(remoteState).length > 0;
+    let hasRemoteState = hasMeaningfulTrackedState(remoteState);
     const hasDeviceState = Object.keys(previousDeviceData).length > 0;
 
     if (!hasRemoteState && hasDeviceState && getLocalImportMarker() !== user.id) {
@@ -4460,7 +4714,15 @@
         replaceTrackedLocalData(previousDeviceData);
         await overwriteCloudData(previousDeviceData);
         setLocalImportMarker(user.id);
+        hasRemoteState = true;
       }
+    }
+
+    if (!hasRemoteState && isDemoSeedUser(user)) {
+      const demoState = getDemoSeedState();
+      replaceTrackedLocalData(demoState);
+      await overwriteCloudData(demoState);
+      hasRemoteState = true;
     }
 
     updateUserBar(user);
