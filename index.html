@@ -2554,6 +2554,84 @@
     .history-panel.open { display: block; }
 
     /* ===== STATS HOME PAGE ===== */
+    .stats-page-shell {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .stats-hero-panel {
+      background: linear-gradient(135deg, rgba(41, 168, 224, 0.18), rgba(15, 23, 42, 0.96) 54%, rgba(20, 184, 166, 0.16));
+      border: 1px solid rgba(125, 211, 252, 0.16);
+      border-radius: 24px;
+      padding: 22px;
+      box-shadow: 0 18px 40px rgba(2, 6, 23, 0.22);
+    }
+
+    .stats-hero-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .stats-hero-title {
+      font-size: 1.5rem;
+      font-weight: 900;
+      line-height: 1.05;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .stats-hero-text {
+      margin-top: 8px;
+      max-width: 720px;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .stats-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 6px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 18px;
+      background: rgba(11, 18, 32, 0.84);
+      box-shadow: 0 12px 28px rgba(2, 6, 23, 0.16);
+    }
+
+    .stats-nav-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      white-space: nowrap;
+    }
+
+    .stats-nav-btn:hover,
+    .stats-nav-btn.active {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.15);
+    }
+
+    .stats-pane {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
     .stats-section { max-width: 1100px; margin: 0 auto 32px auto; }
 
     .stats-section-head {
@@ -2821,6 +2899,83 @@
       color: var(--muted);
       line-height: 1.4;
       text-align: center;
+    }
+
+    .stats-goals-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .stats-goal-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(11, 18, 32, 0.98));
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 14px 28px rgba(2, 6, 23, 0.2);
+    }
+
+    .stats-goal-panel-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .stats-goal-panel-text {
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .stats-goal-panel-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .stats-goal-panel-metric {
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      background: rgba(15, 23, 42, 0.78);
+      padding: 12px;
+    }
+
+    .stats-goal-panel-metric-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .stats-goal-panel-metric-value {
+      margin-top: 6px;
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .stats-empty-card {
+      border-radius: 16px;
+      border: 1px dashed rgba(148, 163, 184, 0.22);
+      padding: 14px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.45;
+      background: rgba(15, 23, 42, 0.45);
+    }
+
+    @media (max-width: 900px) {
+      .stats-goals-overview-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-goal-panel-summary {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
     }
 
     .personal-record-platform {
@@ -5119,6 +5274,7 @@
 
   let selectedOver5min = null;
   let selectedSalg = null;
+  let activeStatsSubview = 'overview';
 
   function selectOver5min(val) {
     selectedOver5min = val;
@@ -6202,6 +6358,174 @@
     `;
   }
 
+  function setStatsSubview(view) {
+    const allowedViews = ['overview', 'development', 'records', 'goals'];
+    activeStatsSubview = allowedViews.includes(view) ? view : 'overview';
+    renderStatsHome();
+  }
+
+  function renderStatsSubviewNav(activeView) {
+    const items = [
+      { id: 'overview', label: 'Oversikt' },
+      { id: 'development', label: 'Utvikling' },
+      { id: 'records', label: 'Rekorder' },
+      { id: 'goals', label: 'Mål' },
+    ];
+    return `
+      <div class="stats-nav">
+        ${items.map(item => `
+          <button
+            class="stats-nav-btn${activeView === item.id ? ' active' : ''}"
+            type="button"
+            onclick="setStatsSubview('${item.id}')"
+          >${item.label}</button>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function renderStatsHero(dateStr, msg, dag, todaySessionCount) {
+    return `
+      <div class="stats-hero-panel">
+        <div class="stats-hero-head">
+          <div>
+            <div class="stats-hero-title">Stats som faktisk føles motiverende</div>
+            <div class="stats-hero-text">${dateStr}. ${msg}</div>
+          </div>
+        </div>
+        <div class="stats-grid stats-grid-4">
+          ${statCard(dag.introSuccesses, 'Opptak i dag', true, 'blue', 'metric-card')}
+          ${statCard(formatAveragePerSession(dag.over5, todaySessionCount), todaySessionCount ? `6 min per økt (${dag.over5}/${todaySessionCount})` : '6 min per økt', true, 'purple', 'metric-card')}
+          ${statCard(dag.over5, 'Over 6 min i dag', true, 'teal', 'metric-card')}
+          ${statCard(dag.salg, 'Abo i dag', true, 'gold', 'metric-card')}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderStatsGoalPanel(period, title, text, goal, goalStatus, currentStats) {
+    return `
+      <div class="stats-goal-panel">
+        <div>
+          <div class="stats-goal-panel-title">${title}</div>
+          <div class="stats-goal-panel-text">${text}</div>
+        </div>
+        <div class="stats-goal-panel-summary">
+          <div class="stats-goal-panel-metric">
+            <div class="stats-goal-panel-metric-label">Opptak</div>
+            <div class="stats-goal-panel-metric-value">${currentStats.introSuccesses}</div>
+          </div>
+          <div class="stats-goal-panel-metric">
+            <div class="stats-goal-panel-metric-label">Over 6 min</div>
+            <div class="stats-goal-panel-metric-value">${currentStats.over5}</div>
+          </div>
+          <div class="stats-goal-panel-metric">
+            <div class="stats-goal-panel-metric-label">Abo</div>
+            <div class="stats-goal-panel-metric-value">${currentStats.salg}</div>
+          </div>
+        </div>
+        ${hasStatsGoal(goal) ? renderStatsGoalSummary(goalStatus) : '<div class="stats-empty-card">Ingen mål satt ennå. Legg inn et mål hvis du vil ha litt ekstra press og tydelig progresjon.</div>'}
+        <button class="backup-btn stats-goal-btn" type="button" onclick="openGoalsPage('${period}')">${getStatsGoalButtonLabel(period, goal)}</button>
+      </div>
+    `;
+  }
+
+  function renderStatsDaySection(dag, dayGoal, dayGoalStatus, todaySessionCount) {
+    return `
+      <div class="stats-section">
+        <div class="stats-section-head">
+          <div class="stats-section-title">I dag</div>
+          <button class="backup-btn stats-goal-btn" type="button" onclick="openGoalsPage('day')">${getStatsGoalButtonLabel('day', dayGoal)}</button>
+        </div>
+        ${renderStatsGoalSummary(dayGoalStatus)}
+        <div class="stats-grid stats-grid-4">
+          ${statCard(dag.introSuccesses, 'Opptak', true, 'blue', 'metric-card')}
+          ${statCard(formatAveragePerSession(dag.over5, todaySessionCount), todaySessionCount ? `6 min per økt (${dag.over5}/${todaySessionCount})` : '6 min per økt', true, 'purple', 'metric-card')}
+          ${statCard(dag.over5, 'Over 6 min', true, 'teal', 'metric-card')}
+          ${statCard(dag.salg, 'Abo', true, 'gold', 'metric-card')}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderStatsWeekSection(uke, weekGoal, weekGoalStatus, weekData, stackedChartMax, elapsedWeekBusinessDays) {
+    return `
+      <div class="stats-section">
+        <div class="stats-section-head">
+          <div class="stats-section-title st-teal">Denne uken</div>
+          <button class="backup-btn stats-goal-btn" type="button" onclick="openGoalsPage('week')">${getStatsGoalButtonLabel('week', weekGoal)}</button>
+        </div>
+        ${renderStatsGoalSummary(weekGoalStatus)}
+        <div class="stats-grid stats-grid-2" style="margin-bottom:14px;">
+          <div class="chart-card cc-blue">
+            <div class="chart-card-title">6-min & abo per dag</div>
+            ${stackedBarChart(weekData, stackedChartMax)}
+          </div>
+          <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
+            ${statCard(uke.introSuccesses, 'Opptak', false, 'blue')}
+            ${statCard(formatAverageForUnits(uke.over5, elapsedWeekBusinessDays), elapsedWeekBusinessDays ? `6 min per dag (${uke.over5}/${elapsedWeekBusinessDays})` : '6 min per dag', false, 'purple')}
+            ${statCard(uke.over5, 'Over 6 min', false, 'teal')}
+            ${statCard(uke.salg, 'Abo', false, 'gold')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderStatsMonthSection(mnd, monthTitle, monthGoal, monthGoalStatus, weekBuckets, stackedChartMax, elapsedMonthWeekCount) {
+    return `
+      <div class="stats-section">
+        <div class="stats-section-head">
+          <div class="stats-section-title st-teal">${monthTitle}</div>
+          <button class="backup-btn stats-goal-btn" type="button" onclick="openGoalsPage('month')">${getStatsGoalButtonLabel('month', monthGoal)}</button>
+        </div>
+        ${renderStatsGoalSummary(monthGoalStatus)}
+        <div class="stats-grid stats-grid-2">
+          <div class="chart-card cc-blue">
+            <div class="chart-card-title">6-min & abo per uke</div>
+            ${stackedBarChart(weekBuckets, stackedChartMax)}
+          </div>
+          <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
+            ${statCard(mnd.introSuccesses, 'Opptak', false, 'blue')}
+            ${statCard(formatAverageForUnits(mnd.over5, elapsedMonthWeekCount), elapsedMonthWeekCount ? `6 min per uke (${mnd.over5}/${elapsedMonthWeekCount})` : '6 min per uke', false, 'purple')}
+            ${statCard(mnd.over5, 'Over 6 min', false, 'teal')}
+            ${statCard(mnd.salg, 'Abo', false, 'gold')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderStatsRecordsSection(personalRecords) {
+    return `
+      <div class="stats-section">
+        <div class="stats-section-head personal-records-section-head">
+          <div class="stats-section-title st-purple personal-records-title">Personlige rekorder</div>
+        </div>
+        <div class="personal-records-shell">
+          <div class="personal-record-groups">
+            <div class="personal-record-group abo-group">
+              <div class="personal-record-group-title">Abo-rekorder</div>
+              <div class="personal-records-grid">
+                ${renderPersonalRecordCard('Mest abo på en dag', personalRecords.aboDay?.value || 0, formatStatsRecordPeriod('day', personalRecords.aboDay?.key), 'pr-abo', personalRecords.aboDay?.isNew)}
+                ${renderPersonalRecordCard('Mest abo på en uke', personalRecords.aboWeek?.value || 0, formatStatsRecordPeriod('week', personalRecords.aboWeek?.key), 'pr-abo', personalRecords.aboWeek?.isNew)}
+                ${renderPersonalRecordCard('Mest abo på en måned', personalRecords.aboMonth?.value || 0, formatStatsRecordPeriod('month', personalRecords.aboMonth?.key), 'pr-abo', personalRecords.aboMonth?.isNew)}
+              </div>
+            </div>
+            <div class="personal-record-group over6-group">
+              <div class="personal-record-group-title">6 min-rekorder</div>
+              <div class="personal-records-grid">
+                ${renderPersonalRecordCard('Mest 6 min på en dag', personalRecords.over6Day?.value || 0, formatStatsRecordPeriod('day', personalRecords.over6Day?.key), 'pr-over6', personalRecords.over6Day?.isNew)}
+                ${renderPersonalRecordCard('Mest 6 min på en uke', personalRecords.over6Week?.value || 0, formatStatsRecordPeriod('week', personalRecords.over6Week?.key), 'pr-over6', personalRecords.over6Week?.isNew)}
+                ${renderPersonalRecordCard('Mest 6 min på en måned', personalRecords.over6Month?.value || 0, formatStatsRecordPeriod('month', personalRecords.over6Month?.key), 'pr-over6', personalRecords.over6Month?.isNew)}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   function renderStatsHome() {
     const history = getIntroHistory();
     const dagEntries = history.filter(h => isToday(h.isoDate));
@@ -6339,92 +6663,79 @@
 
     const dateStr = now.toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
       .replace(/^\w/, c => c.toUpperCase());
+    const monthTitle = now.toLocaleString('no-NO', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase());
+    const activeView = ['overview', 'development', 'records', 'goals'].includes(activeStatsSubview) ? activeStatsSubview : 'overview';
+    const overviewPane = `
+      <div class="stats-pane">
+        <div class="stats-section">
+          <div class="stats-section-head">
+            <div class="stats-section-title st-teal">Utvikling akkurat nå</div>
+            <button class="backup-btn stats-goal-btn" type="button" onclick="setStatsSubview('development')">Se detaljene</button>
+          </div>
+          <div class="stats-grid stats-grid-2" style="margin-bottom:14px;">
+            <div class="chart-card cc-blue">
+              <div class="chart-card-title">6-min & abo denne uken</div>
+              ${stackedBarChart(weekData, stackedChartMax)}
+            </div>
+            <div class="chart-card cc-blue">
+              <div class="chart-card-title">6-min & abo denne måneden</div>
+              ${stackedBarChart(weekBuckets, stackedChartMax)}
+            </div>
+          </div>
+          <div class="stats-grid stats-grid-4">
+            ${statCard(uke.over5, 'Over 6 min denne uken', false, 'teal')}
+            ${statCard(uke.salg, 'Abo denne uken', false, 'gold')}
+            ${statCard(mnd.over5, 'Over 6 min denne måneden', false, 'teal')}
+            ${statCard(mnd.salg, 'Abo denne måneden', false, 'gold')}
+          </div>
+        </div>
+        <div class="stats-section">
+          <div class="stats-section-head">
+            <div class="stats-section-title st-purple">Mål og progresjon</div>
+            <button class="backup-btn stats-goal-btn" type="button" onclick="setStatsSubview('goals')">Fokus på mål</button>
+          </div>
+          <div class="stats-goals-overview-grid">
+            ${renderStatsGoalPanel('day', 'Dagsmål', 'Perfekt for raske, tydelige seire i løpet av vakten.', dayGoal, dayGoalStatus, dag)}
+            ${renderStatsGoalPanel('week', 'Ukemål', 'Bruk ukemål for å se om tempoet holder gjennom hele arbeidsuken.', weekGoal, weekGoalStatus, uke)}
+            ${renderStatsGoalPanel('month', 'Månedsmål', 'Her ser du om du bygger noe som faktisk varer over tid.', monthGoal, monthGoalStatus, mnd)}
+          </div>
+        </div>
+      </div>
+    `;
+    const developmentPane = `
+      <div class="stats-pane">
+        ${renderStatsDaySection(dag, dayGoal, dayGoalStatus, todaySessionCount)}
+        ${renderStatsWeekSection(uke, weekGoal, weekGoalStatus, weekData, stackedChartMax, elapsedWeekBusinessDays)}
+        ${renderStatsMonthSection(mnd, monthTitle, monthGoal, monthGoalStatus, weekBuckets, stackedChartMax, elapsedMonthWeekCount)}
+      </div>
+    `;
+    const goalsPane = `
+      <div class="stats-pane">
+        <div class="stats-section">
+          <div class="stats-section-head">
+            <div class="stats-section-title st-purple">Mål som er lette å lese</div>
+            <button class="backup-btn stats-goal-btn" type="button" onclick="activateTab('goals', 'hjem')">Åpne målsiden</button>
+          </div>
+          <div class="stats-goals-overview-grid">
+            ${renderStatsGoalPanel('day', 'Dagsmål', 'Kort horisont, høy energi. Perfekt når du vil kjenne fremgang raskt.', dayGoal, dayGoalStatus, dag)}
+            ${renderStatsGoalPanel('week', 'Ukemål', 'Gir deg et tydelig bilde av om uka er på vei i riktig retning.', weekGoal, weekGoalStatus, uke)}
+            ${renderStatsGoalPanel('month', 'Månedsmål', 'Bra når du vil se helheten uten å stirre på tall hele tiden.', monthGoal, monthGoalStatus, mnd)}
+          </div>
+        </div>
+      </div>
+    `;
+    const panes = {
+      overview: overviewPane,
+      development: developmentPane,
+      records: `<div class="stats-pane">${renderStatsRecordsSection(personalRecords)}</div>`,
+      goals: goalsPane,
+    };
 
     document.getElementById('stats-home').innerHTML = `
-      <div class="today-date-banner">${dateStr}</div>
-      <div class="motivation-banner">${msg}</div>
-
-      <!-- DAG -->
-      <div class="stats-section">
-        <div class="stats-section-head">
-          <div class="stats-section-title">I dag</div>
-          <button class="backup-btn stats-goal-btn" type="button" onclick="openGoalsPage('day')">${getStatsGoalButtonLabel('day', dayGoal)}</button>
-        </div>
-        ${renderStatsGoalSummary(dayGoalStatus)}
-        <div class="stats-grid stats-grid-4">
-          ${statCard(dag.introSuccesses, 'Opptak', true, 'blue', 'metric-card')}
-          ${statCard(formatAveragePerSession(dag.over5, todaySessionCount), todaySessionCount ? `6 min per økt (${dag.over5}/${todaySessionCount})` : '6 min per økt', true, 'purple', 'metric-card')}
-          ${statCard(dag.over5, 'Over 6 min', true, 'teal', 'metric-card')}
-          ${statCard(dag.salg, 'Abo', true, 'gold', 'metric-card')}
-        </div>
-      </div>
-
-      <!-- UKE -->
-      <div class="stats-section">
-        <div class="stats-section-head">
-          <div class="stats-section-title st-teal">Denne uken</div>
-          <button class="backup-btn stats-goal-btn" type="button" onclick="openGoalsPage('week')">${getStatsGoalButtonLabel('week', weekGoal)}</button>
-        </div>
-        ${renderStatsGoalSummary(weekGoalStatus)}
-        <div class="stats-grid stats-grid-2" style="margin-bottom:14px;">
-          <div class="chart-card cc-blue">
-            <div class="chart-card-title">6-min & abo per dag</div>
-            ${stackedBarChart(weekData, stackedChartMax)}
-          </div>
-          <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
-            ${statCard(uke.introSuccesses, 'Opptak', false, 'blue')}
-            ${statCard(formatAverageForUnits(uke.over5, elapsedWeekBusinessDays), elapsedWeekBusinessDays ? `6 min per dag (${uke.over5}/${elapsedWeekBusinessDays})` : '6 min per dag', false, 'purple')}
-            ${statCard(uke.over5, 'Over 6 min', false, 'teal')}
-            ${statCard(uke.salg, 'Abo', false, 'gold')}
-          </div>
-        </div>
-      </div>
-
-      <!-- MÅNED -->
-      <div class="stats-section">
-        <div class="stats-section-head">
-          <div class="stats-section-title st-teal">${now.toLocaleString('no-NO', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase())}</div>
-          <button class="backup-btn stats-goal-btn" type="button" onclick="openGoalsPage('month')">${getStatsGoalButtonLabel('month', monthGoal)}</button>
-        </div>
-        ${renderStatsGoalSummary(monthGoalStatus)}
-        <div class="stats-grid stats-grid-2">
-          <div class="chart-card cc-blue">
-            <div class="chart-card-title">6-min & abo per uke</div>
-            ${stackedBarChart(weekBuckets, stackedChartMax)}
-          </div>
-          <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
-            ${statCard(mnd.introSuccesses, 'Opptak', false, 'blue')}
-            ${statCard(formatAverageForUnits(mnd.over5, elapsedMonthWeekCount), elapsedMonthWeekCount ? `6 min per uke (${mnd.over5}/${elapsedMonthWeekCount})` : '6 min per uke', false, 'purple')}
-            ${statCard(mnd.over5, 'Over 6 min', false, 'teal')}
-            ${statCard(mnd.salg, 'Abo', false, 'gold')}
-          </div>
-        </div>
-      </div>
-
-      <div class="stats-section">
-        <div class="stats-section-head personal-records-section-head">
-          <div class="stats-section-title st-purple personal-records-title">Personlige rekorder</div>
-        </div>
-        <div class="personal-records-shell">
-          <div class="personal-record-groups">
-            <div class="personal-record-group abo-group">
-              <div class="personal-record-group-title">Abo-rekorder</div>
-              <div class="personal-records-grid">
-                ${renderPersonalRecordCard('Mest abo på en dag', personalRecords.aboDay?.value || 0, formatStatsRecordPeriod('day', personalRecords.aboDay?.key), 'pr-abo', personalRecords.aboDay?.isNew)}
-                ${renderPersonalRecordCard('Mest abo på en uke', personalRecords.aboWeek?.value || 0, formatStatsRecordPeriod('week', personalRecords.aboWeek?.key), 'pr-abo', personalRecords.aboWeek?.isNew)}
-                ${renderPersonalRecordCard('Mest abo på en måned', personalRecords.aboMonth?.value || 0, formatStatsRecordPeriod('month', personalRecords.aboMonth?.key), 'pr-abo', personalRecords.aboMonth?.isNew)}
-              </div>
-            </div>
-            <div class="personal-record-group over6-group">
-              <div class="personal-record-group-title">6 min-rekorder</div>
-              <div class="personal-records-grid">
-                ${renderPersonalRecordCard('Mest 6 min på en dag', personalRecords.over6Day?.value || 0, formatStatsRecordPeriod('day', personalRecords.over6Day?.key), 'pr-over6', personalRecords.over6Day?.isNew)}
-                ${renderPersonalRecordCard('Mest 6 min på en uke', personalRecords.over6Week?.value || 0, formatStatsRecordPeriod('week', personalRecords.over6Week?.key), 'pr-over6', personalRecords.over6Week?.isNew)}
-                ${renderPersonalRecordCard('Mest 6 min på en måned', personalRecords.over6Month?.value || 0, formatStatsRecordPeriod('month', personalRecords.over6Month?.key), 'pr-over6', personalRecords.over6Month?.isNew)}
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="stats-page-shell">
+        ${renderStatsHero(dateStr, msg, dag, todaySessionCount)}
+        ${renderStatsSubviewNav(activeView)}
+        ${panes[activeView]}
       </div>
     `;
     triggerGoalAchievementCelebrations([dayGoalStatus, weekGoalStatus, monthGoalStatus]);
