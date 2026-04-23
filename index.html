@@ -2438,6 +2438,11 @@
       padding: 14px 16px;
     }
 
+    .stats-goal-card.goal-complete {
+      border-color: rgba(34, 197, 94, 0.5);
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12), 0 10px 24px rgba(34, 197, 94, 0.08);
+    }
+
     .stats-goal-title {
       font-size: 0.86rem;
       font-weight: 800;
@@ -2463,6 +2468,14 @@
       grid-template-columns: auto 1fr auto;
       gap: 10px;
       align-items: center;
+    }
+
+    .stats-goal-progress-row.goal-complete {
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      border-radius: 12px;
+      padding: 8px 10px;
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.12);
     }
 
     .stats-goal-progress-label,
@@ -2670,6 +2683,15 @@
       padding: 9px 14px;
       border-radius: 999px;
       font-weight: 700;
+      background: #e8f4fb;
+      color: var(--primary-dark);
+      border-color: rgba(41, 168, 224, 0.22);
+      box-shadow: none;
+    }
+
+    .goals-back-btn:hover {
+      background: #d8eefb;
+      border-color: rgba(41, 168, 224, 0.32);
     }
 
     .goals-title {
@@ -3935,6 +3957,7 @@
     'samtaleRatings',
     'ovEntries',
     'statsGoals',
+    'statsGoalCelebrations',
     'samtaleflyt',
     'samtaleflyt2_intro',
     'samtaleflyt2_behovsanalyse',
@@ -4870,6 +4893,26 @@
     };
   }
 
+  function getDefaultStatsGoalCelebrations(date = new Date()) {
+    return {
+      day: {
+        periodKey: makeLocalDateKey(date),
+        over6Target: null,
+        salesTarget: null,
+      },
+      week: {
+        periodKey: makeLocalDateKey(getStartOfWeek(date)),
+        over6Target: null,
+        salesTarget: null,
+      },
+      month: {
+        periodKey: getStatsMonthKey(date),
+        over6Target: null,
+        salesTarget: null,
+      }
+    };
+  }
+
   function normalizeStatsGoalTarget(value) {
     if (value === '' || value === null || value === undefined) return null;
     const normalized = Math.max(0, Math.floor(Number(value)));
@@ -4909,6 +4952,39 @@
     localStorage.setItem('statsGoals', JSON.stringify(goals));
   }
 
+  function getStatsGoalCelebrations(date = new Date()) {
+    const raw = localStorage.getItem('statsGoalCelebrations');
+    const parsed = raw ? JSON.parse(raw) : getDefaultStatsGoalCelebrations(date);
+    const defaults = getDefaultStatsGoalCelebrations(date);
+    let changed = !raw;
+
+    ['day', 'week', 'month'].forEach(period => {
+      if (!parsed[period] || typeof parsed[period] !== 'object') {
+        parsed[period] = defaults[period];
+        changed = true;
+        return;
+      }
+      if (parsed[period].periodKey !== defaults[period].periodKey) {
+        parsed[period] = defaults[period];
+        changed = true;
+        return;
+      }
+      const over6Target = normalizeStatsGoalTarget(parsed[period].over6Target);
+      const salesTarget = normalizeStatsGoalTarget(parsed[period].salesTarget);
+      if (parsed[period].over6Target !== over6Target || parsed[period].salesTarget !== salesTarget) changed = true;
+      parsed[period].over6Target = over6Target;
+      parsed[period].salesTarget = salesTarget;
+      parsed[period].periodKey = defaults[period].periodKey;
+    });
+
+    if (changed) localStorage.setItem('statsGoalCelebrations', JSON.stringify(parsed));
+    return parsed;
+  }
+
+  function saveStatsGoalCelebrations(data) {
+    localStorage.setItem('statsGoalCelebrations', JSON.stringify(data));
+  }
+
   function hasStatsGoal(goal) {
     return goal && (goal.over6Target !== null || goal.salesTarget !== null);
   }
@@ -4925,12 +5001,66 @@
     return { preset: 'custom', custom: String(value) };
   }
 
-  function getGoalHelperParts(period, businessDays, over6Target, salesTarget) {
+  function getGoalHelperPart(label, current, target, remainingBusinessDays) {
+    if (target === null) return null;
+    const remaining = Math.max(target - current, 0);
+    if (remaining === 0) return `${label}-målet er nådd`;
+    if (!remainingBusinessDays) return `Gjenstår ${remaining} ${label === 'Abo' ? 'abo' : 'over 6 min'}`;
+    return `Gjenstår ${formatGoalPerDay(remaining, remainingBusinessDays)} ${label === 'Abo' ? 'abo' : 'over 6 min'} per arbeidsdag`;
+  }
+
+  function getGoalHelperParts(period, businessDays, over6Target, salesTarget, currentOver6 = 0, currentSales = 0) {
     if (period === 'day') return [];
     const parts = [];
-    if (over6Target !== null) parts.push(`${formatGoalPerDay(over6Target, businessDays)} over 6 min per arbeidsdag`);
-    if (salesTarget !== null) parts.push(`${formatGoalPerDay(salesTarget, businessDays)} abo per arbeidsdag`);
+    const over6Part = getGoalHelperPart('6 min', currentOver6, over6Target, businessDays);
+    const salesPart = getGoalHelperPart('Abo', currentSales, salesTarget, businessDays);
+    if (over6Part) parts.push(over6Part);
+    if (salesPart) parts.push(salesPart);
     return parts;
+  }
+
+  function getRemainingGoalBusinessDays(period, date = new Date()) {
+    if (period === 'day') return 1;
+    const today = new Date(date);
+    today.setHours(0, 0, 0, 0);
+    if (period === 'week') {
+      const endOfWeek = getStartOfWeek(date);
+      endOfWeek.setDate(endOfWeek.getDate() + 4);
+      return Math.max(getBusinessDaysBetween(today, endOfWeek), 0);
+    }
+    const lastOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    return Math.max(getBusinessDaysBetween(today, lastOfMonth), 0);
+  }
+
+  function getGoalStatus(period, goal, currentOver6, currentSales, remainingBusinessDays) {
+    if (!hasStatsGoal(goal)) return null;
+    const metrics = [];
+    if (goal.over6Target !== null) {
+      metrics.push({
+        metric: 'over6',
+        label: '6 min',
+        current: currentOver6,
+        target: goal.over6Target,
+        cls: 'goal-over6',
+        achieved: currentOver6 >= goal.over6Target
+      });
+    }
+    if (goal.salesTarget !== null) {
+      metrics.push({
+        metric: 'sales',
+        label: 'Abo',
+        current: currentSales,
+        target: goal.salesTarget,
+        cls: 'goal-sales',
+        achieved: currentSales >= goal.salesTarget
+      });
+    }
+    return {
+      period,
+      metrics,
+      helperParts: getGoalHelperParts(period, remainingBusinessDays, goal.over6Target, goal.salesTarget, currentOver6, currentSales),
+      anyComplete: metrics.some(metric => metric.achieved),
+    };
   }
 
   function renderGoalField(period, metric, label, value) {
@@ -4994,15 +5124,17 @@
     const helper = document.getElementById(`goals-inline-helper-${period}`);
     if (!helper) return;
     const businessDays = Number(helper.dataset.businessDays || 0);
+    const currentOver6 = Number(helper.dataset.currentOver6 || 0);
+    const currentSales = Number(helper.dataset.currentSales || 0);
     const over6Target = normalizeStatsGoalTarget(getGoalInputValue(period, 'over6'));
     const salesTarget = normalizeStatsGoalTarget(getGoalInputValue(period, 'sales'));
-    const helperParts = getGoalHelperParts(period, businessDays, over6Target, salesTarget);
+    const helperParts = getGoalHelperParts(period, businessDays, over6Target, salesTarget, currentOver6, currentSales);
     if (!helperParts.length) {
       helper.textContent = '';
       helper.style.display = 'none';
       return;
     }
-    helper.textContent = `Dette tilsvarer ${helperParts.join(' og ')}.`;
+    helper.textContent = `${helperParts.join(' og ')}.`;
     helper.style.display = 'block';
   }
 
@@ -5028,6 +5160,22 @@
         button.textContent = originalLabel;
       }, 1100);
     });
+  }
+
+  function resetStatsGoalCelebrationTargets(period, nextGoal) {
+    const celebrations = getStatsGoalCelebrations();
+    let changed = false;
+    const over6Target = nextGoal?.over6Target ?? null;
+    const salesTarget = nextGoal?.salesTarget ?? null;
+    if (celebrations[period].over6Target !== null && celebrations[period].over6Target !== over6Target) {
+      celebrations[period].over6Target = null;
+      changed = true;
+    }
+    if (celebrations[period].salesTarget !== null && celebrations[period].salesTarget !== salesTarget) {
+      celebrations[period].salesTarget = null;
+      changed = true;
+    }
+    if (changed) saveStatsGoalCelebrations(celebrations);
   }
 
   function getBusinessDaysBetween(startDate, endDate) {
@@ -5057,36 +5205,16 @@
     return 'Sett mål for måneden';
   }
 
-  function renderStatsGoalSummary(period, goal, currentOver6, currentSales, businessDays) {
-    if (!hasStatsGoal(goal)) return '';
-    const items = [];
-    if (goal.over6Target !== null) {
-      items.push({
-        label: '6 min',
-        current: currentOver6,
-        target: goal.over6Target,
-        cls: 'goal-over6',
-      });
-    }
-    if (goal.salesTarget !== null) {
-      items.push({
-        label: 'Abo',
-        current: currentSales,
-        target: goal.salesTarget,
-        cls: 'goal-sales',
-      });
-    }
-    const perDayParts = [];
-    if (period !== 'day' && goal.over6Target !== null) perDayParts.push(`${formatGoalPerDay(goal.over6Target, businessDays)} over 6 min per arbeidsdag`);
-    if (period !== 'day' && goal.salesTarget !== null) perDayParts.push(`${formatGoalPerDay(goal.salesTarget, businessDays)} abo per arbeidsdag`);
+  function renderStatsGoalSummary(goalStatus) {
+    if (!goalStatus?.metrics?.length) return '';
     return `
-      <div class="stats-goal-card">
-        <div class="stats-goal-title">Mål i denne ${period === 'day' ? 'dagen' : period === 'week' ? 'uken' : 'måneden'}</div>
+      <div class="stats-goal-card${goalStatus.anyComplete ? ' goal-complete' : ''}">
+        <div class="stats-goal-title">Mål i denne ${goalStatus.period === 'day' ? 'dagen' : goalStatus.period === 'week' ? 'uken' : 'måneden'}</div>
         <div class="stats-goal-progress-list">
-          ${items.map(item => {
+          ${goalStatus.metrics.map(item => {
             const progress = item.target > 0 ? Math.min((item.current / item.target) * 100, 100) : 100;
             return `
-              <div class="stats-goal-progress-row">
+              <div class="stats-goal-progress-row${item.achieved ? ' goal-complete' : ''}">
                 <span class="stats-goal-progress-label">${item.label}</span>
                 <div class="stats-goal-progress-track">
                   <div class="stats-goal-progress-bar ${item.cls}" style="width:${progress}%"></div>
@@ -5096,9 +5224,26 @@
             `;
           }).join('')}
         </div>
-        ${perDayParts.length ? `<div class="stats-goal-helper">Tilsvarer ${perDayParts.join(' og ')}.</div>` : ''}
+        ${goalStatus.helperParts.length ? `<div class="stats-goal-helper">${goalStatus.helperParts.join(' og ')}.</div>` : ''}
       </div>
     `;
+  }
+
+  function triggerGoalAchievementCelebrations(goalStatuses) {
+    const celebrations = getStatsGoalCelebrations();
+    let hasNewAchievement = false;
+    goalStatuses.filter(Boolean).forEach(goalStatus => {
+      goalStatus.metrics.forEach(metric => {
+        const celebrationKey = `${metric.metric}Target`;
+        if (!metric.achieved || metric.target === null) return;
+        if (celebrations[goalStatus.period][celebrationKey] === metric.target) return;
+        celebrations[goalStatus.period][celebrationKey] = metric.target;
+        hasNewAchievement = true;
+      });
+    });
+    if (!hasNewAchievement) return;
+    saveStatsGoalCelebrations(celebrations);
+    playGoalAchievementCelebration();
   }
 
   function openGoalsPage(period) {
@@ -5116,6 +5261,7 @@
     goals[period].over6Target = normalizeStatsGoalTarget(getGoalInputValue(period, 'over6'));
     goals[period].salesTarget = normalizeStatsGoalTarget(getGoalInputValue(period, 'sales'));
     saveStatsGoals(goals);
+    resetStatsGoalCelebrationTargets(period, goals[period]);
     renderGoalsPage();
     renderStatsHome();
     animateGoalSaveFeedback(period);
@@ -5126,6 +5272,7 @@
     goals[period].over6Target = null;
     goals[period].salesTarget = null;
     saveStatsGoals(goals);
+    resetStatsGoalCelebrationTargets(period, goals[period]);
     renderGoalsPage();
     renderStatsHome();
   }
@@ -5135,10 +5282,16 @@
     if (!page) return;
     const goals = getStatsGoals();
     const now = new Date();
+    const history = getIntroHistory();
+    const currentStatsByPeriod = {
+      day: statsFor(history.filter(h => isToday(h.isoDate))),
+      week: statsFor(history.filter(h => isThisWeek(h.isoDate))),
+      month: statsFor(history.filter(h => isThisMonth(h.isoDate))),
+    };
     const businessDaysByPeriod = {
       day: 1,
-      week: getStatsGoalBusinessDays('week', now),
-      month: getStatsGoalBusinessDays('month', now),
+      week: getRemainingGoalBusinessDays('week', now),
+      month: getRemainingGoalBusinessDays('month', now),
     };
     const cards = [
       {
@@ -5169,7 +5322,8 @@
         ${cards.map(card => {
           const goal = goals[card.period];
           const businessDays = businessDaysByPeriod[card.period];
-          const helperParts = getGoalHelperParts(card.period, businessDays, goal.over6Target, goal.salesTarget);
+          const currentStats = currentStatsByPeriod[card.period];
+          const helperParts = getGoalHelperParts(card.period, businessDays, goal.over6Target, goal.salesTarget, currentStats.over5, currentStats.salg);
           return `
             <div id="goals-card-${card.period}" class="goals-card ${pendingGoalsFocusPeriod === card.period ? 'highlight' : ''}">
               <div class="goals-card-title">${card.title}</div>
@@ -5178,7 +5332,7 @@
                 ${renderGoalField(card.period, 'over6', 'Mål for samtaler over 6 min', goal.over6Target)}
                 ${renderGoalField(card.period, 'sales', 'Mål for abo', goal.salesTarget)}
               </div>
-              ${card.period !== 'day' ? `<div id="goals-inline-helper-${card.period}" class="goals-inline-helper" data-business-days="${businessDays}" style="margin-top:12px;display:${helperParts.length ? 'block' : 'none'};">${helperParts.length ? `Dette tilsvarer ${helperParts.join(' og ')}.` : ''}</div>` : ''}
+              ${card.period !== 'day' ? `<div id="goals-inline-helper-${card.period}" class="goals-inline-helper" data-business-days="${businessDays}" data-current-over6="${currentStats.over5}" data-current-sales="${currentStats.salg}" style="margin-top:12px;display:${helperParts.length ? 'block' : 'none'};">${helperParts.length ? `${helperParts.join(' og ')}.` : ''}</div>` : ''}
               <div class="goals-card-actions">
                 <button id="goal-save-btn-${card.period}" class="save-btn goal-save-btn" style="margin-top:0;" type="button" onclick="saveStatsGoal('${card.period}')">Lagre mål</button>
                 <button class="backup-btn" style="margin-top:0;" type="button" onclick="clearStatsGoal('${card.period}')">Tøm mål</button>
@@ -5212,8 +5366,11 @@
     const todaySessionCount = getStartedSessionCountForDate(now, now);
     const weekSessionCount = countStartedSessionsInRange(startOfWeek, now, now);
     const monthSessionCount = countStartedSessionsInRange(firstOfMonth, now, now);
-    const weekGoalBusinessDays = getStatsGoalBusinessDays('week', now);
-    const monthGoalBusinessDays = getStatsGoalBusinessDays('month', now);
+    const weekGoalBusinessDays = getRemainingGoalBusinessDays('week', now);
+    const monthGoalBusinessDays = getRemainingGoalBusinessDays('month', now);
+    const dayGoalStatus = getGoalStatus('day', dayGoal, dag.over5, dag.salg, 1);
+    const weekGoalStatus = getGoalStatus('week', weekGoal, uke.over5, uke.salg, weekGoalBusinessDays);
+    const monthGoalStatus = getGoalStatus('month', monthGoal, mnd.over5, mnd.salg, monthGoalBusinessDays);
 
     // Motivation
     const startOfYesterday = new Date(now);
@@ -5321,7 +5478,7 @@
           <div class="stats-section-title">I dag</div>
           <button class="backup-btn stats-goal-btn" type="button" onclick="openGoalsPage('day')">${getStatsGoalButtonLabel('day', dayGoal)}</button>
         </div>
-        ${renderStatsGoalSummary('day', dayGoal, dag.over5, dag.salg, 1)}
+        ${renderStatsGoalSummary(dayGoalStatus)}
         <div class="stats-grid stats-grid-4">
           ${statCard(dag.introSuccesses, 'Opptak', true, 'blue', 'metric-card')}
           ${statCard(formatAveragePerSession(dag.introSuccesses, todaySessionCount), todaySessionCount ? `Snitt per økt (${dag.introSuccesses}/${todaySessionCount})` : 'Snitt per økt', true, 'purple', 'metric-card')}
@@ -5336,7 +5493,7 @@
           <div class="stats-section-title st-teal">Denne uken</div>
           <button class="backup-btn stats-goal-btn" type="button" onclick="openGoalsPage('week')">${getStatsGoalButtonLabel('week', weekGoal)}</button>
         </div>
-        ${renderStatsGoalSummary('week', weekGoal, uke.over5, uke.salg, weekGoalBusinessDays)}
+        ${renderStatsGoalSummary(weekGoalStatus)}
         <div class="stats-grid stats-grid-2" style="margin-bottom:14px;">
           <div class="chart-card cc-teal">
             <div class="chart-card-title">6-min & salg per dag</div>
@@ -5357,7 +5514,7 @@
           <div class="stats-section-title st-teal">${now.toLocaleString('no-NO', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase())}</div>
           <button class="backup-btn stats-goal-btn" type="button" onclick="openGoalsPage('month')">${getStatsGoalButtonLabel('month', monthGoal)}</button>
         </div>
-        ${renderStatsGoalSummary('month', monthGoal, mnd.over5, mnd.salg, monthGoalBusinessDays)}
+        ${renderStatsGoalSummary(monthGoalStatus)}
         <div class="stats-grid stats-grid-2">
           <div class="chart-card cc-teal">
             <div class="chart-card-title">6-min & salg per uke</div>
@@ -5372,6 +5529,7 @@
         </div>
       </div>
     `;
+    triggerGoalAchievementCelebrations([dayGoalStatus, weekGoalStatus, monthGoalStatus]);
   }
 
   function renderIntroLibraryInline() { /* removed — leaderboard click fills the text box instead */ }
@@ -7338,6 +7496,7 @@
   // ---- Celebration confetti ----
   let gifTimer = null;
   let confettiFrame = null;
+  let confettiStopTimer = null;
 
   function showCelebrationGif(type) {
     const label = type === 'salg' ? 'SALG!' : '6-MINUTTERS!';
@@ -7351,9 +7510,7 @@
   function closeGif() {
     document.getElementById('gif-overlay').classList.remove('visible');
     clearTimeout(gifTimer);
-    cancelAnimationFrame(confettiFrame);
-    const canvas = document.getElementById('confetti-canvas');
-    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    stopConfetti();
   }
 
   function startConfetti(colors) {
@@ -7390,9 +7547,19 @@
     draw();
   }
 
-  function closeGif() {
-    document.getElementById('gif-overlay').classList.remove('visible');
-    clearTimeout(gifTimer);
+  function stopConfetti() {
+    clearTimeout(confettiStopTimer);
+    cancelAnimationFrame(confettiFrame);
+    const canvas = document.getElementById('confetti-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  function playGoalAchievementCelebration() {
+    startConfetti(['#22c55e', '#86efac', '#facc15', '#ffffff']);
+    clearTimeout(confettiStopTimer);
+    confettiStopTimer = setTimeout(stopConfetti, 2600);
   }
 
   // ---- Eksport / Import ----
