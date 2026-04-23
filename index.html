@@ -1277,6 +1277,19 @@
       box-shadow: 0 3px 10px rgba(220,38,38,0.28);
     }
 
+    .choice-chip.ov-status-choice-ubesvart:hover {
+      border-color: #ca8a04;
+      background: #fef9c3;
+      color: #854d0e;
+    }
+
+    .choice-chip.ov-status-choice-ubesvart.active {
+      border-color: #ca8a04;
+      background: #eab308;
+      color: #111827;
+      box-shadow: 0 3px 10px rgba(234,179,8,0.28);
+    }
+
     .choice-chip.ov-status-choice-avslag:hover {
       border-color: #dc2626;
       background: #fee2e2;
@@ -6036,6 +6049,7 @@
   }
 
   function getOvStatusButtonClass(statusId) {
+    if (statusId === 'ikke-svart') return 'ov-status-choice-ubesvart';
     if (statusId === 'vil-ikke-ha') return 'ov-status-choice-avslag';
     if (statusId === 'har-byttet') return 'ov-status-choice-byttet';
     return '';
