@@ -2522,83 +2522,132 @@
       background: linear-gradient(90deg, #f59e0b, #fbbf24);
     }
 
+    .personal-records-shell {
+      background: linear-gradient(135deg, #181a31, #101828 58%, #0f172a);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 24px;
+      padding: 22px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.24);
+    }
+
+    .personal-records-intro {
+      margin: 2px 0 18px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+      max-width: 680px;
+    }
+
+    .personal-record-groups {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .personal-record-group {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 20px;
+      padding: 18px;
+      backdrop-filter: blur(6px);
+    }
+
+    .personal-record-group.abo-group {
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.08), rgba(255,255,255,0.02));
+    }
+
+    .personal-record-group.over6-group {
+      background: linear-gradient(180deg, rgba(20, 184, 166, 0.08), rgba(255,255,255,0.02));
+    }
+
+    .personal-record-group-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .personal-record-group.abo-group .personal-record-group-title {
+      background: rgba(245, 158, 11, 0.14);
+      color: #fcd34d;
+    }
+
+    .personal-record-group.over6-group .personal-record-group-title {
+      background: rgba(20, 184, 166, 0.14);
+      color: #5eead4;
+    }
+
     .personal-records-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
+      gap: 12px;
     }
 
     .personal-record-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px 18px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
-    }
-
-    .personal-record-head {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 10px;
-    }
-
-    .personal-record-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.14);
-    }
-
-    .personal-record-icon svg {
-      width: 24px;
-      height: 24px;
-      display: block;
-    }
-
-    .personal-record-icon .trophy-main {
-      fill: rgba(255,255,255,0.92);
-    }
-
-    .personal-record-icon .trophy-accent {
-      fill: rgba(255,255,255,0.62);
+      position: relative;
+      min-height: 160px;
+      border-radius: 18px;
+      padding: 18px 16px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
     }
 
     .personal-record-card.pr-abo {
-      border-top: 4px solid #f59e0b;
-      background: #35260f;
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.12), rgba(17, 24, 39, 0.92));
     }
 
     .personal-record-card.pr-over6 {
-      border-top: 4px solid #14b8a6;
-      background: #0f2b2b;
+      background: linear-gradient(180deg, rgba(20, 184, 166, 0.12), rgba(15, 23, 42, 0.92));
     }
 
-    .personal-record-icon.icon-abo-day { background: linear-gradient(135deg, #fde68a, #f59e0b); }
-    .personal-record-icon.icon-abo-week { background: linear-gradient(135deg, #fcd34d, #f97316); }
-    .personal-record-icon.icon-abo-month { background: linear-gradient(135deg, #fef3c7, #f59e0b); }
-    .personal-record-icon.icon-over6-day { background: linear-gradient(135deg, #99f6e4, #14b8a6); }
-    .personal-record-icon.icon-over6-week { background: linear-gradient(135deg, #67e8f9, #06b6d4); }
-    .personal-record-icon.icon-over6-month { background: linear-gradient(135deg, #a5f3fc, #0ea5e9); }
+    .personal-record-card.is-new-record {
+      border-color: rgba(255,255,255,0.26);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.05), 0 0 28px rgba(255,255,255,0.08);
+    }
+
+    .personal-record-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 14px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #fff;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .personal-record-card.is-new-record .personal-record-badge {
+      background: linear-gradient(135deg, #f59e0b, #f97316);
+      box-shadow: 0 8px 18px rgba(249, 115, 22, 0.24);
+    }
 
     .personal-record-value {
-      font-size: 2rem;
+      font-size: 2.35rem;
       font-weight: 900;
       line-height: 1;
       color: var(--text);
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .personal-record-card.pr-abo .personal-record-value { color: #fcd34d; }
     .personal-record-card.pr-over6 .personal-record-value { color: #5eead4; }
 
     .personal-record-label {
-      font-size: 0.92rem;
-      font-weight: 700;
+      font-size: 0.95rem;
+      font-weight: 800;
       color: var(--text);
-      margin-bottom: 6px;
+      margin-bottom: 8px;
+      line-height: 1.35;
     }
 
     .personal-record-meta {
@@ -2618,6 +2667,7 @@
       .stats-grid-4 { grid-template-columns: repeat(2, 1fr); }
       .stats-grid-2 { grid-template-columns: 1fr; }
       .goals-grid { grid-template-columns: 1fr; }
+      .personal-record-groups,
       .personal-records-grid { grid-template-columns: 1fr; }
     }
 
@@ -4955,31 +5005,38 @@
     }, null);
   }
 
-  function renderPersonalRecordTrophy(accentVariant = 'center') {
-    const accents = {
-      left: '<circle class="trophy-accent" cx="7" cy="7.5" r="1.8"></circle>',
-      center: '<circle class="trophy-accent" cx="12" cy="7.5" r="1.8"></circle>',
-      right: '<circle class="trophy-accent" cx="17" cy="7.5" r="1.8"></circle>',
-      double: '<circle class="trophy-accent" cx="9" cy="7.5" r="1.6"></circle><circle class="trophy-accent" cx="15" cy="7.5" r="1.6"></circle>',
-      bar: '<rect class="trophy-accent" x="8.4" y="6.4" width="7.2" height="2.2" rx="1.1"></rect>',
-      star: '<path class="trophy-accent" d="M12 5.9l1 1.8 2 .3-1.5 1.4.4 2-1.9-.9-1.9.9.4-2L9 8l2-.3 1-1.8z"></path>',
-    };
-    return `
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path class="trophy-main" d="M8 3.5h8c0 2.8.5 5.2 2.9 6.3-.2 2.1-1.7 3.7-3.8 4.1-.7 1.5-1.7 2.6-2.6 3.1V19h3.2a1 1 0 010 2h-7.4a1 1 0 010-2H11v-1.9c-.9-.5-1.9-1.6-2.6-3.1-2.1-.4-3.6-2-3.8-4.1C7 8.7 8 6.3 8 3.5zm-1.2 2c-.2 1.3-.5 2.5-1.1 3.4-.1 1.1.6 2 1.6 2.5-.3-1.2-.5-2.4-.5-3.7 0-.7 0-1.4 0-2.2zm10.5 0c0 .8 0 1.5 0 2.2 0 1.3-.2 2.5-.5 3.7 1-.5 1.7-1.4 1.6-2.5-.6-.9-.9-2.1-1.1-3.4z"></path>
-        ${accents[accentVariant] || accents.center}
-      </svg>
-    `;
+  function getCurrentStatsPeriodKey(period, date = new Date()) {
+    if (period === 'day') return makeLocalDateKey(date);
+    if (period === 'week') return getWeekKeyFromDate(date);
+    return getStatsMonthKey(date);
   }
 
-  function renderPersonalRecordCard(title, value, periodLabel, variant, iconClass, trophyVariant) {
+  function isNewStatsRecord(groupedRecords, metricKey, currentKey) {
+    const currentRecord = groupedRecords.find(record => record.key === currentKey);
+    const currentValue = currentRecord?.stats?.[metricKey] || 0;
+    if (!currentValue) return false;
+    const previousBest = groupedRecords.reduce((best, record) => {
+      if (record.key === currentKey) return best;
+      return Math.max(best, record.stats?.[metricKey] || 0);
+    }, 0);
+    return currentValue > previousBest;
+  }
+
+  function buildPersonalRecord(groupedRecords, metricKey, currentKey) {
+    const best = getBestStatsRecord(groupedRecords, metricKey);
+    return {
+      key: best?.key || '',
+      value: best?.value || 0,
+      isNew: isNewStatsRecord(groupedRecords, metricKey, currentKey),
+    };
+  }
+
+  function renderPersonalRecordCard(title, value, periodLabel, variant, isNew = false) {
     const safeValue = value > 0 ? value : '—';
     const meta = value > 0 ? `Satt ${periodLabel}` : 'Ingen registreringer ennå';
     return `
-      <div class="personal-record-card ${variant}">
-        <div class="personal-record-head">
-          <span class="personal-record-icon ${iconClass}">${renderPersonalRecordTrophy(trophyVariant)}</span>
-        </div>
+      <div class="personal-record-card ${variant}${isNew ? ' is-new-record' : ''}">
+        <div class="personal-record-badge">${isNew ? 'Ny rekord!' : 'Beste hittil'}</div>
         <div class="personal-record-value">${safeValue}</div>
         <div class="personal-record-label">${title}</div>
         <div class="personal-record-meta">${meta}</div>
@@ -5554,13 +5611,16 @@
     const dayGoalStatus = getGoalStatus('day', dayGoal, dag.over5, dag.salg, 1);
     const weekGoalStatus = getGoalStatus('week', weekGoal, uke.over5, uke.salg, weekGoalBusinessDays);
     const monthGoalStatus = getGoalStatus('month', monthGoal, mnd.over5, mnd.salg, monthGoalBusinessDays);
+    const currentDayKey = getCurrentStatsPeriodKey('day', now);
+    const currentWeekKey = getCurrentStatsPeriodKey('week', now);
+    const currentMonthKey = getCurrentStatsPeriodKey('month', now);
     const personalRecords = {
-      aboDay: getBestStatsRecord(dayRecords, 'salg'),
-      aboWeek: getBestStatsRecord(weekRecords, 'salg'),
-      aboMonth: getBestStatsRecord(monthRecords, 'salg'),
-      over6Day: getBestStatsRecord(dayRecords, 'over5'),
-      over6Week: getBestStatsRecord(weekRecords, 'over5'),
-      over6Month: getBestStatsRecord(monthRecords, 'over5'),
+      aboDay: buildPersonalRecord(dayRecords, 'salg', currentDayKey),
+      aboWeek: buildPersonalRecord(weekRecords, 'salg', currentWeekKey),
+      aboMonth: buildPersonalRecord(monthRecords, 'salg', currentMonthKey),
+      over6Day: buildPersonalRecord(dayRecords, 'over5', currentDayKey),
+      over6Week: buildPersonalRecord(weekRecords, 'over5', currentWeekKey),
+      over6Month: buildPersonalRecord(monthRecords, 'over5', currentMonthKey),
     };
 
     // Motivation
@@ -5724,13 +5784,26 @@
         <div class="stats-section-head">
           <div class="stats-section-title st-purple">Personlige rekorder</div>
         </div>
-        <div class="personal-records-grid">
-          ${renderPersonalRecordCard('Mest abo på en dag', personalRecords.aboDay?.value || 0, formatStatsRecordPeriod('day', personalRecords.aboDay?.key), 'pr-abo', 'icon-abo-day', 'left')}
-          ${renderPersonalRecordCard('Mest abo på en uke', personalRecords.aboWeek?.value || 0, formatStatsRecordPeriod('week', personalRecords.aboWeek?.key), 'pr-abo', 'icon-abo-week', 'double')}
-          ${renderPersonalRecordCard('Mest abo på en måned', personalRecords.aboMonth?.value || 0, formatStatsRecordPeriod('month', personalRecords.aboMonth?.key), 'pr-abo', 'icon-abo-month', 'star')}
-          ${renderPersonalRecordCard('Mest 6 min på en dag', personalRecords.over6Day?.value || 0, formatStatsRecordPeriod('day', personalRecords.over6Day?.key), 'pr-over6', 'icon-over6-day', 'right')}
-          ${renderPersonalRecordCard('Mest 6 min på en uke', personalRecords.over6Week?.value || 0, formatStatsRecordPeriod('week', personalRecords.over6Week?.key), 'pr-over6', 'icon-over6-week', 'bar')}
-          ${renderPersonalRecordCard('Mest 6 min på en måned', personalRecords.over6Month?.value || 0, formatStatsRecordPeriod('month', personalRecords.over6Month?.key), 'pr-over6', 'icon-over6-month', 'center')}
+        <div class="personal-records-shell">
+          <div class="personal-records-intro">Her ser du de sterkeste tallene dine samlet på ett sted. Nye rekorder markeres automatisk når dagens, ukens eller månedens tall faktisk slår den gamle toppen.</div>
+          <div class="personal-record-groups">
+            <div class="personal-record-group abo-group">
+              <div class="personal-record-group-title">Abo-rekorder</div>
+              <div class="personal-records-grid">
+                ${renderPersonalRecordCard('Mest abo på en dag', personalRecords.aboDay?.value || 0, formatStatsRecordPeriod('day', personalRecords.aboDay?.key), 'pr-abo', personalRecords.aboDay?.isNew)}
+                ${renderPersonalRecordCard('Mest abo på en uke', personalRecords.aboWeek?.value || 0, formatStatsRecordPeriod('week', personalRecords.aboWeek?.key), 'pr-abo', personalRecords.aboWeek?.isNew)}
+                ${renderPersonalRecordCard('Mest abo på en måned', personalRecords.aboMonth?.value || 0, formatStatsRecordPeriod('month', personalRecords.aboMonth?.key), 'pr-abo', personalRecords.aboMonth?.isNew)}
+              </div>
+            </div>
+            <div class="personal-record-group over6-group">
+              <div class="personal-record-group-title">6 min-rekorder</div>
+              <div class="personal-records-grid">
+                ${renderPersonalRecordCard('Mest 6 min på en dag', personalRecords.over6Day?.value || 0, formatStatsRecordPeriod('day', personalRecords.over6Day?.key), 'pr-over6', personalRecords.over6Day?.isNew)}
+                ${renderPersonalRecordCard('Mest 6 min på en uke', personalRecords.over6Week?.value || 0, formatStatsRecordPeriod('week', personalRecords.over6Week?.key), 'pr-over6', personalRecords.over6Week?.isNew)}
+                ${renderPersonalRecordCard('Mest 6 min på en måned', personalRecords.over6Month?.value || 0, formatStatsRecordPeriod('month', personalRecords.over6Month?.key), 'pr-over6', personalRecords.over6Month?.isNew)}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     `;
