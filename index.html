@@ -4521,6 +4521,15 @@
     </div>`;
   }
 
+  function getStackedBarChartScaleMax(...datasets) {
+    const maxValue = Math.max(
+      ...datasets.flat().map(d => (d?.fiveMin || 0) + (d?.sales || 0)),
+      0
+    );
+    if (maxValue <= 5) return 5;
+    return Math.ceil(maxValue / 5) * 5;
+  }
+
   function barChart(data, barClass = '') {
     const max = Math.max(...data.map(d => d.value), 1);
     return `<div class="bar-chart">` + data.map(d => {
@@ -4533,11 +4542,11 @@
     }).join('') + `</div>`;
   }
 
-  function stackedBarChart(data) {
-    const max = Math.max(...data.map(d => (d.fiveMin || 0) + (d.sales || 0)), 1);
+  function stackedBarChart(data, maxScale = null) {
+    const max = Math.max(maxScale || 0, 1);
     return `<div class="bar-chart">` + data.map(d => {
       const total = (d.fiveMin || 0) + (d.sales || 0);
-      const h = Math.round((total / max) * 100);
+      const h = (total / max) * 100;
       const goldFlex = d.sales || 0;
       const tealFlex = d.fiveMin || 0;
       const bar = total > 0
@@ -4627,6 +4636,8 @@
       wMon = new Date(wMon); wMon.setDate(wMon.getDate() + 7);
     }
 
+    const stackedChartMax = getStackedBarChartScaleMax(weekData, weekBuckets);
+
     const dateStr = now.toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
       .replace(/^\w/, c => c.toUpperCase());
 
@@ -4664,7 +4675,7 @@
         <div class="stats-grid stats-grid-2" style="margin-bottom:14px;">
           <div class="chart-card cc-teal">
             <div class="chart-card-title">5-min & salg per dag</div>
-            ${stackedBarChart(weekData)}
+            ${stackedBarChart(weekData, stackedChartMax)}
           </div>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
             ${statCard(uke.introSuccesses, 'Opptak', false, 'blue')}
@@ -4681,7 +4692,7 @@
         <div class="stats-grid stats-grid-2">
           <div class="chart-card cc-teal">
             <div class="chart-card-title">5-min & salg per uke</div>
-            ${stackedBarChart(weekBuckets)}
+            ${stackedBarChart(weekBuckets, stackedChartMax)}
           </div>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
             ${statCard(mnd.introSuccesses, 'Opptak', false, 'blue')}
