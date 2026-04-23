@@ -5554,9 +5554,12 @@
 
   function getStatsGoals(date = new Date()) {
     const raw = localStorage.getItem('statsGoals');
-    const parsed = raw ? JSON.parse(raw) : getDefaultStatsGoals(date);
+    const parsedValue = raw ? JSON.parse(raw) : getDefaultStatsGoals(date);
+    const parsed = parsedValue && typeof parsedValue === 'object' && !Array.isArray(parsedValue)
+      ? parsedValue
+      : getDefaultStatsGoals(date);
     const defaults = getDefaultStatsGoals(date);
-    let changed = !raw;
+    let changed = !raw || parsed !== parsedValue;
 
     ['day', 'week', 'month'].forEach(period => {
       if (!parsed[period] || typeof parsed[period] !== 'object') {
@@ -5587,9 +5590,12 @@
 
   function getStatsGoalCelebrations(date = new Date()) {
     const raw = localStorage.getItem('statsGoalCelebrations');
-    const parsed = raw ? JSON.parse(raw) : getDefaultStatsGoalCelebrations(date);
+    const parsedValue = raw ? JSON.parse(raw) : getDefaultStatsGoalCelebrations(date);
+    const parsed = parsedValue && typeof parsedValue === 'object' && !Array.isArray(parsedValue)
+      ? parsedValue
+      : getDefaultStatsGoalCelebrations(date);
     const defaults = getDefaultStatsGoalCelebrations(date);
-    let changed = !raw;
+    let changed = !raw || parsed !== parsedValue;
 
     ['day', 'week', 'month'].forEach(period => {
       if (!parsed[period] || typeof parsed[period] !== 'object') {
