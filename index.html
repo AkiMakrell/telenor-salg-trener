@@ -2522,6 +2522,63 @@
       background: linear-gradient(90deg, #f59e0b, #fbbf24);
     }
 
+    .personal-records-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .personal-record-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    }
+
+    .personal-record-card.pr-abo {
+      border-top: 4px solid #f59e0b;
+      background: #35260f;
+    }
+
+    .personal-record-card.pr-over6 {
+      border-top: 4px solid #14b8a6;
+      background: #0f2b2b;
+    }
+
+    .personal-record-kicker {
+      font-size: 0.74rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .personal-record-value {
+      font-size: 2rem;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .personal-record-card.pr-abo .personal-record-value { color: #fcd34d; }
+    .personal-record-card.pr-over6 .personal-record-value { color: #5eead4; }
+
+    .personal-record-label {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .personal-record-meta {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
     .stats-grid {
       display: grid;
       gap: 14px;
@@ -2533,6 +2590,7 @@
       .stats-grid-4 { grid-template-columns: repeat(2, 1fr); }
       .stats-grid-2 { grid-template-columns: 1fr; }
       .goals-grid { grid-template-columns: 1fr; }
+      .personal-records-grid { grid-template-columns: 1fr; }
     }
 
     .stat-card {
@@ -4817,6 +4875,71 @@
 
   function statsFor(entries) { return getSuccessStats(entries); }
 
+  function getWeekStartFromDate(date) {
+    const start = new Date(date);
+    start.setDate(date.getDate() - ((date.getDay() + 6) % 7));
+    start.setHours(0, 0, 0, 0);
+    return start;
+  }
+
+  function getWeekKeyFromDate(date) {
+    return makeLocalDateKey(getWeekStartFromDate(date));
+  }
+
+  function formatStatsRecordPeriod(period, key) {
+    if (!key) return '';
+    if (period === 'day') {
+      const date = parseLocalDateKey(key);
+      return date ? date.toLocaleDateString('no-NO', { day: 'numeric', month: 'long', year: 'numeric' }) : key;
+    }
+    if (period === 'week') {
+      const date = parseLocalDateKey(key);
+      if (!date) return key;
+      const end = new Date(date);
+      end.setDate(date.getDate() + 4);
+      return `${date.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' })}–${end.toLocaleDateString('no-NO', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+    }
+    const [year, month] = String(key).split('-');
+    if (!year || !month) return key;
+    return new Date(Number(year), Number(month) - 1, 1).toLocaleDateString('no-NO', { month: 'long', year: 'numeric' });
+  }
+
+  function getGroupedStatsRecords(history, period) {
+    const groups = new Map();
+    history.forEach(entry => {
+      const date = isoToDate(entry.isoDate);
+      if (!date) return;
+      let key = '';
+      if (period === 'day') key = makeLocalDateKey(date);
+      else if (period === 'week') key = getWeekKeyFromDate(date);
+      else key = getStatsMonthKey(date);
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(entry);
+    });
+    return [...groups.entries()].map(([key, entries]) => ({ key, stats: statsFor(entries) }));
+  }
+
+  function getBestStatsRecord(groupedRecords, metricKey) {
+    return groupedRecords.reduce((best, record) => {
+      const value = record.stats[metricKey] || 0;
+      if (!best || value > best.value) return { key: record.key, value };
+      return best;
+    }, null);
+  }
+
+  function renderPersonalRecordCard(title, value, periodLabel, variant) {
+    const safeValue = value > 0 ? value : '—';
+    const meta = value > 0 ? `Satt ${periodLabel}` : 'Ingen registreringer ennå';
+    return `
+      <div class="personal-record-card ${variant}">
+        <div class="personal-record-kicker">Personlig rekord</div>
+        <div class="personal-record-value">${safeValue}</div>
+        <div class="personal-record-label">${title}</div>
+        <div class="personal-record-meta">${meta}</div>
+      </div>
+    `;
+  }
+
   function statCard(value, label, big = false, color = '', extraClass = '') {
     return `<div class="stat-card${big ? ' day-card' : ''}${color ? ' sc-' + color : ''}${extraClass ? ' ' + extraClass : ''}">
       <div class="stat-value${big ? ' big' : ''}">${value}</div>
@@ -5359,6 +5482,9 @@
     const dagEntries = history.filter(h => isToday(h.isoDate));
     const ukeEntries = history.filter(h => isThisWeek(h.isoDate));
     const mndEntries = history.filter(h => isThisMonth(h.isoDate));
+    const dayRecords = getGroupedStatsRecords(history, 'day');
+    const weekRecords = getGroupedStatsRecords(history, 'week');
+    const monthRecords = getGroupedStatsRecords(history, 'month');
     const now = new Date();
 
     const dag = statsFor(dagEntries);
@@ -5381,6 +5507,14 @@
     const dayGoalStatus = getGoalStatus('day', dayGoal, dag.over5, dag.salg, 1);
     const weekGoalStatus = getGoalStatus('week', weekGoal, uke.over5, uke.salg, weekGoalBusinessDays);
     const monthGoalStatus = getGoalStatus('month', monthGoal, mnd.over5, mnd.salg, monthGoalBusinessDays);
+    const personalRecords = {
+      aboDay: getBestStatsRecord(dayRecords, 'salg'),
+      aboWeek: getBestStatsRecord(weekRecords, 'salg'),
+      aboMonth: getBestStatsRecord(monthRecords, 'salg'),
+      over6Day: getBestStatsRecord(dayRecords, 'over5'),
+      over6Week: getBestStatsRecord(weekRecords, 'over5'),
+      over6Month: getBestStatsRecord(monthRecords, 'over5'),
+    };
 
     // Motivation
     const startOfYesterday = new Date(now);
@@ -5536,6 +5670,20 @@
             ${statCard(mnd.over5, 'Over 6 min', false, 'teal')}
             ${statCard(mnd.salg, 'Abo', false, 'gold')}
           </div>
+        </div>
+      </div>
+
+      <div class="stats-section">
+        <div class="stats-section-head">
+          <div class="stats-section-title st-purple">Personlige rekorder</div>
+        </div>
+        <div class="personal-records-grid">
+          ${renderPersonalRecordCard('Mest abo på en dag', personalRecords.aboDay?.value || 0, formatStatsRecordPeriod('day', personalRecords.aboDay?.key), 'pr-abo')}
+          ${renderPersonalRecordCard('Mest abo på en uke', personalRecords.aboWeek?.value || 0, formatStatsRecordPeriod('week', personalRecords.aboWeek?.key), 'pr-abo')}
+          ${renderPersonalRecordCard('Mest abo på en måned', personalRecords.aboMonth?.value || 0, formatStatsRecordPeriod('month', personalRecords.aboMonth?.key), 'pr-abo')}
+          ${renderPersonalRecordCard('Mest 6 min på en dag', personalRecords.over6Day?.value || 0, formatStatsRecordPeriod('day', personalRecords.over6Day?.key), 'pr-over6')}
+          ${renderPersonalRecordCard('Mest 6 min på en uke', personalRecords.over6Week?.value || 0, formatStatsRecordPeriod('week', personalRecords.over6Week?.key), 'pr-over6')}
+          ${renderPersonalRecordCard('Mest 6 min på en måned', personalRecords.over6Month?.value || 0, formatStatsRecordPeriod('month', personalRecords.over6Month?.key), 'pr-over6')}
         </div>
       </div>
     `;
