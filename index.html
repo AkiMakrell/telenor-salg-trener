@@ -2593,39 +2593,6 @@
       margin-bottom: 14px;
     }
 
-    .stats-hero-panel {
-      background: linear-gradient(135deg, rgba(41, 168, 224, 0.18), rgba(15, 23, 42, 0.96) 54%, rgba(20, 184, 166, 0.16));
-      border: 1px solid rgba(125, 211, 252, 0.16);
-      border-radius: 24px;
-      padding: 22px;
-      box-shadow: 0 18px 40px rgba(2, 6, 23, 0.22);
-    }
-
-    .stats-hero-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 14px;
-      flex-wrap: wrap;
-      margin-bottom: 18px;
-    }
-
-    .stats-hero-title {
-      font-size: 1.5rem;
-      font-weight: 900;
-      line-height: 1.05;
-      color: var(--text);
-      letter-spacing: -0.02em;
-    }
-
-    .stats-hero-text {
-      margin-top: 8px;
-      max-width: 720px;
-      color: #cbd5e1;
-      font-size: 0.95rem;
-      line-height: 1.5;
-    }
-
     .stats-nav {
       display: flex;
       flex-direction: column;
@@ -6427,7 +6394,7 @@
 
   function renderStatsSubviewNav(activeView) {
     const items = [
-      { id: 'overview', label: 'Oversikt' },
+      { id: 'overview', label: 'Hovedside' },
       { id: 'development', label: 'Utvikling' },
       { id: 'records', label: 'Rekorder' },
       { id: 'goals', label: 'Mål' },
@@ -6444,25 +6411,6 @@
               onclick="setStatsSubview('${item.id}')"
             >${item.label}</button>
           `).join('')}
-        </div>
-      </div>
-    `;
-  }
-
-  function renderStatsHero(dateStr, msg, dag, todaySessionCount) {
-    return `
-      <div class="stats-hero-panel">
-        <div class="stats-hero-head">
-          <div>
-            <div class="stats-hero-title">Stats som faktisk føles motiverende</div>
-            <div class="stats-hero-text">${dateStr}. ${msg}</div>
-          </div>
-        </div>
-        <div class="stats-grid stats-grid-4">
-          ${statCard(dag.introSuccesses, 'Opptak i dag', true, 'blue', 'metric-card')}
-          ${statCard(formatAveragePerSession(dag.over5, todaySessionCount), todaySessionCount ? `6 min per økt (${dag.over5}/${todaySessionCount})` : '6 min per økt', true, 'purple', 'metric-card')}
-          ${statCard(dag.over5, 'Over 6 min i dag', true, 'teal', 'metric-card')}
-          ${statCard(dag.salg, 'Abo i dag', true, 'gold', 'metric-card')}
         </div>
       </div>
     `;
@@ -6604,7 +6552,6 @@
     const dag = statsFor(dagEntries);
     const uke = statsFor(ukeEntries);
     const mnd = statsFor(mndEntries);
-    const activeSession = getCurrentCallSession();
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - ((now.getDay() + 6) % 7));
     startOfWeek.setHours(0, 0, 0, 0);
@@ -6632,62 +6579,6 @@
       over6Week: buildPersonalRecord(weekRecords, 'over5', currentWeekKey),
       over6Month: buildPersonalRecord(monthRecords, 'over5', currentMonthKey),
     };
-
-    // Motivation
-    const startOfYesterday = new Date(now);
-    startOfYesterday.setDate(now.getDate() - 1);
-    startOfYesterday.setHours(0, 0, 0, 0);
-    const endOfYesterday = new Date(startOfYesterday);
-    endOfYesterday.setDate(startOfYesterday.getDate() + 1);
-    const yesterdayEntries = history.filter(entry => {
-      const entryDate = isoToDate(entry.isoDate);
-      return entryDate && entryDate >= startOfYesterday && entryDate < endOfYesterday;
-    });
-    const yesterdayStats = statsFor(yesterdayEntries);
-
-    const startOfPreviousWeek = new Date(startOfWeek);
-    startOfPreviousWeek.setDate(startOfWeek.getDate() - 7);
-    const previousWeekComparisonEnd = new Date(now);
-    previousWeekComparisonEnd.setDate(now.getDate() - 7);
-    const previousWeekComparableEntries = history.filter(entry => {
-      const entryDate = isoToDate(entry.isoDate);
-      return entryDate && entryDate >= startOfPreviousWeek && entryDate <= previousWeekComparisonEnd;
-    });
-    const previousWeekComparableStats = statsFor(previousWeekComparableEntries);
-
-    const standardMotivations = [
-      [6, 'Sterk dag! Du bygger gode vaner i dag.'],
-      [3, 'Bra flyt! Fortsett med samme intro gjennom økten.'],
-      [1, 'Fin start! Fortsett å logge det som fungerer.'],
-    ];
-    const fallbackMotivations = [
-      'Ingen panikk – det kan snu helt på neste samtale.',
-      'Hold tempoet oppe. Neste ja kan komme når som helst.',
-      'Rolig start er fortsatt en start. Fortsett å mate på.',
-    ];
-    const funnyFallbackMessage = fallbackMotivations[now.getDate() % fallbackMotivations.length];
-    const isFirstCallSessionWithoutOpptak = activeSession?.id === CALL_SESSIONS[0].id && dag.introSuccesses === 0 && dag.salg === 0;
-    const weekStartedBetterThanPrevious = (
-      uke.introSuccesses > previousWeekComparableStats.introSuccesses ||
-      uke.over5 > previousWeekComparableStats.over5 ||
-      uke.salg > previousWeekComparableStats.salg
-    ) && (uke.introSuccesses > 0 || uke.over5 > 0 || uke.salg > 0);
-
-    let msg = funnyFallbackMessage;
-    if (dag.salg > 0) {
-      msg = 'Abo i dag! Bygg videre på det som fungerte i samtalen.';
-    } else if (weekStartedBetterThanPrevious) {
-      msg = 'Denne uka har startet bedre enn forrige – fin utvikling så langt.';
-    } else if (yesterdayStats.salg > 0) {
-      msg = `I går fikk du ${yesterdayStats.salg} ${yesterdayStats.salg === 1 ? 'abo' : 'abo'} – du vet allerede at det går an å lykkes.`;
-    } else if (yesterdayStats.over5 >= 4) {
-      msg = `I går fikk du ${yesterdayStats.over5} samtaler over 6 min. Du har allerede vist at du får det til.`;
-    } else if (isFirstCallSessionWithoutOpptak) {
-      msg = 'Rolig start i første økt er helt normalt – det løsner ofte plutselig.';
-    } else {
-      const standardMessage = standardMotivations.find(([min]) => dag.introSuccesses >= min);
-      if (standardMessage) msg = standardMessage[1];
-    }
 
     // Week bar chart: 6-min per weekday (Mon–Fri only)
     const days = ['Man','Tir','Ons','Tor','Fre'];
@@ -6725,17 +6616,21 @@
     }
 
     const stackedChartMax = getStackedBarChartScaleMax(weekData, weekBuckets);
-
-    const dateStr = now.toLocaleDateString('no-NO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-      .replace(/^\w/, c => c.toUpperCase());
     const monthTitle = now.toLocaleString('no-NO', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase());
     const activeView = ['overview', 'development', 'records', 'goals'].includes(activeStatsSubview) ? activeStatsSubview : 'overview';
     const overviewPane = `
       <div class="stats-pane">
+        ${renderStatsDaySection(dag, dayGoal, dayGoalStatus, todaySessionCount)}
+        ${renderStatsWeekSection(uke, weekGoal, weekGoalStatus, weekData, stackedChartMax, elapsedWeekBusinessDays)}
+        ${renderStatsMonthSection(mnd, monthTitle, monthGoal, monthGoalStatus, weekBuckets, stackedChartMax, elapsedMonthWeekCount)}
+      </div>
+    `;
+    const developmentPane = `
+      <div class="stats-pane">
         <div class="stats-section">
           <div class="stats-section-head">
             <div class="stats-section-title st-teal">Utvikling akkurat nå</div>
-            <button class="backup-btn stats-goal-btn" type="button" onclick="setStatsSubview('development')">Se detaljene</button>
+            <button class="backup-btn stats-goal-btn" type="button" onclick="setStatsSubview('goals')">Fokus på mål</button>
           </div>
           <div class="stats-grid stats-grid-2" style="margin-bottom:14px;">
             <div class="chart-card cc-blue">
@@ -6754,24 +6649,6 @@
             ${statCard(mnd.salg, 'Abo denne måneden', false, 'gold')}
           </div>
         </div>
-        <div class="stats-section">
-          <div class="stats-section-head">
-            <div class="stats-section-title st-purple">Mål og progresjon</div>
-            <button class="backup-btn stats-goal-btn" type="button" onclick="setStatsSubview('goals')">Fokus på mål</button>
-          </div>
-          <div class="stats-goals-overview-grid">
-            ${renderStatsGoalPanel('day', 'Dagsmål', 'Perfekt for raske, tydelige seire i løpet av vakten.', dayGoal, dayGoalStatus, dag)}
-            ${renderStatsGoalPanel('week', 'Ukemål', 'Bruk ukemål for å se om tempoet holder gjennom hele arbeidsuken.', weekGoal, weekGoalStatus, uke)}
-            ${renderStatsGoalPanel('month', 'Månedsmål', 'Her ser du om du bygger noe som faktisk varer over tid.', monthGoal, monthGoalStatus, mnd)}
-          </div>
-        </div>
-      </div>
-    `;
-    const developmentPane = `
-      <div class="stats-pane">
-        ${renderStatsDaySection(dag, dayGoal, dayGoalStatus, todaySessionCount)}
-        ${renderStatsWeekSection(uke, weekGoal, weekGoalStatus, weekData, stackedChartMax, elapsedWeekBusinessDays)}
-        ${renderStatsMonthSection(mnd, monthTitle, monthGoal, monthGoalStatus, weekBuckets, stackedChartMax, elapsedMonthWeekCount)}
       </div>
     `;
     const goalsPane = `
@@ -6802,7 +6679,6 @@
           ${renderStatsSubviewNav(activeView)}
         </aside>
         <div class="stats-main">
-          ${renderStatsHero(dateStr, msg, dag, todaySessionCount)}
           ${panes[activeView]}
         </div>
       </div>
