@@ -829,6 +829,13 @@
       color: var(--text);
     }
 
+    .samtalerating-item-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
     .samtalerating-item-subtitle,
     .samtalerating-item-notes,
     .samtalerating-empty {
@@ -5767,7 +5774,10 @@
             <div class="samtalerating-item ${entry.id === samtaleRatingEditingId ? 'active' : ''}" onclick="openSamtaleRatingEntry('${entry.id}')">
               <div class="samtalerating-item-head">
                 <div>
-                  <div class="samtalerating-item-title">${escHtml(entry.interactionId || 'Uten InteractionID')}</div>
+                  <div class="samtalerating-item-title-row">
+                    <div class="samtalerating-item-title">${escHtml(entry.interactionId || 'Uten InteractionID')}</div>
+                    <button class="backup-btn samtalerating-mini-btn" type="button" onclick="event.stopPropagation(); copySamtaleRatingInteractionId('${entry.id}')">Kopier</button>
+                  </div>
                   <div class="samtalerating-item-subtitle">${escHtml(formatSamtaleRatingDate(entry.date))}</div>
                 </div>
                 <div class="samtalerating-average">Snitt ${formatSamtaleRatingAverage(getSamtaleRatingAverage(entry))}/5</div>
@@ -5779,7 +5789,6 @@
                 <span class="samtalerating-pill datakort">Datakort: ${entry.datakort === 'ja' ? 'Ja' : entry.datakort === 'nei' ? 'Nei' : '-'}</span>
               </div>
               <div class="samtalerating-item-actions">
-                <button class="backup-btn samtalerating-mini-btn" type="button" onclick="event.stopPropagation(); copySamtaleRatingInteractionId('${entry.id}')">Kopier InteractionID</button>
                 <button class="backup-btn samtalerating-mini-btn" type="button" onclick="event.stopPropagation(); openSamtaleRatingEntry('${entry.id}')">Rediger</button>
                 <button class="backup-btn samtalerating-mini-btn" type="button" onclick="event.stopPropagation(); deleteSamtaleRatingEntry('${entry.id}')">Slett</button>
               </div>
