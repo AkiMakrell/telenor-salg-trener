@@ -5608,7 +5608,7 @@
   function getDefaultSamtaleRatingDraft() {
     const scores = {};
     SAMTALE_RATING_SCORE_FIELDS.forEach(field => {
-      scores[field.key] = 0;
+      scores[field.key] = null;
     });
     return {
       interactionId: '',
@@ -5624,8 +5624,13 @@
     if (!samtaleRatingDraft.date) samtaleRatingDraft.date = getTodayIsoDate();
     if (!samtaleRatingDraft.scores) samtaleRatingDraft.scores = {};
     SAMTALE_RATING_SCORE_FIELDS.forEach(field => {
-      const value = Number(samtaleRatingDraft.scores[field.key]) || 0;
-      samtaleRatingDraft.scores[field.key] = value >= 1 && value <= 5 ? value : 0;
+      const rawValue = samtaleRatingDraft.scores[field.key];
+      if (rawValue === null || rawValue === undefined || rawValue === '') {
+        samtaleRatingDraft.scores[field.key] = null;
+        return;
+      }
+      const value = Number(rawValue);
+      samtaleRatingDraft.scores[field.key] = value >= 0 && value <= 5 ? Math.round(value) : null;
     });
     if (samtaleRatingDraft.datakort !== 'ja' && samtaleRatingDraft.datakort !== 'nei') samtaleRatingDraft.datakort = '';
     samtaleRatingDraft.notes = String(samtaleRatingDraft.notes || '');
@@ -5640,8 +5645,13 @@
     const date = /^\d{4}-\d{2}-\d{2}$/.test(String(entry.date || '')) ? String(entry.date) : getTodayIsoDate();
     const scores = {};
     SAMTALE_RATING_SCORE_FIELDS.forEach(field => {
-      const rawValue = Number(entry.scores?.[field.key] ?? entry[field.key] ?? 0);
-      scores[field.key] = rawValue >= 1 && rawValue <= 5 ? Math.round(rawValue) : 0;
+      const sourceValue = entry.scores?.[field.key] ?? entry[field.key];
+      if (sourceValue === null || sourceValue === undefined || sourceValue === '') {
+        scores[field.key] = null;
+        return;
+      }
+      const rawValue = Number(sourceValue);
+      scores[field.key] = rawValue >= 0 && rawValue <= 5 ? Math.round(rawValue) : null;
     });
     return {
       id: String(entry.id || `samtale-rating-${Date.now()}-${index}`),
@@ -5685,8 +5695,8 @@
 
   function getSamtaleRatingAverage(entry) {
     const values = SAMTALE_RATING_SCORE_FIELDS
-      .map(field => Number(entry?.scores?.[field.key]) || 0)
-      .filter(Boolean);
+      .map(field => entry?.scores?.[field.key])
+      .filter(value => Number.isFinite(value));
     if (!values.length) return 0;
     return values.reduce((sum, value) => sum + value, 0) / values.length;
   }
@@ -5763,7 +5773,7 @@
                 <div class="samtalerating-score-card">
                   <div class="samtalerating-score-label">${field.label}</div>
                   <div class="samtalerating-choice-row">
-                    ${[1, 2, 3, 4, 5].map(value => `
+                    ${[0, 1, 2, 3, 4, 5].map(value => `
                       <button
                         class="choice-chip samtalerating-choice ${draft.scores[field.key] === value ? 'active' : ''}"
                         type="button"
@@ -5807,7 +5817,7 @@
         entry.date,
         formatSamtaleRatingDate(entry.date),
         entry.notes,
-        ...SAMTALE_RATING_SCORE_FIELDS.map(field => `${field.label} ${entry.scores[field.key] || ''}`),
+        ...SAMTALE_RATING_SCORE_FIELDS.map(field => `${field.label} ${entry.scores[field.key] ?? ''}`),
         entry.datakort
       ].join(' ').toLowerCase();
       return haystack.includes(query);
@@ -5848,7 +5858,7 @@
               </div>
               <div class="samtalerating-pill-row">
                 ${SAMTALE_RATING_SCORE_FIELDS.map(field => `
-                  <span class="samtalerating-pill">${field.label}: ${entry.scores[field.key] || '-'}</span>
+                  <span class="samtalerating-pill">${field.label}: ${entry.scores[field.key] ?? '-'}</span>
                 `).join('')}
                 <span class="samtalerating-pill datakort">Datakort: ${entry.datakort === 'ja' ? 'Ja' : entry.datakort === 'nei' ? 'Nei' : '-'}</span>
               </div>
@@ -5949,9 +5959,9 @@
       alert('Velg dato for samtalen.');
       return false;
     }
-    const missingScore = SAMTALE_RATING_SCORE_FIELDS.find(field => !(draft.scores[field.key] >= 1 && draft.scores[field.key] <= 5));
+    const missingScore = SAMTALE_RATING_SCORE_FIELDS.find(field => !(draft.scores[field.key] >= 0 && draft.scores[field.key] <= 5));
     if (missingScore) {
-      alert(`Velg en rating fra 1 til 5 for ${missingScore.label}.`);
+      alert(`Velg en rating fra 0 til 5 for ${missingScore.label}.`);
       return false;
     }
     if (draft.datakort !== 'ja' && draft.datakort !== 'nei') {
