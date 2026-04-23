@@ -91,6 +91,7 @@
     .top-bar-tools {
       position: relative;
       flex: 0 0 auto;
+      margin-left: auto;
     }
 
     .top-bar-settings {
@@ -1718,6 +1719,22 @@
       box-shadow: inset 3px 0 0 var(--primary);
     }
 
+    .price-calculator-table-row.price-calculator-row-basis {
+      background: rgba(37, 99, 235, 0.08);
+    }
+
+    .price-calculator-table-row.price-calculator-row-flyt {
+      background: rgba(20, 184, 166, 0.08);
+    }
+
+    .price-calculator-table-row.price-calculator-row-frihet {
+      background: rgba(139, 92, 246, 0.08);
+    }
+
+    .price-calculator-table-row.price-calculator-row-datakort {
+      background: rgba(245, 158, 11, 0.1);
+    }
+
     .price-calculator-table-row:focus-within {
       background: rgba(41, 168, 224, 0.14);
       box-shadow: inset 4px 0 0 var(--primary), 0 0 0 1px rgba(41, 168, 224, 0.12);
@@ -1732,6 +1749,70 @@
       font-weight: 800;
       color: var(--text);
     }
+
+    .price-calculator-product-heading {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .price-calculator-category-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border: 1px solid transparent;
+    }
+
+    .price-calculator-table-row.price-calculator-row-basis .price-calculator-product-name {
+      color: #93c5fd;
+    }
+
+    .price-calculator-table-row.price-calculator-row-basis .price-calculator-category-badge {
+      background: rgba(37, 99, 235, 0.16);
+      border-color: rgba(96, 165, 250, 0.35);
+      color: #bfdbfe;
+    }
+
+    .price-calculator-table-row.price-calculator-row-flyt .price-calculator-product-name {
+      color: #5eead4;
+    }
+
+    .price-calculator-table-row.price-calculator-row-flyt .price-calculator-category-badge {
+      background: rgba(20, 184, 166, 0.16);
+      border-color: rgba(45, 212, 191, 0.35);
+      color: #99f6e4;
+    }
+
+    .price-calculator-table-row.price-calculator-row-frihet .price-calculator-product-name {
+      color: #c4b5fd;
+    }
+
+    .price-calculator-table-row.price-calculator-row-frihet .price-calculator-category-badge {
+      background: rgba(139, 92, 246, 0.16);
+      border-color: rgba(167, 139, 250, 0.35);
+      color: #ddd6fe;
+    }
+
+    .price-calculator-table-row.price-calculator-row-datakort .price-calculator-product-name {
+      color: #fcd34d;
+    }
+
+    .price-calculator-table-row.price-calculator-row-datakort .price-calculator-category-badge {
+      background: rgba(245, 158, 11, 0.18);
+      border-color: rgba(251, 191, 36, 0.35);
+      color: #fde68a;
+    }
+
+    .price-calculator-table-row.active .price-calculator-category-badge {
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.06);
+    }
+
 
     .price-calculator-product-state {
       margin-top: 4px;
@@ -3917,8 +3998,6 @@
     <button class="tab-btn" data-tab="innvendinger" onclick="switchTab('innvendinger', this)">Innvendinger</button>
     <button class="tab-btn" data-tab="notater" onclick="switchTab('notater', this)">Notater</button>
     <button class="tab-btn" data-tab="priser" onclick="switchTab('priser', this)">Pris kalkulator</button>
-  </div>
-  <div class="top-bar-actions">
     <div id="top-bar-tools" class="top-bar-tools">
       <button
         id="top-bar-tools-button"
@@ -3947,6 +4026,8 @@
         </button>
       </div>
     </div>
+  </div>
+  <div class="top-bar-actions">
     <div id="top-bar-settings" class="top-bar-settings">
       <button
         id="top-bar-settings-button"
@@ -4128,11 +4209,9 @@
     <div class="notes-page-title">Pris kalkulator</div>
     <div class="notes-step-card">
       <div class="notes-question">Velg prisnivå</div>
-      <div class="notes-helper">Bytt mellom vanlige priser og forbundspriser. Alle beløp oppdateres med en gang.</div>
       <div id="price-calculator-mode" class="choice-row"></div>
       <div class="notes-step-spacer"></div>
       <div class="notes-question">Prisoversikt</div>
-      <div class="notes-helper">Fyll inn antall direkte i tabellen. Totalprisen vises til høyre hele tiden.</div>
       <div class="price-calculator-workspace">
         <div id="price-calculator-table"></div>
         <div id="price-calculator-summary"></div>
@@ -6719,6 +6798,14 @@
     return PRICE_CALCULATOR_PLANS.find(plan => plan.id === planId) || PRICE_CALCULATOR_PLANS[0];
   }
 
+  function getPriceCalculatorPlanCategory(plan) {
+    if (!plan) return { key: 'basis', label: 'Basis' };
+    if (plan.id === 'data-tvillingkort') return { key: 'datakort', label: 'Data/tvillingkort' };
+    if (plan.themeClass === 'notes-price-card-flyt') return { key: 'flyt', label: 'Flyt' };
+    if (plan.themeClass === 'notes-price-card-frihet') return { key: 'frihet', label: 'Frihet' };
+    return { key: 'basis', label: 'Basis' };
+  }
+
   function getPriceCalculatorState() {
     const raw = localStorage.getItem('priceCalculatorState');
     const parsed = raw ? JSON.parse(raw) : getDefaultPriceCalculatorState();
@@ -6981,10 +7068,14 @@
             ${PRICE_CALCULATOR_PLANS.map(plan => {
       const count = state.quantities[plan.id] || 0;
       const planPrice = getPriceCalculatorUnitPrice(plan, state.pricingMode);
+      const category = getPriceCalculatorPlanCategory(plan);
       return `
-              <tr class="price-calculator-table-row ${count > 0 ? 'active' : ''}">
+              <tr class="price-calculator-table-row price-calculator-row-${category.key} ${count > 0 ? 'active' : ''}">
                 <td class="price-calculator-product-cell">
-                  <div class="price-calculator-product-name">${escHtml(plan.name)}</div>
+                  <div class="price-calculator-product-heading">
+                    <div class="price-calculator-product-name">${escHtml(plan.name)}</div>
+                    <span class="price-calculator-category-badge">${escHtml(category.label)}</span>
+                  </div>
                   ${count > 0 ? `<div class="price-calculator-product-state">${count} abo valgt</div>` : ''}
                 </td>
                 <td>
