@@ -2555,11 +2555,42 @@
 
     /* ===== STATS HOME PAGE ===== */
     .stats-page-shell {
-      max-width: 1100px;
+      max-width: 1180px;
       margin: 0 auto;
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      align-items: start;
+      gap: 20px;
+    }
+
+    .stats-sidebar {
+      position: sticky;
+      top: 84px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 12px;
+    }
+
+    .stats-sidebar-card {
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(11, 18, 32, 0.98));
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 22px;
+      padding: 16px;
+      box-shadow: 0 16px 32px rgba(2, 6, 23, 0.18);
+    }
+
+    .stats-sidebar-title {
+      font-size: 1rem;
+      font-weight: 900;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .stats-sidebar-text {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+      margin-bottom: 14px;
     }
 
     .stats-hero-panel {
@@ -2597,33 +2628,40 @@
 
     .stats-nav {
       display: flex;
-      flex-wrap: wrap;
+      flex-direction: column;
       gap: 8px;
-      padding: 6px;
-      border: 1px solid rgba(148, 163, 184, 0.16);
-      border-radius: 18px;
-      background: rgba(11, 18, 32, 0.84);
-      box-shadow: 0 12px 28px rgba(2, 6, 23, 0.16);
     }
 
     .stats-nav-btn {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      width: 100%;
       border: none;
       background: transparent;
       color: var(--muted);
-      border-radius: 999px;
-      padding: 10px 14px;
+      border-radius: 14px;
+      padding: 12px 14px;
       font-size: 0.88rem;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.18s ease;
       white-space: nowrap;
+      text-align: left;
     }
 
     .stats-nav-btn:hover,
     .stats-nav-btn.active {
-      background: rgba(255, 255, 255, 0.08);
+      background: linear-gradient(135deg, rgba(41, 168, 224, 0.18), rgba(59, 130, 246, 0.1));
       color: var(--text);
-      box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.15);
+      box-shadow: inset 0 0 0 1px rgba(125, 211, 252, 0.18);
+    }
+
+    .stats-main {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
 
     .stats-pane {
@@ -2633,6 +2671,8 @@
     }
 
     .stats-section { max-width: 1100px; margin: 0 auto 32px auto; }
+    .stats-main .stats-section { max-width: none; margin: 0 0 32px 0; }
+    .stats-main .stats-section:last-child { margin-bottom: 0; }
 
     .stats-section-head {
       display: flex;
@@ -2975,6 +3015,27 @@
 
       .stats-goal-panel-summary {
         grid-template-columns: 1fr 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .stats-page-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-sidebar {
+        position: static;
+      }
+
+      .stats-nav {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .stats-nav {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -6372,14 +6433,18 @@
       { id: 'goals', label: 'Mål' },
     ];
     return `
-      <div class="stats-nav">
-        ${items.map(item => `
-          <button
-            class="stats-nav-btn${activeView === item.id ? ' active' : ''}"
-            type="button"
-            onclick="setStatsSubview('${item.id}')"
-          >${item.label}</button>
-        `).join('')}
+      <div class="stats-sidebar-card">
+        <div class="stats-sidebar-title">Stats</div>
+        <div class="stats-sidebar-text">Velg hva du vil fokusere p&aring;.</div>
+        <div class="stats-nav">
+          ${items.map(item => `
+            <button
+              class="stats-nav-btn${activeView === item.id ? ' active' : ''}"
+              type="button"
+              onclick="setStatsSubview('${item.id}')"
+            >${item.label}</button>
+          `).join('')}
+        </div>
       </div>
     `;
   }
@@ -6733,9 +6798,13 @@
 
     document.getElementById('stats-home').innerHTML = `
       <div class="stats-page-shell">
-        ${renderStatsHero(dateStr, msg, dag, todaySessionCount)}
-        ${renderStatsSubviewNav(activeView)}
-        ${panes[activeView]}
+        <aside class="stats-sidebar">
+          ${renderStatsSubviewNav(activeView)}
+        </aside>
+        <div class="stats-main">
+          ${renderStatsHero(dateStr, msg, dag, todaySessionCount)}
+          ${panes[activeView]}
+        </div>
       </div>
     `;
     triggerGoalAchievementCelebrations([dayGoalStatus, weekGoalStatus, monthGoalStatus]);
