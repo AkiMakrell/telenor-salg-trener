@@ -2239,6 +2239,21 @@
       white-space: nowrap;
     }
 
+    .intro-chip-rank.rank-gold {
+      color: #7a4b00;
+      background: linear-gradient(135deg, #fde68a, #f59e0b);
+    }
+
+    .intro-chip-rank.rank-silver {
+      color: #475569;
+      background: linear-gradient(135deg, #e2e8f0, #94a3b8);
+    }
+
+    .intro-chip-rank.rank-bronze {
+      color: #7c2d12;
+      background: linear-gradient(135deg, #fdba74, #c2410c);
+    }
+
     .intro-chip-metric {
       text-align: right;
       flex-shrink: 0;
@@ -5577,7 +5592,7 @@
         <div class="intro-chip ${selectedIntroId === i.id ? 'selected' : ''}" onclick="selectIntro('${i.id}')">
           <div style="flex:1;min-width:0;">
             <div class="intro-chip-header">
-              <span class="intro-chip-rank">#${index + 1}</span>
+              <span class="intro-chip-rank ${index === 0 ? 'rank-gold' : index === 1 ? 'rank-silver' : index === 2 ? 'rank-bronze' : ''}">#${index + 1}</span>
               <span class="intro-chip-metric">
                 <span class="intro-chip-score">${formatAveragePerSession(successes, sessionCount)}</span>
                 <span class="intro-chip-score-label">Opptak per økt</span>
