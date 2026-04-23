@@ -5206,7 +5206,7 @@
     if (!goalStatus?.metrics?.length) return '';
     return `
       <div class="stats-goal-card${goalStatus.anyComplete ? ' goal-complete' : ''}">
-        <div class="stats-goal-title">Mål i denne ${goalStatus.period === 'day' ? 'dagen' : goalStatus.period === 'week' ? 'uken' : 'måneden'}</div>
+        <div class="stats-goal-title">${goalStatus.period === 'day' ? 'Mål for dagen' : goalStatus.period === 'week' ? 'Mål i denne uken' : 'Mål i denne måneden'}</div>
         <div class="stats-goal-progress-list">
           ${goalStatus.metrics.map(item => {
             const progress = item.target > 0 ? Math.min((item.current / item.target) * 100, 100) : 100;
