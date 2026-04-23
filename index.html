@@ -1277,6 +1277,32 @@
       box-shadow: 0 3px 10px rgba(220,38,38,0.28);
     }
 
+    .choice-chip.ov-status-choice-avslag:hover {
+      border-color: #dc2626;
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .choice-chip.ov-status-choice-avslag.active {
+      border-color: #dc2626;
+      background: #dc2626;
+      color: white;
+      box-shadow: 0 3px 10px rgba(220,38,38,0.28);
+    }
+
+    .choice-chip.ov-status-choice-byttet:hover {
+      border-color: #16a34a;
+      background: #f0fdf4;
+      color: #14532d;
+    }
+
+    .choice-chip.ov-status-choice-byttet.active {
+      border-color: #16a34a;
+      background: #16a34a;
+      color: white;
+      box-shadow: 0 3px 10px rgba(22,163,74,0.28);
+    }
+
     .notes-inline-field {
       max-width: 240px;
       margin: 14px auto 0 auto;
@@ -6009,6 +6035,12 @@
     return OV_STATUS_OPTIONS.find(option => option.id === statusId) || OV_STATUS_OPTIONS[0];
   }
 
+  function getOvStatusButtonClass(statusId) {
+    if (statusId === 'vil-ikke-ha') return 'ov-status-choice-avslag';
+    if (statusId === 'har-byttet') return 'ov-status-choice-byttet';
+    return '';
+  }
+
   function formatOvStatusClass(statusId) {
     return `status-${statusId}`;
   }
@@ -6139,7 +6171,7 @@
             <label>Status</label>
             <div class="choice-row">
               ${OV_STATUS_OPTIONS.map(option => `
-                <button class="choice-chip ${draft.status === option.id ? 'active' : ''}" type="button" onclick="setOvStatus('${option.id}')">${option.label}</button>
+                <button class="choice-chip ${getOvStatusButtonClass(option.id)} ${draft.status === option.id ? 'active' : ''}" type="button" onclick="setOvStatus('${option.id}')">${option.label}</button>
               `).join('')}
             </div>
           </div>
