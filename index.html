@@ -3447,7 +3447,7 @@
         <div style="margin-top: 18px; display:flex; flex-direction:column; gap:14px;">
 
           <div>
-            <strong>Over 5 minutter? <span style="font-weight:400;color:var(--muted);font-size:0.85rem;">(valgfri)</span></strong>
+            <strong>Over 6 minutter? <span style="font-weight:400;color:var(--muted);font-size:0.85rem;">(valgfri)</span></strong>
             <div class="toggle-group">
               <button class="toggle-btn" id="over5min-ja" onclick="selectOver5min('ja')">Ja</button>
               <button class="toggle-btn" id="over5min-nei" onclick="selectOver5min('nei')">Nei</button>
@@ -4601,7 +4601,7 @@
     ];
     const msg = motivations.find(([min]) => dag.introSuccesses >= min)[1];
 
-    // Week bar chart: 5-min per weekday (Mon–Fri only)
+    // Week bar chart: 6-min per weekday (Mon–Fri only)
     const days = ['Man','Tir','Ons','Tor','Fre'];
     const monOffset = (now.getDay() + 6) % 7;
     const weekData = days.map((lbl, i) => {
@@ -4651,7 +4651,7 @@
         <div class="stats-grid stats-grid-4">
           ${statCard(dag.introSuccesses, 'Opptak', true, 'blue', 'metric-card')}
           ${statCard(formatAveragePerSession(dag.introSuccesses, todaySessionCount), todaySessionCount ? `Snitt per økt (${dag.introSuccesses}/${todaySessionCount})` : 'Snitt per økt', true, 'purple', 'metric-card')}
-          ${statCard(dag.over5, 'Over 5 min', true, 'teal', 'metric-card')}
+          ${statCard(dag.over5, 'Over 6 min', true, 'teal', 'metric-card')}
           ${statCard(dag.salg, 'Salg', true, 'gold', 'metric-card')}
         </div>
       </div>
@@ -4661,13 +4661,13 @@
         <div class="stats-section-title st-teal">Denne uken</div>
         <div class="stats-grid stats-grid-2" style="margin-bottom:14px;">
           <div class="chart-card cc-teal">
-            <div class="chart-card-title">5-min & salg per dag</div>
+            <div class="chart-card-title">6-min & salg per dag</div>
             ${stackedBarChart(weekData, stackedChartMax)}
           </div>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
             ${statCard(uke.introSuccesses, 'Opptak', false, 'blue')}
             ${statCard(formatAveragePerSession(uke.introSuccesses, weekSessionCount), weekSessionCount ? `Snitt per økt (${uke.introSuccesses}/${weekSessionCount})` : 'Snitt per økt', false, 'purple')}
-            ${statCard(uke.over5, 'Over 5 min', false, 'teal')}
+            ${statCard(uke.over5, 'Over 6 min', false, 'teal')}
             ${statCard(uke.salg, 'Salg', false, 'gold')}
           </div>
         </div>
@@ -4678,13 +4678,13 @@
         <div class="stats-section-title st-teal">${now.toLocaleString('no-NO', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase())}</div>
         <div class="stats-grid stats-grid-2">
           <div class="chart-card cc-teal">
-            <div class="chart-card-title">5-min & salg per uke</div>
+            <div class="chart-card-title">6-min & salg per uke</div>
             ${stackedBarChart(weekBuckets, stackedChartMax)}
           </div>
           <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
             ${statCard(mnd.introSuccesses, 'Opptak', false, 'blue')}
             ${statCard(formatAveragePerSession(mnd.introSuccesses, monthSessionCount), monthSessionCount ? `Snitt per økt (${mnd.introSuccesses}/${monthSessionCount})` : 'Snitt per økt', false, 'purple')}
-            ${statCard(mnd.over5, 'Over 5 min', false, 'teal')}
+            ${statCard(mnd.over5, 'Over 6 min', false, 'teal')}
             ${statCard(mnd.salg, 'Salg', false, 'gold')}
           </div>
         </div>
@@ -4733,7 +4733,7 @@
 
     container.innerHTML = withStats.map(({ i, successes, sessionCount, averagePerSession, over5, sales }, index) => {
       const statsRow = sessionCount
-        ? `<div class="intro-chip-stats" style="margin-top:5px;">${successes} opptak på ${sessionCount} ${sessionCount === 1 ? 'økt' : 'økter'} &nbsp; ${over5} over 5 min &nbsp; ${sales} salg</div>`
+        ? `<div class="intro-chip-stats" style="margin-top:5px;">${successes} opptak på ${sessionCount} ${sessionCount === 1 ? 'økt' : 'økter'} &nbsp; ${over5} over 6 min &nbsp; ${sales} salg</div>`
         : `<div class="intro-chip-stats" style="margin-top:5px;">Ingen økter registrert ennå</div>`;
       const activeBadge = activeIntroId === i.id
         ? `<div style="font-size:0.75rem;font-weight:700;color:#0f766e;margin-bottom:6px;">Aktiv for økten</div>`
@@ -6658,7 +6658,7 @@
   let confettiFrame = null;
 
   function showCelebrationGif(type) {
-    const label = type === 'salg' ? 'SALG!' : '5-MINUTTERS!';
+    const label = type === 'salg' ? 'SALG!' : '6-MINUTTERS!';
     document.getElementById('gif-label').textContent = label;
     document.getElementById('gif-overlay').classList.add('visible');
     clearTimeout(gifTimer);
