@@ -1044,10 +1044,16 @@
     }
 
     .ov-stat {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 108px;
       border: 1.5px solid var(--border);
       border-radius: 14px;
       padding: 14px;
       background: rgba(11, 18, 32, 0.88);
+      text-align: center;
     }
 
     .ov-stat-label {
@@ -1055,12 +1061,14 @@
       font-weight: 700;
       color: var(--muted);
       margin-bottom: 6px;
+      text-align: center;
     }
 
     .ov-stat-value {
       font-size: 1.35rem;
       font-weight: 800;
       color: var(--text);
+      text-align: center;
     }
 
     .ov-list {
@@ -6180,7 +6188,7 @@
             <div class="ov-stat-value">${openCount}</div>
           </div>
           <div class="ov-stat">
-            <div class="ov-stat-label">Har byttet</div>
+            <div class="ov-stat-label">Byttet</div>
             <div class="ov-stat-value">${wonCount}</div>
           </div>
           <div class="ov-stat">
