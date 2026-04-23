@@ -382,7 +382,7 @@
 
     #intro-text {
       overflow: hidden;
-      resize: none;
+      min-height: 96px;
     }
 
     textarea:focus { outline: none; border-color: var(--primary); background: white; }
@@ -4227,7 +4227,7 @@
   function autoResizeTextarea(element) {
     if (!element) return;
     element.style.height = 'auto';
-    element.style.height = `${element.scrollHeight}px`;
+    element.style.height = `${Math.max(element.scrollHeight + 8, 96)}px`;
   }
 
   function fillIntroText(intro) {
