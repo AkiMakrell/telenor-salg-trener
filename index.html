@@ -4351,6 +4351,16 @@
     return Object.entries(state || {}).some(([key, value]) => isMeaningfulTrackedStateValue(key, value));
   }
 
+  function getMissingDemoStatePatch(state, demoState) {
+    const patch = {};
+    Object.entries(demoState || {}).forEach(([key, value]) => {
+      if (!isMeaningfulTrackedStateValue(key, state?.[key])) {
+        patch[key] = value;
+      }
+    });
+    return patch;
+  }
+
   function getDemoSeedState(date = new Date()) {
     const now = new Date(date);
     const dayMs = 24 * 60 * 60 * 1000;
@@ -4577,6 +4587,28 @@
     setSyncStatus('ok');
   }
 
+  async function upsertCloudData(data) {
+    if (!supabaseClient || !currentUser) return;
+    const rows = STORAGE_KEYS
+      .filter(key => Object.prototype.hasOwnProperty.call(data, key))
+      .map(key => ({
+        user_id: currentUser.id,
+        state_key: key,
+        state_value: data[key]
+      }));
+
+    if (!rows.length) return;
+
+    setSyncStatus('syncing');
+    const { error } = await supabaseClient
+      .from(SUPABASE_STATE_TABLE)
+      .upsert(rows, { onConflict: 'user_id,state_key' });
+    if (error) throw error;
+
+    rows.forEach(row => pendingSyncKeys.delete(row.state_key));
+    setSyncStatus('ok');
+  }
+
   async function syncToCloud() {
     if (!supabaseClient || !currentUser || !pendingSyncKeys.size) return;
     const keysToSync = [...pendingSyncKeys];
@@ -4718,11 +4750,14 @@
       }
     }
 
-    if (!hasRemoteState && isDemoSeedUser(user)) {
+    if (isDemoSeedUser(user)) {
       const demoState = getDemoSeedState();
-      replaceTrackedLocalData(demoState);
-      await overwriteCloudData(demoState);
-      hasRemoteState = true;
+      const demoPatch = getMissingDemoStatePatch(remoteState, demoState);
+      if (Object.keys(demoPatch).length) {
+        replaceTrackedLocalData({ ...remoteState, ...demoPatch });
+        await upsertCloudData(demoPatch);
+        hasRemoteState = true;
+      }
     }
 
     updateUserBar(user);
