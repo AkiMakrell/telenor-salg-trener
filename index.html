@@ -4599,7 +4599,9 @@
       [1, 'Fin start! Fortsett å logge det som fungerer.'],
       [0, 'Ingen opptak registrert ennå i dag – lykke til!'],
     ];
-    const msg = motivations.find(([min]) => dag.introSuccesses >= min)[1];
+    const msg = dag.salg > 0
+      ? 'Salg i dag! Bygg videre på det som fungerte i samtalen.'
+      : motivations.find(([min]) => dag.introSuccesses >= min)[1];
 
     // Week bar chart: 6-min per weekday (Mon–Fri only)
     const days = ['Man','Tir','Ons','Tor','Fre'];
