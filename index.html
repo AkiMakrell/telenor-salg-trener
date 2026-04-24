@@ -2918,6 +2918,57 @@
       text-align: center;
     }
 
+    .personal-record-chart-shell {
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .personal-record-chart {
+      display: grid;
+      grid-template-columns: repeat(var(--record-columns, 5), minmax(0, 1fr));
+      gap: 10px;
+      align-items: end;
+      height: 120px;
+    }
+
+    .personal-record-chart-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .personal-record-chart-bar {
+      width: 100%;
+      min-width: 14px;
+      max-width: 28px;
+      min-height: 8px;
+      border-radius: 14px 14px 8px 8px;
+      background: rgba(148, 163, 184, 0.24);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .personal-record-card.pr-abo .personal-record-chart-bar {
+      background: linear-gradient(180deg, #fbbf24, #d97706);
+    }
+
+    .personal-record-card.pr-over6 .personal-record-chart-bar {
+      background: linear-gradient(180deg, #2dd4bf, #0f766e);
+    }
+
+    .personal-record-chart-labels {
+      display: grid;
+      grid-template-columns: repeat(var(--record-columns, 5), minmax(0, 1fr));
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
     .stats-goals-overview-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -6523,6 +6574,51 @@
     };
   }
 
+  function getMetricValueForEntry(entry, metricKey) {
+    if (metricKey === 'introSuccesses') return isIntroSuccessEntry(entry) ? 1 : 0;
+    if (metricKey === 'over5') return entry.over5min === 'ja' ? 1 : 0;
+    return entry.salg === 'ja' ? 1 : 0;
+  }
+
+  function buildWeekRecordBreakdown(history, weekKey, metricKey) {
+    const start = parseLocalDateKey(weekKey);
+    const labels = ['Man', 'Tir', 'Ons', 'Tor', 'Fre'];
+    if (!start) return { labels, values: labels.map(() => 0) };
+    const values = labels.map((_, index) => {
+      const dayStart = addDays(start, index);
+      const dayEnd = addDays(dayStart, 1);
+      return getRangeEntries(history, dayStart, dayEnd)
+        .reduce((sum, entry) => sum + getMetricValueForEntry(entry, metricKey), 0);
+    });
+    return { labels, values };
+  }
+
+  function buildMonthRecordBreakdown(history, monthKey, metricKey) {
+    const [year, month] = String(monthKey).split('-').map(Number);
+    const monthStart = Number.isFinite(year) && Number.isFinite(month)
+      ? new Date(year, month - 1, 1)
+      : null;
+    const ranges = monthStart ? getMonthWeekRanges(monthStart) : [];
+    if (!ranges.length) return { labels: ['U1'], values: [0] };
+    const values = ranges.map(range => getRangeEntries(history, range.start, range.end)
+      .reduce((sum, entry) => sum + getMetricValueForEntry(entry, metricKey), 0));
+    return { labels: ranges.map(range => range.label), values };
+  }
+
+  function renderPersonalRecordChart(labels, values) {
+    const maxValue = Math.max(...values, 1);
+    return `
+      <div class="personal-record-chart-shell" style="--record-columns:${labels.length};">
+        <div class="personal-record-chart">
+          ${values.map(value => `<div class="personal-record-chart-group"><div class="personal-record-chart-bar" style="height:${getBarHeight(value, maxValue, 8)}%"></div></div>`).join('')}
+        </div>
+        <div class="personal-record-chart-labels">
+          ${labels.map(label => `<span>${label}</span>`).join('')}
+        </div>
+      </div>
+    `;
+  }
+
   function renderPersonalRecordCard(title, value, periodLabel, variant, isNew = false) {
     const safeValue = value > 0 ? value : '—';
     const meta = value > 0 ? `Satt ${periodLabel}` : 'Ingen registreringer ennå';
@@ -6535,6 +6631,27 @@
           <div class="personal-record-platform"></div>
         </div>
         <div class="personal-record-meta">${meta}</div>
+      </div>
+    `;
+  }
+
+  function renderPersonalRecordVisualCard(title, record, period, metricKey, variant, history) {
+    if (!record?.value) {
+      return renderPersonalRecordCard(title, 0, '', variant, false);
+    }
+    const periodLabel = formatStatsRecordPeriod(period, record.key);
+    const chartData = period === 'week'
+      ? buildWeekRecordBreakdown(history, record.key, metricKey)
+      : buildMonthRecordBreakdown(history, record.key, metricKey);
+    return `
+      <div class="personal-record-item">
+        <div class="personal-record-card ${variant}${record.isNew ? ' is-new-record' : ''}">
+          ${record.isNew ? '<div class="personal-record-badge">Ny rekord!</div>' : ''}
+          <div class="personal-record-value">${record.value}</div>
+          <div class="personal-record-label">${title}</div>
+          ${renderPersonalRecordChart(chartData.labels, chartData.values)}
+        </div>
+        <div class="personal-record-meta">Satt ${periodLabel}</div>
       </div>
     `;
   }
@@ -8010,7 +8127,7 @@
     `;
   }
 
-  function renderStatsRecordsSection(personalRecords) {
+  function renderStatsRecordsSection(personalRecords, history) {
     return `
       <div class="stats-section">
         <div class="stats-section-head personal-records-section-head">
@@ -8022,16 +8139,16 @@
               <div class="personal-record-group-title">Abo-rekorder</div>
               <div class="personal-records-grid">
                 ${renderPersonalRecordCard('Mest abo på en dag', personalRecords.aboDay?.value || 0, formatStatsRecordPeriod('day', personalRecords.aboDay?.key), 'pr-abo', personalRecords.aboDay?.isNew)}
-                ${renderPersonalRecordCard('Mest abo på en uke', personalRecords.aboWeek?.value || 0, formatStatsRecordPeriod('week', personalRecords.aboWeek?.key), 'pr-abo', personalRecords.aboWeek?.isNew)}
-                ${renderPersonalRecordCard('Mest abo på en måned', personalRecords.aboMonth?.value || 0, formatStatsRecordPeriod('month', personalRecords.aboMonth?.key), 'pr-abo', personalRecords.aboMonth?.isNew)}
+                ${renderPersonalRecordVisualCard('Mest abo på en uke', personalRecords.aboWeek, 'week', 'salg', 'pr-abo', history)}
+                ${renderPersonalRecordVisualCard('Mest abo på en måned', personalRecords.aboMonth, 'month', 'salg', 'pr-abo', history)}
               </div>
             </div>
             <div class="personal-record-group over6-group">
               <div class="personal-record-group-title">6 min-rekorder</div>
               <div class="personal-records-grid">
                 ${renderPersonalRecordCard('Mest 6 min på en dag', personalRecords.over6Day?.value || 0, formatStatsRecordPeriod('day', personalRecords.over6Day?.key), 'pr-over6', personalRecords.over6Day?.isNew)}
-                ${renderPersonalRecordCard('Mest 6 min på en uke', personalRecords.over6Week?.value || 0, formatStatsRecordPeriod('week', personalRecords.over6Week?.key), 'pr-over6', personalRecords.over6Week?.isNew)}
-                ${renderPersonalRecordCard('Mest 6 min på en måned', personalRecords.over6Month?.value || 0, formatStatsRecordPeriod('month', personalRecords.over6Month?.key), 'pr-over6', personalRecords.over6Month?.isNew)}
+                ${renderPersonalRecordVisualCard('Mest 6 min på en uke', personalRecords.over6Week, 'week', 'over5', 'pr-over6', history)}
+                ${renderPersonalRecordVisualCard('Mest 6 min på en måned', personalRecords.over6Month, 'month', 'over5', 'pr-over6', history)}
               </div>
             </div>
           </div>
@@ -8204,7 +8321,7 @@
     const panes = {
       overview: overviewPane,
       development: developmentPane,
-      records: `<div class="stats-pane">${renderStatsRecordsSection(personalRecords)}</div>`,
+      records: `<div class="stats-pane">${renderStatsRecordsSection(personalRecords, history)}</div>`,
       goals: goalsPane,
     };
 
