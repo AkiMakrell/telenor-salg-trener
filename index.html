@@ -2975,6 +2975,156 @@
       color: var(--text);
     }
 
+    .development-highlights-grid,
+    .development-insights-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .development-highlights-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .development-insights-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .development-insights-shell,
+    .development-summary-shell {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .development-group-card {
+      background: rgba(11, 18, 32, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 12px 28px rgba(2, 6, 23, 0.16);
+    }
+
+    .development-group-title {
+      font-size: 0.88rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .development-highlight-card,
+    .development-insight-card {
+      position: relative;
+      min-width: 0;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: rgba(15, 23, 42, 0.88);
+      padding: 18px;
+      box-shadow: 0 10px 24px rgba(2, 6, 23, 0.16);
+      overflow: hidden;
+    }
+
+    .development-highlight-card::before,
+    .development-insight-card::before {
+      content: '';
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      border-radius: 18px 0 0 18px;
+      background: rgba(148, 163, 184, 0.25);
+    }
+
+    .development-highlight-card.positive::before,
+    .development-insight-card.positive::before {
+      background: linear-gradient(180deg, #22c55e, #16a34a);
+    }
+
+    .development-highlight-card.negative::before,
+    .development-insight-card.negative::before {
+      background: linear-gradient(180deg, #ef4444, #dc2626);
+    }
+
+    .development-highlight-card.positive,
+    .development-insight-card.positive {
+      background: linear-gradient(180deg, rgba(20, 83, 45, 0.42), rgba(15, 23, 42, 0.96));
+      border-color: rgba(34, 197, 94, 0.22);
+    }
+
+    .development-highlight-card.negative,
+    .development-insight-card.negative {
+      background: linear-gradient(180deg, rgba(127, 29, 29, 0.34), rgba(15, 23, 42, 0.96));
+      border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .development-insight-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .development-insight-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .development-highlight-card.positive .development-insight-badge,
+    .development-insight-card.positive .development-insight-badge {
+      background: rgba(34, 197, 94, 0.16);
+      color: #86efac;
+    }
+
+    .development-highlight-card.negative .development-insight-badge,
+    .development-insight-card.negative .development-insight-badge {
+      background: rgba(239, 68, 68, 0.16);
+      color: #fca5a5;
+    }
+
+    .development-insight-delta {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .development-insight-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.35;
+    }
+
+    .development-insight-detail {
+      margin-top: 8px;
+      color: #cbd5e1;
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+
+    .development-section-text {
+      margin: -4px 0 14px 12px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.5;
+      max-width: 720px;
+    }
+
+    .development-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
     .stats-empty-card {
       border-radius: 16px;
       border: 1px dashed rgba(148, 163, 184, 0.22);
@@ -2986,6 +3136,12 @@
     }
 
     @media (max-width: 900px) {
+      .development-highlights-grid,
+      .development-insights-grid,
+      .development-summary-grid {
+        grid-template-columns: 1fr;
+      }
+
       .stats-goals-overview-grid {
         grid-template-columns: 1fr;
       }
@@ -5313,6 +5469,7 @@
   let selectedOver5min = null;
   let selectedSalg = null;
   let activeStatsSubview = 'overview';
+  let showAllDevelopmentInsights = false;
 
   function selectOver5min(val) {
     selectedOver5min = val;
@@ -5900,6 +6057,356 @@
         <div class="bar-lbl">${d.label}</div>
       </div>`;
     }).join('') + `</div>`;
+  }
+
+  const DEVELOPMENT_METRICS = {
+    over5: { key: 'over5', label: 'Over 6 min', noun: 'over 6 min', emphasis: 'teal' },
+    salg: { key: 'salg', label: 'Salg', noun: 'salg', emphasis: 'gold' },
+    introSuccesses: { key: 'introSuccesses', label: 'Opptak', noun: 'opptak', emphasis: 'blue' },
+  };
+
+  function startOfDay(date) {
+    const next = new Date(date);
+    next.setHours(0, 0, 0, 0);
+    return next;
+  }
+
+  function addDays(date, days) {
+    const next = new Date(date);
+    next.setDate(next.getDate() + days);
+    return next;
+  }
+
+  function getRangeEntries(history, start, end) {
+    return history.filter(entry => {
+      const date = isoToDate(entry.isoDate);
+      return date && date >= start && date < end;
+    });
+  }
+
+  function getRangeStats(history, start, end) {
+    return statsFor(getRangeEntries(history, start, end));
+  }
+
+  function getPreviousBusinessDay(date = new Date()) {
+    const previous = startOfDay(date);
+    do {
+      previous.setDate(previous.getDate() - 1);
+    } while (!isBusinessDay(previous));
+    return previous;
+  }
+
+  function getBusinessDayRangeForMonth(date, businessDayCount) {
+    const start = new Date(date.getFullYear(), date.getMonth(), 1);
+    const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+    if (businessDayCount <= 0) return { start, end: start };
+    let remaining = businessDayCount;
+    for (const cursor = new Date(start); cursor < endOfMonth; cursor.setDate(cursor.getDate() + 1)) {
+      if (!isBusinessDay(cursor)) continue;
+      remaining--;
+      if (remaining === 0) {
+        return { start, end: addDays(startOfDay(cursor), 1) };
+      }
+    }
+    return { start, end: endOfMonth };
+  }
+
+  function getBusinessDayRangeFromStart(startDate, businessDayCount) {
+    const start = startOfDay(startDate);
+    if (businessDayCount <= 0) return { start, end: start };
+    let remaining = businessDayCount;
+    for (const cursor = new Date(start); remaining > 0; cursor.setDate(cursor.getDate() + 1)) {
+      if (!isBusinessDay(cursor)) continue;
+      remaining--;
+      if (remaining === 0) {
+        return { start, end: addDays(startOfDay(cursor), 1) };
+      }
+    }
+    return { start, end: start };
+  }
+
+  function getCalendarDayRangeForMonth(date, dayCount) {
+    const start = new Date(date.getFullYear(), date.getMonth(), 1);
+    const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+    if (dayCount <= 0) return { start, end: start };
+    const maxDayCount = Math.min(dayCount, new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate());
+    const end = new Date(start);
+    end.setDate(start.getDate() + maxDayCount);
+    return { start, end: end > endOfMonth ? endOfMonth : end };
+  }
+
+  function getMonthWeekRanges(date = new Date()) {
+    const firstOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    const lastOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    const firstMon = new Date(firstOfMonth);
+    firstMon.setDate(firstMon.getDate() - ((firstMon.getDay() + 6) % 7));
+    const ranges = [];
+    for (let weekStart = new Date(firstMon); weekStart <= lastOfMonth; weekStart.setDate(weekStart.getDate() + 7)) {
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 5);
+      if (weekEnd <= firstOfMonth || weekStart > lastOfMonth) continue;
+      ranges.push({
+        label: `U${ranges.length + 1}`,
+        start: new Date(weekStart),
+        end: new Date(weekEnd),
+      });
+    }
+    return ranges;
+  }
+
+  function buildWeekChartData(entries, date = new Date()) {
+    const days = ['Man', 'Tir', 'Ons', 'Tor', 'Fre'];
+    const monOffset = (date.getDay() + 6) % 7;
+    return days.map((label, index) => {
+      const day = new Date(date);
+      day.setDate(date.getDate() - monOffset + index);
+      day.setHours(0, 0, 0, 0);
+      const next = addDays(day, 1);
+      const fiveMin = entries.filter(item => {
+        const itemDate = new Date(item.isoDate);
+        return itemDate >= day && itemDate < next && item.over5min === 'ja';
+      }).length;
+      const sales = entries.filter(item => {
+        const itemDate = new Date(item.isoDate);
+        return itemDate >= day && itemDate < next && item.salg === 'ja';
+      }).length;
+      return { label, fiveMin, sales };
+    });
+  }
+
+  function buildMonthWeekBuckets(entries, date = new Date()) {
+    return getMonthWeekRanges(date).map(range => {
+      const fiveMin = entries.filter(item => {
+        const itemDate = new Date(item.isoDate);
+        return itemDate >= range.start && itemDate < range.end && item.over5min === 'ja';
+      }).length;
+      const sales = entries.filter(item => {
+        const itemDate = new Date(item.isoDate);
+        return itemDate >= range.start && itemDate < range.end && item.salg === 'ja';
+      }).length;
+      return { label: range.label, fiveMin, sales };
+    });
+  }
+
+  function createMetricInsight({
+    id,
+    metricKey,
+    currentValue,
+    previousValue,
+    periodLabel,
+    comparisonLabel,
+    group,
+    priority = 0,
+    positiveOnly = false,
+    positiveLead = '',
+    negativeLead = '',
+  }) {
+    if (currentValue === previousValue) return null;
+    const direction = currentValue > previousValue ? 'positive' : 'negative';
+    if (positiveOnly && direction !== 'positive') return null;
+    const delta = Math.abs(currentValue - previousValue);
+    const metric = DEVELOPMENT_METRICS[metricKey];
+    const title = direction === 'positive'
+      ? `${positiveLead || `${metric.label} er opp ${periodLabel}`}`
+      : `${negativeLead || `${metric.label} er litt ned ${periodLabel}`}`;
+    const detail = direction === 'positive'
+      ? `Du har ${currentValue} mot ${previousValue} ${comparisonLabel}. Det er ${delta} flere ${metric.noun}.`
+      : `Du har ${currentValue} mot ${previousValue} ${comparisonLabel}. Det er ${delta} færre ${metric.noun} foreløpig.`;
+    return {
+      id,
+      metricKey,
+      group,
+      direction,
+      delta,
+      priority: priority + delta,
+      badge: direction === 'positive' ? 'Positiv' : 'Negativ',
+      title,
+      detail,
+    };
+  }
+
+  function buildDirectDevelopmentInsights(history, date = new Date()) {
+    const insights = [];
+    const todayStart = startOfDay(date);
+    const tomorrow = addDays(todayStart, 1);
+    const previousDay = getPreviousBusinessDay(date);
+    const previousDayStart = startOfDay(previousDay);
+    const previousDayLabel = Math.round((todayStart - previousDayStart) / 86400000) === 1 ? 'i går' : 'forrige arbeidsdag';
+    const currentDayStats = getRangeStats(history, todayStart, tomorrow);
+    const previousDayStats = getRangeStats(history, previousDayStart, addDays(previousDayStart, 1));
+    Object.values(DEVELOPMENT_METRICS).forEach((metric, index) => {
+      const insight = createMetricInsight({
+        id: `day-${metric.key}`,
+        metricKey: metric.key,
+        currentValue: currentDayStats[metric.key],
+        previousValue: previousDayStats[metric.key],
+        periodLabel: 'i dag',
+        comparisonLabel: previousDayLabel,
+        group: 'Dag',
+        priority: 90 - index,
+      });
+      if (insight) insights.push(insight);
+    });
+
+    const weekStart = getStartOfWeek(date);
+    const elapsedWeekBusinessDays = getBusinessDaysInRange(weekStart, date);
+    const previousWeekStart = addDays(weekStart, -7);
+    const currentWeekStats = getRangeStats(history, weekStart, tomorrow);
+    const previousWeekRange = getBusinessDayRangeFromStart(previousWeekStart, elapsedWeekBusinessDays);
+    const previousWeekStats = getRangeStats(history, previousWeekStart, previousWeekRange.end);
+    Object.values(DEVELOPMENT_METRICS).forEach((metric, index) => {
+      const insight = createMetricInsight({
+        id: `week-${metric.key}`,
+        metricKey: metric.key,
+        currentValue: currentWeekStats[metric.key],
+        previousValue: previousWeekStats[metric.key],
+        periodLabel: 'denne uken',
+        comparisonLabel: 'på samme punkt forrige uke',
+        group: 'Uke',
+        priority: 75 - index,
+      });
+      if (insight) insights.push(insight);
+    });
+
+    const firstOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+    const previousMonthDate = new Date(date.getFullYear(), date.getMonth() - 1, 1);
+    const currentMonthStats = getRangeStats(history, firstOfMonth, tomorrow);
+    const previousMonthCalendarRange = getCalendarDayRangeForMonth(previousMonthDate, date.getDate());
+    const previousMonthCalendarStats = getRangeStats(history, previousMonthCalendarRange.start, previousMonthCalendarRange.end);
+    Object.values(DEVELOPMENT_METRICS).forEach((metric, index) => {
+      const insight = createMetricInsight({
+        id: `month-${metric.key}`,
+        metricKey: metric.key,
+        currentValue: currentMonthStats[metric.key],
+        previousValue: previousMonthCalendarStats[metric.key],
+        periodLabel: 'denne måneden',
+        comparisonLabel: 'på samme dato i forrige måned',
+        group: 'Måned',
+        priority: 60 - index,
+      });
+      if (insight) insights.push(insight);
+    });
+
+    return insights;
+  }
+
+  function buildSameDayLastWeekInsights(history, date = new Date()) {
+    const todayStart = startOfDay(date);
+    const tomorrow = addDays(todayStart, 1);
+    const lastWeekDate = addDays(date, -7);
+    const lastWeekStart = startOfDay(lastWeekDate);
+    const currentDayStats = getRangeStats(history, todayStart, tomorrow);
+    const lastWeekDayStats = getRangeStats(history, lastWeekStart, addDays(lastWeekStart, 1));
+    return ['over5', 'salg'].map((metricKey, index) => createMetricInsight({
+      id: `same-day-last-week-${metricKey}`,
+      metricKey,
+      currentValue: currentDayStats[metricKey],
+      previousValue: lastWeekDayStats[metricKey],
+      periodLabel: 'i dag',
+      comparisonLabel: 'samme dag forrige uke',
+      group: 'Ekstra',
+      priority: 68 - index,
+      positiveOnly: true,
+      positiveLead: `${DEVELOPMENT_METRICS[metricKey].label} er sterkere enn samme dag forrige uke`,
+    })).filter(Boolean);
+  }
+
+  function buildMonthStartBusinessDayInsights(history, date = new Date()) {
+    const currentMonthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+    const previousMonthStart = new Date(date.getFullYear(), date.getMonth() - 1, 1);
+    const businessDayCount = getBusinessDaysInRange(currentMonthStart, date);
+    if (!businessDayCount) return [];
+    const currentStats = getRangeStats(history, currentMonthStart, addDays(startOfDay(date), 1));
+    const previousRange = getBusinessDayRangeForMonth(previousMonthStart, businessDayCount);
+    const previousStats = getRangeStats(history, previousRange.start, previousRange.end);
+    return Object.values(DEVELOPMENT_METRICS).map((metric, index) => createMetricInsight({
+      id: `month-business-days-${metric.key}`,
+      metricKey: metric.key,
+      currentValue: currentStats[metric.key],
+      previousValue: previousStats[metric.key],
+      periodLabel: 'denne månedsstarten',
+      comparisonLabel: `etter ${businessDayCount} arbeidsdager i forrige måned`,
+      group: 'Ekstra',
+      priority: 52 - index,
+      positiveOnly: true,
+      positiveLead: `${metric.label} har startet bedre denne måneden`,
+    })).filter(Boolean);
+  }
+
+  function buildMonthStartWeekInsights(history, date = new Date()) {
+    const currentMonthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+    const previousMonthDate = new Date(date.getFullYear(), date.getMonth() - 1, 1);
+    const elapsedWeekCount = getElapsedMonthWeekCount(date);
+    if (!elapsedWeekCount) return [];
+    const currentStats = getRangeStats(history, currentMonthStart, addDays(startOfDay(date), 1));
+    const previousBuckets = getMonthWeekRanges(previousMonthDate).slice(0, elapsedWeekCount);
+    if (!previousBuckets.length) return [];
+    const previousStats = statsFor(previousBuckets.flatMap(range => getRangeEntries(history, range.start, range.end)));
+    return Object.values(DEVELOPMENT_METRICS).map((metric, index) => createMetricInsight({
+      id: `month-weeks-${metric.key}`,
+      metricKey: metric.key,
+      currentValue: currentStats[metric.key],
+      previousValue: previousStats[metric.key],
+      periodLabel: 'i månedens ukeåpning',
+      comparisonLabel: `etter ${elapsedWeekCount} uke${elapsedWeekCount === 1 ? '' : 'r'} i forrige måned`,
+      group: 'Ekstra',
+      priority: 44 - index,
+      positiveOnly: true,
+      positiveLead: `${metric.label} er bedre i månedens første uker`,
+    })).filter(Boolean);
+  }
+
+  function getDevelopmentInsights(history, date = new Date()) {
+    return [
+      ...buildDirectDevelopmentInsights(history, date),
+      ...buildSameDayLastWeekInsights(history, date),
+      ...buildMonthStartBusinessDayInsights(history, date),
+      ...buildMonthStartWeekInsights(history, date),
+    ].sort((a, b) => b.priority - a.priority || b.delta - a.delta || a.title.localeCompare(b.title, 'no'));
+  }
+
+  function getDevelopmentHighlights(insights) {
+    const positives = insights.filter(item => item.direction === 'positive');
+    const negatives = insights.filter(item => item.direction === 'negative');
+    if (!positives.length) return negatives.length ? [negatives[0]] : [];
+    const highlights = positives.slice(0, Math.min(3, positives.length));
+    if (highlights.length >= 2 && negatives.length && highlights.length < 4) highlights.push(negatives[0]);
+    return highlights;
+  }
+
+  function renderDevelopmentInsightCard(insight, compact = false) {
+    return `
+      <div class="${compact ? 'development-highlight-card' : 'development-insight-card'} ${insight.direction}">
+        <div class="development-insight-top">
+          <span class="development-insight-badge">${insight.badge}</span>
+          <span class="development-insight-delta">${insight.direction === 'positive' ? '+' : '-'}${insight.delta}</span>
+        </div>
+        <div class="development-insight-title">${insight.title}</div>
+        <div class="development-insight-detail">${insight.detail}</div>
+      </div>
+    `;
+  }
+
+  function renderDevelopmentInsightsByGroup(insights) {
+    if (!insights.length) return '<div class="stats-empty-card">Ingen utviklingssignaler ennå. Registrer noen opptak først, så begynner siden å finne mønstre for deg.</div>';
+    const groups = ['Dag', 'Uke', 'Måned', 'Ekstra'];
+    return groups.map(group => {
+      const items = insights.filter(item => item.group === group);
+      if (!items.length) return '';
+      return `
+        <div class="development-group-card">
+          <div class="development-group-title">${group}</div>
+          <div class="development-insights-grid">
+            ${items.map(item => renderDevelopmentInsightCard(item)).join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function toggleDevelopmentInsights() {
+    showAllDevelopmentInsights = !showAllDevelopmentInsights;
+    renderStatsHome();
   }
 
   let pendingGoalsFocusPeriod = null;
@@ -6588,45 +7095,13 @@
       over6Week: buildPersonalRecord(weekRecords, 'over5', currentWeekKey),
       over6Month: buildPersonalRecord(monthRecords, 'over5', currentMonthKey),
     };
-
-    // Week bar chart: 6-min per weekday (Mon–Fri only)
-    const days = ['Man','Tir','Ons','Tor','Fre'];
-    const monOffset = (now.getDay() + 6) % 7;
-    const weekData = days.map((lbl, i) => {
-      const day = new Date(now); day.setDate(now.getDate() - monOffset + i); day.setHours(0,0,0,0);
-      const next = new Date(day); next.setDate(day.getDate() + 1);
-      const fiveMin = ukeEntries.filter(h => { const d = new Date(h.isoDate); return d >= day && d < next && h.over5min === 'ja'; }).length;
-      const sales = ukeEntries.filter(h => { const d = new Date(h.isoDate); return d >= day && d < next && h.salg === 'ja'; }).length;
-      return { label: lbl, fiveMin, sales };
-    });
-
-    // Month bar chart: work weeks (Mon–Fri) that overlap with the current month
-    const lastOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    // Find the Monday of the first week overlapping this month
-    const firstMon = new Date(firstOfMonth);
-    firstMon.setDate(firstMon.getDate() - ((firstMon.getDay() + 6) % 7));
-    const weekBuckets = [];
-    let wMon = new Date(firstMon);
-    while (wMon <= lastOfMonth) {
-      const wFri = new Date(wMon); wFri.setDate(wMon.getDate() + 5); // Saturday 00:00 = end of Friday
-      // Only include if the work week overlaps with the current month
-      if (wFri > firstOfMonth && wMon <= lastOfMonth) {
-        const fiveMin = mndEntries.filter(h => {
-          const d = new Date(h.isoDate);
-          return d >= wMon && d < wFri && h.over5min === 'ja';
-        }).length;
-        const sales = mndEntries.filter(h => {
-          const d = new Date(h.isoDate);
-          return d >= wMon && d < wFri && h.salg === 'ja';
-        }).length;
-        weekBuckets.push({ label: `U${weekBuckets.length + 1}`, fiveMin, sales });
-      }
-      wMon = new Date(wMon); wMon.setDate(wMon.getDate() + 7);
-    }
-
+    const weekData = buildWeekChartData(ukeEntries, now);
+    const weekBuckets = buildMonthWeekBuckets(mndEntries, now);
     const stackedChartMax = getStackedBarChartScaleMax(weekData, weekBuckets);
     const monthTitle = now.toLocaleString('no-NO', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase());
     const activeView = ['overview', 'development', 'records', 'goals'].includes(activeStatsSubview) ? activeStatsSubview : 'overview';
+    const developmentInsights = getDevelopmentInsights(history, now);
+    const developmentHighlights = getDevelopmentHighlights(developmentInsights);
     const overviewPane = `
       <div class="stats-pane">
         ${renderStatsDaySection(dag, dayGoal, dayGoalStatus, todaySessionCount)}
@@ -6638,24 +7113,50 @@
       <div class="stats-pane">
         <div class="stats-section">
           <div class="stats-section-head">
-            <div class="stats-section-title st-teal">Utvikling akkurat nå</div>
-            <button class="backup-btn stats-goal-btn" type="button" onclick="setStatsSubview('goals')">Fokus på mål</button>
-          </div>
-          <div class="stats-grid stats-grid-2" style="margin-bottom:14px;">
-            <div class="chart-card cc-blue">
-              <div class="chart-card-title">6-min & abo denne uken</div>
-              ${stackedBarChart(weekData, stackedChartMax)}
-            </div>
-            <div class="chart-card cc-blue">
-              <div class="chart-card-title">6-min & abo denne måneden</div>
-              ${stackedBarChart(weekBuckets, stackedChartMax)}
+            <div class="stats-section-title st-teal">Utvikling</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="backup-btn stats-goal-btn" type="button" onclick="toggleDevelopmentInsights()">${showAllDevelopmentInsights ? 'Skjul alt' : `Se alt (${developmentInsights.length})`}</button>
+              <button class="backup-btn stats-goal-btn" type="button" onclick="setStatsSubview('goals')">Fokus på mål</button>
             </div>
           </div>
-          <div class="stats-grid stats-grid-4">
-            ${statCard(uke.over5, 'Over 6 min denne uken', false, 'teal')}
-            ${statCard(uke.salg, 'Abo denne uken', false, 'gold')}
-            ${statCard(mnd.over5, 'Over 6 min denne måneden', false, 'teal')}
-            ${statCard(mnd.salg, 'Abo denne måneden', false, 'gold')}
+          <div class="development-section-text">Her sammenlignes det du gjør nå mot tidligere perioder. Highlights prioriterer det som går bedre, men siden viser også det som har roet seg ned så du ser hele bildet.</div>
+          <div class="development-highlights-grid">
+            ${developmentHighlights.length
+              ? developmentHighlights.map(item => renderDevelopmentInsightCard(item, true)).join('')
+              : '<div class="stats-empty-card">Ingen highlights ennå. Registrer litt mer aktivitet, så begynner utviklingssiden å trekke frem mønstre.</div>'}
+          </div>
+        </div>
+        ${showAllDevelopmentInsights ? `
+          <div class="stats-section">
+            <div class="stats-section-head">
+              <div class="stats-section-title st-purple">Se alt</div>
+            </div>
+            <div class="development-insights-shell">
+              ${renderDevelopmentInsightsByGroup(developmentInsights)}
+            </div>
+          </div>
+        ` : ''}
+        <div class="stats-section">
+          <div class="stats-section-head">
+            <div class="stats-section-title st-green">Tallene bak utviklingen</div>
+          </div>
+          <div class="development-summary-shell">
+            <div class="development-summary-grid">
+              <div class="chart-card cc-blue">
+                <div class="chart-card-title">6-min & abo denne uken</div>
+                ${stackedBarChart(weekData, stackedChartMax)}
+              </div>
+              <div class="chart-card cc-blue">
+                <div class="chart-card-title">6-min & abo denne måneden</div>
+                ${stackedBarChart(weekBuckets, stackedChartMax)}
+              </div>
+            </div>
+            <div class="stats-grid stats-grid-4">
+              ${statCard(uke.over5, 'Over 6 min denne uken', false, 'teal')}
+              ${statCard(uke.salg, 'Salg denne uken', false, 'gold')}
+              ${statCard(mnd.over5, 'Over 6 min denne måneden', false, 'teal')}
+              ${statCard(mnd.salg, 'Salg denne måneden', false, 'gold')}
+            </div>
           </div>
         </div>
       </div>
