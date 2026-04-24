@@ -1899,6 +1899,11 @@
       white-space: nowrap;
     }
 
+    .price-calculator-summary-mode.standard {
+      background: rgba(41, 168, 224, 0.12);
+      color: var(--primary-dark);
+    }
+
     .price-calculator-summary-mode.forbund {
       background: rgba(22, 163, 74, 0.14);
       color: #166534;
@@ -9031,7 +9036,7 @@
             <div class="price-calculator-summary-title">Totalpris</div>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <div class="price-calculator-summary-mode ${state.pricingMode === 'liste' ? 'liste' : 'forbund'}">${modeLabel}</div>
+            <div class="price-calculator-summary-mode ${state.pricingMode}">${modeLabel}</div>
           </div>
         </div>
         <div class="price-calculator-metrics">
