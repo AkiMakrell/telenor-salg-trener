@@ -8989,11 +8989,10 @@
       const planPrice = getPriceCalculatorUnitPrice(plan, state.pricingMode);
       const category = getPriceCalculatorPlanCategory(plan);
       return `
-              <tr class="price-calculator-table-row price-calculator-row-${category.key} ${count > 0 ? 'active' : ''}">
+                <tr class="price-calculator-table-row price-calculator-row-${category.key} ${count > 0 ? 'active' : ''}">
                 <td class="price-calculator-product-cell">
                   <div class="price-calculator-product-heading">
                     <div class="price-calculator-product-name">${escHtml(plan.name)}</div>
-                    <span class="price-calculator-category-badge">${escHtml(category.label)}</span>
                   </div>
                   ${count > 0 ? `<div class="price-calculator-product-state">${count} abo valgt</div>` : ''}
                 </td>
