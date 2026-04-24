@@ -6655,6 +6655,15 @@
     return { start, end: start };
   }
 
+  function isEarlyInWeek(date = new Date()) {
+    return getBusinessDaysInRange(getStartOfWeek(date), date) <= 2;
+  }
+
+  function isEarlyInMonth(date = new Date()) {
+    const monthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+    return getElapsedMonthWeekCount(date) <= 1 && getBusinessDaysInRange(monthStart, date) <= 5;
+  }
+
   function getCalendarDayRangeForMonth(date, dayCount) {
     const start = new Date(date.getFullYear(), date.getMonth(), 1);
     const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
@@ -6784,26 +6793,28 @@
       if (insight) insights.push(insight);
     });
 
-    const weekStart = getStartOfWeek(date);
-    const elapsedWeekBusinessDays = getBusinessDaysInRange(weekStart, date);
-    const previousWeekStart = addDays(weekStart, -7);
-    const currentWeekStats = getRangeStats(history, weekStart, tomorrow);
-    const previousWeekRange = getBusinessDayRangeFromStart(previousWeekStart, elapsedWeekBusinessDays);
-    const previousWeekStats = getRangeStats(history, previousWeekStart, previousWeekRange.end);
-    Object.values(DEVELOPMENT_METRICS).forEach((metric, index) => {
-      const insight = createMetricInsight({
-        id: `week-${metric.key}`,
-        metricKey: metric.key,
-        currentValue: currentWeekStats[metric.key],
-        previousValue: previousWeekStats[metric.key],
-        periodLabel: 'denne uken',
-        comparisonLabel: 'på samme punkt forrige uke',
-        group: 'Uke',
-        priority: 75 - index,
-        periodType: 'week',
+    if (isEarlyInWeek(date)) {
+      const weekStart = getStartOfWeek(date);
+      const elapsedWeekBusinessDays = getBusinessDaysInRange(weekStart, date);
+      const previousWeekStart = addDays(weekStart, -7);
+      const currentWeekStats = getRangeStats(history, weekStart, tomorrow);
+      const previousWeekRange = getBusinessDayRangeFromStart(previousWeekStart, elapsedWeekBusinessDays);
+      const previousWeekStats = getRangeStats(history, previousWeekStart, previousWeekRange.end);
+      Object.values(DEVELOPMENT_METRICS).forEach((metric, index) => {
+        const insight = createMetricInsight({
+          id: `week-${metric.key}`,
+          metricKey: metric.key,
+          currentValue: currentWeekStats[metric.key],
+          previousValue: previousWeekStats[metric.key],
+          periodLabel: 'denne uken',
+          comparisonLabel: 'på samme punkt forrige uke',
+          group: 'Uke',
+          priority: 75 - index,
+          periodType: 'week',
+        });
+        if (insight) insights.push(insight);
       });
-      if (insight) insights.push(insight);
-    });
+    }
 
     const firstOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
     const previousMonthDate = new Date(date.getFullYear(), date.getMonth() - 1, 1);
@@ -6851,6 +6862,7 @@
   }
 
   function buildMonthStartBusinessDayInsights(history, date = new Date()) {
+    if (!isEarlyInMonth(date)) return [];
     const currentMonthStart = new Date(date.getFullYear(), date.getMonth(), 1);
     const previousMonthStart = new Date(date.getFullYear(), date.getMonth() - 1, 1);
     const businessDayCount = getBusinessDaysInRange(currentMonthStart, date);
@@ -6874,6 +6886,7 @@
   }
 
   function buildMonthStartWeekInsights(history, date = new Date()) {
+    if (!isEarlyInMonth(date)) return [];
     const currentMonthStart = new Date(date.getFullYear(), date.getMonth(), 1);
     const previousMonthDate = new Date(date.getFullYear(), date.getMonth() - 1, 1);
     const elapsedWeekCount = getElapsedMonthWeekCount(date);
@@ -8056,6 +8069,7 @@
     const activeView = ['overview', 'development', 'records', 'goals'].includes(activeStatsSubview) ? activeStatsSubview : 'overview';
     const developmentInsights = getDevelopmentInsights(history, now);
     const developmentHighlights = getDevelopmentHighlights(developmentInsights);
+    const showMonthStartComparisons = isEarlyInMonth(now);
     const previousBusinessDay = getPreviousBusinessDay(now);
     const previousBusinessDayStats = getRangeStats(history, startOfDay(previousBusinessDay), addDays(startOfDay(previousBusinessDay), 1));
     const sameDayLastWeekStats = getRangeStats(history, startOfDay(addDays(now, -7)), addDays(startOfDay(addDays(now, -7)), 1));
@@ -8065,8 +8079,8 @@
     const previousWeekRows = getMetricRows(uke, previousWeekStats);
     const weekProgress = buildWeekMetricProgressSeries(history, now, 'introSuccesses');
     const monthComparisonRows = buildMonthMetricComparison(history, now);
-    const monthBusinessDayRace = buildMonthRaceRows(history, now, 'businessDays');
-    const monthWeekRace = buildMonthRaceRows(history, now, 'weeks');
+    const monthBusinessDayRace = showMonthStartComparisons ? buildMonthRaceRows(history, now, 'businessDays') : null;
+    const monthWeekRace = showMonthStartComparisons ? buildMonthRaceRows(history, now, 'weeks') : null;
     const overviewPane = `
       <div class="stats-pane">
         ${renderStatsDaySection(dag, dayGoal, dayGoalStatus, todaySessionCount)}
@@ -8134,10 +8148,12 @@
                 ${stackedBarChart(weekBuckets, stackedChartMax)}
               </div>
             </div>
-            <div class="development-race-grid">
-              ${renderRaceCard('Månedstart vs forrige måned', `Sammenlignet etter ${monthBusinessDayRace.label}.`, monthBusinessDayRace.rows, 'Forrige måned', 'Denne måneden')}
-              ${renderRaceCard('Månedsprogresjon i uker', `Sammenlignet etter ${monthWeekRace.label}.`, monthWeekRace.rows, 'Forrige måned', 'Denne måneden')}
-            </div>
+            ${showMonthStartComparisons ? `
+              <div class="development-race-grid">
+                ${renderRaceCard('Månedstart vs forrige måned', `Sammenlignet etter ${monthBusinessDayRace.label}.`, monthBusinessDayRace.rows, 'Forrige måned', 'Denne måneden')}
+                ${renderRaceCard('Månedsprogresjon i uker', `Sammenlignet etter ${monthWeekRace.label}.`, monthWeekRace.rows, 'Forrige måned', 'Denne måneden')}
+              </div>
+            ` : ''}
           </div>
         </div>
         ${showAllDevelopmentInsights ? `
