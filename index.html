@@ -2976,7 +2976,11 @@
     }
 
     .development-highlights-grid,
-    .development-insights-grid {
+    .development-insights-grid,
+    .development-kpi-grid,
+    .development-section-grid,
+    .development-summary-grid,
+    .development-race-grid {
       display: grid;
       gap: 14px;
     }
@@ -2985,32 +2989,415 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    .development-insights-grid {
+    .development-insights-grid,
+    .development-section-grid,
+    .development-summary-grid,
+    .development-race-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .development-kpi-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .development-insights-shell,
-    .development-summary-shell {
+    .development-summary-shell,
+    .development-line-card,
+    .development-compare-board,
+    .development-track-list {
       display: flex;
       flex-direction: column;
       gap: 14px;
     }
 
+    .development-hero-card,
+    .development-panel,
+    .development-visual-card,
+    .development-metric-card,
+    .development-race-card,
     .development-group-card {
       background: rgba(11, 18, 32, 0.9);
       border: 1px solid rgba(148, 163, 184, 0.14);
-      border-radius: 18px;
-      padding: 18px;
+      border-radius: 20px;
       box-shadow: 0 12px 28px rgba(2, 6, 23, 0.16);
     }
 
+    .development-hero-card,
+    .development-panel,
+    .development-visual-card,
+    .development-race-card,
+    .development-group-card {
+      padding: 18px;
+    }
+
+    .development-hero-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .development-hero-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at top right, rgba(34, 197, 94, 0.12), transparent 42%);
+    }
+
+    .development-hero-top {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .development-hero-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .development-hero-text {
+      position: relative;
+      z-index: 1;
+      margin-top: 8px;
+      max-width: 720px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    .development-metric-card {
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .development-metric-card.metric-intro { border-top: 4px solid #60a5fa; }
+    .development-metric-card.metric-over5 { border-top: 4px solid #2dd4bf; }
+    .development-metric-card.metric-salg { border-top: 4px solid #fbbf24; }
+
+    .development-metric-top,
+    .development-insight-top,
+    .development-compare-top,
+    .development-track-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .development-metric-label,
     .development-group-title {
-      font-size: 0.88rem;
+      font-size: 0.78rem;
       font-weight: 800;
       letter-spacing: 0.04em;
       text-transform: uppercase;
       color: var(--muted);
+    }
+
+    .development-group-title {
       margin-bottom: 12px;
+      font-size: 0.88rem;
+    }
+
+    .development-metric-delta,
+    .development-insight-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .development-metric-delta.positive,
+    .development-highlight-card.positive .development-insight-badge,
+    .development-insight-card.positive .development-insight-badge {
+      background: rgba(34, 197, 94, 0.16);
+      color: #86efac;
+    }
+
+    .development-metric-delta.negative,
+    .development-highlight-card.negative .development-insight-badge,
+    .development-insight-card.negative .development-insight-badge {
+      background: rgba(239, 68, 68, 0.16);
+      color: #fca5a5;
+    }
+
+    .development-metric-delta.neutral {
+      background: rgba(148, 163, 184, 0.14);
+      color: #cbd5e1;
+    }
+
+    .development-metric-value {
+      margin-top: 12px;
+      font-size: 2.1rem;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--text);
+    }
+
+    .development-metric-meta,
+    .development-section-text,
+    .development-race-text {
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.5;
+    }
+
+    .development-metric-meta {
+      margin-top: 8px;
+    }
+
+    .development-section-text {
+      margin: -4px 0 14px 12px;
+      max-width: 720px;
+    }
+
+    .development-inline-bars,
+    .development-highlight-spark,
+    .development-mini-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .development-inline-bars {
+      min-height: 54px;
+      margin-top: 14px;
+    }
+
+    .development-highlight-spark {
+      min-height: 46px;
+      margin-top: 12px;
+    }
+
+    .development-inline-bar,
+    .development-highlight-bar,
+    .development-mini-bar,
+    .development-grouped-bar {
+      min-height: 6px;
+      border-radius: 14px 14px 8px 8px;
+      background: rgba(148, 163, 184, 0.22);
+    }
+
+    .development-inline-bar,
+    .development-highlight-bar {
+      flex: 1;
+    }
+
+    .development-inline-bar-labels,
+    .development-chart-legend {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+
+    .development-inline-bar.current.metric-intro,
+    .development-mini-bar.current.metric-intro,
+    .development-grouped-bar.current.metric-intro,
+    .development-compare-fill.current.metric-intro,
+    .development-track-fill.current.metric-intro {
+      background: linear-gradient(180deg, #60a5fa, #2563eb);
+    }
+
+    .development-inline-bar.current.metric-over5,
+    .development-mini-bar.current.metric-over5,
+    .development-grouped-bar.current.metric-over5,
+    .development-compare-fill.current.metric-over5,
+    .development-track-fill.current.metric-over5 {
+      background: linear-gradient(180deg, #2dd4bf, #0f766e);
+    }
+
+    .development-inline-bar.current.metric-salg,
+    .development-mini-bar.current.metric-salg,
+    .development-grouped-bar.current.metric-salg,
+    .development-compare-fill.current.metric-salg,
+    .development-track-fill.current.metric-salg {
+      background: linear-gradient(180deg, #fbbf24, #d97706);
+    }
+
+    .development-inline-bar.previous,
+    .development-highlight-bar.previous,
+    .development-mini-bar.previous,
+    .development-grouped-bar.previous,
+    .development-compare-fill.previous,
+    .development-track-fill.previous {
+      background: rgba(148, 163, 184, 0.26);
+    }
+
+    .development-card-title,
+    .development-race-title,
+    .development-insight-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.35;
+    }
+
+    .development-card-subtitle {
+      margin-top: -4px;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .development-mini-compare {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .development-mini-row {
+      display: grid;
+      grid-template-columns: 116px 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .development-mini-label,
+    .development-compare-label,
+    .development-track-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .development-mini-bars {
+      min-height: 72px;
+      gap: 10px;
+    }
+
+    .development-mini-bar {
+      flex: 1;
+    }
+
+    .development-mini-values,
+    .development-compare-values,
+    .development-track-values,
+    .development-insight-delta,
+    .development-group-values {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .development-grouped-chart {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      align-items: end;
+      min-height: 220px;
+    }
+
+    .development-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .development-group-bars {
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 10px;
+      min-height: 180px;
+    }
+
+    .development-grouped-bar {
+      width: min(52px, 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .development-group-label {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--text);
+      text-align: center;
+    }
+
+    .development-line-svg {
+      width: 100%;
+      height: 220px;
+      overflow: visible;
+    }
+
+    .development-line-grid {
+      stroke: rgba(148, 163, 184, 0.16);
+      stroke-width: 1;
+    }
+
+    .development-line-current {
+      fill: none;
+      stroke: #38bdf8;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .development-line-previous {
+      fill: none;
+      stroke: rgba(148, 163, 184, 0.72);
+      stroke-width: 2.5;
+      stroke-dasharray: 6 6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .development-line-point-current { fill: #38bdf8; }
+    .development-line-point-previous { fill: rgba(148, 163, 184, 0.9); }
+
+    .development-line-labels {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .development-compare-row,
+    .development-track-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .development-compare-track,
+    .development-track-lanes {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .development-compare-lane,
+    .development-track-lane {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.14);
+      overflow: hidden;
+    }
+
+    .development-compare-fill,
+    .development-track-fill {
+      height: 100%;
+      border-radius: 999px;
     }
 
     .development-highlight-card,
@@ -3057,72 +3444,11 @@
       border-color: rgba(239, 68, 68, 0.2);
     }
 
-    .development-insight-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .development-insight-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 28px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      font-size: 0.72rem;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
-    .development-highlight-card.positive .development-insight-badge,
-    .development-insight-card.positive .development-insight-badge {
-      background: rgba(34, 197, 94, 0.16);
-      color: #86efac;
-    }
-
-    .development-highlight-card.negative .development-insight-badge,
-    .development-insight-card.negative .development-insight-badge {
-      background: rgba(239, 68, 68, 0.16);
-      color: #fca5a5;
-    }
-
-    .development-insight-delta {
-      font-size: 0.82rem;
-      font-weight: 800;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
-    .development-insight-title {
-      font-size: 1rem;
-      font-weight: 800;
-      color: var(--text);
-      line-height: 1.35;
-    }
-
     .development-insight-detail {
       margin-top: 8px;
       color: #cbd5e1;
-      font-size: 0.88rem;
+      font-size: 0.86rem;
       line-height: 1.55;
-    }
-
-    .development-section-text {
-      margin: -4px 0 14px 12px;
-      color: var(--muted);
-      font-size: 0.84rem;
-      line-height: 1.5;
-      max-width: 720px;
-    }
-
-    .development-summary-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
     }
 
     .stats-empty-card {
@@ -3138,7 +3464,10 @@
     @media (max-width: 900px) {
       .development-highlights-grid,
       .development-insights-grid,
-      .development-summary-grid {
+      .development-kpi-grid,
+      .development-section-grid,
+      .development-summary-grid,
+      .development-race-grid {
         grid-template-columns: 1fr;
       }
 
@@ -3193,6 +3522,9 @@
       .goals-grid { grid-template-columns: 1fr; }
       .personal-record-groups,
       .personal-records-grid { grid-template-columns: 1fr; }
+      .development-mini-row { grid-template-columns: 1fr; }
+      .development-grouped-chart,
+      .development-line-labels { grid-template-columns: 1fr; }
     }
 
     .stat-card {
@@ -6215,9 +6547,12 @@
     return {
       id,
       metricKey,
+      metric,
       group,
       direction,
       delta,
+      currentValue,
+      previousValue,
       priority: priority + delta,
       badge: direction === 'positive' ? 'Positiv' : 'Negativ',
       title,
@@ -6372,6 +6707,330 @@
     const highlights = positives.slice(0, Math.min(3, positives.length));
     if (highlights.length >= 2 && negatives.length && highlights.length < 4) highlights.push(negatives[0]);
     return highlights;
+  }
+
+  function getMetricRows(currentStats, previousStats) {
+    return Object.values(DEVELOPMENT_METRICS).map(metric => {
+      const current = currentStats?.[metric.key] || 0;
+      const previous = previousStats?.[metric.key] || 0;
+      const delta = current - previous;
+      return {
+        ...metric,
+        current,
+        previous,
+        delta,
+        direction: delta > 0 ? 'positive' : delta < 0 ? 'negative' : 'neutral',
+      };
+    });
+  }
+
+  function formatSignedDelta(delta) {
+    if (delta > 0) return `+${delta}`;
+    if (delta < 0) return String(delta);
+    return '0';
+  }
+
+  function formatDeltaBadge(delta) {
+    if (delta > 0) return `▲ ${delta}`;
+    if (delta < 0) return `▼ ${Math.abs(delta)}`;
+    return '—';
+  }
+
+  function getMetricClass(metricKey) {
+    if (metricKey === 'introSuccesses') return 'metric-intro';
+    if (metricKey === 'over5') return 'metric-over5';
+    return 'metric-salg';
+  }
+
+  function getMetricDeltaText(row, comparisonLabel) {
+    if (row.delta > 0) return `${formatSignedDelta(row.delta)} mot ${comparisonLabel}`;
+    if (row.delta < 0) return `${formatSignedDelta(row.delta)} mot ${comparisonLabel}`;
+    return `Lik som ${comparisonLabel}`;
+  }
+
+  function getMetricSummaryText(row, comparisonLabel) {
+    if (row.delta > 0) return `${row.current} nå mot ${row.previous} ${comparisonLabel}.`;
+    if (row.delta < 0) return `${row.current} nå mot ${row.previous} ${comparisonLabel}.`;
+    return `${row.current} både nå og ${comparisonLabel}.`;
+  }
+
+  function getBarHeight(value, maxValue, min = 6) {
+    if (!maxValue) return min;
+    return Math.max(min, Math.round((value / maxValue) * 100));
+  }
+
+  function getBarWidth(value, maxValue, min = 8) {
+    if (!maxValue) return `${min}%`;
+    return `${Math.max(min, Math.round((value / maxValue) * 100))}%`;
+  }
+
+  function buildWeekMetricProgressSeries(history, date = new Date(), metricKey = 'introSuccesses') {
+    const weekStart = getStartOfWeek(date);
+    const previousWeekStart = addDays(weekStart, -7);
+    const labels = ['Man', 'Tir', 'Ons', 'Tor', 'Fre'];
+    const current = [];
+    const previous = [];
+    let currentRunning = 0;
+    let previousRunning = 0;
+    labels.forEach((label, index) => {
+      const currentDayStart = addDays(weekStart, index);
+      const previousDayStart = addDays(previousWeekStart, index);
+      currentRunning += getRangeStats(history, currentDayStart, addDays(currentDayStart, 1))[metricKey] || 0;
+      previousRunning += getRangeStats(history, previousDayStart, addDays(previousDayStart, 1))[metricKey] || 0;
+      current.push(currentRunning);
+      previous.push(previousRunning);
+    });
+    return { labels, current, previous };
+  }
+
+  function buildMonthMetricComparison(history, date = new Date()) {
+    const currentMonthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+    const previousMonthStart = new Date(date.getFullYear(), date.getMonth() - 1, 1);
+    const currentStats = getRangeStats(history, currentMonthStart, addDays(startOfDay(date), 1));
+    const previousStats = getRangeStats(history, previousMonthStart, getCalendarDayRangeForMonth(previousMonthStart, date.getDate()).end);
+    return getMetricRows(currentStats, previousStats);
+  }
+
+  function buildMonthRaceRows(history, date = new Date(), mode = 'businessDays') {
+    const currentMonthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+    const previousMonthStart = new Date(date.getFullYear(), date.getMonth() - 1, 1);
+    const currentStats = getRangeStats(history, currentMonthStart, addDays(startOfDay(date), 1));
+    let previousStats = { introSuccesses: 0, over5: 0, salg: 0 };
+    let label = '';
+    if (mode === 'businessDays') {
+      const businessDayCount = getBusinessDaysInRange(currentMonthStart, date);
+      const previousRange = getBusinessDayRangeForMonth(previousMonthStart, businessDayCount);
+      previousStats = getRangeStats(history, previousRange.start, previousRange.end);
+      label = `${businessDayCount} arbeidsdager`;
+    } else {
+      const elapsedWeekCount = getElapsedMonthWeekCount(date);
+      const previousBuckets = getMonthWeekRanges(previousMonthStart).slice(0, elapsedWeekCount);
+      previousStats = statsFor(previousBuckets.flatMap(range => getRangeEntries(history, range.start, range.end)));
+      label = `${elapsedWeekCount} uke${elapsedWeekCount === 1 ? '' : 'r'}`;
+    }
+    return { rows: getMetricRows(currentStats, previousStats), label };
+  }
+
+  function renderSparkBars(previousValue, currentValue, metricClass) {
+    const maxValue = Math.max(previousValue, currentValue, 1);
+    return `
+      <div class="development-highlight-spark">
+        <div class="development-highlight-bar previous" style="height:${getBarHeight(previousValue, maxValue)}%"></div>
+        <div class="development-highlight-bar current ${metricClass}" style="height:${getBarHeight(currentValue, maxValue)}%"></div>
+      </div>
+      <div class="development-inline-bar-labels">
+        <span>Før</span>
+        <span>Nå</span>
+      </div>
+    `;
+  }
+
+  function renderDevelopmentHighlightCard(insight) {
+    const metricClass = getMetricClass(insight.metricKey);
+    return `
+      <div class="development-highlight-card ${insight.direction}">
+        <div class="development-insight-top">
+          <span class="development-insight-badge">${insight.badge}</span>
+          <span class="development-insight-delta">${formatSignedDelta(insight.direction === 'positive' ? insight.delta : -insight.delta)}</span>
+        </div>
+        <div class="development-insight-title">${insight.title}</div>
+        <div class="development-insight-detail">${insight.detail}</div>
+        <div class="development-highlight-meta">
+          ${renderSparkBars(insight.previousValue, insight.currentValue, metricClass)}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderDevelopmentMetricCard(row, comparisonLabel) {
+    const metricClass = getMetricClass(row.key);
+    const maxValue = Math.max(row.current, row.previous, 1);
+    return `
+      <div class="development-metric-card ${metricClass}">
+        <div class="development-metric-top">
+          <div class="development-metric-label">${row.label}</div>
+          <div class="development-metric-delta ${row.direction}">${formatDeltaBadge(row.delta)}</div>
+        </div>
+        <div class="development-metric-value">${row.current}</div>
+        <div class="development-metric-meta">${getMetricDeltaText(row, comparisonLabel)}</div>
+        <div class="development-inline-bars">
+          <div class="development-inline-bar previous" style="height:${getBarHeight(row.previous, maxValue)}%"></div>
+          <div class="development-inline-bar current ${metricClass}" style="height:${getBarHeight(row.current, maxValue)}%"></div>
+        </div>
+        <div class="development-inline-bar-labels">
+          <span>${comparisonLabel}</span>
+          <span>Nå</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderMiniComparisonBlock(title, subtitle, rows, previousLabel) {
+    return `
+      <div class="development-visual-card">
+        <div class="development-card-title">${title}</div>
+        <div class="development-card-subtitle">${subtitle}</div>
+        <div class="development-mini-compare">
+          ${rows.map(row => {
+            const metricClass = getMetricClass(row.key);
+            const maxValue = Math.max(row.current, row.previous, 1);
+            return `
+              <div class="development-mini-row">
+                <div class="development-mini-label">${row.label}</div>
+                <div class="development-mini-bars">
+                  <div class="development-mini-bar previous" style="height:${getBarHeight(row.previous, maxValue)}%"></div>
+                  <div class="development-mini-bar current ${metricClass}" style="height:${getBarHeight(row.current, maxValue)}%"></div>
+                </div>
+                <div class="development-mini-values">${row.previous} / ${row.current}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div class="development-chart-legend">
+          <span>${previousLabel}</span>
+          <span>Nå</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderGroupedComparisonChart(title, subtitle, rows, previousLabel, currentLabel) {
+    const maxValue = Math.max(...rows.flatMap(row => [row.current, row.previous]), 1);
+    return `
+      <div class="development-visual-card">
+        <div class="development-card-title">${title}</div>
+        <div class="development-card-subtitle">${subtitle}</div>
+        <div class="development-grouped-chart">
+          ${rows.map(row => {
+            const metricClass = getMetricClass(row.key);
+            return `
+              <div class="development-group">
+                <div class="development-group-bars">
+                  <div class="development-grouped-bar previous" style="height:${getBarHeight(row.previous, maxValue)}%"></div>
+                  <div class="development-grouped-bar current ${metricClass}" style="height:${getBarHeight(row.current, maxValue)}%"></div>
+                </div>
+                <div class="development-group-label">${row.label}</div>
+                <div class="development-group-values">${row.previous} / ${row.current}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div class="development-chart-legend">
+          <span>${previousLabel}</span>
+          <span>${currentLabel}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function getLineChartPoints(values, width, height, padding, maxValue = Math.max(...values, 1)) {
+    const stepX = values.length > 1 ? (width - padding * 2) / (values.length - 1) : 0;
+    return values.map((value, index) => {
+      const x = padding + stepX * index;
+      const y = height - padding - ((value / maxValue) * (height - padding * 2));
+      return { x, y };
+    });
+  }
+
+  function renderLineComparisonChart(title, subtitle, labels, currentValues, previousValues, previousLabel, currentLabel) {
+    const width = 420;
+    const height = 220;
+    const padding = 24;
+    const allValues = [...currentValues, ...previousValues];
+    const maxValue = Math.max(...allValues, 1);
+    const scalePoints = getLineChartPoints([0, maxValue / 2, maxValue], width, height, padding, maxValue).map(point => Math.round(point.y));
+    const currentPoints = getLineChartPoints(currentValues, width, height, padding, maxValue);
+    const previousPoints = getLineChartPoints(previousValues, width, height, padding, maxValue);
+    return `
+      <div class="development-visual-card">
+        <div class="development-card-title">${title}</div>
+        <div class="development-card-subtitle">${subtitle}</div>
+        <div class="development-line-card">
+          <svg class="development-line-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">
+            ${scalePoints.map(y => `<line class="development-line-grid" x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}"></line>`).join('')}
+            <polyline class="development-line-previous" points="${previousPoints.map(point => `${point.x},${point.y}`).join(' ')}"></polyline>
+            <polyline class="development-line-current" points="${currentPoints.map(point => `${point.x},${point.y}`).join(' ')}"></polyline>
+            ${previousPoints.map(point => `<circle class="development-line-point-previous" cx="${point.x}" cy="${point.y}" r="3.5"></circle>`).join('')}
+            ${currentPoints.map(point => `<circle class="development-line-point-current" cx="${point.x}" cy="${point.y}" r="4"></circle>`).join('')}
+          </svg>
+          <div class="development-line-labels">${labels.map(label => `<span>${label}</span>`).join('')}</div>
+          <div class="development-chart-legend">
+            <span>${previousLabel}</span>
+            <span>${currentLabel}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderHorizontalComparisonBoard(title, subtitle, rows, previousLabel, currentLabel) {
+    const maxValue = Math.max(...rows.flatMap(row => [row.current, row.previous]), 1);
+    return `
+      <div class="development-visual-card">
+        <div class="development-card-title">${title}</div>
+        <div class="development-card-subtitle">${subtitle}</div>
+        <div class="development-compare-board">
+          ${rows.map(row => {
+            const metricClass = getMetricClass(row.key);
+            return `
+              <div class="development-compare-row">
+                <div class="development-compare-top">
+                  <span class="development-compare-label">${row.label}</span>
+                  <span class="development-compare-values">${row.previous} / ${row.current}</span>
+                </div>
+                <div class="development-compare-track">
+                  <div class="development-compare-lane">
+                    <div class="development-compare-fill previous" style="width:${getBarWidth(row.previous, maxValue)}"></div>
+                  </div>
+                  <div class="development-compare-lane">
+                    <div class="development-compare-fill current ${metricClass}" style="width:${getBarWidth(row.current, maxValue)}"></div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div class="development-chart-legend">
+          <span>${previousLabel}</span>
+          <span>${currentLabel}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderRaceCard(title, subtitle, rows, previousLabel, currentLabel) {
+    const maxValue = Math.max(...rows.flatMap(row => [row.current, row.previous]), 1);
+    return `
+      <div class="development-race-card">
+        <div class="development-race-title">${title}</div>
+        <div class="development-race-text">${subtitle}</div>
+        <div class="development-track-list">
+          ${rows.map(row => {
+            const metricClass = getMetricClass(row.key);
+            return `
+              <div class="development-track-row">
+                <div class="development-track-top">
+                  <span class="development-track-label">${row.label}</span>
+                  <span class="development-track-values">${row.previous} / ${row.current}</span>
+                </div>
+                <div class="development-track-lanes">
+                  <div class="development-track-lane">
+                    <div class="development-track-fill previous" style="width:${getBarWidth(row.previous, maxValue)}"></div>
+                  </div>
+                  <div class="development-track-lane">
+                    <div class="development-track-fill current ${metricClass}" style="width:${getBarWidth(row.current, maxValue)}"></div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div class="development-chart-legend">
+          <span>${previousLabel}</span>
+          <span>${currentLabel}</span>
+        </div>
+      </div>
+    `;
   }
 
   function renderDevelopmentInsightCard(insight, compact = false) {
@@ -7102,6 +7761,17 @@
     const activeView = ['overview', 'development', 'records', 'goals'].includes(activeStatsSubview) ? activeStatsSubview : 'overview';
     const developmentInsights = getDevelopmentInsights(history, now);
     const developmentHighlights = getDevelopmentHighlights(developmentInsights);
+    const previousBusinessDay = getPreviousBusinessDay(now);
+    const previousBusinessDayStats = getRangeStats(history, startOfDay(previousBusinessDay), addDays(startOfDay(previousBusinessDay), 1));
+    const sameDayLastWeekStats = getRangeStats(history, startOfDay(addDays(now, -7)), addDays(startOfDay(addDays(now, -7)), 1));
+    const previousWeekStats = getRangeStats(history, addDays(startOfWeek, -7), getBusinessDayRangeFromStart(addDays(startOfWeek, -7), elapsedWeekBusinessDays).end);
+    const dayComparisonRows = getMetricRows(dag, previousBusinessDayStats);
+    const sameDayLastWeekRows = getMetricRows(dag, sameDayLastWeekStats);
+    const previousWeekRows = getMetricRows(uke, previousWeekStats);
+    const weekProgress = buildWeekMetricProgressSeries(history, now, 'introSuccesses');
+    const monthComparisonRows = buildMonthMetricComparison(history, now);
+    const monthBusinessDayRace = buildMonthRaceRows(history, now, 'businessDays');
+    const monthWeekRace = buildMonthRaceRows(history, now, 'weeks');
     const overviewPane = `
       <div class="stats-pane">
         ${renderStatsDaySection(dag, dayGoal, dayGoalStatus, todaySessionCount)}
@@ -7112,18 +7782,67 @@
     const developmentPane = `
       <div class="stats-pane">
         <div class="stats-section">
-          <div class="stats-section-head">
-            <div class="stats-section-title st-teal">Utvikling</div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-              <button class="backup-btn stats-goal-btn" type="button" onclick="toggleDevelopmentInsights()">${showAllDevelopmentInsights ? 'Skjul alt' : `Se alt (${developmentInsights.length})`}</button>
-              <button class="backup-btn stats-goal-btn" type="button" onclick="setStatsSubview('goals')">Fokus på mål</button>
+          <div class="development-hero-card">
+            <div class="development-hero-top">
+              <div>
+                <div class="development-hero-title">Utvikling</div>
+                <div class="development-hero-text">Her ser du fremgang visuelt: først høydepunkter, deretter dag, uke og måned med ulike diagrammer som gjør det lett å kjenne at du er på vei et sted.</div>
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button class="backup-btn stats-goal-btn" type="button" onclick="toggleDevelopmentInsights()">${showAllDevelopmentInsights ? 'Skjul alt' : `Se alt (${developmentInsights.length})`}</button>
+                <button class="backup-btn stats-goal-btn" type="button" onclick="setStatsSubview('goals')">Fokus på mål</button>
+              </div>
             </div>
           </div>
-          <div class="development-section-text">Her sammenlignes det du gjør nå mot tidligere perioder. Highlights prioriterer det som går bedre, men siden viser også det som har roet seg ned så du ser hele bildet.</div>
+        </div>
+        <div class="stats-section">
+          <div class="stats-section-head">
+            <div class="stats-section-title st-green">Highlights</div>
+          </div>
           <div class="development-highlights-grid">
             ${developmentHighlights.length
-              ? developmentHighlights.map(item => renderDevelopmentInsightCard(item, true)).join('')
-              : '<div class="stats-empty-card">Ingen highlights ennå. Registrer litt mer aktivitet, så begynner utviklingssiden å trekke frem mønstre.</div>'}
+              ? developmentHighlights.map(item => renderDevelopmentHighlightCard(item)).join('')
+              : '<div class="stats-empty-card">Ingen highlights ennå. Registrer litt mer aktivitet, så begynner utviklingssiden å trekke frem de første signalene.</div>'}
+          </div>
+        </div>
+        <div class="stats-section">
+          <div class="stats-section-head">
+            <div class="stats-section-title st-teal">I dag</div>
+          </div>
+          <div class="development-kpi-grid">
+            ${dayComparisonRows.map(row => renderDevelopmentMetricCard(row, 'i går')).join('')}
+          </div>
+          <div class="development-section-grid" style="margin-top:14px;">
+            ${renderMiniComparisonBlock('I dag vs i går', 'Tre raske sammenligninger mot forrige arbeidsdag.', dayComparisonRows, 'I går')}
+            ${renderMiniComparisonBlock('I dag vs samme dag forrige uke', 'Viser om dagens nivå er sterkere enn samme ukedag sist uke.', sameDayLastWeekRows.filter(row => row.key !== 'introSuccesses'), 'Forrige uke')}
+          </div>
+        </div>
+        <div class="stats-section">
+          <div class="stats-section-head">
+            <div class="stats-section-title st-purple">Denne uken</div>
+          </div>
+          <div class="development-section-grid">
+            ${renderGroupedComparisonChart('Denne uken vs forrige uke', 'Sammenlignet mot samme punkt i forrige uke.', previousWeekRows, 'Forrige uke', 'Denne uken')}
+            ${renderLineComparisonChart('Ukeprogresjon dag for dag', 'Kumulativ utvikling i opptak gjennom uka.', weekProgress.labels, weekProgress.current, weekProgress.previous, 'Forrige uke', 'Denne uken')}
+          </div>
+        </div>
+        <div class="stats-section">
+          <div class="stats-section-head">
+            <div class="stats-section-title st-green">${monthTitle}</div>
+          </div>
+          <div class="development-summary-shell">
+            <div class="development-summary-grid">
+              ${renderHorizontalComparisonBoard('Denne måneden vs forrige måned', 'Sammenlignet mot samme dato i forrige måned.', monthComparisonRows, 'Forrige måned', 'Denne måneden')}
+              <div class="development-visual-card">
+                <div class="development-card-title">6-min & salg per uke</div>
+                <div class="development-card-subtitle">Rytmen i måneden så langt, fordelt på arbeidsuker.</div>
+                ${stackedBarChart(weekBuckets, stackedChartMax)}
+              </div>
+            </div>
+            <div class="development-race-grid">
+              ${renderRaceCard('Månedstart vs forrige måned', `Sammenlignet etter ${monthBusinessDayRace.label}.`, monthBusinessDayRace.rows, 'Forrige måned', 'Denne måneden')}
+              ${renderRaceCard('Månedsprogresjon i uker', `Sammenlignet etter ${monthWeekRace.label}.`, monthWeekRace.rows, 'Forrige måned', 'Denne måneden')}
+            </div>
           </div>
         </div>
         ${showAllDevelopmentInsights ? `
@@ -7136,29 +7855,6 @@
             </div>
           </div>
         ` : ''}
-        <div class="stats-section">
-          <div class="stats-section-head">
-            <div class="stats-section-title st-green">Tallene bak utviklingen</div>
-          </div>
-          <div class="development-summary-shell">
-            <div class="development-summary-grid">
-              <div class="chart-card cc-blue">
-                <div class="chart-card-title">6-min & abo denne uken</div>
-                ${stackedBarChart(weekData, stackedChartMax)}
-              </div>
-              <div class="chart-card cc-blue">
-                <div class="chart-card-title">6-min & abo denne måneden</div>
-                ${stackedBarChart(weekBuckets, stackedChartMax)}
-              </div>
-            </div>
-            <div class="stats-grid stats-grid-4">
-              ${statCard(uke.over5, 'Over 6 min denne uken', false, 'teal')}
-              ${statCard(uke.salg, 'Salg denne uken', false, 'gold')}
-              ${statCard(mnd.over5, 'Over 6 min denne måneden', false, 'teal')}
-              ${statCard(mnd.salg, 'Salg denne måneden', false, 'gold')}
-            </div>
-          </div>
-        </div>
       </div>
     `;
     const goalsPane = `
