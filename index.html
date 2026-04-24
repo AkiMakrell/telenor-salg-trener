@@ -653,6 +653,50 @@
       margin-bottom: 8px;
     }
 
+    .verification-page {
+      max-width: 760px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .verification-hero,
+    .verification-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 2px 12px rgba(41,168,224,0.08);
+    }
+
+    .verification-hero {
+      padding: 22px 24px;
+    }
+
+    .verification-title {
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      margin-bottom: 8px;
+    }
+
+    .verification-text {
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.55;
+    }
+
+    .verification-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .verification-card {
+      padding: 22px 24px;
+    }
+
     .samtalerating-page {
       max-width: 1120px;
       margin: 0 auto;
@@ -4161,12 +4205,13 @@
 
 <div id="app-shell" class="app-shell">
 
-<div class="top-bar">
+  <div class="top-bar">
   <div class="tabs">
     <button class="tab-btn active" data-tab="intro" onclick="switchTab('intro', this)">Registrer</button>
     <button class="tab-btn" data-tab="hjem" onclick="switchTab('hjem', this)">Stats</button>
     <button class="tab-btn" data-tab="innvendinger" onclick="switchTab('innvendinger', this)">Innvendinger</button>
     <button class="tab-btn" data-tab="notater" onclick="switchTab('notater', this)">Notater</button>
+    <button class="tab-btn" data-tab="verifisering" onclick="switchTab('verifisering', this)">Verifisering</button>
     <button class="tab-btn" data-tab="priser" onclick="switchTab('priser', this)">Pris kalkulator</button>
     <div id="top-bar-tools" class="top-bar-tools">
       <button
@@ -4361,6 +4406,10 @@
       </div>
     </div>
   </div>
+</div>
+
+<div id="tab-verifisering" class="tab-content">
+  <div id="verification-page" class="verification-page"></div>
 </div>
 
 <div id="tab-samtalerating" class="tab-content">
@@ -5111,6 +5160,7 @@
     renderIntroHistory();
     renderFakta();
     renderConversationNotes();
+    renderVerificationPage();
     renderSamtaleRating();
     renderOvPage();
     renderGoalsPage();
@@ -5281,6 +5331,7 @@
     if (name === 'priser' || name === 'notater') renderAllPriceCalculators();
     if (name === 'samtaleflyt') renderSamtaleflyt();
     if (name === 'notater') renderConversationNotes();
+    if (name === 'verifisering') renderVerificationPage();
     if (name === 'samtalerating') renderSamtaleRating();
     if (name === 'ov') renderOvPage();
     if (name === 'goals') renderGoalsPage();
@@ -7600,6 +7651,61 @@
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(summary);
     }
+  }
+
+  function getVerificationScript() {
+    const today = new Date().toLocaleDateString('no-NO', { day: 'numeric', month: 'long', year: 'numeric' });
+    return `VERIFISERING
+Oppsummering/verifisering Telenor Bedrift
+
+Det vi har blitt enige om, er følgende:
+Dagens dato: ${today}
+Navnet på bedriften deres er:
+Fødselsdatoen din er:
+E-postadresse:
+
+Adressen SIM-kort/utstyr skal sendes til er:
+
+Navn på postkassen deres (bedrift/privat navn):
+Ditt navn (kundens):
+Og du har myndighet til å ta denne bestillingen på vegne av bedriften?
+
+Ved portering: Vi vil nå gjennomføre en nummerportering. Det innebærer at vi overfører nummeret ditt fra din nåværende operatør til Telenor Bedrift. Dette tar ca. 15 virkedager.
+Numrene vi flytter over til Telenor Bedrift er:
+
+Dere vil få abonnement X til prisen X,- /mnd, med en standard avtaleperiode på 24 mnd.
+
+SMS-verifisering: Det som skjer nå er at du vil motta en SMS-verifisering. Det eneste du trenger å gjøre her er å svare et enkelt "JA" på denne meldingen, for at vi skal få bekreftet ordren og vi sender deg SIM-kort.`;
+  }
+
+  function copyVerificationScript() {
+    const script = getVerificationScript();
+    const output = document.getElementById('verification-script-output');
+    if (output) output.value = script;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(script);
+    }
+  }
+
+  function renderVerificationPage() {
+    const page = document.getElementById('verification-page');
+    if (!page) return;
+    const script = getVerificationScript();
+    page.innerHTML = `
+      <div class="verification-hero">
+        <div class="verification-title">Verifisering</div>
+        <div class="verification-text">Bruk denne muntlige kontrakten for å oppsummere bestillingen med kunden før salget fullføres. Dagens dato legges inn automatisk, og resten kan leses opp direkte eller kopieres.</div>
+        <div class="verification-actions">
+          <button class="save-btn" style="margin-top:0;" type="button" onclick="copyVerificationScript()">Kopier kontrakt</button>
+          <button class="backup-btn" style="font-size:0.9rem;padding:10px 14px;border-radius:8px;color:var(--muted);" type="button" onclick="renderVerificationPage()">Oppdater dato</button>
+        </div>
+      </div>
+      <div class="verification-card">
+        <div class="notes-question">Muntlig kontrakt</div>
+        <div class="notes-helper">Feltene uten utfylt tekst er ment som punkter dere fyller inn i samtalen.</div>
+        <textarea id="verification-script-output" class="notes-summary-output" readonly>${script}</textarea>
+      </div>
+    `;
   }
 
   function getTodayIsoDate() {
