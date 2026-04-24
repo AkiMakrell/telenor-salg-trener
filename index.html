@@ -2943,6 +2943,14 @@
       min-width: 0;
     }
 
+    .personal-record-chart-value {
+      margin-bottom: 6px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: rgba(255,255,255,0.9);
+      line-height: 1;
+    }
+
     .personal-record-chart-bar {
       width: 100%;
       min-width: 14px;
@@ -6612,7 +6620,7 @@
     return `
       <div class="personal-record-chart-shell" style="--record-columns:${labels.length};">
         <div class="personal-record-chart">
-          ${values.map(value => `<div class="personal-record-chart-group"><div class="personal-record-chart-bar" style="height:${getBarHeight(value, maxValue, 8)}%"></div></div>`).join('')}
+          ${values.map(value => `<div class="personal-record-chart-group"><div class="personal-record-chart-value">${value}</div><div class="personal-record-chart-bar" style="height:${getBarHeight(value, maxValue, 8)}%"></div></div>`).join('')}
         </div>
         <div class="personal-record-chart-labels">
           ${labels.map(label => `<span>${label}</span>`).join('')}
