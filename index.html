@@ -3499,6 +3499,9 @@
       align-items: flex-end;
       gap: 10px;
       height: 90px;
+      padding: 10px;
+      border-radius: 18px;
+      background: rgba(15, 23, 42, 0.28);
     }
 
     .development-highlight-chart-bar {
@@ -3541,6 +3544,9 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
+      padding: 10px;
+      border-radius: 18px;
+      background: rgba(15, 23, 42, 0.28);
     }
 
     .development-highlight-chart-day {
@@ -3551,6 +3557,9 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      padding: 10px;
+      border-radius: 18px;
+      background: rgba(15, 23, 42, 0.28);
     }
 
     .development-highlight-line-svg {
@@ -3592,6 +3601,23 @@
       gap: 6px;
       width: 100%;
       height: 96px;
+      padding: 8px 6px;
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.28);
+    }
+
+    .development-highlight-visual.positive .development-highlight-chart-bars,
+    .development-highlight-visual.positive .development-highlight-track-stack,
+    .development-highlight-visual.positive .development-highlight-line-card,
+    .development-highlight-visual.positive .development-highlight-month-bars {
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2), 0 0 18px rgba(34, 197, 94, 0.22);
+    }
+
+    .development-highlight-visual.negative .development-highlight-chart-bars,
+    .development-highlight-visual.negative .development-highlight-track-stack,
+    .development-highlight-visual.negative .development-highlight-line-card,
+    .development-highlight-visual.negative .development-highlight-month-bars {
+      box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2), 0 0 18px rgba(239, 68, 68, 0.22);
     }
 
     .development-highlight-month-bar {
