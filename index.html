@@ -6508,7 +6508,6 @@
     salg: { key: 'salg', label: 'Salg', noun: 'salg', emphasis: 'gold' },
     introSuccesses: { key: 'introSuccesses', label: 'Opptak', noun: 'opptak', emphasis: 'blue' },
   };
-  const DEVELOPMENT_PERIOD_WEIGHTS = { month: 300, week: 200, day: 100 };
   const DEVELOPMENT_METRIC_WEIGHTS = { salg: 30, over5: 20, introSuccesses: 10 };
 
   function startOfDay(date) {
@@ -6840,11 +6839,10 @@
   }
 
   function getDevelopmentHighlightScore(insight) {
-    const periodWeight = DEVELOPMENT_PERIOD_WEIGHTS[insight.periodType] || 0;
     const metricWeight = DEVELOPMENT_METRIC_WEIGHTS[insight.metricKey] || 0;
     const directionWeight = insight.direction === 'positive' ? 40 : 0;
     const deltaWeight = insight.delta * 5;
-    return periodWeight + metricWeight + directionWeight + deltaWeight;
+    return metricWeight + directionWeight + deltaWeight;
   }
 
   function getMetricRows(currentStats, previousStats) {
