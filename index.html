@@ -3427,7 +3427,7 @@
       display: flex;
       align-items: flex-end;
       gap: 10px;
-      min-height: 90px;
+      height: 90px;
     }
 
     .development-highlight-chart-bar {
@@ -3520,7 +3520,7 @@
       justify-content: center;
       gap: 6px;
       width: 100%;
-      min-height: 96px;
+      height: 96px;
     }
 
     .development-highlight-month-bar {
@@ -6931,7 +6931,25 @@
       .filter(item => item.direction === 'negative' && item.periodType !== 'day')
       .sort((a, b) => b.highlightScore - a.highlightScore || b.delta - a.delta);
     if (!positives.length) return negatives.length ? [negatives[0]] : [];
-    const highlights = positives.slice(0, Math.min(3, positives.length));
+    const selectedIds = new Set();
+    const highlights = [];
+    const bestPerPeriod = ['day', 'week', 'month']
+      .map(periodType => positives.find(item => item.periodType === periodType))
+      .filter(Boolean)
+      .sort((a, b) => b.highlightScore - a.highlightScore || b.delta - a.delta);
+
+    bestPerPeriod.forEach(item => {
+      if (highlights.length >= 3 || selectedIds.has(item.id)) return;
+      highlights.push(item);
+      selectedIds.add(item.id);
+    });
+
+    positives.forEach(item => {
+      if (highlights.length >= 3 || selectedIds.has(item.id)) return;
+      highlights.push(item);
+      selectedIds.add(item.id);
+    });
+
     if (highlights.length >= 2 && negatives.length && highlights.length < 4) highlights.push(negatives[0]);
     return highlights;
   }
