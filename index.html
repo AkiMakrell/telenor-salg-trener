@@ -2572,17 +2572,28 @@
     }
 
     .stats-sidebar-card {
-      background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(11, 18, 32, 0.98));
-      border: 1px solid rgba(148, 163, 184, 0.14);
-      border-radius: 22px;
-      padding: 16px;
-      box-shadow: 0 16px 32px rgba(2, 6, 23, 0.18);
+      background: rgba(8, 15, 28, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 10px 24px rgba(2, 6, 23, 0.16);
+    }
+
+    .stats-sidebar-label {
+      display: block;
+      margin-bottom: 10px;
+      padding-left: 2px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
     }
 
     .stats-nav {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
 
     .stats-nav-btn {
@@ -2590,24 +2601,33 @@
       align-items: center;
       justify-content: flex-start;
       width: 100%;
-      border: none;
-      background: transparent;
-      color: var(--muted);
-      border-radius: 14px;
-      padding: 12px 14px;
-      font-size: 0.88rem;
+      border: 1px solid transparent;
+      border-left: 3px solid rgba(148, 163, 184, 0.18);
+      background: rgba(15, 23, 42, 0.42);
+      color: #cbd5e1;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.84rem;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.18s ease;
-      white-space: nowrap;
       text-align: left;
+      white-space: nowrap;
     }
 
-    .stats-nav-btn:hover,
-    .stats-nav-btn.active {
-      background: linear-gradient(135deg, rgba(41, 168, 224, 0.18), rgba(59, 130, 246, 0.1));
+    .stats-nav-btn:hover {
+      background: rgba(15, 23, 42, 0.78);
+      border-color: rgba(125, 211, 252, 0.12);
+      border-left-color: rgba(125, 211, 252, 0.5);
       color: var(--text);
-      box-shadow: inset 0 0 0 1px rgba(125, 211, 252, 0.18);
+    }
+
+    .stats-nav-btn.active {
+      background: rgba(18, 33, 58, 0.96);
+      color: var(--text);
+      border-color: rgba(125, 211, 252, 0.16);
+      border-left-color: #38bdf8;
+      box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.08);
     }
 
     .stats-main {
@@ -6391,6 +6411,7 @@
     ];
     return `
       <div class="stats-sidebar-card">
+        <span class="stats-sidebar-label">Statsverktøy</span>
         <div class="stats-nav">
           ${items.map(item => `
             <button
