@@ -6830,7 +6830,7 @@
       .filter(item => item.direction === 'positive')
       .sort((a, b) => b.highlightScore - a.highlightScore || b.delta - a.delta);
     const negatives = withScores
-      .filter(item => item.direction === 'negative')
+      .filter(item => item.direction === 'negative' && item.periodType !== 'day')
       .sort((a, b) => b.highlightScore - a.highlightScore || b.delta - a.delta);
     if (!positives.length) return negatives.length ? [negatives[0]] : [];
     const highlights = positives.slice(0, Math.min(3, positives.length));
