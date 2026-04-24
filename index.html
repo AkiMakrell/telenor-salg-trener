@@ -3472,6 +3472,89 @@
       gap: 8px;
     }
 
+    .development-highlight-chart-day {
+      min-height: 110px;
+    }
+
+    .development-highlight-line-card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .development-highlight-line-svg {
+      width: 100%;
+      height: 156px;
+      overflow: visible;
+    }
+
+    .development-highlight-line-labels {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .development-highlight-month-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(48px, 1fr));
+      gap: 10px;
+      align-items: end;
+      min-height: 132px;
+    }
+
+    .development-highlight-month-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .development-highlight-month-bars {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      min-height: 96px;
+    }
+
+    .development-highlight-month-bar {
+      width: 100%;
+      min-width: 14px;
+      max-width: 22px;
+      min-height: 8px;
+      border-radius: 14px 14px 8px 8px;
+      background: rgba(148, 163, 184, 0.22);
+    }
+
+    .development-highlight-month-bar.current.metric-intro {
+      background: linear-gradient(180deg, #60a5fa, #2563eb);
+    }
+
+    .development-highlight-month-bar.current.metric-over5 {
+      background: linear-gradient(180deg, #2dd4bf, #0f766e);
+    }
+
+    .development-highlight-month-bar.current.metric-salg {
+      background: linear-gradient(180deg, #fbbf24, #d97706);
+    }
+
+    .development-highlight-month-bar.previous {
+      background: rgba(148, 163, 184, 0.28);
+    }
+
+    .development-highlight-month-label {
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-align: center;
+    }
+
     .development-highlight-chart-track {
       height: 12px;
       border-radius: 999px;
@@ -3637,6 +3720,8 @@
       .development-mini-row { grid-template-columns: 1fr; }
       .development-grouped-chart,
       .development-line-labels { grid-template-columns: 1fr; }
+
+      .development-highlight-line-labels { grid-template-columns: repeat(5, minmax(0, 1fr)); }
     }
 
     .stat-card {
@@ -6947,6 +7032,20 @@
     return { rows: getMetricRows(currentStats, previousStats), label };
   }
 
+  function buildMonthHighlightSeries(history, date = new Date(), metricKey = 'introSuccesses') {
+    const currentMonthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+    const previousMonthStart = new Date(date.getFullYear(), date.getMonth() - 1, 1);
+    const elapsedWeekCount = Math.max(1, getElapsedMonthWeekCount(date));
+    const currentRanges = getMonthWeekRanges(currentMonthStart).slice(0, elapsedWeekCount);
+    const previousRanges = getMonthWeekRanges(previousMonthStart).slice(0, elapsedWeekCount);
+    const currentEnd = addDays(startOfDay(date), 1);
+    return {
+      labels: currentRanges.map((_, index) => `U${index + 1}`),
+      current: currentRanges.map(range => getRangeStats(history, range.start, range.end > currentEnd ? currentEnd : range.end)[metricKey] || 0),
+      previous: previousRanges.map(range => getRangeStats(history, range.start, range.end)[metricKey] || 0),
+    };
+  }
+
   function renderSparkBars(previousValue, currentValue, metricClass) {
     const maxValue = Math.max(previousValue, currentValue, 1);
     return `
@@ -6961,26 +7060,65 @@
     `;
   }
 
-  function renderDevelopmentHighlightVisual(insight) {
-    const metricClass = getMetricClass(insight.metricKey);
+  function renderDevelopmentHighlightDayChart(insight, metricClass) {
     const maxValue = Math.max(insight.previousValue, insight.currentValue, 1);
+    return `
+      <div class="development-highlight-chart-bars development-highlight-chart-day">
+        <div class="development-highlight-chart-bar previous" style="height:${getBarHeight(insight.previousValue, maxValue, 10)}%"></div>
+        <div class="development-highlight-chart-bar current ${metricClass}" style="height:${getBarHeight(insight.currentValue, maxValue, 10)}%"></div>
+      </div>
+    `;
+  }
+
+  function renderDevelopmentHighlightWeekChart(history, date, insight) {
+    const series = buildWeekMetricProgressSeries(history, date, insight.metricKey);
+    const width = 320;
+    const height = 156;
+    const padding = 18;
+    const allValues = [...series.current, ...series.previous];
+    const maxValue = Math.max(...allValues, 1);
+    const scalePoints = getLineChartPoints([0, maxValue / 2, maxValue], width, height, padding, maxValue).map(point => Math.round(point.y));
+    const currentPoints = getLineChartPoints(series.current, width, height, padding, maxValue);
+    const previousPoints = getLineChartPoints(series.previous, width, height, padding, maxValue);
+    return `
+      <div class="development-highlight-line-card">
+        <svg class="development-highlight-line-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">
+          ${scalePoints.map(y => `<line class="development-line-grid" x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}"></line>`).join('')}
+          <polyline class="development-line-previous" points="${previousPoints.map(point => `${point.x},${point.y}`).join(' ')}"></polyline>
+          <polyline class="development-line-current" points="${currentPoints.map(point => `${point.x},${point.y}`).join(' ')}"></polyline>
+          ${previousPoints.map(point => `<circle class="development-line-point-previous" cx="${point.x}" cy="${point.y}" r="3"></circle>`).join('')}
+          ${currentPoints.map(point => `<circle class="development-line-point-current" cx="${point.x}" cy="${point.y}" r="3.5"></circle>`).join('')}
+        </svg>
+        <div class="development-highlight-line-labels">${series.labels.map(label => `<span>${label}</span>`).join('')}</div>
+      </div>
+    `;
+  }
+
+  function renderDevelopmentHighlightMonthChart(history, date, insight, metricClass) {
+    const series = buildMonthHighlightSeries(history, date, insight.metricKey);
+    const maxValue = Math.max(...series.current, ...series.previous, 1);
+    return `
+      <div class="development-highlight-month-grid">
+        ${series.labels.map((label, index) => `
+          <div class="development-highlight-month-group">
+            <div class="development-highlight-month-bars">
+              <div class="development-highlight-month-bar previous" style="height:${getBarHeight(series.previous[index] || 0, maxValue, 8)}%"></div>
+              <div class="development-highlight-month-bar current ${metricClass}" style="height:${getBarHeight(series.current[index] || 0, maxValue, 8)}%"></div>
+            </div>
+            <div class="development-highlight-month-label">${label}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function renderDevelopmentHighlightVisual(insight, history, date = new Date()) {
+    const metricClass = getMetricClass(insight.metricKey);
     const chart = insight.periodType === 'month'
-      ? `
-        <div class="development-highlight-track-stack">
-          <div class="development-highlight-chart-track">
-            <div class="development-highlight-chart-track-fill previous" style="width:${getBarWidth(insight.previousValue, maxValue, 12)}"></div>
-          </div>
-          <div class="development-highlight-chart-track">
-            <div class="development-highlight-chart-track-fill current ${metricClass}" style="width:${getBarWidth(insight.currentValue, maxValue, 12)}"></div>
-          </div>
-        </div>
-      `
-      : `
-        <div class="development-highlight-chart-bars">
-          <div class="development-highlight-chart-bar previous" style="height:${getBarHeight(insight.previousValue, maxValue, 10)}%"></div>
-          <div class="development-highlight-chart-bar current ${metricClass}" style="height:${getBarHeight(insight.currentValue, maxValue, 10)}%"></div>
-        </div>
-      `;
+      ? renderDevelopmentHighlightMonthChart(history, date, insight, metricClass)
+      : insight.periodType === 'week'
+        ? renderDevelopmentHighlightWeekChart(history, date, insight)
+        : renderDevelopmentHighlightDayChart(insight, metricClass);
     return `
       <div class="development-highlight-visual ${insight.direction}">
         <div class="development-highlight-visual-head">
@@ -6991,8 +7129,8 @@
         <div class="development-highlight-chart">
           ${chart}
           <div class="development-highlight-chart-legend">
-            <span>Før</span>
-            <span>Nå</span>
+            <span>${insight.periodType === 'week' ? 'Forrige uke' : insight.periodType === 'month' ? 'Forrige måned' : 'Før'}</span>
+            <span>${insight.periodType === 'week' ? 'Denne uken' : insight.periodType === 'month' ? 'Denne måneden' : 'Nå'}</span>
           </div>
         </div>
       </div>
@@ -7958,7 +8096,7 @@
           </div>
           <div class="development-highlights-grid">
             ${developmentHighlights.length
-              ? developmentHighlights.map(item => renderDevelopmentHighlightVisual(item)).join('')
+              ? developmentHighlights.map(item => renderDevelopmentHighlightVisual(item, history, now)).join('')
               : '<div class="stats-empty-card">Ingen highlights ennå. Registrer litt mer aktivitet, så begynner utviklingssiden å trekke frem de første signalene.</div>'}
           </div>
         </div>
