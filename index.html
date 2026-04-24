@@ -658,10 +658,9 @@
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 14px;
     }
 
-    .verification-hero,
     .verification-card {
       background: var(--card);
       border: 1.5px solid var(--border);
@@ -669,32 +668,23 @@
       box-shadow: 0 2px 12px rgba(41,168,224,0.08);
     }
 
-    .verification-hero {
-      padding: 22px 24px;
-    }
-
     .verification-title {
-      font-size: 1.55rem;
+      font-size: 1.7rem;
       font-weight: 800;
       color: var(--primary-dark);
-      margin-bottom: 8px;
-    }
-
-    .verification-text {
-      color: var(--muted);
-      font-size: 0.94rem;
-      line-height: 1.55;
-    }
-
-    .verification-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 18px;
+      text-align: center;
     }
 
     .verification-card {
-      padding: 22px 24px;
+      padding: 28px 30px;
+    }
+
+    .verification-script {
+      white-space: pre-wrap;
+      font-size: 1.03rem;
+      line-height: 1.85;
+      color: var(--text);
+      font-family: 'Inter', 'Segoe UI', sans-serif;
     }
 
     .samtalerating-page {
@@ -7678,32 +7668,14 @@ Dere vil få abonnement X til prisen X,- /mnd, med en standard avtaleperiode på
 SMS-verifisering: Det som skjer nå er at du vil motta en SMS-verifisering. Det eneste du trenger å gjøre her er å svare et enkelt "JA" på denne meldingen, for at vi skal få bekreftet ordren og vi sender deg SIM-kort.`;
   }
 
-  function copyVerificationScript() {
-    const script = getVerificationScript();
-    const output = document.getElementById('verification-script-output');
-    if (output) output.value = script;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(script);
-    }
-  }
-
   function renderVerificationPage() {
     const page = document.getElementById('verification-page');
     if (!page) return;
     const script = getVerificationScript();
     page.innerHTML = `
-      <div class="verification-hero">
-        <div class="verification-title">Verifisering</div>
-        <div class="verification-text">Bruk denne muntlige kontrakten for å oppsummere bestillingen med kunden før salget fullføres. Dagens dato legges inn automatisk, og resten kan leses opp direkte eller kopieres.</div>
-        <div class="verification-actions">
-          <button class="save-btn" style="margin-top:0;" type="button" onclick="copyVerificationScript()">Kopier kontrakt</button>
-          <button class="backup-btn" style="font-size:0.9rem;padding:10px 14px;border-radius:8px;color:var(--muted);" type="button" onclick="renderVerificationPage()">Oppdater dato</button>
-        </div>
-      </div>
+      <div class="verification-title">Verifisering</div>
       <div class="verification-card">
-        <div class="notes-question">Muntlig kontrakt</div>
-        <div class="notes-helper">Feltene uten utfylt tekst er ment som punkter dere fyller inn i samtalen.</div>
-        <textarea id="verification-script-output" class="notes-summary-output" readonly>${script}</textarea>
+        <div class="verification-script">${script}</div>
       </div>
     `;
   }
