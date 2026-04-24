@@ -3372,6 +3372,118 @@
       text-align: center;
     }
 
+    .development-highlight-visual {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 0;
+      padding: 8px 4px;
+    }
+
+    .development-highlight-visual-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .development-highlight-period {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .development-highlight-label {
+      font-size: 0.98rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.35;
+    }
+
+    .development-highlight-visual.positive .development-highlight-label {
+      color: #bbf7d0;
+    }
+
+    .development-highlight-visual.negative .development-highlight-label {
+      color: #fecaca;
+    }
+
+    .development-highlight-meta-line {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .development-highlight-chart {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .development-highlight-chart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      min-height: 90px;
+    }
+
+    .development-highlight-chart-bar {
+      flex: 1;
+      min-height: 8px;
+      border-radius: 14px 14px 8px 8px;
+      background: rgba(148, 163, 184, 0.22);
+    }
+
+    .development-highlight-chart-bar.current.metric-intro,
+    .development-highlight-chart-track-fill.current.metric-intro {
+      background: linear-gradient(180deg, #60a5fa, #2563eb);
+    }
+
+    .development-highlight-chart-bar.current.metric-over5,
+    .development-highlight-chart-track-fill.current.metric-over5 {
+      background: linear-gradient(180deg, #2dd4bf, #0f766e);
+    }
+
+    .development-highlight-chart-bar.current.metric-salg,
+    .development-highlight-chart-track-fill.current.metric-salg {
+      background: linear-gradient(180deg, #fbbf24, #d97706);
+    }
+
+    .development-highlight-chart-bar.previous,
+    .development-highlight-chart-track-fill.previous {
+      background: rgba(148, 163, 184, 0.28);
+    }
+
+    .development-highlight-chart-legend {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+
+    .development-highlight-track-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .development-highlight-chart-track {
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.14);
+      overflow: hidden;
+    }
+
+    .development-highlight-chart-track-fill {
+      height: 100%;
+      border-radius: 999px;
+    }
+
     .development-compare-row,
     .development-track-row {
       display: flex;
@@ -6396,6 +6508,8 @@
     salg: { key: 'salg', label: 'Salg', noun: 'salg', emphasis: 'gold' },
     introSuccesses: { key: 'introSuccesses', label: 'Opptak', noun: 'opptak', emphasis: 'blue' },
   };
+  const DEVELOPMENT_PERIOD_WEIGHTS = { month: 300, week: 200, day: 100 };
+  const DEVELOPMENT_METRIC_WEIGHTS = { salg: 30, over5: 20, introSuccesses: 10 };
 
   function startOfDay(date) {
     const next = new Date(date);
@@ -6529,6 +6643,7 @@
     comparisonLabel,
     group,
     priority = 0,
+    periodType = 'day',
     positiveOnly = false,
     positiveLead = '',
     negativeLead = '',
@@ -6549,6 +6664,7 @@
       metricKey,
       metric,
       group,
+      periodType,
       direction,
       delta,
       currentValue,
@@ -6579,6 +6695,7 @@
         comparisonLabel: previousDayLabel,
         group: 'Dag',
         priority: 90 - index,
+        periodType: 'day',
       });
       if (insight) insights.push(insight);
     });
@@ -6599,6 +6716,7 @@
         comparisonLabel: 'på samme punkt forrige uke',
         group: 'Uke',
         priority: 75 - index,
+        periodType: 'week',
       });
       if (insight) insights.push(insight);
     });
@@ -6618,6 +6736,7 @@
         comparisonLabel: 'på samme dato i forrige måned',
         group: 'Måned',
         priority: 60 - index,
+        periodType: 'month',
       });
       if (insight) insights.push(insight);
     });
@@ -6641,6 +6760,7 @@
       comparisonLabel: 'samme dag forrige uke',
       group: 'Ekstra',
       priority: 68 - index,
+      periodType: 'day',
       positiveOnly: true,
       positiveLead: `${DEVELOPMENT_METRICS[metricKey].label} er sterkere enn samme dag forrige uke`,
     })).filter(Boolean);
@@ -6663,6 +6783,7 @@
       comparisonLabel: `etter ${businessDayCount} arbeidsdager i forrige måned`,
       group: 'Ekstra',
       priority: 52 - index,
+      periodType: 'month',
       positiveOnly: true,
       positiveLead: `${metric.label} har startet bedre denne måneden`,
     })).filter(Boolean);
@@ -6686,6 +6807,7 @@
       comparisonLabel: `etter ${elapsedWeekCount} uke${elapsedWeekCount === 1 ? '' : 'r'} i forrige måned`,
       group: 'Ekstra',
       priority: 44 - index,
+      periodType: 'month',
       positiveOnly: true,
       positiveLead: `${metric.label} er bedre i månedens første uker`,
     })).filter(Boolean);
@@ -6701,12 +6823,28 @@
   }
 
   function getDevelopmentHighlights(insights) {
-    const positives = insights.filter(item => item.direction === 'positive');
-    const negatives = insights.filter(item => item.direction === 'negative');
+    const withScores = insights.map(item => ({
+      ...item,
+      highlightScore: getDevelopmentHighlightScore(item),
+    }));
+    const positives = withScores
+      .filter(item => item.direction === 'positive')
+      .sort((a, b) => b.highlightScore - a.highlightScore || b.delta - a.delta);
+    const negatives = withScores
+      .filter(item => item.direction === 'negative')
+      .sort((a, b) => b.highlightScore - a.highlightScore || b.delta - a.delta);
     if (!positives.length) return negatives.length ? [negatives[0]] : [];
     const highlights = positives.slice(0, Math.min(3, positives.length));
     if (highlights.length >= 2 && negatives.length && highlights.length < 4) highlights.push(negatives[0]);
     return highlights;
+  }
+
+  function getDevelopmentHighlightScore(insight) {
+    const periodWeight = DEVELOPMENT_PERIOD_WEIGHTS[insight.periodType] || 0;
+    const metricWeight = DEVELOPMENT_METRIC_WEIGHTS[insight.metricKey] || 0;
+    const directionWeight = insight.direction === 'positive' ? 40 : 0;
+    const deltaWeight = insight.delta * 5;
+    return periodWeight + metricWeight + directionWeight + deltaWeight;
   }
 
   function getMetricRows(currentStats, previousStats) {
@@ -6825,18 +6963,39 @@
     `;
   }
 
-  function renderDevelopmentHighlightCard(insight) {
+  function renderDevelopmentHighlightVisual(insight) {
     const metricClass = getMetricClass(insight.metricKey);
-    return `
-      <div class="development-highlight-card ${insight.direction}">
-        <div class="development-insight-top">
-          <span class="development-insight-badge">${insight.badge}</span>
-          <span class="development-insight-delta">${formatSignedDelta(insight.direction === 'positive' ? insight.delta : -insight.delta)}</span>
+    const maxValue = Math.max(insight.previousValue, insight.currentValue, 1);
+    const chart = insight.periodType === 'month'
+      ? `
+        <div class="development-highlight-track-stack">
+          <div class="development-highlight-chart-track">
+            <div class="development-highlight-chart-track-fill previous" style="width:${getBarWidth(insight.previousValue, maxValue, 12)}"></div>
+          </div>
+          <div class="development-highlight-chart-track">
+            <div class="development-highlight-chart-track-fill current ${metricClass}" style="width:${getBarWidth(insight.currentValue, maxValue, 12)}"></div>
+          </div>
         </div>
-        <div class="development-insight-title">${insight.title}</div>
-        <div class="development-insight-detail">${insight.detail}</div>
-        <div class="development-highlight-meta">
-          ${renderSparkBars(insight.previousValue, insight.currentValue, metricClass)}
+      `
+      : `
+        <div class="development-highlight-chart-bars">
+          <div class="development-highlight-chart-bar previous" style="height:${getBarHeight(insight.previousValue, maxValue, 10)}%"></div>
+          <div class="development-highlight-chart-bar current ${metricClass}" style="height:${getBarHeight(insight.currentValue, maxValue, 10)}%"></div>
+        </div>
+      `;
+    return `
+      <div class="development-highlight-visual ${insight.direction}">
+        <div class="development-highlight-visual-head">
+          <div class="development-highlight-period">${insight.periodType === 'month' ? 'Måned' : insight.periodType === 'week' ? 'Uke' : 'Dag'} - ${insight.metric.label}</div>
+        </div>
+        <div class="development-highlight-label">${insight.title}</div>
+        <div class="development-highlight-meta-line">${insight.previousValue} -> ${insight.currentValue} (${formatSignedDelta(insight.direction === 'positive' ? insight.delta : -insight.delta)})</div>
+        <div class="development-highlight-chart">
+          ${chart}
+          <div class="development-highlight-chart-legend">
+            <span>Før</span>
+            <span>Nå</span>
+          </div>
         </div>
       </div>
     `;
@@ -7801,7 +7960,7 @@
           </div>
           <div class="development-highlights-grid">
             ${developmentHighlights.length
-              ? developmentHighlights.map(item => renderDevelopmentHighlightCard(item)).join('')
+              ? developmentHighlights.map(item => renderDevelopmentHighlightVisual(item)).join('')
               : '<div class="stats-empty-card">Ingen highlights ennå. Registrer litt mer aktivitet, så begynner utviklingssiden å trekke frem de første signalene.</div>'}
           </div>
         </div>
