@@ -1326,7 +1326,8 @@
 
     .choice-chip.pricing-mode-chip-forbund:hover {
       border-color: #16a34a;
-      background: #f0fdf4;
+      background: rgba(22, 163, 74, 0.16);
+      color: #86efac;
     }
 
     .choice-chip.pricing-mode-chip-forbund.active {
@@ -1603,10 +1604,11 @@
       width: 100%;
       margin-top: 16px;
       text-align: left;
-      background: #eff6ff;
-      border: 1.5px solid #bfdbfe;
+      background: linear-gradient(180deg, rgba(11, 18, 32, 0.96) 0%, rgba(7, 16, 29, 0.98) 100%);
+      border: 1.5px solid rgba(41, 168, 224, 0.2);
       border-radius: 14px;
       padding: 16px;
+      box-shadow: inset 0 1px 0 rgba(148, 163, 184, 0.05);
     }
 
     .notes-summary-panel.visible {
@@ -1633,7 +1635,7 @@
     }
 
     .notes-price-list-intro {
-      color: #1e293b;
+      color: var(--muted);
       font-size: 0.92rem;
       line-height: 1.5;
     }
@@ -1644,31 +1646,32 @@
     }
 
     .notes-price-card {
-      border: 1.5px solid #bfdbfe;
+      border: 1px solid var(--border);
       border-radius: 14px;
       padding: 14px;
-      background: white;
-      color: #1e293b;
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.96) 0%, rgba(11, 18, 32, 0.96) 100%);
+      color: var(--text);
+      box-shadow: 0 10px 24px rgba(2, 6, 23, 0.22);
     }
 
     .notes-price-card-title {
       font-size: 1rem;
       font-weight: 800;
-      color: #0f172a;
+      color: var(--text);
       margin-bottom: 6px;
     }
 
     .notes-price-card-price {
       font-size: 0.92rem;
       font-weight: 800;
-      color: #1d4ed8;
+      color: #7dd3fc;
       margin-bottom: 4px;
     }
 
     .notes-price-card-subprice {
       font-size: 0.84rem;
       font-weight: 700;
-      color: #0f172a;
+      color: #cbd5e1;
       margin-bottom: 10px;
     }
 
@@ -1892,26 +1895,29 @@
     .price-calculator-summary-mode {
       padding: 6px 10px;
       border-radius: 999px;
-      background: rgba(41, 168, 224, 0.12);
-      color: var(--primary-dark);
+      background: rgba(41, 168, 224, 0.14);
+      color: #93c5fd;
+      border: 1px solid rgba(59, 130, 246, 0.2);
       font-size: 0.78rem;
       font-weight: 800;
       white-space: nowrap;
     }
 
     .price-calculator-summary-mode.standard {
-      background: rgba(41, 168, 224, 0.12);
-      color: var(--primary-dark);
+      background: rgba(41, 168, 224, 0.14);
+      color: #93c5fd;
     }
 
     .price-calculator-summary-mode.forbund {
-      background: rgba(22, 163, 74, 0.14);
-      color: #166534;
+      background: rgba(22, 163, 74, 0.16);
+      color: #86efac;
+      border-color: rgba(34, 197, 94, 0.2);
     }
 
     .price-calculator-summary-mode.liste {
-      background: rgba(220, 38, 38, 0.14);
-      color: #b91c1c;
+      background: rgba(220, 38, 38, 0.16);
+      color: #fca5a5;
+      border-color: rgba(248, 113, 113, 0.2);
     }
 
     .price-calculator-metrics {
@@ -1945,22 +1951,22 @@
     }
 
     .price-calculator-metric-highlight {
-      border-color: #2563eb;
-      background: #dbeafe;
-      box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.14);
+      border-color: rgba(59, 130, 246, 0.32);
+      background: linear-gradient(180deg, rgba(17, 36, 64, 0.96) 0%, rgba(13, 27, 46, 0.96) 100%);
+      box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.12);
     }
 
     .price-calculator-metric-highlight .price-calculator-metric-label {
-      color: #1d4ed8;
+      color: #93c5fd;
     }
 
     .price-calculator-metric-highlight .price-calculator-metric-value {
-      color: #0f172a;
+      color: #eff6ff;
       display: inline-block;
       padding: 6px 10px;
       border-radius: 10px;
-      background: rgba(255, 255, 255, 0.78);
-      border: 1px solid rgba(37, 99, 235, 0.16);
+      background: rgba(11, 18, 32, 0.78);
+      border: 1px solid rgba(59, 130, 246, 0.22);
     }
 
     .price-calculator-clear-btn {
@@ -1994,45 +2000,45 @@
     }
 
     .notes-price-card-basis {
-      background: #e2e8f0;
-      border-color: #64748b;
-      box-shadow: inset 0 0 0 1px rgba(51, 65, 85, 0.18);
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.96) 0%, rgba(15, 23, 42, 0.96) 100%);
+      border-color: rgba(148, 163, 184, 0.28);
+      box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.08);
     }
 
     .notes-price-card-basis .notes-price-card-title {
-      color: #0f172a;
+      color: #e2e8f0;
     }
 
     .notes-price-card-basis .notes-price-card-price {
-      color: #1e293b;
+      color: #cbd5e1;
     }
 
     .notes-price-card-flyt {
-      background: #bfdbfe;
-      border-color: #2563eb;
-      box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.18);
+      background: linear-gradient(180deg, rgba(20, 35, 60, 0.98) 0%, rgba(12, 25, 45, 0.98) 100%);
+      border-color: rgba(59, 130, 246, 0.34);
+      box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.1);
     }
 
     .notes-price-card-flyt .notes-price-card-title {
-      color: #1e3a8a;
+      color: #dbeafe;
     }
 
     .notes-price-card-flyt .notes-price-card-price {
-      color: #1d4ed8;
+      color: #7dd3fc;
     }
 
     .notes-price-card-frihet {
-      background: #bbf7d0;
-      border-color: #16a34a;
-      box-shadow: inset 0 0 0 1px rgba(22, 163, 74, 0.18);
+      background: linear-gradient(180deg, rgba(18, 52, 37, 0.98) 0%, rgba(12, 32, 25, 0.98) 100%);
+      border-color: rgba(34, 197, 94, 0.3);
+      box-shadow: inset 0 0 0 1px rgba(74, 222, 128, 0.08);
     }
 
     .notes-price-card-frihet .notes-price-card-title {
-      color: #14532d;
+      color: #dcfce7;
     }
 
     .notes-price-card-frihet .notes-price-card-price {
-      color: #166534;
+      color: #86efac;
     }
 
     @media (max-width: 900px) {
@@ -4795,14 +4801,14 @@
 
     .choice-chip.pricing-mode-chip-forbund:hover {
       border-color: #16a34a;
-      background: #dcfce7;
-      color: #14532d;
+      background: rgba(22, 163, 74, 0.16);
+      color: #86efac;
     }
 
     .choice-chip.pricing-mode-chip-liste:hover {
       border-color: #dc2626;
-      background: #fee2e2;
-      color: #991b1b;
+      background: rgba(220, 38, 38, 0.16);
+      color: #fca5a5;
     }
 
     .leaderboard-card,
