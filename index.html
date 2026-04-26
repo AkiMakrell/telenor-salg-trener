@@ -70,12 +70,18 @@
       flex-wrap: nowrap;
       justify-content: flex-start;
       min-width: 0;
-      overflow: visible;
+      overflow-x: auto;
+      overflow-y: visible;
       background: #0b1220;
       border: 1px solid var(--border);
       padding: 4px;
       border-radius: 30px;
       gap: 4px;
+      scrollbar-width: none;
+    }
+
+    .tabs::-webkit-scrollbar {
+      display: none;
     }
 
     .top-bar-actions {
@@ -2572,12 +2578,10 @@
       align-items: start;
     }
 
-    @media (max-width: 700px) {
-      .intro-layout { grid-template-columns: 1fr; }
-
+    @media (max-width: 980px) {
       .top-bar {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
       }
 
       .tabs {
@@ -2592,6 +2596,14 @@
       .top-bar-settings {
         align-self: flex-end;
       }
+
+      .settings-trigger-profile {
+        max-width: 110px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .intro-layout { grid-template-columns: 1fr; }
 
       .samtalerating-hero,
       .samtalerating-section-head,
