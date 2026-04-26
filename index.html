@@ -3600,6 +3600,10 @@
       min-height: 220px;
     }
 
+    .development-grouped-chart.weeks-comparison {
+      grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+    }
+
     .development-group {
       display: flex;
       flex-direction: column;
@@ -3619,6 +3623,24 @@
     .development-grouped-bar {
       width: min(52px, 100%);
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .development-grouped-stack {
+      width: min(44px, 100%);
+      min-height: 10px;
+      border-radius: 12px 12px 0 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: height 0.4s ease;
+    }
+
+    .development-grouped-stack.previous {
+      opacity: 0.38;
+    }
+
+    .development-grouped-stack.current {
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.18);
     }
 
     .development-group-label {
@@ -7738,6 +7760,36 @@
     return getMetricRows(currentStats, previousStats);
   }
 
+  function buildMonthWeekComparisonBuckets(history, date = new Date()) {
+    const currentMonthStart = new Date(date.getFullYear(), date.getMonth(), 1);
+    const previousMonthStart = new Date(date.getFullYear(), date.getMonth() - 1, 1);
+    const elapsedWeekCount = Math.max(1, getElapsedMonthWeekCount(date));
+    const currentRanges = getMonthWeekRanges(currentMonthStart).slice(0, elapsedWeekCount);
+    const previousRanges = getMonthWeekRanges(previousMonthStart).slice(0, elapsedWeekCount);
+    const currentEnd = addDays(startOfDay(date), 1);
+    return currentRanges.map((range, index) => {
+      const currentRangeEnd = range.end > currentEnd ? currentEnd : range.end;
+      const previousRange = previousRanges[index];
+      let previousRangeEnd = previousRange?.end || previousRange?.start || previousMonthStart;
+      if (previousRange && range.end > currentEnd) {
+        const elapsedDays = Math.max(1, Math.min(5, Math.floor((startOfDay(date) - startOfDay(range.start)) / 86400000) + 1));
+        const partialEnd = addDays(startOfDay(previousRange.start), elapsedDays);
+        previousRangeEnd = partialEnd > previousRange.end ? previousRange.end : partialEnd;
+      }
+      const currentStats = getRangeStats(history, range.start, currentRangeEnd);
+      const previousStats = previousRange
+        ? getRangeStats(history, previousRange.start, previousRangeEnd)
+        : { introSuccesses: 0, over5: 0, salg: 0 };
+      return {
+        label: range.label,
+        previousFiveMin: previousStats.over5 || 0,
+        previousSales: previousStats.salg || 0,
+        currentFiveMin: currentStats.over5 || 0,
+        currentSales: currentStats.salg || 0,
+      };
+    });
+  }
+
   function buildMonthRaceRows(history, date = new Date(), mode = 'businessDays') {
     const currentMonthStart = new Date(date.getFullYear(), date.getMonth(), 1);
     const previousMonthStart = new Date(date.getFullYear(), date.getMonth() - 1, 1);
@@ -8002,6 +8054,55 @@
             <span class="legend-previous">${previousLabel}</span>
             <span class="legend-current legend-neutral">${currentLabel}</span>
           </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderMonthWeekStackBar(total, sales, fiveMin, maxValue, variant) {
+    if (total <= 0) {
+      return `
+        <div class="development-grouped-bar development-grouped-stack ${variant}" style="height:10px">
+          <div class="bar-seg-teal" style="flex:1;opacity:0.18"></div>
+        </div>
+      `;
+    }
+    return `
+      <div class="development-grouped-bar development-grouped-stack ${variant}" style="height:${getBarHeight(total, maxValue, 10)}%">
+        ${sales > 0 ? `<div class="bar-seg-gold" style="flex:${sales}"></div>` : ''}
+        <div class="bar-seg-teal" style="flex:${Math.max(fiveMin, 0.001)}"></div>
+      </div>
+    `;
+  }
+
+  function renderMonthWeekComparisonChart(title, subtitle, buckets, previousLabel, currentLabel) {
+    const maxValue = Math.max(...buckets.flatMap(bucket => [
+      (bucket.previousFiveMin || 0) + (bucket.previousSales || 0),
+      (bucket.currentFiveMin || 0) + (bucket.currentSales || 0)
+    ]), 1);
+    return `
+      <div class="development-visual-card">
+        <div class="development-card-title">${title}</div>
+        ${subtitle ? `<div class="development-card-subtitle">${subtitle}</div>` : ''}
+        <div class="development-grouped-chart weeks-comparison">
+          ${buckets.map(bucket => {
+            const previousTotal = (bucket.previousFiveMin || 0) + (bucket.previousSales || 0);
+            const currentTotal = (bucket.currentFiveMin || 0) + (bucket.currentSales || 0);
+            return `
+              <div class="development-group">
+                <div class="development-group-bars">
+                  ${renderMonthWeekStackBar(previousTotal, bucket.previousSales || 0, bucket.previousFiveMin || 0, maxValue, 'previous')}
+                  ${renderMonthWeekStackBar(currentTotal, bucket.currentSales || 0, bucket.currentFiveMin || 0, maxValue, 'current')}
+                </div>
+                <div class="development-group-label">${bucket.label}</div>
+                <div class="development-group-values">${previousTotal} / ${currentTotal}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div class="development-chart-legend">
+          <span class="legend-previous">${previousLabel}</span>
+          <span class="legend-current legend-neutral">${currentLabel}${renderMixedMetricLegendDots()}</span>
         </div>
       </div>
     `;
@@ -8854,6 +8955,7 @@
     const weekProgress = buildWeekMetricProgressSeries(history, now, 'over5');
     const bestWeekComparison = buildBestWeekComparison(weekRecords, currentWeekKey);
     const monthComparisonRows = buildMonthMetricComparison(history, now);
+    const monthWeekComparisonBuckets = buildMonthWeekComparisonBuckets(history, now);
     const monthBusinessDayRace = showMonthStartComparisons ? buildMonthRaceRows(history, now, 'businessDays') : null;
     const monthWeekRace = showMonthStartComparisons ? buildMonthRaceRows(history, now, 'weeks') : null;
     const monthLabels = getMonthComparisonLabels(now);
@@ -8909,11 +9011,7 @@
           <div class="development-summary-shell">
             <div class="development-summary-grid">
               ${renderHorizontalComparisonBoard('Denne måneden vs forrige måned', 'Sammenlignet mot samme dato i forrige måned.', monthComparisonRows, monthLabels.previous, monthLabels.current)}
-              <div class="development-visual-card">
-                <div class="development-card-title">6-min & salg per uke</div>
-                <div class="development-card-subtitle">Rytmen i måneden så langt, fordelt på arbeidsuker.</div>
-                ${stackedBarChart(weekBuckets, stackedChartMax)}
-              </div>
+              ${renderMonthWeekComparisonChart('6-min & salg per uke', 'Sammenlignet uke for uke mot forrige måned.', monthWeekComparisonBuckets, monthLabels.previous, monthLabels.current)}
             </div>
             ${showMonthStartComparisons ? `
               <div class="development-race-grid">
