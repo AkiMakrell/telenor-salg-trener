@@ -7140,7 +7140,14 @@
     salg: { key: 'salg', label: 'Salg', noun: 'salg', emphasis: 'gold' },
     introSuccesses: { key: 'introSuccesses', label: 'Opptak', noun: 'opptak', emphasis: 'blue' },
   };
-  const DEVELOPMENT_METRIC_WEIGHTS = { salg: 30, over5: 20, introSuccesses: 10 };
+  const DEVELOPMENT_METRIC_PRIORITY = ['salg', 'over5', 'introSuccesses'];
+  const DEVELOPMENT_METRIC_WEIGHTS = { salg: 120, over5: 88, introSuccesses: 60 };
+  const DEVELOPMENT_PERIOD_WEIGHTS = { month: 28, week: 22, day: 14 };
+  const DEVELOPMENT_CONFIDENCE_TARGETS = {
+    salg: { day: 2, week: 5, month: 8 },
+    over5: { day: 3, week: 7, month: 11 },
+    introSuccesses: { day: 4, week: 9, month: 14 },
+  };
 
   function startOfDay(date) {
     const next = new Date(date);
@@ -7287,12 +7294,15 @@
     positiveOnly = false,
     positiveLead = '',
     negativeLead = '',
+    comparisonType = 'standard',
   }) {
     if (currentValue === previousValue) return null;
     const direction = currentValue > previousValue ? 'positive' : 'negative';
     if (positiveOnly && direction !== 'positive') return null;
     const delta = Math.abs(currentValue - previousValue);
+    const signedDelta = currentValue - previousValue;
     const metric = DEVELOPMENT_METRICS[metricKey];
+    const relativeLift = previousValue > 0 ? signedDelta / previousValue : currentValue > 0 ? currentValue : 0;
     const title = direction === 'positive'
       ? `${positiveLead || `${metric.label} er opp ${periodLabel}`}`
       : `${negativeLead || `${metric.label} er litt ned ${periodLabel}`}`;
@@ -7307,8 +7317,14 @@
       periodType,
       direction,
       delta,
+      signedDelta,
       currentValue,
       previousValue,
+      periodLabel,
+      comparisonLabel,
+      comparisonType,
+      relativeLift,
+      sampleSize: currentValue + previousValue,
       priority: priority + delta,
       badge: direction === 'positive' ? 'Positiv' : 'Negativ',
       title,
@@ -7339,6 +7355,7 @@
           group: 'Uke',
           priority: 75 - index,
           periodType: 'week',
+          comparisonType: 'week-vs-last-week',
         });
         if (insight) insights.push(insight);
       });
@@ -7356,13 +7373,14 @@
         currentValue: currentMonthStats[metric.key],
         previousValue: previousMonthCalendarStats[metric.key],
         periodLabel: 'denne måneden',
-        comparisonLabel: 'på samme dato i forrige måned',
-        group: 'Måned',
-        priority: 60 - index,
-        periodType: 'month',
+          comparisonLabel: 'på samme dato i forrige måned',
+          group: 'Måned',
+          priority: 60 - index,
+          periodType: 'month',
+          comparisonType: 'month-vs-last-month',
+        });
+        if (insight) insights.push(insight);
       });
-      if (insight) insights.push(insight);
-    });
 
     return insights;
   }
@@ -7386,6 +7404,7 @@
       periodType: 'day',
       positiveOnly: true,
       positiveLead: `${DEVELOPMENT_METRICS[metricKey].label} er sterkere enn samme dag forrige uke`,
+      comparisonType: 'day-vs-last-week',
     })).filter(Boolean);
   }
 
@@ -7412,6 +7431,7 @@
       priority: 64 - index,
       periodType: 'day',
       positiveLead: `${metric.label} er sterkere enn samme dag forrige måned`,
+      comparisonType: 'day-vs-last-month',
     })).filter(Boolean);
   }
 
@@ -7436,6 +7456,7 @@
       periodType: 'month',
       positiveOnly: true,
       positiveLead: `${metric.label} har startet bedre denne måneden`,
+      comparisonType: 'month-start-business-days',
     })).filter(Boolean);
   }
 
@@ -7461,6 +7482,7 @@
       periodType: 'month',
       positiveOnly: true,
       positiveLead: `${metric.label} er bedre i månedens første uker`,
+      comparisonType: 'month-start-weeks',
     })).filter(Boolean);
   }
 
@@ -7477,43 +7499,76 @@
   function getDevelopmentHighlights(insights) {
     const withScores = insights.map(item => ({
       ...item,
+      confidenceScore: getDevelopmentHighlightConfidence(item),
       highlightScore: getDevelopmentHighlightScore(item),
     }));
     const positives = withScores
       .filter(item => item.direction === 'positive')
-      .sort((a, b) => b.highlightScore - a.highlightScore || b.delta - a.delta);
-    const negatives = withScores
-      .filter(item => item.direction === 'negative' && item.periodType !== 'day')
-      .sort((a, b) => b.highlightScore - a.highlightScore || b.delta - a.delta);
-    if (!positives.length) return negatives.length ? [negatives[0]] : [];
+      .sort((a, b) => b.highlightScore - a.highlightScore || b.delta - a.delta || a.title.localeCompare(b.title, 'no'));
+    if (!positives.length) return [];
     const selectedIds = new Set();
     const highlights = [];
-    const bestPerPeriod = ['day', 'week', 'month']
-      .map(periodType => positives.find(item => item.periodType === periodType))
-      .filter(Boolean)
-      .sort((a, b) => b.highlightScore - a.highlightScore || b.delta - a.delta);
+    const metricCounts = {};
+    const periodCounts = {};
+    const comparisonCounts = {};
+    const maxHighlights = Math.min(6, positives.length);
 
-    bestPerPeriod.forEach(item => {
-      if (highlights.length >= 3 || selectedIds.has(item.id)) return;
+    const addHighlight = (item) => {
+      if (!item || selectedIds.has(item.id) || highlights.length >= maxHighlights) return;
       highlights.push(item);
       selectedIds.add(item.id);
+      metricCounts[item.metricKey] = (metricCounts[item.metricKey] || 0) + 1;
+      periodCounts[item.periodType] = (periodCounts[item.periodType] || 0) + 1;
+      comparisonCounts[item.comparisonType] = (comparisonCounts[item.comparisonType] || 0) + 1;
+    };
+
+    DEVELOPMENT_METRIC_PRIORITY.forEach(metricKey => {
+      addHighlight(positives.find(item => item.metricKey === metricKey && !selectedIds.has(item.id)));
     });
 
-    positives.forEach(item => {
-      if (highlights.length >= 3 || selectedIds.has(item.id)) return;
-      highlights.push(item);
-      selectedIds.add(item.id);
+    ['month', 'week', 'day'].forEach(periodType => {
+      if (periodCounts[periodType]) return;
+      addHighlight(positives.find(item => item.periodType === periodType && !selectedIds.has(item.id)));
     });
 
-    if (highlights.length >= 2 && negatives.length && highlights.length < 4) highlights.push(negatives[0]);
+    while (highlights.length < maxHighlights) {
+      const next = positives
+        .filter(item => !selectedIds.has(item.id))
+        .map(item => ({
+          item,
+          adjustedScore: item.highlightScore - getDevelopmentHighlightSelectionPenalty(item, metricCounts, periodCounts, comparisonCounts),
+        }))
+        .sort((a, b) => b.adjustedScore - a.adjustedScore || b.item.highlightScore - a.item.highlightScore || b.item.delta - a.item.delta)
+        [0];
+      if (!next) break;
+      addHighlight(next.item);
+    }
+
     return highlights;
+  }
+
+  function getDevelopmentHighlightConfidence(insight) {
+    const metricTargets = DEVELOPMENT_CONFIDENCE_TARGETS[insight.metricKey] || DEVELOPMENT_CONFIDENCE_TARGETS.introSuccesses;
+    const target = metricTargets[insight.periodType] || 6;
+    return Math.min(1, (insight.sampleSize || 0) / target);
   }
 
   function getDevelopmentHighlightScore(insight) {
     const metricWeight = DEVELOPMENT_METRIC_WEIGHTS[insight.metricKey] || 0;
-    const directionWeight = insight.direction === 'positive' ? 40 : 0;
-    const deltaWeight = insight.delta * 5;
-    return metricWeight + directionWeight + deltaWeight;
+    const periodWeight = DEVELOPMENT_PERIOD_WEIGHTS[insight.periodType] || 0;
+    const deltaWeight = Math.min(insight.delta, 8) * 7;
+    const relativeWeight = Math.min(insight.relativeLift || 0, 2) * 22;
+    const confidenceWeight = getDevelopmentHighlightConfidence(insight) * 26;
+    const priorityWeight = insight.priority * 0.25;
+    return metricWeight + periodWeight + deltaWeight + relativeWeight + confidenceWeight + priorityWeight;
+  }
+
+  function getDevelopmentHighlightSelectionPenalty(insight, metricCounts, periodCounts, comparisonCounts) {
+    let penalty = 0;
+    if ((metricCounts[insight.metricKey] || 0) >= 2) penalty += 22;
+    if ((periodCounts[insight.periodType] || 0) >= 2) penalty += 14;
+    if ((comparisonCounts[insight.comparisonType] || 0) >= 1) penalty += 12;
+    return penalty;
   }
 
   function formatMonthName(date) {
