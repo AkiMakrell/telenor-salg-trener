@@ -7654,21 +7654,6 @@
     return { labels, current, previous };
   }
 
-  function buildWeekMetricDailySeries(history, date = new Date(), metricKey = 'introSuccesses') {
-    const weekStart = getStartOfWeek(date);
-    const previousWeekStart = addDays(weekStart, -7);
-    const labels = ['Man', 'Tir', 'Ons', 'Tor', 'Fre'];
-    const current = [];
-    const previous = [];
-    labels.forEach((label, index) => {
-      const currentDayStart = addDays(weekStart, index);
-      const previousDayStart = addDays(previousWeekStart, index);
-      current.push(getRangeStats(history, currentDayStart, addDays(currentDayStart, 1))[metricKey] || 0);
-      previous.push(getRangeStats(history, previousDayStart, addDays(previousDayStart, 1))[metricKey] || 0);
-    });
-    return { labels, current, previous };
-  }
-
   function buildMonthMetricComparison(history, date = new Date()) {
     const currentMonthStart = new Date(date.getFullYear(), date.getMonth(), 1);
     const previousMonthStart = new Date(date.getFullYear(), date.getMonth() - 1, 1);
@@ -7742,7 +7727,7 @@
   }
 
   function renderDevelopmentHighlightWeekChart(history, date, insight) {
-    const series = buildWeekMetricDailySeries(history, date, insight.metricKey);
+    const series = buildWeekMetricProgressSeries(history, date, insight.metricKey);
     const width = 320;
     const height = 156;
     const padding = 18;
