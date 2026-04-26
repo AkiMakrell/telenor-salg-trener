@@ -3460,29 +3460,18 @@
       color: var(--text);
     }
 
-    .development-mixed-legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .development-mixed-legend-chip {
+    .development-mixed-legend-dots {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 5px 9px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.36);
-      color: var(--text);
-      font-size: 0.72rem;
-      font-weight: 800;
+      gap: 5px;
+      margin-left: 8px;
       line-height: 1;
+      vertical-align: middle;
     }
 
     .development-mixed-legend-dot {
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
       border-radius: 999px;
       background: rgba(148, 163, 184, 0.8);
       flex: 0 0 auto;
@@ -7914,9 +7903,8 @@
         </div>
         <div class="development-chart-legend">
             <span class="legend-previous">${previousLabel}</span>
-            <span class="legend-current legend-neutral">${currentLabel}</span>
+            <span class="legend-current legend-neutral">${currentLabel}${renderMixedMetricLegendDots()}</span>
         </div>
-        ${renderMixedMetricLegend()}
         </div>
       `;
   }
@@ -7990,9 +7978,8 @@
         </div>
         <div class="development-chart-legend">
           <span class="legend-previous">${previousLabel}</span>
-          <span class="legend-current legend-neutral">${currentLabel}</span>
+          <span class="legend-current legend-neutral">${currentLabel}${renderMixedMetricLegendDots()}</span>
         </div>
-        ${renderMixedMetricLegend()}
       </div>
     `;
   }
@@ -8026,20 +8013,19 @@
         </div>
         <div class="development-chart-legend">
           <span class="legend-previous">${previousLabel}</span>
-          <span class="legend-current legend-neutral">${currentLabel}</span>
+          <span class="legend-current legend-neutral">${currentLabel}${renderMixedMetricLegendDots()}</span>
         </div>
-        ${renderMixedMetricLegend()}
       </div>
     `;
   }
 
-  function renderMixedMetricLegend() {
+  function renderMixedMetricLegendDots() {
     return `
-      <div class="development-mixed-legend">
-        <span class="development-mixed-legend-chip"><span class="development-mixed-legend-dot metric-intro"></span>Opptak</span>
-        <span class="development-mixed-legend-chip"><span class="development-mixed-legend-dot metric-over5"></span>Over 6 min</span>
-        <span class="development-mixed-legend-chip"><span class="development-mixed-legend-dot metric-salg"></span>Salg</span>
-      </div>
+      <span class="development-mixed-legend-dots" aria-hidden="true">
+        <span class="development-mixed-legend-dot metric-intro"></span>
+        <span class="development-mixed-legend-dot metric-over5"></span>
+        <span class="development-mixed-legend-dot metric-salg"></span>
+      </span>
     `;
   }
 
