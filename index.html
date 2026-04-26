@@ -532,6 +532,12 @@
       margin-top: 12px;
     }
 
+    .toggle-group.is-unset .toggle-btn {
+      border-style: dashed;
+      background: rgba(15, 23, 42, 0.76);
+      color: var(--muted);
+    }
+
     .toggle-btn {
       flex: 1;
       padding: 14px 10px;
@@ -558,6 +564,17 @@
       border-color: #dc3545;
       background: #f8d7da;
       color: #721c24;
+    }
+
+    .toggle-status {
+      margin-top: 8px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .toggle-status.is-selected {
+      color: var(--text);
     }
 
     .save-btn {
@@ -5264,18 +5281,20 @@
 
           <div>
             <strong>Over 6 minutter? <span style="font-weight:400;color:var(--muted);font-size:0.85rem;">(valgfri)</span></strong>
-            <div class="toggle-group">
+            <div id="over5min-toggle-group" class="toggle-group is-unset">
               <button class="toggle-btn" id="over5min-ja" onclick="selectOver5min('ja')">Ja</button>
               <button class="toggle-btn" id="over5min-nei" onclick="selectOver5min('nei')">Nei</button>
             </div>
+            <div id="over5min-toggle-status" class="toggle-status">Not selected yet</div>
           </div>
 
           <div>
             <strong>Salg? <span style="font-weight:400;color:var(--muted);font-size:0.85rem;">(valgfri)</span></strong>
-            <div class="toggle-group">
+            <div id="salg-toggle-group" class="toggle-group is-unset">
               <button class="toggle-btn" id="salg-ja" onclick="selectSalg('ja')">Ja</button>
               <button class="toggle-btn" id="salg-nei" onclick="selectSalg('nei')">Nei</button>
             </div>
+            <div id="salg-toggle-status" class="toggle-status">Not selected yet</div>
           </div>
 
         </div>
@@ -6342,16 +6361,28 @@
   let activeStatsSubview = 'overview';
   let showAllDevelopmentInsights = false;
 
+  function updateToggleSelectionState(key, value) {
+    const group = document.getElementById(`${key}-toggle-group`);
+    const status = document.getElementById(`${key}-toggle-status`);
+    if (group) group.classList.toggle('is-unset', !value);
+    if (status) {
+      status.textContent = value ? `Selected: ${value === 'ja' ? 'Yes' : 'No'}` : 'Not selected yet';
+      status.classList.toggle('is-selected', !!value);
+    }
+  }
+
   function selectOver5min(val) {
     selectedOver5min = val;
     document.getElementById('over5min-ja').className = 'toggle-btn' + (val === 'ja' ? ' selected-ja' : '');
     document.getElementById('over5min-nei').className = 'toggle-btn' + (val === 'nei' ? ' selected-nei' : '');
+    updateToggleSelectionState('over5min', val);
   }
 
   function selectSalg(val) {
     selectedSalg = val;
     document.getElementById('salg-ja').className = 'toggle-btn' + (val === 'ja' ? ' selected-ja' : '');
     document.getElementById('salg-nei').className = 'toggle-btn' + (val === 'nei' ? ' selected-nei' : '');
+    updateToggleSelectionState('salg', val);
   }
 
   function resetOpptak() {
@@ -6359,6 +6390,8 @@
     selectedSalg = null;
     ['over5min-ja','over5min-nei','salg-ja','salg-nei']
       .forEach(id => { const el = document.getElementById(id); if (el) el.className = 'toggle-btn'; });
+    updateToggleSelectionState('over5min', null);
+    updateToggleSelectionState('salg', null);
   }
 
   // ---- Intro ----
