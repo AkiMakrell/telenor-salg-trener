@@ -9523,7 +9523,15 @@
     history.push(buildIntroHistoryEntry(intro, { date: entryDate, opptak, over5min, salg }));
     localStorage.setItem('introHistory', JSON.stringify(history));
 
-    retroHistoryDraft = null;
+    retroHistoryDraft = {
+      dateValue,
+      timeValue,
+      selectedIntroId: intro.id,
+      introText: intro.text,
+      opptak,
+      over5min,
+      salg
+    };
     retroHistoryFeedback = {
       tone: 'success',
       message: `Historikk lagret for ${formatHistoryTimestamp(entryDate)}.`
@@ -9612,6 +9620,7 @@
                   <div class="meta">
                     <span class="result-badge ${isIntroSuccessEntry(entry) ? 'badge-yes' : 'badge-no'}">${isIntroSuccessEntry(entry) ? 'Opptak' : 'Tidligere forsøk'}</span>
                     <span>${entry.sessionLabel ? `${entry.sessionLabel} · ` : ''}${entry.tid}</span>
+                    <button class="delete-entry-btn" onclick="deleteIntroAttempt('${entry.id}')" title="Slett denne registreringen">×</button>
                   </div>
                 </div>
               `).join('')}
