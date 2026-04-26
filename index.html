@@ -7337,29 +7337,27 @@
     const todayStart = startOfDay(date);
     const tomorrow = addDays(todayStart, 1);
 
-    if (isEarlyInWeek(date)) {
-      const weekStart = getStartOfWeek(date);
-      const elapsedWeekBusinessDays = getBusinessDaysInRange(weekStart, date);
-      const previousWeekStart = addDays(weekStart, -7);
-      const currentWeekStats = getRangeStats(history, weekStart, tomorrow);
-      const previousWeekRange = getBusinessDayRangeFromStart(previousWeekStart, elapsedWeekBusinessDays);
-      const previousWeekStats = getRangeStats(history, previousWeekStart, previousWeekRange.end);
-      Object.values(DEVELOPMENT_METRICS).forEach((metric, index) => {
-        const insight = createMetricInsight({
-          id: `week-${metric.key}`,
-          metricKey: metric.key,
-          currentValue: currentWeekStats[metric.key],
-          previousValue: previousWeekStats[metric.key],
-          periodLabel: 'denne uken',
-          comparisonLabel: 'på samme punkt forrige uke',
-          group: 'Uke',
-          priority: 75 - index,
-          periodType: 'week',
-          comparisonType: 'week-vs-last-week',
-        });
-        if (insight) insights.push(insight);
+    const weekStart = getStartOfWeek(date);
+    const elapsedWeekBusinessDays = getBusinessDaysInRange(weekStart, date);
+    const previousWeekStart = addDays(weekStart, -7);
+    const currentWeekStats = getRangeStats(history, weekStart, tomorrow);
+    const previousWeekRange = getBusinessDayRangeFromStart(previousWeekStart, elapsedWeekBusinessDays);
+    const previousWeekStats = getRangeStats(history, previousWeekStart, previousWeekRange.end);
+    Object.values(DEVELOPMENT_METRICS).forEach((metric, index) => {
+      const insight = createMetricInsight({
+        id: `week-${metric.key}`,
+        metricKey: metric.key,
+        currentValue: currentWeekStats[metric.key],
+        previousValue: previousWeekStats[metric.key],
+        periodLabel: 'denne uken',
+        comparisonLabel: 'på samme punkt forrige uke',
+        group: 'Uke',
+        priority: 75 - index,
+        periodType: 'week',
+        comparisonType: 'week-vs-last-week',
       });
-    }
+      if (insight) insights.push(insight);
+    });
 
     const firstOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
     const previousMonthDate = new Date(date.getFullYear(), date.getMonth() - 1, 1);
@@ -7373,14 +7371,14 @@
         currentValue: currentMonthStats[metric.key],
         previousValue: previousMonthCalendarStats[metric.key],
         periodLabel: 'denne måneden',
-          comparisonLabel: 'på samme dato i forrige måned',
-          group: 'Måned',
-          priority: 60 - index,
-          periodType: 'month',
-          comparisonType: 'month-vs-last-month',
-        });
-        if (insight) insights.push(insight);
+        comparisonLabel: 'på samme dato i forrige måned',
+        group: 'Måned',
+        priority: 60 - index,
+        periodType: 'month',
+        comparisonType: 'month-vs-last-month',
       });
+      if (insight) insights.push(insight);
+    });
 
     return insights;
   }
@@ -7392,18 +7390,18 @@
     const lastWeekStart = startOfDay(lastWeekDate);
     const currentDayStats = getRangeStats(history, todayStart, tomorrow);
     const lastWeekDayStats = getRangeStats(history, lastWeekStart, addDays(lastWeekStart, 1));
-    return ['over5', 'salg'].map((metricKey, index) => createMetricInsight({
-      id: `same-day-last-week-${metricKey}`,
-      metricKey,
-      currentValue: currentDayStats[metricKey],
-      previousValue: lastWeekDayStats[metricKey],
+    return Object.values(DEVELOPMENT_METRICS).map((metric, index) => createMetricInsight({
+      id: `same-day-last-week-${metric.key}`,
+      metricKey: metric.key,
+      currentValue: currentDayStats[metric.key],
+      previousValue: lastWeekDayStats[metric.key],
       periodLabel: 'i dag',
       comparisonLabel: 'samme dag forrige uke',
       group: 'Ekstra',
       priority: 68 - index,
       periodType: 'day',
       positiveOnly: true,
-      positiveLead: `${DEVELOPMENT_METRICS[metricKey].label} er sterkere enn samme dag forrige uke`,
+      positiveLead: `${metric.label} er sterkere enn samme dag forrige uke`,
       comparisonType: 'day-vs-last-week',
     })).filter(Boolean);
   }
@@ -7522,13 +7520,12 @@
       comparisonCounts[item.comparisonType] = (comparisonCounts[item.comparisonType] || 0) + 1;
     };
 
-    DEVELOPMENT_METRIC_PRIORITY.forEach(metricKey => {
-      addHighlight(positives.find(item => item.metricKey === metricKey && !selectedIds.has(item.id)));
+    ['day', 'week', 'month'].forEach(periodType => {
+      addHighlight(positives.find(item => item.periodType === periodType && !selectedIds.has(item.id)));
     });
 
-    ['month', 'week', 'day'].forEach(periodType => {
-      if (periodCounts[periodType]) return;
-      addHighlight(positives.find(item => item.periodType === periodType && !selectedIds.has(item.id)));
+    DEVELOPMENT_METRIC_PRIORITY.forEach(metricKey => {
+      addHighlight(positives.find(item => item.metricKey === metricKey && !selectedIds.has(item.id)));
     });
 
     while (highlights.length < maxHighlights) {
