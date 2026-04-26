@@ -2623,7 +2623,7 @@
       margin-top: 14px;
       width: 100%;
       padding: 9px;
-      background: none;
+      background: transparent;
       border: 1.5px solid var(--border);
       border-radius: 8px;
       color: var(--primary-dark);
@@ -2634,8 +2634,17 @@
     }
 
     .history-toggle-btn:hover {
-      background: var(--primary-xlight);
       border-color: var(--primary);
+      color: var(--text);
+    }
+
+    .history-toggle-btn:focus-visible {
+      outline: 2px solid rgba(41,168,224,0.45);
+      outline-offset: 2px;
+    }
+
+    .history-toggle-btn:active {
+      background: transparent;
     }
 
     .history-panel {
@@ -4860,7 +4869,6 @@
     .intro-chip,
     .toggle-btn,
     .choice-chip,
-    .history-toggle-btn,
     .sf-save-node-btn {
       background: #111827;
       color: var(--text);
@@ -4870,7 +4878,6 @@
     .toggle-btn:hover,
     .intro-chip:hover,
     .intro-chip.selected,
-    .history-toggle-btn:hover,
     .choice-chip:hover {
       background: #162235;
     }
@@ -5243,7 +5250,7 @@
 
         <div id="intro-daily-stats" class="stats-grid stats-grid-2" style="margin-bottom:16px;"></div>
 
-        <label class="form-label">Introtekst:</label>
+        <label class="form-label">Aktiv intro:</label>
         <textarea id="intro-text" placeholder="Hei, jeg ringer fra Telenor..." oninput="autoResizeTextarea(this)"></textarea>
 
         <div id="intro-library-inline" style="display:none;"></div>
@@ -6132,6 +6139,7 @@
   function renderAll() {
     ensureIntroLeaderboardDataVersion();
     syncSelectedIntroFromSession();
+    resizeActiveIntroTextarea();
     renderSessionStatus();
     renderStatsHome();
     renderIntroLibrary();
@@ -6316,6 +6324,7 @@
       renderSessionStatus();
       renderStatsHome();
     }
+    if (name === 'intro') resizeActiveIntroTextarea();
     if (name === 'priser' || name === 'notater') renderAllPriceCalculators();
     if (name === 'samtaleflyt') renderSamtaleflyt();
     if (name === 'notater') renderConversationNotes();
@@ -6436,6 +6445,10 @@
     element.style.height = `${Math.max(element.scrollHeight + 8, 96)}px`;
   }
 
+  function resizeActiveIntroTextarea() {
+    autoResizeTextarea(document.getElementById('intro-text'));
+  }
+
   function fillIntroText(intro) {
     const ta = document.getElementById('intro-text');
     if (!ta) return;
@@ -6488,7 +6501,7 @@
 
     if (currentSession) {
       title.textContent = `${currentSession.label} er aktiv nå`;
-      subtitle.textContent = `${currentSession.start}–${currentSession.end}. Sist valgt intro følger automatisk til neste økt.`;
+      subtitle.textContent = `${currentSession.start}–${currentSession.end}.`;
     } else if (nextSession) {
       title.textContent = `Neste økt: ${nextSession.label}`;
       subtitle.textContent = `${nextSession.start}–${nextSession.end}. Valgt intro blir brukt automatisk når økten starter.`;
