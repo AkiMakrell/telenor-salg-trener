@@ -8735,7 +8735,7 @@
         </div>
         <div class="stats-goal-after-stats">${renderStatsGoalSummary(weekGoalStatus)}</div>
         <div class="development-section-grid" style="margin-top:14px;">
-          ${renderLineComparisonChart('Ukeprogresjon dag for dag', '', weekProgress.labels, weekProgress.current, weekProgress.previous, 'Forrige uke', 'Denne uken')}
+          ${renderLineComparisonChart('Ukeprogresjon 6 minuttere', '', weekProgress.labels, weekProgress.current, weekProgress.previous, 'Forrige uke', 'Denne uken')}
           ${renderHorizontalComparisonBoard('Denne uka vs beste uka', bestWeekComparison.subtitle, bestWeekComparison.rows, 'Beste uke', 'Denne uka')}
         </div>
       </div>
@@ -8851,7 +8851,7 @@
     const sameDayLastWeekRows = getMetricRows(dag, sameDayLastWeekStats);
     const sameDayLastMonthRows = getMetricRows(dag, sameDayLastMonthStats);
     const previousWeekRows = getMetricRows(uke, previousWeekStats);
-    const weekProgress = buildWeekMetricProgressSeries(history, now, 'introSuccesses');
+    const weekProgress = buildWeekMetricProgressSeries(history, now, 'over5');
     const bestWeekComparison = buildBestWeekComparison(weekRecords, currentWeekKey);
     const monthComparisonRows = buildMonthMetricComparison(history, now);
     const monthBusinessDayRace = showMonthStartComparisons ? buildMonthRaceRows(history, now, 'businessDays') : null;
@@ -8898,7 +8898,8 @@
           </div>
           <div class="development-section-grid">
             ${renderGroupedComparisonChart('Denne uken vs forrige uke', 'Sammenlignet mot samme punkt i forrige uke.', previousWeekRows, 'Forrige uke', 'Denne uken')}
-            ${renderLineComparisonChart('Ukeprogresjon dag for dag', 'Kumulativ utvikling i opptak gjennom uka.', weekProgress.labels, weekProgress.current, weekProgress.previous, 'Forrige uke', 'Denne uken')}
+            ${renderLineComparisonChart('Ukeprogresjon 6 minuttere', '', weekProgress.labels, weekProgress.current, weekProgress.previous, 'Forrige uke', 'Denne uken')}
+            ${renderHorizontalComparisonBoard('Denne uka vs beste uka', bestWeekComparison.subtitle, bestWeekComparison.rows, 'Beste uke', 'Denne uka')}
           </div>
         </div>
         <div class="stats-section">
