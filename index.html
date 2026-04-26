@@ -7983,28 +7983,24 @@
     const currentMonthStart = new Date(date.getFullYear(), date.getMonth(), 1);
     const previousMonthStart = new Date(date.getFullYear(), date.getMonth() - 1, 1);
     const elapsedWeekCount = Math.max(1, getElapsedMonthWeekCount(date));
-    const currentRanges = getMonthWeekRanges(currentMonthStart).slice(0, elapsedWeekCount);
-    const previousRanges = getMonthWeekRanges(previousMonthStart).slice(0, elapsedWeekCount);
-    const currentEnd = addDays(startOfDay(date), 1);
-    return currentRanges.map((range, index) => {
-      const currentRangeEnd = range.end > currentEnd ? currentEnd : range.end;
-      const previousRange = previousRanges[index];
-      let previousRangeEnd = previousRange?.end || previousRange?.start || previousMonthStart;
-      if (previousRange && range.end > currentEnd) {
-        const elapsedDays = Math.max(1, Math.min(5, Math.floor((startOfDay(date) - startOfDay(range.start)) / 86400000) + 1));
-        const partialEnd = addDays(startOfDay(previousRange.start), elapsedDays);
-        previousRangeEnd = partialEnd > previousRange.end ? previousRange.end : partialEnd;
-      }
-      const currentStats = getRangeStats(history, range.start, currentRangeEnd);
-      const previousStats = previousRange
-        ? getRangeStats(history, previousRange.start, previousRangeEnd)
-        : { introSuccesses: 0, over5: 0, salg: 0 };
+    const currentMonthEntries = history.filter(entry => {
+      const entryDate = isoToDate(entry.isoDate);
+      return entryDate && entryDate.getFullYear() === currentMonthStart.getFullYear() && entryDate.getMonth() === currentMonthStart.getMonth();
+    });
+    const previousMonthEntries = history.filter(entry => {
+      const entryDate = isoToDate(entry.isoDate);
+      return entryDate && entryDate.getFullYear() === previousMonthStart.getFullYear() && entryDate.getMonth() === previousMonthStart.getMonth();
+    });
+    const currentBuckets = buildMonthWeekBuckets(currentMonthEntries, currentMonthStart).slice(0, elapsedWeekCount);
+    const previousBuckets = buildMonthWeekBuckets(previousMonthEntries, previousMonthStart).slice(0, elapsedWeekCount);
+    return currentBuckets.map((bucket, index) => {
+      const previousBucket = previousBuckets[index] || { fiveMin: 0, sales: 0 };
       return {
-        label: range.label,
-        previousFiveMin: previousStats.over5 || 0,
-        previousSales: previousStats.salg || 0,
-        currentFiveMin: currentStats.over5 || 0,
-        currentSales: currentStats.salg || 0,
+        label: bucket.label,
+        previousFiveMin: previousBucket.fiveMin || 0,
+        previousSales: previousBucket.sales || 0,
+        currentFiveMin: bucket.fiveMin || 0,
+        currentSales: bucket.sales || 0,
       };
     });
   }
