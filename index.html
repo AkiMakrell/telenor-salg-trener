@@ -7771,17 +7771,43 @@
   }
 
   function renderDevelopmentHighlightWeekChart(history, date, insight) {
-    const maxValue = Math.max(insight.previousValue, insight.currentValue, 1);
+    if (insight.metricKey === 'salg') {
+      const maxValue = Math.max(insight.previousValue, insight.currentValue, 1);
+      return `
+        <div class="development-highlight-chart-bars development-highlight-chart-day">
+          <div class="development-highlight-chart-column">
+            <div class="development-highlight-chart-value">${insight.previousValue}</div>
+            <div class="development-highlight-chart-bar previous" style="height:${getBarHeight(insight.previousValue, maxValue, 10)}%"></div>
+          </div>
+          <div class="development-highlight-chart-column">
+            <div class="development-highlight-chart-value">${insight.currentValue}</div>
+            <div class="development-highlight-chart-bar current ${getMetricClass(insight.metricKey)}" style="height:${getBarHeight(insight.currentValue, maxValue, 10)}%"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    const series = buildWeekMetricProgressSeries(history, date, insight.metricKey);
+    const width = 320;
+    const height = 156;
+    const padding = 18;
+    const allValues = [...series.current, ...series.previous];
+    const maxValue = Math.max(...allValues, 1);
+    const scalePoints = getLineChartPoints([0, maxValue / 2, maxValue], width, height, padding, maxValue).map(point => Math.round(point.y));
+    const previousPoints = getLineChartPoints(series.previous, width, height, padding, maxValue);
+    const currentPoints = getLineChartPoints(series.current, width, height, padding, maxValue);
     return `
-      <div class="development-highlight-chart-bars development-highlight-chart-day">
-        <div class="development-highlight-chart-column">
-          <div class="development-highlight-chart-value">${insight.previousValue}</div>
-          <div class="development-highlight-chart-bar previous" style="height:${getBarHeight(insight.previousValue, maxValue, 10)}%"></div>
-        </div>
-        <div class="development-highlight-chart-column">
-          <div class="development-highlight-chart-value">${insight.currentValue}</div>
-          <div class="development-highlight-chart-bar current ${getMetricClass(insight.metricKey)}" style="height:${getBarHeight(insight.currentValue, maxValue, 10)}%"></div>
-        </div>
+      <div class="development-highlight-line-card">
+        <svg class="development-highlight-line-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">
+          ${scalePoints.map(y => `<line class="development-line-grid" x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}"></line>`).join('')}
+          <polyline class="development-line-previous" points="${previousPoints.map(point => `${point.x},${point.y}`).join(' ')}"></polyline>
+          <polyline class="development-line-current" points="${currentPoints.map(point => `${point.x},${point.y}`).join(' ')}"></polyline>
+          ${previousPoints.map(point => `<circle class="development-line-point-previous" cx="${point.x}" cy="${point.y}" r="3"></circle>`).join('')}
+          ${currentPoints.map(point => `<circle class="development-line-point-current" cx="${point.x}" cy="${point.y}" r="3.5"></circle>`).join('')}
+          ${previousPoints.map((point, index) => `<text class="development-highlight-line-value-previous" x="${point.x}" y="${Math.max(12, point.y - 8)}">${series.previous[index] || 0}</text>`).join('')}
+          ${currentPoints.map((point, index) => `<text class="development-highlight-line-value-current" x="${point.x}" y="${Math.max(24, point.y - 18)}">${series.current[index] || 0}</text>`).join('')}
+        </svg>
+        <div class="development-highlight-line-labels">${series.labels.map(label => `<span>${label}</span>`).join('')}</div>
       </div>
     `;
   }
