@@ -3456,6 +3456,18 @@
       color: #38bdf8;
     }
 
+    .development-highlight-chart-legend .legend-current.metric-intro {
+      color: #60a5fa;
+    }
+
+    .development-highlight-chart-legend .legend-current.metric-over5 {
+      color: #2dd4bf;
+    }
+
+    .development-highlight-chart-legend .legend-current.metric-salg {
+      color: #fbbf24;
+    }
+
     .development-inline-bar.current.metric-intro,
     .development-mini-bar.current.metric-intro,
     .development-grouped-bar.current.metric-intro,
@@ -3632,21 +3644,6 @@
       padding: 8px 4px;
     }
 
-    .development-highlight-visual-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .development-highlight-period {
-      font-size: 0.72rem;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
     .development-highlight-label {
       font-size: 0.98rem;
       font-weight: 800;
@@ -3673,6 +3670,9 @@
       flex-direction: column;
       gap: 10px;
       min-width: 0;
+      padding: 10px;
+      border-radius: 18px;
+      background: rgba(15, 23, 42, 0.28);
     }
 
     .development-highlight-chart-bars {
@@ -3680,9 +3680,6 @@
       align-items: flex-end;
       gap: 10px;
       height: 90px;
-      padding: 10px;
-      border-radius: 18px;
-      background: rgba(15, 23, 42, 0.28);
     }
 
     .development-highlight-chart-bar {
@@ -3725,9 +3722,6 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      padding: 10px;
-      border-radius: 18px;
-      background: rgba(15, 23, 42, 0.28);
     }
 
     .development-highlight-chart-day {
@@ -3738,9 +3732,6 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      padding: 10px;
-      border-radius: 18px;
-      background: rgba(15, 23, 42, 0.28);
     }
 
     .development-highlight-line-svg {
@@ -3783,21 +3774,13 @@
       width: 100%;
       height: 96px;
       padding: 8px 6px;
-      border-radius: 14px;
-      background: rgba(15, 23, 42, 0.28);
     }
 
-    .development-highlight-visual.positive .development-highlight-chart-bars,
-    .development-highlight-visual.positive .development-highlight-track-stack,
-    .development-highlight-visual.positive .development-highlight-line-card,
-    .development-highlight-visual.positive .development-highlight-month-bars {
+    .development-highlight-visual.positive .development-highlight-chart {
       box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2), 0 0 18px rgba(34, 197, 94, 0.22);
     }
 
-    .development-highlight-visual.negative .development-highlight-chart-bars,
-    .development-highlight-visual.negative .development-highlight-track-stack,
-    .development-highlight-visual.negative .development-highlight-line-card,
-    .development-highlight-visual.negative .development-highlight-month-bars {
+    .development-highlight-visual.negative .development-highlight-chart {
       box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2), 0 0 18px rgba(239, 68, 68, 0.22);
     }
 
@@ -7683,16 +7666,13 @@
         : renderDevelopmentHighlightDayChart(insight, metricClass);
     return `
       <div class="development-highlight-visual ${insight.direction}">
-        <div class="development-highlight-visual-head">
-          <div class="development-highlight-period">${insight.periodType === 'month' ? 'Måned' : insight.periodType === 'week' ? 'Uke' : 'Dag'} - ${insight.metric.label}</div>
-        </div>
         <div class="development-highlight-label">${insight.title}</div>
         <div class="development-highlight-meta-line">${insight.previousValue} -> ${insight.currentValue} (${formatSignedDelta(insight.direction === 'positive' ? insight.delta : -insight.delta)})</div>
         <div class="development-highlight-chart">
           ${chart}
           <div class="development-highlight-chart-legend">
             <span class="legend-previous">${insight.periodType === 'week' ? 'Forrige uke' : insight.periodType === 'month' ? monthLabels.previous : 'Før'}</span>
-            <span class="legend-current">${insight.periodType === 'week' ? 'Denne uken' : insight.periodType === 'month' ? monthLabels.current : 'Nå'}</span>
+            <span class="legend-current ${metricClass}">${insight.periodType === 'week' ? 'Denne uken' : insight.periodType === 'month' ? monthLabels.current : 'Nå'}</span>
           </div>
         </div>
       </div>
