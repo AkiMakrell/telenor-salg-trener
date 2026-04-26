@@ -3422,6 +3422,16 @@
       font-weight: 700;
     }
 
+    .development-chart-legend .legend-previous,
+    .development-highlight-chart-legend .legend-previous {
+      color: rgba(148, 163, 184, 0.9);
+    }
+
+    .development-chart-legend .legend-current,
+    .development-highlight-chart-legend .legend-current {
+      color: #38bdf8;
+    }
+
     .development-inline-bar.current.metric-intro,
     .development-mini-bar.current.metric-intro,
     .development-grouped-bar.current.metric-intro,
@@ -6399,7 +6409,6 @@
   let selectedOver5min = 'nei';
   let selectedSalg = 'nei';
   let activeStatsSubview = 'overview';
-  let showAllDevelopmentInsights = false;
 
   function updateToggleSelectionState(key, value) {
     const group = document.getElementById(`${key}-toggle-group`);
@@ -7446,6 +7455,18 @@
     return metricWeight + directionWeight + deltaWeight;
   }
 
+  function formatMonthName(date) {
+    const monthName = date.toLocaleString('no-NO', { month: 'long' });
+    return monthName ? monthName.charAt(0).toUpperCase() + monthName.slice(1) : '';
+  }
+
+  function getMonthComparisonLabels(date = new Date()) {
+    return {
+      current: formatMonthName(date),
+      previous: formatMonthName(new Date(date.getFullYear(), date.getMonth() - 1, 1))
+    };
+  }
+
   function getMetricRows(currentStats, previousStats) {
     return Object.values(DEVELOPMENT_METRICS).map(metric => {
       const current = currentStats?.[metric.key] || 0;
@@ -7630,6 +7651,7 @@
 
   function renderDevelopmentHighlightVisual(insight, history, date = new Date()) {
     const metricClass = getMetricClass(insight.metricKey);
+    const monthLabels = getMonthComparisonLabels(date);
     const chart = insight.periodType === 'month'
       ? renderDevelopmentHighlightMonthChart(history, date, insight, metricClass)
       : insight.periodType === 'week'
@@ -7645,8 +7667,8 @@
         <div class="development-highlight-chart">
           ${chart}
           <div class="development-highlight-chart-legend">
-            <span>${insight.periodType === 'week' ? 'Forrige uke' : insight.periodType === 'month' ? 'Forrige måned' : 'Før'}</span>
-            <span>${insight.periodType === 'week' ? 'Denne uken' : insight.periodType === 'month' ? 'Denne måneden' : 'Nå'}</span>
+            <span class="legend-previous">${insight.periodType === 'week' ? 'Forrige uke' : insight.periodType === 'month' ? monthLabels.previous : 'Før'}</span>
+            <span class="legend-current">${insight.periodType === 'week' ? 'Denne uken' : insight.periodType === 'month' ? monthLabels.current : 'Nå'}</span>
           </div>
         </div>
       </div>
@@ -7727,11 +7749,11 @@
           }).join('')}
         </div>
         <div class="development-chart-legend">
-          <span>${previousLabel}</span>
-          <span>${currentLabel}</span>
+            <span class="legend-previous">${previousLabel}</span>
+            <span class="legend-current">${currentLabel}</span>
+          </div>
         </div>
-      </div>
-    `;
+      `;
   }
 
   function getLineChartPoints(values, width, height, padding, maxValue = Math.max(...values, 1)) {
@@ -7766,8 +7788,8 @@
           </svg>
           <div class="development-line-labels">${labels.map(label => `<span>${label}</span>`).join('')}</div>
           <div class="development-chart-legend">
-            <span>${previousLabel}</span>
-            <span>${currentLabel}</span>
+            <span class="legend-previous">${previousLabel}</span>
+            <span class="legend-current">${currentLabel}</span>
           </div>
         </div>
       </div>
@@ -7802,8 +7824,8 @@
           }).join('')}
         </div>
         <div class="development-chart-legend">
-          <span>${previousLabel}</span>
-          <span>${currentLabel}</span>
+          <span class="legend-previous">${previousLabel}</span>
+          <span class="legend-current">${currentLabel}</span>
         </div>
       </div>
     `;
@@ -7837,8 +7859,8 @@
           }).join('')}
         </div>
         <div class="development-chart-legend">
-          <span>${previousLabel}</span>
-          <span>${currentLabel}</span>
+          <span class="legend-previous">${previousLabel}</span>
+          <span class="legend-current">${currentLabel}</span>
         </div>
       </div>
     `;
@@ -7872,11 +7894,6 @@
         </div>
       `;
     }).join('');
-  }
-
-  function toggleDevelopmentInsights() {
-    showAllDevelopmentInsights = !showAllDevelopmentInsights;
-    renderStatsHome();
   }
 
   let pendingGoalsFocusPeriod = null;
@@ -8583,6 +8600,7 @@
     const monthComparisonRows = buildMonthMetricComparison(history, now);
     const monthBusinessDayRace = showMonthStartComparisons ? buildMonthRaceRows(history, now, 'businessDays') : null;
     const monthWeekRace = showMonthStartComparisons ? buildMonthRaceRows(history, now, 'weeks') : null;
+    const monthLabels = getMonthComparisonLabels(now);
     const overviewPane = `
       <div class="stats-pane">
         ${renderStatsDaySection(dag, dayGoal, dayGoalStatus, todaySessionCount)}
@@ -8593,27 +8611,18 @@
     const developmentPane = `
       <div class="stats-pane">
         <div class="stats-section">
-          <div class="development-hero-card">
-            <div class="development-hero-top">
-              <div>
-                <div class="development-hero-title">Utvikling</div>
-                <div class="development-hero-text">Her ser du fremgang visuelt: først høydepunkter, deretter dag, uke og måned med ulike diagrammer som gjør det lett å kjenne at du er på vei et sted.</div>
-              </div>
-              <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                <button class="backup-btn stats-goal-btn" type="button" onclick="toggleDevelopmentInsights()">${showAllDevelopmentInsights ? 'Skjul alt' : `Se alt (${developmentInsights.length})`}</button>
-                <button class="backup-btn stats-goal-btn" type="button" onclick="setStatsSubview('goals')">Fokus på mål</button>
-              </div>
-            </div>
+          <div class="stats-section-head">
+            <div class="stats-section-title st-green">Se din utvikling</div>
           </div>
         </div>
         <div class="stats-section">
           <div class="stats-section-head">
-            <div class="stats-section-title st-green">Highlights</div>
+            <div class="stats-section-title st-green">Topprestasjoner</div>
           </div>
           <div class="development-highlights-grid">
             ${developmentHighlights.length
               ? developmentHighlights.map(item => renderDevelopmentHighlightVisual(item, history, now)).join('')
-              : '<div class="stats-empty-card">Ingen highlights ennå. Registrer litt mer aktivitet, så begynner utviklingssiden å trekke frem de første signalene.</div>'}
+              : '<div class="stats-empty-card">Ingen topprestasjoner ennå. Registrer litt mer aktivitet, så begynner utviklingssiden å trekke frem de første signalene.</div>'}
           </div>
         </div>
         <div class="stats-section">
@@ -8643,7 +8652,7 @@
           </div>
           <div class="development-summary-shell">
             <div class="development-summary-grid">
-              ${renderHorizontalComparisonBoard('Denne måneden vs forrige måned', 'Sammenlignet mot samme dato i forrige måned.', monthComparisonRows, 'Forrige måned', 'Denne måneden')}
+              ${renderHorizontalComparisonBoard('Denne måneden vs forrige måned', 'Sammenlignet mot samme dato i forrige måned.', monthComparisonRows, monthLabels.previous, monthLabels.current)}
               <div class="development-visual-card">
                 <div class="development-card-title">6-min & salg per uke</div>
                 <div class="development-card-subtitle">Rytmen i måneden så langt, fordelt på arbeidsuker.</div>
@@ -8652,22 +8661,12 @@
             </div>
             ${showMonthStartComparisons ? `
               <div class="development-race-grid">
-                ${renderRaceCard('Månedstart vs forrige måned', `Sammenlignet etter ${monthBusinessDayRace.label}.`, monthBusinessDayRace.rows, 'Forrige måned', 'Denne måneden')}
-                ${renderRaceCard('Månedsprogresjon i uker', `Sammenlignet etter ${monthWeekRace.label}.`, monthWeekRace.rows, 'Forrige måned', 'Denne måneden')}
+                ${renderRaceCard('Månedstart vs forrige måned', `Sammenlignet etter ${monthBusinessDayRace.label}.`, monthBusinessDayRace.rows, monthLabels.previous, monthLabels.current)}
+                ${renderRaceCard('Månedsprogresjon i uker', `Sammenlignet etter ${monthWeekRace.label}.`, monthWeekRace.rows, monthLabels.previous, monthLabels.current)}
               </div>
             ` : ''}
           </div>
         </div>
-        ${showAllDevelopmentInsights ? `
-          <div class="stats-section">
-            <div class="stats-section-head">
-              <div class="stats-section-title st-purple">Se alt</div>
-            </div>
-            <div class="development-insights-shell">
-              ${renderDevelopmentInsightsByGroup(developmentInsights)}
-            </div>
-          </div>
-        ` : ''}
       </div>
     `;
     const goalsPane = `
