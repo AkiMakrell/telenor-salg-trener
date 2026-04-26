@@ -3230,6 +3230,18 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
+    .development-page-hero {
+      margin-bottom: 6px;
+    }
+
+    .development-page-title {
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+
     .development-insights-shell,
     .development-summary-shell,
     .development-line-card,
@@ -8622,10 +8634,8 @@
     `;
     const developmentPane = `
       <div class="stats-pane">
-        <div class="stats-section">
-          <div class="stats-section-head">
-            <div class="stats-section-title st-green">Se din utvikling</div>
-          </div>
+        <div class="development-page-hero">
+          <div class="development-page-title">Se din utvikling</div>
         </div>
         <div class="stats-section">
           <div class="stats-section-head">
