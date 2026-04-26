@@ -3682,8 +3682,26 @@
       height: 90px;
     }
 
-    .development-highlight-chart-bar {
+    .development-highlight-chart-column {
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      min-width: 0;
+      height: 100%;
+    }
+
+    .development-highlight-chart-value {
+      font-size: 0.76rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .development-highlight-chart-bar {
+      width: 100%;
       min-height: 8px;
       border-radius: 14px 14px 8px 8px;
       background: rgba(148, 163, 184, 0.22);
@@ -3740,6 +3758,25 @@
       overflow: visible;
     }
 
+    .development-highlight-line-value-current,
+    .development-highlight-line-value-previous {
+      font-size: 11px;
+      font-weight: 800;
+      text-anchor: middle;
+      paint-order: stroke;
+      stroke: rgba(2, 6, 23, 0.92);
+      stroke-width: 3px;
+      stroke-linejoin: round;
+    }
+
+    .development-highlight-line-value-current {
+      fill: #e2e8f0;
+    }
+
+    .development-highlight-line-value-previous {
+      fill: rgba(226, 232, 240, 0.75);
+    }
+
     .development-highlight-line-labels {
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -3762,8 +3799,17 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       min-width: 0;
+    }
+
+    .development-highlight-month-values {
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+      text-align: center;
+      white-space: nowrap;
     }
 
     .development-highlight-month-bars {
@@ -7616,8 +7662,14 @@
     const maxValue = Math.max(insight.previousValue, insight.currentValue, 1);
     return `
       <div class="development-highlight-chart-bars development-highlight-chart-day">
-        <div class="development-highlight-chart-bar previous" style="height:${getBarHeight(insight.previousValue, maxValue, 10)}%"></div>
-        <div class="development-highlight-chart-bar current ${metricClass}" style="height:${getBarHeight(insight.currentValue, maxValue, 10)}%"></div>
+        <div class="development-highlight-chart-column">
+          <div class="development-highlight-chart-value">${insight.previousValue}</div>
+          <div class="development-highlight-chart-bar previous" style="height:${getBarHeight(insight.previousValue, maxValue, 10)}%"></div>
+        </div>
+        <div class="development-highlight-chart-column">
+          <div class="development-highlight-chart-value">${insight.currentValue}</div>
+          <div class="development-highlight-chart-bar current ${metricClass}" style="height:${getBarHeight(insight.currentValue, maxValue, 10)}%"></div>
+        </div>
       </div>
     `;
   }
@@ -7640,6 +7692,8 @@
           <polyline class="development-line-current" points="${currentPoints.map(point => `${point.x},${point.y}`).join(' ')}"></polyline>
           ${previousPoints.map(point => `<circle class="development-line-point-previous" cx="${point.x}" cy="${point.y}" r="3"></circle>`).join('')}
           ${currentPoints.map(point => `<circle class="development-line-point-current" cx="${point.x}" cy="${point.y}" r="3.5"></circle>`).join('')}
+          ${previousPoints.map((point, index) => `<text class="development-highlight-line-value-previous" x="${point.x}" y="${Math.max(12, point.y - 8)}">${series.previous[index] || 0}</text>`).join('')}
+          ${currentPoints.map((point, index) => `<text class="development-highlight-line-value-current" x="${point.x}" y="${Math.max(24, point.y - 18)}">${series.current[index] || 0}</text>`).join('')}
         </svg>
         <div class="development-highlight-line-labels">${series.labels.map(label => `<span>${label}</span>`).join('')}</div>
       </div>
@@ -7653,6 +7707,7 @@
       <div class="development-highlight-month-grid">
         ${series.labels.map((label, index) => `
           <div class="development-highlight-month-group">
+            <div class="development-highlight-month-values">${series.previous[index] || 0} / ${series.current[index] || 0}</div>
             <div class="development-highlight-month-bars">
               <div class="development-highlight-month-bar previous" style="height:${getBarHeight(series.previous[index] || 0, maxValue, 8)}%"></div>
               <div class="development-highlight-month-bar current ${metricClass}" style="height:${getBarHeight(series.current[index] || 0, maxValue, 8)}%"></div>
