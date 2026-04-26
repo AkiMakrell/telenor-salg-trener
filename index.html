@@ -3460,6 +3460,46 @@
       color: var(--text);
     }
 
+    .development-mixed-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .development-mixed-legend-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.36);
+      color: var(--text);
+      font-size: 0.72rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .development-mixed-legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.8);
+      flex: 0 0 auto;
+    }
+
+    .development-mixed-legend-dot.metric-intro {
+      background: #60a5fa;
+    }
+
+    .development-mixed-legend-dot.metric-over5 {
+      background: #2dd4bf;
+    }
+
+    .development-mixed-legend-dot.metric-salg {
+      background: #fbbf24;
+    }
+
     .development-highlight-chart-legend .legend-current.metric-intro {
       color: #60a5fa;
     }
@@ -7875,7 +7915,8 @@
         <div class="development-chart-legend">
             <span class="legend-previous">${previousLabel}</span>
             <span class="legend-current legend-neutral">${currentLabel}</span>
-          </div>
+        </div>
+        ${renderMixedMetricLegend()}
         </div>
       `;
   }
@@ -7951,6 +7992,7 @@
           <span class="legend-previous">${previousLabel}</span>
           <span class="legend-current legend-neutral">${currentLabel}</span>
         </div>
+        ${renderMixedMetricLegend()}
       </div>
     `;
   }
@@ -7986,6 +8028,17 @@
           <span class="legend-previous">${previousLabel}</span>
           <span class="legend-current legend-neutral">${currentLabel}</span>
         </div>
+        ${renderMixedMetricLegend()}
+      </div>
+    `;
+  }
+
+  function renderMixedMetricLegend() {
+    return `
+      <div class="development-mixed-legend">
+        <span class="development-mixed-legend-chip"><span class="development-mixed-legend-dot metric-intro"></span>Opptak</span>
+        <span class="development-mixed-legend-chip"><span class="development-mixed-legend-dot metric-over5"></span>Over 6 min</span>
+        <span class="development-mixed-legend-chip"><span class="development-mixed-legend-dot metric-salg"></span>Salg</span>
       </div>
     `;
   }
