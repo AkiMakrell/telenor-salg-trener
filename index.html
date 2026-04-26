@@ -2541,6 +2541,13 @@
       letter-spacing: -0.02em;
     }
 
+    .intro-page-description {
+      max-width: 720px;
+      font-size: 0.95rem;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
     .intro-page-status {
       width: 100%;
       max-width: 420px;
@@ -5290,6 +5297,7 @@
 
   <div class="intro-page-header">
     <h2 class="intro-page-title">Registrer opptak</h2>
+    <div class="intro-page-description">Test en intro om gangen, registrer utfallet, og se hvilke åpninger som faktisk skaper lengre samtaler og flere salg.</div>
     <div id="session-status" class="intro-page-status">
       <div id="session-status-title" class="intro-page-status-title">Laster aktiv økt...</div>
       <div id="session-status-subtitle" class="intro-page-status-subtitle"></div>
@@ -5321,7 +5329,7 @@
               <button class="toggle-btn" id="over5min-ja" onclick="selectOver5min('ja')">Ja</button>
               <button class="toggle-btn" id="over5min-nei" onclick="selectOver5min('nei')">Nei</button>
             </div>
-            <div id="over5min-toggle-status" class="toggle-status">Not selected yet</div>
+            <div id="over5min-toggle-status" class="toggle-status">Valgt: Nei</div>
           </div>
 
           <div>
@@ -5330,7 +5338,7 @@
               <button class="toggle-btn" id="salg-ja" onclick="selectSalg('ja')">Ja</button>
               <button class="toggle-btn" id="salg-nei" onclick="selectSalg('nei')">Nei</button>
             </div>
-            <div id="salg-toggle-status" class="toggle-status">Not selected yet</div>
+            <div id="salg-toggle-status" class="toggle-status">Valgt: Nei</div>
           </div>
 
         </div>
@@ -6403,7 +6411,7 @@
     const status = document.getElementById(`${key}-toggle-status`);
     if (group) group.classList.toggle('is-unset', !value);
     if (status) {
-      status.textContent = value ? `Selected: ${value === 'ja' ? 'Yes' : 'No'}` : 'Not selected yet';
+      status.textContent = value ? `Valgt: ${value === 'ja' ? 'Ja' : 'Nei'}` : 'Ikke valgt ennå';
       status.classList.toggle('is-selected', !!value);
     }
   }
@@ -6571,7 +6579,7 @@
 
     if (currentSession) {
       title.textContent = `${currentSession.label} er aktiv nå`;
-      subtitle.textContent = `${currentSession.start}–${currentSession.end}.`;
+      subtitle.textContent = `${currentSession.start}–${currentSession.end}. Bruk samme intro i denne økten, så kan du sammenligne resultatene mer rettferdig.`;
     } else if (nextSession) {
       title.textContent = `Neste økt: ${nextSession.label}`;
       subtitle.textContent = `${nextSession.start}–${nextSession.end}. Valgt intro blir brukt automatisk når økten starter.`;
