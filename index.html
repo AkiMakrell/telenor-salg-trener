@@ -650,22 +650,10 @@
       display: block;
     }
 
-    .intro-field-head {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 4px;
-    }
-
-    .intro-field-head .form-label {
-      margin-bottom: 0;
-    }
-
     .intro-inline-note {
       font-size: 0.76rem;
       color: var(--muted);
-      text-align: right;
+      margin-top: 6px;
     }
 
     /* ===== FAKTA PAGE ===== */
@@ -5321,11 +5309,9 @@
       <div class="card" style="margin:0 0 16px 0;">
         <div id="intro-daily-stats" class="stats-grid stats-grid-2" style="margin-bottom:16px;"></div>
 
-        <div class="intro-field-head">
-          <label class="form-label">Aktiv intro:</label>
-          <div class="intro-inline-note">OBS: Test kun 1 intro per økt for korrekt vurdering</div>
-        </div>
+        <label class="form-label">Aktiv intro:</label>
         <textarea id="intro-text" placeholder="Hei, jeg ringer fra Telenor..." oninput="autoResizeTextarea(this)"></textarea>
+        <div class="intro-inline-note">OBS: Test kun 1 intro per økt for korrekt vurdering</div>
 
         <div id="intro-library-inline" style="display:none;"></div>
 
