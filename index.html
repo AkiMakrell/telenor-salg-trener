@@ -2524,6 +2524,43 @@
     }
 
     /* Intro two-column layout */
+    .intro-page-header {
+      max-width: 1100px;
+      margin: 0 auto 20px auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 14px;
+    }
+
+    .intro-page-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .intro-page-status {
+      width: 100%;
+      max-width: 420px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--primary-xlight);
+    }
+
+    .intro-page-status-title {
+      font-weight: 700;
+      color: var(--primary-dark);
+    }
+
+    .intro-page-status-subtitle {
+      font-size: 0.86rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
     .intro-layout {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -5251,20 +5288,19 @@
 <!-- ===== REGISTRER TAB ===== -->
 <div id="tab-intro" class="tab-content">
 
+  <div class="intro-page-header">
+    <h2 class="intro-page-title">Registrer opptak</h2>
+    <div id="session-status" class="intro-page-status">
+      <div id="session-status-title" class="intro-page-status-title">Laster aktiv økt...</div>
+      <div id="session-status-subtitle" class="intro-page-status-subtitle"></div>
+    </div>
+  </div>
+
   <div class="intro-layout">
 
     <!-- LEFT: scorecard form -->
     <div>
       <div class="card" style="margin:0 0 16px 0;">
-        <h2>Registrer opptak</h2>
-
-        <div id="session-status" style="padding:14px 16px;border:1px solid var(--border);border-radius:10px;background:var(--primary-xlight);margin-bottom:16px;">
-          <div>
-            <div id="session-status-title" style="font-weight:700;color:var(--primary-dark);">Laster aktiv økt...</div>
-            <div id="session-status-subtitle" style="font-size:0.86rem;color:var(--muted);margin-top:4px;"></div>
-          </div>
-        </div>
-
         <div id="intro-daily-stats" class="stats-grid stats-grid-2" style="margin-bottom:16px;"></div>
 
         <label class="form-label">Aktiv intro:</label>
