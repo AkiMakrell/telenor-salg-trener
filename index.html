@@ -105,6 +105,48 @@
       border-radius: 12px;
     }
 
+    .settings-trigger-avatar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #38bdf8, #2563eb);
+      color: white;
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      flex: 0 0 auto;
+    }
+
+    .settings-trigger-profile {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      min-width: 0;
+      gap: 1px;
+    }
+
+    .settings-trigger-name {
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text);
+      font-size: 0.84rem;
+      line-height: 1.1;
+    }
+
+    .settings-trigger-meta {
+      color: var(--muted);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      line-height: 1.1;
+    }
+
     .menu-trigger {
       display: inline-flex;
       align-items: center;
@@ -199,6 +241,34 @@
       font-weight: 600;
       color: var(--text);
       word-break: break-word;
+    }
+
+    .settings-user-name {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .settings-user-profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .settings-user-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #38bdf8, #2563eb);
+      color: white;
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      flex: 0 0 auto;
     }
 
     .settings-user-note {
@@ -332,6 +402,10 @@
       border-color: var(--primary);
       background: white;
       color: #0f172a;
+    }
+
+    .auth-field-full {
+      grid-column: 1 / -1;
     }
 
     .auth-actions {
@@ -2515,7 +2589,7 @@
         padding: 8px 11px;
       }
 
-      .settings-trigger-label {
+      .settings-trigger-profile {
         display: none;
       }
 
@@ -5031,6 +5105,10 @@
   <div id="auth-config-warning" class="auth-message auth-message-warning"></div>
 
   <div class="auth-grid">
+    <div class="auth-field auth-field-full">
+      <label for="auth-name">Navn</label>
+      <input id="auth-name" type="text" placeholder="Navnet ditt" autocomplete="name" />
+    </div>
     <div class="auth-field">
       <label for="auth-email">E-post</label>
       <input id="auth-email" type="email" placeholder="navn@example.com" autocomplete="email" />
@@ -5101,13 +5179,23 @@
         aria-label="Åpne innstillinger"
         onclick="toggleTopBarSettings()"
       >
-        <span class="settings-trigger-icon" aria-hidden="true">&#9881;</span>
-        <span class="settings-trigger-label">Innstillinger</span>
+        <span id="settings-trigger-avatar" class="settings-trigger-avatar" aria-hidden="true">?</span>
+        <span class="settings-trigger-profile">
+          <span id="settings-trigger-name" class="settings-trigger-name">Profil</span>
+          <span class="settings-trigger-meta">Konto</span>
+        </span>
+        <span class="menu-trigger-icon" aria-hidden="true">&#9662;</span>
       </button>
       <div id="top-bar-settings-menu" class="settings-menu" role="menu">
         <div class="settings-menu-section">
           <span class="settings-menu-heading">Konto</span>
-          <div id="settings-user-email" class="settings-user-email"></div>
+          <div class="settings-user-profile">
+            <span id="settings-user-avatar" class="settings-user-avatar" aria-hidden="true">?</span>
+            <div>
+              <div id="settings-user-name" class="settings-user-name"></div>
+              <div id="settings-user-email" class="settings-user-email"></div>
+            </div>
+          </div>
           <div class="settings-user-note">Din konto har sitt eget datasett. Andre brukere ser bare sitt eget innhold.</div>
           <div class="settings-status-row">
             <span class="settings-status-label">Skystatus</span>
@@ -5470,20 +5558,62 @@
     if (!isVisible) closeTopBarSettings();
   }
 
+  function formatAuthEmailFallback(email) {
+    const localPart = String(email || '').split('@')[0] || '';
+    const normalized = localPart
+      .replace(/[._-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!normalized) return 'Profil';
+    return normalized.replace(/\b\w/g, char => char.toUpperCase());
+  }
+
+  function getUserDisplayName(user) {
+    const candidates = [
+      user?.user_metadata?.display_name,
+      user?.user_metadata?.full_name,
+      user?.user_metadata?.name
+    ];
+    const name = candidates.find(value => String(value || '').trim());
+    return name ? String(name).trim() : formatAuthEmailFallback(user?.email || '');
+  }
+
+  function getUserInitials(name) {
+    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '?';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+
   function updateUserBar(user) {
+    const displayName = getUserDisplayName(user);
+    const initials = getUserInitials(displayName);
+    const button = document.getElementById('top-bar-settings-button');
+    const triggerNameEl = document.getElementById('settings-trigger-name');
+    const triggerAvatarEl = document.getElementById('settings-trigger-avatar');
+    const nameEl = document.getElementById('settings-user-name');
     const emailEl = document.getElementById('settings-user-email');
+    const avatarEl = document.getElementById('settings-user-avatar');
+    if (button) button.setAttribute('aria-label', `Åpne profil for ${displayName}`);
+    if (triggerNameEl) triggerNameEl.textContent = displayName;
+    if (triggerAvatarEl) triggerAvatarEl.textContent = initials;
+    if (nameEl) nameEl.textContent = displayName;
     if (emailEl) emailEl.textContent = user?.email || 'Innlogget bruker';
+    if (avatarEl) avatarEl.textContent = initials;
   }
 
   function getAuthCredentials() {
+    const name = document.getElementById('auth-name')?.value.trim() || '';
     const email = document.getElementById('auth-email')?.value.trim() || '';
     const password = document.getElementById('auth-password')?.value || '';
-    return { email, password };
+    return { name, email, password };
   }
 
   function resetAuthForm() {
+    const nameInput = document.getElementById('auth-name');
     const emailInput = document.getElementById('auth-email');
     const passwordInput = document.getElementById('auth-password');
+    if (nameInput) nameInput.value = '';
     if (emailInput) emailInput.value = '';
     if (passwordInput) passwordInput.value = '';
   }
@@ -6118,9 +6248,9 @@
 
   async function signUpWithEmail() {
     if (!supabaseClient) return;
-    const { email, password } = getAuthCredentials();
-    if (!email || !password) {
-      setAuthStatus('Skriv inn både e-post og passord.', 'warning');
+    const { name, email, password } = getAuthCredentials();
+    if (!name || !email || !password) {
+      setAuthStatus('Skriv inn navn, e-post og passord.', 'warning');
       return;
     }
     if (password.length < 6) {
@@ -6129,7 +6259,17 @@
     }
 
     setAuthStatus('Oppretter konto...', 'info');
-    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+    const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          display_name: name,
+          full_name: name,
+          name
+        }
+      }
+    });
     if (error) {
       setAuthStatus(error.message, 'error');
       return;
