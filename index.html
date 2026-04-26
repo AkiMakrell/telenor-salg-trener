@@ -6861,8 +6861,13 @@
     if (!entry) return null;
     const sessionId = entry.sessionId || CALL_SESSIONS.find(session => session.label === entry.sessionLabel)?.id;
     if (!sessionId) return null;
-    const dateKey = entry.sessionDate || (entry.isoDate ? makeLocalDateKey(new Date(entry.isoDate)) : null);
+    const dateKey = getEntryDateKey(entry);
     return getSessionInstanceKey(sessionId, dateKey);
+  }
+
+  function getEntryDateKey(entry) {
+    if (!entry) return null;
+    return entry.sessionDate || (entry.isoDate ? makeLocalDateKey(new Date(entry.isoDate)) : null);
   }
 
   function hasSessionStarted(sessionId, dateKey, reference = new Date()) {
@@ -7639,15 +7644,21 @@
     const weekStart = getStartOfWeek(date);
     const previousWeekStart = addDays(weekStart, -7);
     const labels = ['Man', 'Tir', 'Ons', 'Tor', 'Fre'];
+    const totalsByDate = new Map();
+    history.forEach(entry => {
+      const dateKey = getEntryDateKey(entry);
+      if (!dateKey) return;
+      totalsByDate.set(dateKey, (totalsByDate.get(dateKey) || 0) + getMetricValueForEntry(entry, metricKey));
+    });
     const current = [];
     const previous = [];
     let currentRunning = 0;
     let previousRunning = 0;
     labels.forEach((label, index) => {
-      const currentDayStart = addDays(weekStart, index);
-      const previousDayStart = addDays(previousWeekStart, index);
-      currentRunning += getRangeStats(history, currentDayStart, addDays(currentDayStart, 1))[metricKey] || 0;
-      previousRunning += getRangeStats(history, previousDayStart, addDays(previousDayStart, 1))[metricKey] || 0;
+      const currentDateKey = makeLocalDateKey(addDays(weekStart, index));
+      const previousDateKey = makeLocalDateKey(addDays(previousWeekStart, index));
+      currentRunning += totalsByDate.get(currentDateKey) || 0;
+      previousRunning += totalsByDate.get(previousDateKey) || 0;
       current.push(currentRunning);
       previous.push(previousRunning);
     });
