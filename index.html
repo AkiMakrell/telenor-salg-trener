@@ -7988,7 +7988,7 @@
     return `
       <div class="development-visual-card">
         <div class="development-card-title">${title}</div>
-        <div class="development-card-subtitle">${subtitle}</div>
+        ${subtitle ? `<div class="development-card-subtitle">${subtitle}</div>` : ''}
         <div class="development-line-card">
           <svg class="development-line-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">
             ${scalePoints.map(y => `<line class="development-line-grid" x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}"></line>`).join('')}
@@ -8012,7 +8012,7 @@
     return `
       <div class="development-visual-card">
         <div class="development-card-title">${title}</div>
-        <div class="development-card-subtitle">${subtitle}</div>
+        ${subtitle ? `<div class="development-card-subtitle">${subtitle}</div>` : ''}
         <div class="development-compare-board">
           ${rows.map(row => {
             const metricClass = getMetricClass(row.key);
@@ -8040,6 +8040,36 @@
         </div>
       </div>
     `;
+  }
+
+  function joinLabelsNatural(labels = []) {
+    if (!labels.length) return '';
+    if (labels.length === 1) return labels[0];
+    if (labels.length === 2) return `${labels[0]} og ${labels[1]}`;
+    return `${labels.slice(0, -1).join(', ')} og ${labels[labels.length - 1]}`;
+  }
+
+  function buildBestWeekComparison(weekRecords, currentWeekKey) {
+    const currentRecord = weekRecords.find(record => record.key === currentWeekKey);
+    const currentStats = currentRecord?.stats || { introSuccesses: 0, over5: 0, salg: 0 };
+    const rows = Object.values(DEVELOPMENT_METRICS).map(metric => {
+      const bestRecord = getBestStatsRecord(weekRecords, metric.key);
+      const currentValue = currentStats[metric.key] || 0;
+      const bestValue = bestRecord?.value || 0;
+      return {
+        ...metric,
+        current: currentValue,
+        previous: bestValue,
+        delta: currentValue - bestValue,
+        direction: currentValue > bestValue ? 'positive' : currentValue < bestValue ? 'negative' : 'neutral',
+        isCurrentBest: Boolean(bestRecord?.key) && bestRecord.key === currentWeekKey && bestValue === currentValue,
+      };
+    });
+    const bestNowLabels = rows.filter(row => row.isCurrentBest && row.current > 0).map(row => row.label);
+    const subtitle = bestNowLabels.length
+      ? `Beste uke per stat. Denne uka er allerede beste uke i ${joinLabelsNatural(bestNowLabels)}.`
+      : 'Sammenlignet mot beste uke per stat.';
+    return { rows, subtitle };
   }
 
   function renderRaceCard(title, subtitle, rows, previousLabel, currentLabel) {
@@ -8684,7 +8714,7 @@
     `;
   }
 
-  function renderStatsWeekSection(uke, weekGoal, weekGoalStatus, weekData, stackedChartMax, elapsedWeekBusinessDays) {
+  function renderStatsWeekSection(uke, weekGoal, weekGoalStatus, weekData, stackedChartMax, elapsedWeekBusinessDays, weekProgress, bestWeekComparison) {
     return `
       <div class="stats-section">
         <div class="stats-section-head">
@@ -8704,6 +8734,10 @@
           </div>
         </div>
         <div class="stats-goal-after-stats">${renderStatsGoalSummary(weekGoalStatus)}</div>
+        <div class="development-section-grid" style="margin-top:14px;">
+          ${renderLineComparisonChart('Ukeprogresjon dag for dag', '', weekProgress.labels, weekProgress.current, weekProgress.previous, 'Forrige uke', 'Denne uken')}
+          ${renderHorizontalComparisonBoard('Denne uka vs beste uka', bestWeekComparison.subtitle, bestWeekComparison.rows, 'Beste uke', 'Denne uka')}
+        </div>
       </div>
     `;
   }
@@ -8818,6 +8852,7 @@
     const sameDayLastMonthRows = getMetricRows(dag, sameDayLastMonthStats);
     const previousWeekRows = getMetricRows(uke, previousWeekStats);
     const weekProgress = buildWeekMetricProgressSeries(history, now, 'introSuccesses');
+    const bestWeekComparison = buildBestWeekComparison(weekRecords, currentWeekKey);
     const monthComparisonRows = buildMonthMetricComparison(history, now);
     const monthBusinessDayRace = showMonthStartComparisons ? buildMonthRaceRows(history, now, 'businessDays') : null;
     const monthWeekRace = showMonthStartComparisons ? buildMonthRaceRows(history, now, 'weeks') : null;
@@ -8826,7 +8861,7 @@
     const overviewPane = `
       <div class="stats-pane">
         ${renderStatsDaySection(dag, dayGoal, dayGoalStatus, todaySessionCount)}
-        ${renderStatsWeekSection(uke, weekGoal, weekGoalStatus, weekData, stackedChartMax, elapsedWeekBusinessDays)}
+        ${renderStatsWeekSection(uke, weekGoal, weekGoalStatus, weekData, stackedChartMax, elapsedWeekBusinessDays, weekProgress, bestWeekComparison)}
         ${renderStatsMonthSection(mnd, monthTitle, monthGoal, monthGoalStatus, weekBuckets, stackedChartMax, elapsedMonthWeekCount)}
       </div>
     `;
