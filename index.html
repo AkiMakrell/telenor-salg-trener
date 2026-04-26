@@ -6195,6 +6195,7 @@
     ensureIntroLeaderboardDataVersion();
     syncSelectedIntroFromSession();
     resizeActiveIntroTextarea();
+    applyDefaultOpptakSelections();
     renderSessionStatus();
     renderStatsHome();
     renderIntroLibrary();
@@ -6392,8 +6393,8 @@
     activateTab(name, name, triggerButton);
   }
 
-  let selectedOver5min = null;
-  let selectedSalg = null;
+  let selectedOver5min = 'nei';
+  let selectedSalg = 'nei';
   let activeStatsSubview = 'overview';
   let showAllDevelopmentInsights = false;
 
@@ -6405,6 +6406,11 @@
       status.textContent = value ? `Selected: ${value === 'ja' ? 'Yes' : 'No'}` : 'Not selected yet';
       status.classList.toggle('is-selected', !!value);
     }
+  }
+
+  function applyDefaultOpptakSelections() {
+    selectOver5min('nei');
+    selectSalg('nei');
   }
 
   function selectOver5min(val) {
@@ -6422,12 +6428,7 @@
   }
 
   function resetOpptak() {
-    selectedOver5min = null;
-    selectedSalg = null;
-    ['over5min-ja','over5min-nei','salg-ja','salg-nei']
-      .forEach(id => { const el = document.getElementById(id); if (el) el.className = 'toggle-btn'; });
-    updateToggleSelectionState('over5min', null);
-    updateToggleSelectionState('salg', null);
+    applyDefaultOpptakSelections();
   }
 
   // ---- Intro ----
