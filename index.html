@@ -3456,6 +3456,10 @@
       color: #38bdf8;
     }
 
+    .development-chart-legend .legend-current.legend-neutral {
+      color: var(--text);
+    }
+
     .development-highlight-chart-legend .legend-current.metric-intro {
       color: #60a5fa;
     }
@@ -7870,7 +7874,7 @@
         </div>
         <div class="development-chart-legend">
             <span class="legend-previous">${previousLabel}</span>
-            <span class="legend-current">${currentLabel}</span>
+            <span class="legend-current legend-neutral">${currentLabel}</span>
           </div>
         </div>
       `;
@@ -7909,7 +7913,7 @@
           <div class="development-line-labels">${labels.map(label => `<span>${label}</span>`).join('')}</div>
           <div class="development-chart-legend">
             <span class="legend-previous">${previousLabel}</span>
-            <span class="legend-current">${currentLabel}</span>
+            <span class="legend-current legend-neutral">${currentLabel}</span>
           </div>
         </div>
       </div>
@@ -7945,7 +7949,7 @@
         </div>
         <div class="development-chart-legend">
           <span class="legend-previous">${previousLabel}</span>
-          <span class="legend-current">${currentLabel}</span>
+          <span class="legend-current legend-neutral">${currentLabel}</span>
         </div>
       </div>
     `;
@@ -7980,7 +7984,7 @@
         </div>
         <div class="development-chart-legend">
           <span class="legend-previous">${previousLabel}</span>
-          <span class="legend-current">${currentLabel}</span>
+          <span class="legend-current legend-neutral">${currentLabel}</span>
         </div>
       </div>
     `;
