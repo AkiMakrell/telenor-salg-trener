@@ -10317,9 +10317,13 @@
       bucket.label = formattedLabel;
     }
     bucket.count += Math.max(1, Math.floor(Number(current.dataDraftCount) || 1));
+    current.selectedDataBucketId = getDefaultConversationDataBucketId();
     current.dataDraftCount = 1;
     localStorage.setItem('conversationNotes', JSON.stringify(current));
     renderConversationNotes();
+    setTimeout(() => {
+      document.getElementById('notes-data-select')?.focus();
+    }, 30);
   }
 
   function changeConversationDataCount(bucketId, delta) {
