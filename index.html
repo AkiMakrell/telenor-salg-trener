@@ -7274,25 +7274,6 @@
     const insights = [];
     const todayStart = startOfDay(date);
     const tomorrow = addDays(todayStart, 1);
-    const previousDay = getPreviousBusinessDay(date);
-    const previousDayStart = startOfDay(previousDay);
-    const previousDayLabel = Math.round((todayStart - previousDayStart) / 86400000) === 1 ? 'i går' : 'forrige arbeidsdag';
-    const currentDayStats = getRangeStats(history, todayStart, tomorrow);
-    const previousDayStats = getRangeStats(history, previousDayStart, addDays(previousDayStart, 1));
-    Object.values(DEVELOPMENT_METRICS).forEach((metric, index) => {
-      const insight = createMetricInsight({
-        id: `day-${metric.key}`,
-        metricKey: metric.key,
-        currentValue: currentDayStats[metric.key],
-        previousValue: previousDayStats[metric.key],
-        periodLabel: 'i dag',
-        comparisonLabel: previousDayLabel,
-        group: 'Dag',
-        priority: 90 - index,
-        periodType: 'day',
-      });
-      if (insight) insights.push(insight);
-    });
 
     if (isEarlyInWeek(date)) {
       const weekStart = getStartOfWeek(date);
@@ -7362,6 +7343,32 @@
     })).filter(Boolean);
   }
 
+  function getSameDayPreviousMonthDate(date = new Date()) {
+    const previousMonthLastDay = new Date(date.getFullYear(), date.getMonth(), 0).getDate();
+    return new Date(date.getFullYear(), date.getMonth() - 1, Math.min(date.getDate(), previousMonthLastDay));
+  }
+
+  function buildSameDayLastMonthInsights(history, date = new Date()) {
+    const todayStart = startOfDay(date);
+    const tomorrow = addDays(todayStart, 1);
+    const lastMonthDate = getSameDayPreviousMonthDate(date);
+    const lastMonthStart = startOfDay(lastMonthDate);
+    const currentDayStats = getRangeStats(history, todayStart, tomorrow);
+    const lastMonthDayStats = getRangeStats(history, lastMonthStart, addDays(lastMonthStart, 1));
+    return Object.values(DEVELOPMENT_METRICS).map((metric, index) => createMetricInsight({
+      id: `same-day-last-month-${metric.key}`,
+      metricKey: metric.key,
+      currentValue: currentDayStats[metric.key],
+      previousValue: lastMonthDayStats[metric.key],
+      periodLabel: 'i dag',
+      comparisonLabel: 'samme dag forrige måned',
+      group: 'Ekstra',
+      priority: 64 - index,
+      periodType: 'day',
+      positiveLead: `${metric.label} er sterkere enn samme dag forrige måned`,
+    })).filter(Boolean);
+  }
+
   function buildMonthStartBusinessDayInsights(history, date = new Date()) {
     if (!isEarlyInMonth(date)) return [];
     const currentMonthStart = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -7415,6 +7422,7 @@
     return [
       ...buildDirectDevelopmentInsights(history, date),
       ...buildSameDayLastWeekInsights(history, date),
+      ...buildSameDayLastMonthInsights(history, date),
       ...buildMonthStartBusinessDayInsights(history, date),
       ...buildMonthStartWeekInsights(history, date),
     ].sort((a, b) => b.priority - a.priority || b.delta - a.delta || a.title.localeCompare(b.title, 'no'));
@@ -8593,18 +8601,19 @@
     const developmentInsights = getDevelopmentInsights(history, now);
     const developmentHighlights = getDevelopmentHighlights(developmentInsights);
     const showMonthStartComparisons = isEarlyInMonth(now);
-    const previousBusinessDay = getPreviousBusinessDay(now);
-    const previousBusinessDayStats = getRangeStats(history, startOfDay(previousBusinessDay), addDays(startOfDay(previousBusinessDay), 1));
     const sameDayLastWeekStats = getRangeStats(history, startOfDay(addDays(now, -7)), addDays(startOfDay(addDays(now, -7)), 1));
+    const sameDayLastMonthDate = getSameDayPreviousMonthDate(now);
+    const sameDayLastMonthStats = getRangeStats(history, startOfDay(sameDayLastMonthDate), addDays(startOfDay(sameDayLastMonthDate), 1));
     const previousWeekStats = getRangeStats(history, addDays(startOfWeek, -7), getBusinessDayRangeFromStart(addDays(startOfWeek, -7), elapsedWeekBusinessDays).end);
-    const dayComparisonRows = getMetricRows(dag, previousBusinessDayStats);
     const sameDayLastWeekRows = getMetricRows(dag, sameDayLastWeekStats);
+    const sameDayLastMonthRows = getMetricRows(dag, sameDayLastMonthStats);
     const previousWeekRows = getMetricRows(uke, previousWeekStats);
     const weekProgress = buildWeekMetricProgressSeries(history, now, 'introSuccesses');
     const monthComparisonRows = buildMonthMetricComparison(history, now);
     const monthBusinessDayRace = showMonthStartComparisons ? buildMonthRaceRows(history, now, 'businessDays') : null;
     const monthWeekRace = showMonthStartComparisons ? buildMonthRaceRows(history, now, 'weeks') : null;
     const monthLabels = getMonthComparisonLabels(now);
+    const sameDayLastMonthLabel = formatMonthName(sameDayLastMonthDate);
     const overviewPane = `
       <div class="stats-pane">
         ${renderStatsDaySection(dag, dayGoal, dayGoalStatus, todaySessionCount)}
@@ -8632,11 +8641,11 @@
             <div class="stats-section-title st-teal">I dag</div>
           </div>
           <div class="development-kpi-grid">
-            ${dayComparisonRows.map(row => renderDevelopmentMetricCard(row, 'i går')).join('')}
+            ${sameDayLastWeekRows.map(row => renderDevelopmentMetricCard(row, 'samme dag forrige uke')).join('')}
           </div>
           <div class="development-section-grid" style="margin-top:14px;">
-            ${renderMiniComparisonBlock('I dag vs i går', 'Tre raske sammenligninger mot forrige arbeidsdag.', dayComparisonRows, 'I går')}
-            ${renderMiniComparisonBlock('I dag vs samme dag forrige uke', 'Viser om dagens nivå er sterkere enn samme ukedag sist uke.', sameDayLastWeekRows.filter(row => row.key !== 'introSuccesses'), 'Forrige uke')}
+            ${renderMiniComparisonBlock('I dag vs samme dag forrige uke', 'Viser om dagens nivå er sterkere enn samme ukedag sist uke.', sameDayLastWeekRows, 'Forrige uke')}
+            ${renderMiniComparisonBlock('I dag vs samme dag forrige måned', 'Viser om dagens nivå er sterkere enn samme dato i forrige måned.', sameDayLastMonthRows, sameDayLastMonthLabel)}
           </div>
         </div>
         <div class="stats-section">
