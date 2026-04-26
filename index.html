@@ -481,7 +481,8 @@
     }
 
     .tab-btn.active, .tab-btn:hover,
-    .more-tab-btn.active, .more-tab-btn:hover {
+    .more-tab-btn.active, .more-tab-btn:hover,
+    .settings-trigger.active {
       background: white;
       color: #1e293b;
       box-shadow: 0 1px 4px rgba(0,0,0,0.12);
@@ -654,6 +655,124 @@
       color: var(--muted);
       margin-bottom: 4px;
       display: block;
+    }
+
+    .retro-history-page {
+      max-width: 980px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      padding-bottom: 32px;
+    }
+
+    .retro-history-hero,
+    .retro-history-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(41,168,224,0.08);
+    }
+
+    .retro-history-hero {
+      padding: 22px 24px;
+    }
+
+    .retro-history-title {
+      font-size: 1.16rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      margin-bottom: 8px;
+    }
+
+    .retro-history-text {
+      color: var(--muted);
+      font-size: 0.93rem;
+      line-height: 1.55;
+      max-width: 760px;
+    }
+
+    .retro-history-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.95fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .retro-history-card {
+      padding: 22px;
+    }
+
+    .retro-history-card-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .retro-history-card-text {
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .retro-history-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .retro-history-grid .goals-field.full {
+      grid-column: 1 / -1;
+    }
+
+    .retro-history-grid textarea {
+      min-height: 104px;
+    }
+
+    .retro-history-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .retro-history-feedback {
+      margin-top: 14px;
+      padding: 11px 13px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+
+    .retro-history-feedback.success {
+      border-color: rgba(34, 197, 94, 0.45);
+      background: rgba(20, 83, 45, 0.35);
+      color: #bbf7d0;
+    }
+
+    .retro-history-feedback.warning {
+      border-color: rgba(245, 158, 11, 0.45);
+      background: rgba(120, 53, 15, 0.28);
+      color: #fde68a;
+    }
+
+    .retro-history-preview {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .retro-history-preview .history-item {
+      margin-bottom: 0;
+    }
+
+    .retro-history-preview-meta {
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 1.45;
     }
 
     .intro-inline-note {
@@ -4078,6 +4197,11 @@
         position: static;
       }
 
+      .retro-history-layout,
+      .retro-history-grid {
+        grid-template-columns: 1fr;
+      }
+
       .stats-nav {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -5005,6 +5129,7 @@
     .backup-btn,
     .tab-btn.active,
     .tab-btn:hover,
+    .settings-trigger.active,
     .menu-trigger.active,
     .menu-trigger:hover,
     .more-tab-btn.active,
@@ -5049,6 +5174,7 @@
 
     .tab-btn.active,
     .tab-btn:hover,
+    .settings-trigger.active,
     .menu-trigger.active,
     .menu-trigger:hover,
     .more-tab-btn.active,
@@ -5420,6 +5546,7 @@
         </div>
         <div class="settings-menu-section">
           <span class="settings-menu-heading">Data</span>
+          <button class="backup-btn" type="button" onclick="openRetroHistoryPage(); closeTopBarSettings();">Etterregistrer historikk</button>
           <button class="backup-btn" type="button" onclick="exportData(); closeTopBarSettings();" title="Last ned sikkerhetskopi">Eksporter data</button>
           <label class="backup-btn" title="Gjenopprett fra sikkerhetskopi">Importer data<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
         </div>
@@ -5431,6 +5558,10 @@
 <!-- ===== STATS TAB ===== -->
 <div id="tab-hjem" class="tab-content active">
   <div id="stats-home"></div>
+</div>
+
+<div id="tab-etterregistrering" class="tab-content">
+  <div id="retro-history-page" class="retro-history-page"></div>
 </div>
 
 <div id="tab-goals" class="tab-content">
@@ -5996,20 +6127,7 @@
 
     const createHistoryEntry = (intro, offsetMs, options = {}) => {
       const entryDate = new Date(now.getTime() - offsetMs);
-      const session = getCurrentCallSession(entryDate);
-      return {
-        type: 'introSuccess',
-        introId: intro.id,
-        text: intro.text,
-        opptak: 'ja',
-        over5min: options.over5min === 'ja' ? 'ja' : 'nei',
-        salg: options.salg === 'ja' ? 'ja' : 'nei',
-        isoDate: entryDate.toISOString(),
-        tid: entryDate.toLocaleString('no-NO'),
-        sessionId: session ? session.id : null,
-        sessionLabel: session ? session.label : null,
-        sessionDate: makeLocalDateKey(entryDate)
-      };
+      return buildIntroHistoryEntry(intro, { ...options, date: entryDate, opptak: 'ja' });
     };
 
     const conversationNotes = getDefaultConversationNotes();
@@ -6359,6 +6477,7 @@
     renderSamtaleRating();
     renderOvPage();
     renderGoalsPage();
+    renderRetroHistoryPage();
     renderAllPriceCalculators();
     renderSamtaleflyt();
   }
@@ -6520,7 +6639,7 @@
   // ---- Tab switching ----
   function activateTab(name, activeButtonName = name, triggerButton = null) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-btn, .more-tab-btn, .menu-trigger').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-btn, .more-tab-btn, .menu-trigger, .settings-trigger').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-' + name).classList.add('active');
     const button = triggerButton || document.querySelector(`.tab-btn[data-tab="${activeButtonName}"], .more-tab-btn[data-tab="${activeButtonName}"]`);
     if (button) button.classList.add('active');
@@ -6540,6 +6659,7 @@
     if (name === 'samtalerating') renderSamtaleRating();
     if (name === 'ov') renderOvPage();
     if (name === 'goals') renderGoalsPage();
+    if (name === 'etterregistrering') renderRetroHistoryPage();
   }
 
   function switchTab(name, triggerButton = null) {
@@ -6549,6 +6669,8 @@
   let selectedOver5min = 'nei';
   let selectedSalg = 'nei';
   let activeStatsSubview = 'overview';
+  let retroHistoryFeedback = null;
+  let retroHistoryDraft = null;
 
   function updateToggleSelectionState(key, value) {
     const group = document.getElementById(`${key}-toggle-group`);
@@ -6659,6 +6781,75 @@
 
   function getIntroById(id) {
     return getSavedIntros().find(intro => intro.id === id) || null;
+  }
+
+  function createIntroHistoryEntryId() {
+    return `intro_history_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  }
+
+  function formatHistoryTimestamp(date = new Date()) {
+    return date.toLocaleString('no-NO', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  function getDateInputValue(date = new Date()) {
+    return makeLocalDateKey(date);
+  }
+
+  function getTimeInputValue(date = new Date()) {
+    return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  }
+
+  function parseDateTimeInput(dateValue, timeValue = '12:00') {
+    if (!dateValue) return null;
+    const normalizedTime = /^\d{2}:\d{2}$/.test(String(timeValue || '')) ? timeValue : '12:00';
+    const parsed = new Date(`${dateValue}T${normalizedTime}:00`);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  function findOrCreateIntroByText(text) {
+    const normalizedText = String(text || '').trim();
+    if (!normalizedText) return null;
+    const intros = getSavedIntros();
+    const existing = intros.find(intro => intro.text.trim() === normalizedText);
+    if (existing) return existing;
+    return addToIntroLibrary(normalizedText);
+  }
+
+  function getHistoryEntryTimestamp(entry) {
+    const timestamp = Date.parse(entry?.isoDate || '');
+    return Number.isNaN(timestamp) ? 0 : timestamp;
+  }
+
+  function getSortedIntroHistory(entries = getIntroHistory()) {
+    return [...entries].sort((a, b) => getHistoryEntryTimestamp(b) - getHistoryEntryTimestamp(a));
+  }
+
+  function buildIntroHistoryEntry(intro, options = {}) {
+    const entryDate = options.date instanceof Date && !Number.isNaN(options.date.getTime())
+      ? options.date
+      : new Date();
+    const currentSession = getCurrentCallSession(entryDate);
+    const isOpptak = options.opptak === 'nei' ? 'nei' : 'ja';
+    return {
+      id: options.id || createIntroHistoryEntryId(),
+      type: isOpptak === 'ja' ? 'introSuccess' : 'introAttempt',
+      introId: intro?.id || null,
+      text: intro?.text || String(options.text || '').trim(),
+      opptak: isOpptak,
+      over5min: options.over5min === 'ja' ? 'ja' : 'nei',
+      salg: options.salg === 'ja' ? 'ja' : 'nei',
+      isoDate: entryDate.toISOString(),
+      tid: formatHistoryTimestamp(entryDate),
+      sessionId: currentSession ? currentSession.id : null,
+      sessionLabel: currentSession ? currentSession.label : null,
+      sessionDate: makeLocalDateKey(entryDate),
+    };
   }
 
   function autoResizeTextarea(element) {
@@ -9161,7 +9352,18 @@
   }
 
   function getIntroHistory() {
-    return JSON.parse(localStorage.getItem('introHistory') || '[]');
+    const raw = JSON.parse(localStorage.getItem('introHistory') || '[]');
+    let changed = false;
+    const history = raw
+      .map(entry => {
+        if (!entry || typeof entry !== 'object') return null;
+        if (entry.id) return entry;
+        changed = true;
+        return { ...entry, id: createIntroHistoryEntryId() };
+      })
+      .filter(Boolean);
+    if (changed) localStorage.setItem('introHistory', JSON.stringify(history));
+    return history;
   }
 
   function clearIntroHistory() {
@@ -9170,25 +9372,12 @@
       renderIntroHistory();
       renderStatsHome();
       renderIntroLibrary();
+      renderRetroHistoryPage();
     }
   }
 
   function buildOpptakEntry(intro, options = {}) {
-    const now = new Date();
-    const currentSession = getCurrentCallSession(now);
-    return {
-      type: 'introSuccess',
-      introId: intro.id,
-      text: intro.text,
-      opptak: 'ja',
-      over5min: options.over5min === 'ja' ? 'ja' : 'nei',
-      salg: options.salg === 'ja' ? 'ja' : 'nei',
-      isoDate: now.toISOString(),
-      tid: now.toLocaleString('no-NO'),
-      sessionId: currentSession ? currentSession.id : null,
-      sessionLabel: currentSession ? currentSession.label : null,
-      sessionDate: makeLocalDateKey(now),
-    };
+    return buildIntroHistoryEntry(intro, { ...options, opptak: 'ja' });
   }
 
   function registerIntroSuccessById(id) {
@@ -9239,13 +9428,13 @@
 
   function renderIntroHistory() {
     const container = document.getElementById('intro-history');
-    const history = getIntroHistory();
+    const history = getSortedIntroHistory();
     const intros = getSavedIntros();
     if (!history.length) {
       container.innerHTML = '<p class="empty-state">Ingen opptak registrert ennå.</p>';
       return;
     }
-    container.innerHTML = history.map((h, i) => `
+    container.innerHTML = history.map(h => `
       <div class="history-item">
         <div>${escHtml((resolveEntryIntro(h, intros) || {}).text || h.text || 'Ukjent intro')}</div>
         <div class="meta">
@@ -9253,19 +9442,187 @@
             ${isIntroSuccessEntry(h) ? 'Opptak' : 'Tidligere forsøk'}
           </span>
           <span>${h.sessionLabel ? `${h.sessionLabel} · ` : ''}${h.tid}</span>
-          <button class="delete-entry-btn" onclick="deleteIntroAttempt(${i})" title="Slett dette forsøket">×</button>
+          <button class="delete-entry-btn" onclick="deleteIntroAttempt('${h.id}')" title="Slett dette forsøket">×</button>
         </div>
       </div>
     `).join('');
   }
 
-  function deleteIntroAttempt(index) {
+  function deleteIntroAttempt(entryId) {
     const history = getIntroHistory();
+    const index = history.findIndex(entry => entry.id === entryId);
+    if (index === -1) return;
     history.splice(index, 1);
     localStorage.setItem('introHistory', JSON.stringify(history));
     renderIntroHistory();
     renderStatsHome();
     renderIntroLibrary();
+    renderRetroHistoryPage();
+  }
+
+  function openRetroHistoryPage() {
+    activateTab('etterregistrering', '', document.getElementById('top-bar-settings-button'));
+  }
+
+  function syncRetroHistoryIntroSelection() {
+    const select = document.getElementById('retro-history-intro-select');
+    const textarea = document.getElementById('retro-history-intro-text');
+    if (!select || !textarea) return;
+    const intro = getIntroById(select.value);
+    if (!intro) return;
+    textarea.value = intro.text;
+    autoResizeTextarea(textarea);
+  }
+
+  function getRetroHistoryDraft() {
+    const now = new Date();
+    const defaultIntroId = selectedIntroId || getStoredSelectedIntroId() || '';
+    const defaultIntro = defaultIntroId ? getIntroById(defaultIntroId) : null;
+    return retroHistoryDraft || {
+      dateValue: getDateInputValue(now),
+      timeValue: getTimeInputValue(now),
+      selectedIntroId: defaultIntroId,
+      introText: defaultIntro ? defaultIntro.text : '',
+      opptak: 'ja',
+      over5min: 'nei',
+      salg: 'nei'
+    };
+  }
+
+  function saveRetroHistoryEntry() {
+    const dateValue = document.getElementById('retro-history-date')?.value || '';
+    const timeValue = document.getElementById('retro-history-time')?.value || '';
+    const selectedIntroIdValue = document.getElementById('retro-history-intro-select')?.value || '';
+    const introText = document.getElementById('retro-history-intro-text')?.value.trim() || '';
+    let opptak = document.getElementById('retro-history-opptak')?.value === 'nei' ? 'nei' : 'ja';
+    const over5min = document.getElementById('retro-history-over5min')?.value === 'ja' ? 'ja' : 'nei';
+    const salg = document.getElementById('retro-history-salg')?.value === 'ja' ? 'ja' : 'nei';
+    retroHistoryDraft = { dateValue, timeValue, selectedIntroId: selectedIntroIdValue, introText, opptak, over5min, salg };
+    const entryDate = parseDateTimeInput(dateValue, timeValue);
+
+    if (!entryDate) {
+      retroHistoryFeedback = { tone: 'warning', message: 'Velg en gyldig dato og et gyldig klokkeslett.' };
+      renderRetroHistoryPage();
+      return;
+    }
+
+    let intro = selectedIntroIdValue ? getIntroById(selectedIntroIdValue) : null;
+    if (introText) {
+      if (!intro || intro.text.trim() !== introText) intro = findOrCreateIntroByText(introText);
+    }
+
+    if (!intro) {
+      retroHistoryFeedback = { tone: 'warning', message: 'Velg en intro fra biblioteket eller skriv inn teksten du brukte.' };
+      renderRetroHistoryPage();
+      return;
+    }
+
+    if (salg === 'ja') opptak = 'ja';
+
+    const history = getIntroHistory();
+    history.push(buildIntroHistoryEntry(intro, { date: entryDate, opptak, over5min, salg }));
+    localStorage.setItem('introHistory', JSON.stringify(history));
+
+    retroHistoryDraft = null;
+    retroHistoryFeedback = {
+      tone: 'success',
+      message: `Historikk lagret for ${formatHistoryTimestamp(entryDate)}.`
+    };
+
+    renderStatsHome();
+    renderIntroLibrary();
+    renderIntroHistory();
+    renderSessionStatus();
+    renderRetroHistoryPage();
+  }
+
+  function renderRetroHistoryPage() {
+    const container = document.getElementById('retro-history-page');
+    if (!container) return;
+
+    const intros = getSavedIntros();
+    const previewEntries = getSortedIntroHistory().slice(0, 8);
+    const draft = getRetroHistoryDraft();
+
+    container.innerHTML = `
+      <div class="retro-history-hero">
+        <div class="retro-history-title">Etterregistrer historikk</div>
+        <div class="retro-history-text">Legg inn samtaler du husker i etterkant. Oppføringene lagres på kontoen din og teller med i historikk, stats og introoversikt akkurat som vanlige registreringer.</div>
+      </div>
+      <div class="retro-history-layout">
+        <div class="retro-history-card">
+          <div class="retro-history-card-title">Ny historikkoppføring</div>
+          <div class="retro-history-card-text">Velg tidspunkt, koble oppføringen til en intro, og marker om samtalen ga opptak, over 6 minutter eller salg.</div>
+          <div class="retro-history-grid">
+            <div class="goals-field">
+              <label for="retro-history-date">Dato</label>
+              <input id="retro-history-date" type="date" value="${draft.dateValue}" />
+            </div>
+            <div class="goals-field">
+              <label for="retro-history-time">Klokkeslett</label>
+              <input id="retro-history-time" type="time" value="${draft.timeValue}" />
+            </div>
+            <div class="goals-field full">
+              <label for="retro-history-intro-select">Intro fra biblioteket</label>
+              <select id="retro-history-intro-select" onchange="syncRetroHistoryIntroSelection()">
+                <option value="">Velg lagret intro (valgfritt)</option>
+                ${intros.map(intro => `<option value="${intro.id}" ${draft.selectedIntroId === intro.id ? 'selected' : ''}>${escHtml(intro.text)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="goals-field full">
+              <label for="retro-history-intro-text">Introtekst</label>
+              <textarea id="retro-history-intro-text" placeholder="Skriv inn introen du brukte hvis den ikke ligger i biblioteket fra før.">${escHtml(draft.introText)}</textarea>
+            </div>
+            <div class="goals-field">
+              <label for="retro-history-opptak">Resultat</label>
+              <select id="retro-history-opptak">
+                <option value="ja" ${draft.opptak === 'ja' ? 'selected' : ''}>Opptak</option>
+                <option value="nei" ${draft.opptak === 'nei' ? 'selected' : ''}>Tidligere forsøk</option>
+              </select>
+            </div>
+            <div class="goals-field">
+              <label for="retro-history-over5min">Over 6 minutter</label>
+              <select id="retro-history-over5min">
+                <option value="nei" ${draft.over5min === 'nei' ? 'selected' : ''}>Nei</option>
+                <option value="ja" ${draft.over5min === 'ja' ? 'selected' : ''}>Ja</option>
+              </select>
+            </div>
+            <div class="goals-field">
+              <label for="retro-history-salg">Salg</label>
+              <select id="retro-history-salg">
+                <option value="nei" ${draft.salg === 'nei' ? 'selected' : ''}>Nei</option>
+                <option value="ja" ${draft.salg === 'ja' ? 'selected' : ''}>Ja</option>
+              </select>
+            </div>
+          </div>
+          <div class="retro-history-actions">
+            <button class="save-btn" type="button" style="margin-top:0;" onclick="saveRetroHistoryEntry()">Lagre historikk</button>
+            <button class="backup-btn" type="button" onclick="switchTab('intro')">Til introtest</button>
+          </div>
+          ${retroHistoryFeedback ? `<div class="retro-history-feedback ${retroHistoryFeedback.tone}">${escHtml(retroHistoryFeedback.message)}</div>` : ''}
+        </div>
+        <div class="retro-history-card">
+          <div class="retro-history-card-title">Siste registreringer</div>
+          <div class="retro-history-card-text">Her ser du de siste oppføringene sortert etter tidspunkt, så du enkelt kan dobbeltsjekke det du har lagt inn.</div>
+          ${previewEntries.length ? `
+            <div class="retro-history-preview">
+              ${previewEntries.map(entry => `
+                <div class="history-item">
+                  <div>${escHtml((resolveEntryIntro(entry, intros) || {}).text || entry.text || 'Ukjent intro')}</div>
+                  <div class="meta">
+                    <span class="result-badge ${isIntroSuccessEntry(entry) ? 'badge-yes' : 'badge-no'}">${isIntroSuccessEntry(entry) ? 'Opptak' : 'Tidligere forsøk'}</span>
+                    <span>${entry.sessionLabel ? `${entry.sessionLabel} · ` : ''}${entry.tid}</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          ` : `<div class="empty-state">Ingen historikk ennå.</div>`}
+          <div class="retro-history-preview-meta">Tips: Hvis du skriver en introtekst som ikke finnes fra før, lagres den automatisk i introbiblioteket slik at du kan bruke den igjen senere.</div>
+        </div>
+      </div>
+    `;
+
+    autoResizeTextarea(document.getElementById('retro-history-intro-text'));
   }
 
   // ---- Produkt Fakta ----
