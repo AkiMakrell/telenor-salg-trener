@@ -2541,13 +2541,6 @@
       letter-spacing: -0.02em;
     }
 
-    .intro-page-description {
-      max-width: 720px;
-      font-size: 0.95rem;
-      line-height: 1.55;
-      color: var(--muted);
-    }
-
     .intro-page-status {
       width: 100%;
       max-width: 420px;
@@ -5296,8 +5289,7 @@
 <div id="tab-intro" class="tab-content">
 
   <div class="intro-page-header">
-    <h2 class="intro-page-title">Registrer opptak</h2>
-    <div class="intro-page-description">Test en intro om gangen, registrer utfallet, og se hvilke åpninger som faktisk skaper lengre samtaler og flere salg.</div>
+    <h2 class="intro-page-title">Introtest</h2>
     <div id="session-status" class="intro-page-status">
       <div id="session-status-title" class="intro-page-status-title">Laster aktiv økt...</div>
       <div id="session-status-subtitle" class="intro-page-status-subtitle"></div>
@@ -6579,13 +6571,13 @@
 
     if (currentSession) {
       title.textContent = `${currentSession.label} er aktiv nå`;
-      subtitle.textContent = `${currentSession.start}–${currentSession.end}. Bruk samme intro i denne økten, så kan du sammenligne resultatene mer rettferdig.`;
+      subtitle.textContent = `${currentSession.start}–${currentSession.end}`;
     } else if (nextSession) {
       title.textContent = `Neste økt: ${nextSession.label}`;
-      subtitle.textContent = `${nextSession.start}–${nextSession.end}. Valgt intro blir brukt automatisk når økten starter.`;
+      subtitle.textContent = `${nextSession.start}–${nextSession.end}`;
     } else {
       title.textContent = 'Arbeidsdagen er ferdig';
-      subtitle.textContent = 'Sist valgte intro blir klar neste gang du åpner appen.';
+      subtitle.textContent = 'Ingen aktiv økt akkurat nå';
     }
 
     renderIntroDailyStats(now);
