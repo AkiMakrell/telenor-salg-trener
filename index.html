@@ -4118,6 +4118,10 @@
       gap: 6px;
     }
 
+    .development-compare-board.with-title-gap {
+      margin-top: 14px;
+    }
+
     .development-compare-lane,
     .development-track-lane {
       height: 10px;
@@ -8325,11 +8329,12 @@
 
   function renderHorizontalComparisonBoard(title, subtitle, rows, previousLabel, currentLabel) {
     const maxValue = Math.max(...rows.flatMap(row => [row.current, row.previous]), 1);
+    const boardClass = subtitle ? 'development-compare-board' : 'development-compare-board with-title-gap';
     return `
       <div class="development-visual-card">
         <div class="development-card-title">${title}</div>
         ${subtitle ? `<div class="development-card-subtitle">${subtitle}</div>` : ''}
-        <div class="development-compare-board">
+        <div class="${boardClass}">
           ${rows.map(row => {
             const metricClass = getMetricClass(row.key);
             const currentBestClass = row.isCurrentBest && row.current > 0 ? ` current-best ${metricClass}` : '';
