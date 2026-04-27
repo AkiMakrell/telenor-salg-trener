@@ -7389,15 +7389,8 @@
     return nowMinutes >= timeToMinutes(session.start);
   }
 
-  function getStartedSessionKeysForIntro(introId, intros, history, assignments, reference = new Date()) {
+  function getStartedSessionKeysForIntro(introId, intros, history) {
     const sessionKeys = new Set();
-
-    Object.entries(assignments).forEach(([key, assignedIntroId]) => {
-      if (assignedIntroId !== introId) return;
-      const parsed = parseSessionAssignmentKey(key);
-      if (!parsed) return;
-      if (hasSessionStarted(parsed.sessionId, parsed.dateKey, reference)) sessionKeys.add(key);
-    });
 
     history.forEach(entry => {
       const entryIntro = resolveEntryIntro(entry, intros);
@@ -9480,7 +9473,6 @@
       return;
     }
     const history = getIntroHistory();
-    const assignments = getSessionAssignments();
     const now = new Date();
     const activeSession = getCurrentCallSession();
     const activeIntroId = activeSession ? getAssignedIntroIdForSession(activeSession) : getStoredSelectedIntroId();
@@ -9490,7 +9482,7 @@
         const entryIntro = resolveEntryIntro(h, intros);
         return entryIntro && entryIntro.id === i.id;
       });
-      const sessionCount = getStartedSessionKeysForIntro(i.id, intros, history, assignments, now).size;
+      const sessionCount = getStartedSessionKeysForIntro(i.id, intros, history).size;
       const successes = entries.filter(isIntroSuccessEntry).length;
       return {
         i,
