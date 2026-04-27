@@ -626,27 +626,142 @@
       font-size: 0.9rem;
     }
 
+    .history-item-main {
+      line-height: 1.5;
+      color: var(--text);
+    }
+
     .history-item .meta {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
       margin-top: 6px;
       color: var(--muted);
       font-size: 0.82rem;
     }
 
-    .delete-entry-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 0.85rem;
-      color: #fff;
-      opacity: 0.5;
-      padding: 0 2px;
-      line-height: 1;
-      transition: opacity 0.2s;
+    .history-item-meta-text {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      min-width: 0;
     }
-    .delete-entry-btn:hover { opacity: 1; }
+
+    .history-item-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .history-item-action-btn {
+      min-height: 32px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.7);
+      color: var(--text);
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .history-item-action-btn:hover {
+      border-color: var(--primary);
+      background: rgba(41, 168, 224, 0.14);
+    }
+
+    .delete-entry-btn {
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(248, 113, 113, 0.45);
+      border-radius: 999px;
+      background: rgba(127, 29, 29, 0.25);
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 800;
+      color: #fecaca;
+      opacity: 1;
+      padding: 0;
+      line-height: 1;
+      transition: all 0.15s ease;
+    }
+    .delete-entry-btn:hover {
+      background: rgba(220, 38, 38, 0.22);
+      border-color: rgba(252, 165, 165, 0.75);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .history-panel-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      margin: 14px 0 4px;
+    }
+
+    .history-panel-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .clear-history-btn {
+      min-height: 44px;
+      padding: 12px 18px;
+      border: 1px solid rgba(248, 113, 113, 0.55);
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(185, 28, 28, 0.92), rgba(153, 27, 27, 0.92));
+      color: #fff;
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(127, 29, 29, 0.28);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+    }
+
+    .clear-history-btn:hover {
+      filter: brightness(1.04);
+      transform: translateY(-1px);
+      box-shadow: 0 14px 28px rgba(127, 29, 29, 0.34);
+    }
+
+    .undo-history-btn {
+      min-height: 44px;
+      padding: 11px 16px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-top: 0;
+    }
+
+    .undo-history-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .history-danger-note {
+      margin-top: 6px;
+      color: #fca5a5;
+      font-size: 0.8rem;
+      line-height: 1.45;
+      max-width: 520px;
+    }
+
+    .history-danger-note.has-undo {
+      color: #bfdbfe;
+    }
 
     .empty-state {
       text-align: center;
@@ -764,14 +879,53 @@
       color: #fde68a;
     }
 
-    .retro-history-preview {
+    .retro-history-feedback.info {
+      border-color: rgba(59, 130, 246, 0.45);
+      background: rgba(30, 64, 175, 0.24);
+      color: #bfdbfe;
+    }
+
+    .retro-history-preview,
+    .retro-history-list {
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
 
-    .retro-history-preview .history-item {
+    .retro-history-preview .history-item,
+    .retro-history-list .history-item {
       margin-bottom: 0;
+    }
+
+    .retro-history-list-head,
+    .retro-history-list-tools {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .retro-history-list-head {
+      margin-bottom: 16px;
+    }
+
+    .retro-history-list-tools {
+      justify-content: flex-end;
+    }
+
+    .retro-history-summary {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.72);
+      color: var(--text);
+      font-size: 0.84rem;
+      font-weight: 700;
+      white-space: nowrap;
     }
 
     .retro-history-preview-meta {
@@ -4238,6 +4392,22 @@
         grid-template-columns: 1fr;
       }
 
+      .history-panel-head,
+      .history-panel-actions,
+      .retro-history-list-head,
+      .retro-history-list-tools,
+      .retro-history-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .clear-history-btn,
+      .undo-history-btn,
+      .retro-history-actions .save-btn,
+      .retro-history-actions .backup-btn {
+        width: 100%;
+      }
+
       .stats-nav {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -5660,9 +5830,15 @@
 
         <button class="history-toggle-btn" onclick="toggleHistory()">Vis historikk</button>
         <div id="history-panel" class="history-panel">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0 4px;">
-            <span style="font-weight:600;color:var(--primary-dark);">Historikk</span>
-            <button class="clear-btn" style="float:none;" onclick="clearIntroHistory()">Tøm</button>
+          <div class="history-panel-head">
+            <div>
+              <span style="font-weight:600;color:var(--primary-dark);">Historikk</span>
+              <div id="intro-history-undo-note" class="history-danger-note">Tøm all historikk sletter alle opptak og tidligere forsøk. Du kan angre siste sletting.</div>
+            </div>
+            <div class="history-panel-actions">
+              <button class="clear-history-btn" type="button" onclick="clearIntroHistory()">Tøm all historikk</button>
+              <button id="intro-history-undo-btn" class="backup-btn undo-history-btn" data-intro-history-undo type="button" onclick="undoLastIntroHistoryAction()">Angre siste handling</button>
+            </div>
           </div>
           <div id="intro-history" class="history-list"></div>
         </div>
@@ -6719,6 +6895,7 @@
   let activeStatsSubview = 'overview';
   let retroHistoryFeedback = null;
   let retroHistoryDraft = null;
+  let introHistoryUndoState = null;
 
   function updateToggleSelectionState(key, value) {
     const group = document.getElementById(`${key}-toggle-group`);
@@ -9408,18 +9585,129 @@
     return history;
   }
 
-  function clearIntroHistory() {
-    if (confirm('Slette all intro-historikk?')) {
-      localStorage.removeItem('introHistory');
-      renderIntroHistory();
-      renderStatsHome();
-      renderIntroLibrary();
-      renderRetroHistoryPage();
+  function cloneIntroHistory(entries = getIntroHistory()) {
+    return JSON.parse(JSON.stringify(Array.isArray(entries) ? entries : []));
+  }
+
+  function saveIntroHistoryToStorage(history) {
+    const normalizedHistory = Array.isArray(history) ? history.filter(Boolean) : [];
+    if (normalizedHistory.length) localStorage.setItem('introHistory', JSON.stringify(normalizedHistory));
+    else localStorage.removeItem('introHistory');
+    return normalizedHistory;
+  }
+
+  function refreshIntroHistoryUi() {
+    renderIntroHistory();
+    renderStatsHome();
+    renderIntroLibrary();
+    renderSessionStatus();
+    renderRetroHistoryPage();
+  }
+
+  function summarizeHistoryEntry(text) {
+    const normalized = String(text || '').trim();
+    if (!normalized) return 'ukjent intro';
+    return normalized.length > 46 ? `${normalized.slice(0, 46).trim()}...` : normalized;
+  }
+
+  function buildIntroHistoryUndoState(actionLabel, previousHistory) {
+    return {
+      actionLabel,
+      previousHistory: cloneIntroHistory(previousHistory),
+      message: `${actionLabel}. Klikk "Angre siste handling" hvis det var feil.`
+    };
+  }
+
+  function updateIntroHistoryUndoUi() {
+    const hasUndo = !!introHistoryUndoState;
+    document.querySelectorAll('[data-intro-history-undo]').forEach(button => {
+      button.disabled = !hasUndo;
+      button.setAttribute('aria-disabled', hasUndo ? 'false' : 'true');
+      button.title = hasUndo ? introHistoryUndoState.actionLabel : 'Ingen handling å angre ennå';
+    });
+    const note = document.getElementById('intro-history-undo-note');
+    if (note) {
+      note.textContent = hasUndo
+        ? introHistoryUndoState.message
+        : 'Tøm all historikk sletter alle opptak og tidligere forsøk. Du kan angre siste sletting.';
+      note.classList.toggle('has-undo', hasUndo);
     }
+  }
+
+  function setIntroHistoryUndoState(state = null) {
+    introHistoryUndoState = state;
+    updateIntroHistoryUndoUi();
+  }
+
+  function commitIntroHistory(history, options = {}) {
+    const normalizedHistory = saveIntroHistoryToStorage(history);
+    if (Object.prototype.hasOwnProperty.call(options, 'feedback')) {
+      retroHistoryFeedback = options.feedback;
+    }
+    refreshIntroHistoryUi();
+    if (Object.prototype.hasOwnProperty.call(options, 'undoState')) {
+      setIntroHistoryUndoState(options.undoState);
+    } else if (options.clearUndo !== false) {
+      setIntroHistoryUndoState(null);
+    } else {
+      updateIntroHistoryUndoUi();
+    }
+    return normalizedHistory;
+  }
+
+  function undoLastIntroHistoryAction() {
+    if (!introHistoryUndoState) return;
+    const previousHistory = cloneIntroHistory(introHistoryUndoState.previousHistory);
+    commitIntroHistory(previousHistory, {
+      undoState: null,
+      feedback: { tone: 'success', message: 'Siste historikkhandling ble angret.' }
+    });
+  }
+
+  function clearIntroHistory() {
+    const history = getIntroHistory();
+    if (!history.length) return;
+    if (!confirm('Tømme all introhistorikk? Dette sletter alle opptak og tidligere forsøk.')) return;
+    retroHistoryDraft = null;
+    commitIntroHistory([], {
+      undoState: buildIntroHistoryUndoState('Tømte hele historikken', history),
+      feedback: { tone: 'warning', message: 'All historikk ble slettet. Du kan angre siste handling.' }
+    });
   }
 
   function buildOpptakEntry(intro, options = {}) {
     return buildIntroHistoryEntry(intro, { ...options, opptak: 'ja' });
+  }
+
+  function getHistoryEntryDisplayText(entry, intros = getSavedIntros()) {
+    return (resolveEntryIntro(entry, intros) || {}).text || entry.text || 'Ukjent intro';
+  }
+
+  function getHistoryEntryMetaText(entry) {
+    return `${entry.sessionLabel ? `${entry.sessionLabel} · ` : ''}${entry.tid || ''}`;
+  }
+
+  function renderIntroHistoryItem(entry, intros = getSavedIntros(), options = {}) {
+    const includeEdit = options.includeEdit === true;
+    const text = getHistoryEntryDisplayText(entry, intros);
+    const editButton = includeEdit
+      ? `<button class="history-item-action-btn" type="button" onclick="startRetroHistoryEntryEdit('${entry.id}')">Rediger</button>`
+      : '';
+    return `
+      <div class="history-item">
+        <div class="history-item-main">${escHtml(text)}</div>
+        <div class="meta">
+          <div class="history-item-meta-text">
+            <span class="result-badge ${isIntroSuccessEntry(entry) ? 'badge-yes' : 'badge-no'}">${isIntroSuccessEntry(entry) ? 'Opptak' : 'Tidligere forsøk'}</span>
+            <span>${escHtml(getHistoryEntryMetaText(entry))}</span>
+          </div>
+          <div class="history-item-actions">
+            ${editButton}
+            <button class="delete-entry-btn" type="button" onclick="deleteIntroAttempt('${entry.id}')" title="Slett denne oppføringen" aria-label="Slett denne oppføringen">×</button>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   function registerIntroSuccessById(id) {
@@ -9430,12 +9718,8 @@
     assignIntroToCurrentSession(intro.id);
     const history = getIntroHistory();
     history.unshift(buildOpptakEntry(intro));
-    localStorage.setItem('introHistory', JSON.stringify(history));
+    commitIntroHistory(history, { clearUndo: true });
     resetOpptak();
-    renderStatsHome();
-    renderIntroLibrary();
-    renderIntroHistory();
-    renderSessionStatus();
   }
 
   function resolveIntroForRegistration() {
@@ -9456,16 +9740,12 @@
       over5min: selectedOver5min === 'ja' ? 'ja' : 'nei',
       salg: selectedSalg === 'ja' ? 'ja' : 'nei',
     }));
-    localStorage.setItem('introHistory', JSON.stringify(history));
+    commitIntroHistory(history, { clearUndo: true });
 
     if (selectedSalg === 'ja') showCelebrationGif('salg');
     else if (selectedOver5min === 'ja') showCelebrationGif('over5min');
 
     resetOpptak();
-    renderStatsHome();
-    renderIntroLibrary();
-    renderIntroHistory();
-    renderSessionStatus();
   }
 
   function renderIntroHistory() {
@@ -9473,37 +9753,79 @@
     const history = getSortedIntroHistory();
     const intros = getSavedIntros();
     if (!history.length) {
-      container.innerHTML = '<p class="empty-state">Ingen opptak registrert ennå.</p>';
+      container.innerHTML = '<p class="empty-state">Ingen opptak eller forsøk registrert ennå.</p>';
+      updateIntroHistoryUndoUi();
       return;
     }
-    container.innerHTML = history.map(h => `
-      <div class="history-item">
-        <div>${escHtml((resolveEntryIntro(h, intros) || {}).text || h.text || 'Ukjent intro')}</div>
-        <div class="meta">
-          <span class="result-badge ${isIntroSuccessEntry(h) ? 'badge-yes' : 'badge-no'}">
-            ${isIntroSuccessEntry(h) ? 'Opptak' : 'Tidligere forsøk'}
-          </span>
-          <span>${h.sessionLabel ? `${h.sessionLabel} · ` : ''}${h.tid}</span>
-          <button class="delete-entry-btn" onclick="deleteIntroAttempt('${h.id}')" title="Slett dette forsøket">×</button>
-        </div>
-      </div>
-    `).join('');
+    container.innerHTML = history.map(entry => renderIntroHistoryItem(entry, intros)).join('');
+    updateIntroHistoryUndoUi();
   }
 
   function deleteIntroAttempt(entryId) {
     const history = getIntroHistory();
     const index = history.findIndex(entry => entry.id === entryId);
     if (index === -1) return;
-    history.splice(index, 1);
-    localStorage.setItem('introHistory', JSON.stringify(history));
-    renderIntroHistory();
-    renderStatsHome();
-    renderIntroLibrary();
-    renderRetroHistoryPage();
+    const [removedEntry] = history.splice(index, 1);
+    if (retroHistoryDraft && retroHistoryDraft.editId === entryId) retroHistoryDraft = null;
+    commitIntroHistory(history, {
+      undoState: buildIntroHistoryUndoState(`Slettet "${summarizeHistoryEntry(getHistoryEntryDisplayText(removedEntry))}"`, getIntroHistory()),
+      feedback: { tone: 'success', message: 'Oppføringen ble slettet. Du kan angre siste handling.' }
+    });
   }
 
   function openRetroHistoryPage() {
     activateTab('etterregistrering', '', document.getElementById('top-bar-settings-button'));
+  }
+
+  function createRetroHistoryDraft(overrides = {}) {
+    const now = new Date();
+    const hasSelectedIntro = Object.prototype.hasOwnProperty.call(overrides, 'selectedIntroId');
+    const defaultIntroId = hasSelectedIntro
+      ? overrides.selectedIntroId
+      : (selectedIntroId || getStoredSelectedIntroId() || '');
+    const defaultIntro = defaultIntroId ? getIntroById(defaultIntroId) : null;
+    return {
+      editId: '',
+      dateValue: getDateInputValue(now),
+      timeValue: getTimeInputValue(now),
+      selectedIntroId: defaultIntroId,
+      introText: defaultIntro ? defaultIntro.text : '',
+      opptak: 'ja',
+      over5min: 'nei',
+      salg: 'nei',
+      ...overrides
+    };
+  }
+
+  function buildRetroHistoryDraftFromEntry(entry) {
+    const entryDate = new Date(entry?.isoDate || Date.now());
+    const safeDate = Number.isNaN(entryDate.getTime()) ? new Date() : entryDate;
+    const resolvedIntro = resolveEntryIntro(entry);
+    return createRetroHistoryDraft({
+      editId: entry?.id || '',
+      dateValue: getDateInputValue(safeDate),
+      timeValue: getTimeInputValue(safeDate),
+      selectedIntroId: resolvedIntro?.id || entry?.introId || '',
+      introText: resolvedIntro?.text || String(entry?.text || ''),
+      opptak: entry?.opptak === 'nei' ? 'nei' : 'ja',
+      over5min: entry?.over5min === 'ja' ? 'ja' : 'nei',
+      salg: entry?.salg === 'ja' ? 'ja' : 'nei'
+    });
+  }
+
+  function cancelRetroHistoryEdit() {
+    retroHistoryDraft = createRetroHistoryDraft();
+    retroHistoryFeedback = null;
+    renderRetroHistoryPage();
+  }
+
+  function startRetroHistoryEntryEdit(entryId) {
+    const entry = getIntroHistory().find(item => item.id === entryId);
+    if (!entry) return;
+    retroHistoryDraft = buildRetroHistoryDraftFromEntry(entry);
+    retroHistoryFeedback = { tone: 'info', message: 'Rediger oppføringen og lagre når du er ferdig.' };
+    renderRetroHistoryPage();
+    document.getElementById('retro-history-date')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   function syncRetroHistoryIntroSelection() {
@@ -9517,18 +9839,7 @@
   }
 
   function getRetroHistoryDraft() {
-    const now = new Date();
-    const defaultIntroId = selectedIntroId || getStoredSelectedIntroId() || '';
-    const defaultIntro = defaultIntroId ? getIntroById(defaultIntroId) : null;
-    return retroHistoryDraft || {
-      dateValue: getDateInputValue(now),
-      timeValue: getTimeInputValue(now),
-      selectedIntroId: defaultIntroId,
-      introText: defaultIntro ? defaultIntro.text : '',
-      opptak: 'ja',
-      over5min: 'nei',
-      salg: 'nei'
-    };
+    return retroHistoryDraft || createRetroHistoryDraft();
   }
 
   function saveRetroHistoryEntry() {
@@ -9536,10 +9847,11 @@
     const timeValue = document.getElementById('retro-history-time')?.value || '';
     const selectedIntroIdValue = document.getElementById('retro-history-intro-select')?.value || '';
     const introText = document.getElementById('retro-history-intro-text')?.value.trim() || '';
+    const editId = retroHistoryDraft?.editId || '';
     let opptak = document.getElementById('retro-history-opptak')?.value === 'nei' ? 'nei' : 'ja';
     const over5min = document.getElementById('retro-history-over5min')?.value === 'ja' ? 'ja' : 'nei';
     const salg = document.getElementById('retro-history-salg')?.value === 'ja' ? 'ja' : 'nei';
-    retroHistoryDraft = { dateValue, timeValue, selectedIntroId: selectedIntroIdValue, introText, opptak, over5min, salg };
+    retroHistoryDraft = createRetroHistoryDraft({ editId, dateValue, timeValue, selectedIntroId: selectedIntroIdValue, introText, opptak, over5min, salg });
     const entryDate = parseDateTimeInput(dateValue, timeValue);
 
     if (!entryDate) {
@@ -9562,10 +9874,21 @@
     if (salg === 'ja') opptak = 'ja';
 
     const history = getIntroHistory();
-    history.push(buildIntroHistoryEntry(intro, { date: entryDate, opptak, over5min, salg }));
-    localStorage.setItem('introHistory', JSON.stringify(history));
+    const nextEntry = buildIntroHistoryEntry(intro, { id: editId || undefined, date: entryDate, opptak, over5min, salg });
+    if (editId) {
+      const index = history.findIndex(entry => entry.id === editId);
+      if (index === -1) {
+        retroHistoryFeedback = { tone: 'warning', message: 'Fant ikke oppføringen du prøvde å redigere. Oppdater siden og prøv igjen.' };
+        retroHistoryDraft = createRetroHistoryDraft();
+        renderRetroHistoryPage();
+        return;
+      }
+      history[index] = nextEntry;
+    } else {
+      history.push(nextEntry);
+    }
 
-    retroHistoryDraft = {
+    retroHistoryDraft = createRetroHistoryDraft({
       dateValue,
       timeValue,
       selectedIntroId: intro.id,
@@ -9573,17 +9896,16 @@
       opptak,
       over5min,
       salg
-    };
-    retroHistoryFeedback = {
-      tone: 'success',
-      message: `Historikk lagret for ${formatHistoryTimestamp(entryDate)}.`
-    };
-
-    renderStatsHome();
-    renderIntroLibrary();
-    renderIntroHistory();
-    renderSessionStatus();
-    renderRetroHistoryPage();
+    });
+    commitIntroHistory(history, {
+      clearUndo: true,
+      feedback: {
+        tone: 'success',
+        message: editId
+          ? `Historikken ble oppdatert for ${formatHistoryTimestamp(entryDate)}.`
+          : `Historikk lagret for ${formatHistoryTimestamp(entryDate)}.`
+      }
+    });
   }
 
   function renderRetroHistoryPage() {
@@ -9591,18 +9913,22 @@
     if (!container) return;
 
     const intros = getSavedIntros();
-    const previewEntries = getSortedIntroHistory().slice(0, 8);
+    const historyEntries = getSortedIntroHistory();
     const draft = getRetroHistoryDraft();
+    const isEditing = !!draft.editId;
+    const historySummary = historyEntries.length === 1
+      ? '1 oppføring'
+      : `${historyEntries.length} oppføringer`;
 
     container.innerHTML = `
       <div class="retro-history-hero">
         <div class="retro-history-title">Etterregistrer historikk</div>
-        <div class="retro-history-text">Legg inn samtaler du husker i etterkant. Oppføringene lagres på kontoen din og teller med i historikk, stats og introoversikt akkurat som vanlige registreringer.</div>
+        <div class="retro-history-text">Legg inn eller rediger samtaler i etterkant. Både opptak og tidligere forsøk lagres på kontoen din og teller med i historikk, stats og introoversikt akkurat som vanlige registreringer.</div>
       </div>
       <div class="retro-history-layout">
         <div class="retro-history-card">
-          <div class="retro-history-card-title">Ny historikkoppføring</div>
-          <div class="retro-history-card-text">Velg tidspunkt, koble oppføringen til en intro, og marker om samtalen ga opptak, over 6 minutter eller salg.</div>
+          <div class="retro-history-card-title">${isEditing ? 'Rediger historikkoppføring' : 'Ny historikkoppføring'}</div>
+          <div class="retro-history-card-text">${isEditing ? 'Oppdater tidspunkt, intro eller resultat. Endringene slår rett inn i hele historikken.' : 'Velg tidspunkt, koble oppføringen til en intro, og marker om samtalen ga opptak, over 6 minutter eller salg.'}</div>
           <div class="retro-history-grid">
             <div class="goals-field">
               <label for="retro-history-date">Dato</label>
@@ -9646,26 +9972,26 @@
             </div>
           </div>
           <div class="retro-history-actions">
-            <button class="save-btn" type="button" style="margin-top:0;" onclick="saveRetroHistoryEntry()">Lagre historikk</button>
+            <button class="save-btn" type="button" style="margin-top:0;" onclick="saveRetroHistoryEntry()">${isEditing ? 'Oppdater historikk' : 'Lagre historikk'}</button>
+            ${isEditing ? `<button class="backup-btn" type="button" onclick="cancelRetroHistoryEdit()">Avbryt redigering</button>` : ''}
             <button class="backup-btn" type="button" onclick="switchTab('intro')">Til introtest</button>
           </div>
           ${retroHistoryFeedback ? `<div class="retro-history-feedback ${retroHistoryFeedback.tone}">${escHtml(retroHistoryFeedback.message)}</div>` : ''}
         </div>
         <div class="retro-history-card">
-          <div class="retro-history-card-title">Siste registreringer</div>
-          <div class="retro-history-card-text">Her ser du de siste oppføringene sortert etter tidspunkt, så du enkelt kan dobbeltsjekke det du har lagt inn.</div>
-          ${previewEntries.length ? `
-            <div class="retro-history-preview">
-              ${previewEntries.map(entry => `
-                <div class="history-item">
-                  <div>${escHtml((resolveEntryIntro(entry, intros) || {}).text || entry.text || 'Ukjent intro')}</div>
-                  <div class="meta">
-                    <span class="result-badge ${isIntroSuccessEntry(entry) ? 'badge-yes' : 'badge-no'}">${isIntroSuccessEntry(entry) ? 'Opptak' : 'Tidligere forsøk'}</span>
-                    <span>${entry.sessionLabel ? `${entry.sessionLabel} · ` : ''}${entry.tid}</span>
-                    <button class="delete-entry-btn" onclick="deleteIntroAttempt('${entry.id}')" title="Slett denne registreringen">×</button>
-                  </div>
-                </div>
-              `).join('')}
+          <div class="retro-history-list-head">
+            <div>
+              <div class="retro-history-card-title">Hele historikken</div>
+              <div class="retro-history-card-text">Alle opptak og tidligere forsøk vises her. Du kan redigere eller slette hver oppføring enkeltvis.</div>
+            </div>
+            <div class="retro-history-list-tools">
+              <div class="retro-history-summary">${historySummary}</div>
+              <button class="backup-btn undo-history-btn" data-intro-history-undo type="button" onclick="undoLastIntroHistoryAction()">Angre siste handling</button>
+            </div>
+          </div>
+          ${historyEntries.length ? `
+            <div class="retro-history-list">
+              ${historyEntries.map(entry => renderIntroHistoryItem(entry, intros, { includeEdit: true })).join('')}
             </div>
           ` : `<div class="empty-state">Ingen historikk ennå.</div>`}
           <div class="retro-history-preview-meta">Tips: Hvis du skriver en introtekst som ikke finnes fra før, lagres den automatisk i introbiblioteket slik at du kan bruke den igjen senere.</div>
@@ -9674,6 +10000,7 @@
     `;
 
     autoResizeTextarea(document.getElementById('retro-history-intro-text'));
+    updateIntroHistoryUndoUi();
   }
 
   // ---- Produkt Fakta ----
