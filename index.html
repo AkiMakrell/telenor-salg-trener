@@ -4843,6 +4843,12 @@
     }
     .bar-seg-gold { background: linear-gradient(to top, #f59e0b, #fbbf24); min-height: 0; }
     .bar-seg-teal { background: linear-gradient(to top, #14b8a6, #2dd4bf); min-height: 0; }
+    .bar-stack.is-future {
+      min-height: 0;
+      height: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
     .bar-stack:hover { filter: brightness(1.08); }
       font-size: 0.78rem;
       font-weight: 700;
@@ -7618,6 +7624,12 @@
   function stackedBarChart(data, maxScale = null) {
     const max = Math.max(maxScale || 0, 1);
     return `<div class="bar-chart">` + data.map(d => {
+      if (d.isFuture) {
+        return `<div class="bar-col">
+          <div class="bar-stack is-future" aria-hidden="true"></div>
+          <div class="bar-lbl">${d.label}</div>
+        </div>`;
+      }
       const total = (d.fiveMin || 0) + (d.sales || 0);
       const h = (total / max) * 100;
       const goldFlex = d.sales || 0;
@@ -7751,10 +7763,14 @@
   function buildWeekChartData(entries, date = new Date()) {
     const days = ['Man', 'Tir', 'Ons', 'Tor', 'Fre'];
     const monOffset = (date.getDay() + 6) % 7;
+    const today = startOfDay(date);
     return days.map((label, index) => {
       const day = new Date(date);
       day.setDate(date.getDate() - monOffset + index);
       day.setHours(0, 0, 0, 0);
+      if (day.getTime() > today.getTime()) {
+        return { label, fiveMin: 0, sales: 0, isFuture: true };
+      }
       const next = addDays(day, 1);
       const fiveMin = entries.filter(item => {
         const itemDate = new Date(item.isoDate);
@@ -7764,12 +7780,18 @@
         const itemDate = new Date(item.isoDate);
         return itemDate >= day && itemDate < next && item.salg === 'ja';
       }).length;
-      return { label, fiveMin, sales };
+      return { label, fiveMin, sales, isFuture: false };
     });
   }
 
-  function buildMonthWeekBuckets(entries, date = new Date()) {
+  function buildMonthWeekBuckets(entries, date = new Date(), referenceDate = date) {
+    const today = startOfDay(referenceDate);
+    const isCurrentMonth = date.getFullYear() === referenceDate.getFullYear() && date.getMonth() === referenceDate.getMonth();
     return getMonthWeekRanges(date).map(range => {
+      const isFuture = isCurrentMonth && startOfDay(range.start).getTime() > today.getTime();
+      if (isFuture) {
+        return { label: range.label, fiveMin: 0, sales: 0, isFuture: true };
+      }
       const fiveMin = entries.filter(item => {
         const itemDate = new Date(item.isoDate);
         return itemDate >= range.start && itemDate < range.end && item.over5min === 'ja';
@@ -7778,7 +7800,7 @@
         const itemDate = new Date(item.isoDate);
         return itemDate >= range.start && itemDate < range.end && item.salg === 'ja';
       }).length;
-      return { label: range.label, fiveMin, sales };
+      return { label: range.label, fiveMin, sales, isFuture: false };
     });
   }
 
@@ -8140,6 +8162,7 @@
     const weekStart = getStartOfWeek(date);
     const previousWeekStart = addDays(weekStart, -7);
     const labels = ['Man', 'Tir', 'Ons', 'Tor', 'Fre'];
+    const today = startOfDay(date);
     const totalsByDate = new Map();
     history.forEach(entry => {
       const dateKey = getEntryDateKey(entry);
@@ -8151,10 +8174,16 @@
     let currentRunning = 0;
     let previousRunning = 0;
     labels.forEach((label, index) => {
-      const currentDateKey = makeLocalDateKey(addDays(weekStart, index));
+      const currentDate = addDays(weekStart, index);
+      const currentDateKey = makeLocalDateKey(currentDate);
       const previousDateKey = makeLocalDateKey(addDays(previousWeekStart, index));
-      currentRunning += totalsByDate.get(currentDateKey) || 0;
       previousRunning += totalsByDate.get(previousDateKey) || 0;
+      if (startOfDay(currentDate).getTime() > today.getTime()) {
+        current.push(null);
+        previous.push(previousRunning);
+        return;
+      }
+      currentRunning += totalsByDate.get(currentDateKey) || 0;
       current.push(currentRunning);
       previous.push(previousRunning);
     });
@@ -8181,8 +8210,8 @@
       const entryDate = isoToDate(entry.isoDate);
       return entryDate && entryDate.getFullYear() === previousMonthStart.getFullYear() && entryDate.getMonth() === previousMonthStart.getMonth();
     });
-    const currentBuckets = buildMonthWeekBuckets(currentMonthEntries, currentMonthStart).slice(0, elapsedWeekCount);
-    const previousBuckets = buildMonthWeekBuckets(previousMonthEntries, previousMonthStart).slice(0, elapsedWeekCount);
+    const currentBuckets = buildMonthWeekBuckets(currentMonthEntries, currentMonthStart, date).slice(0, elapsedWeekCount);
+    const previousBuckets = buildMonthWeekBuckets(previousMonthEntries, previousMonthStart, date).slice(0, elapsedWeekCount);
     return currentBuckets.map((bucket, index) => {
       const previousBucket = previousBuckets[index] || { fiveMin: 0, sales: 0 };
       return {
@@ -8281,21 +8310,23 @@
     const width = 320;
     const height = 156;
     const padding = 18;
-    const allValues = [...series.current, ...series.previous];
+    const allValues = [...series.current, ...series.previous].filter(value => value !== null && value !== undefined);
     const maxValue = Math.max(...allValues, 1);
     const scalePoints = getLineChartPoints([0, maxValue / 2, maxValue], width, height, padding, maxValue).map(point => Math.round(point.y));
     const previousPoints = getLineChartPoints(series.previous, width, height, padding, maxValue);
     const currentPoints = getLineChartPoints(series.current, width, height, padding, maxValue);
+    const visiblePreviousPoints = previousPoints.filter(Boolean);
+    const visibleCurrentPoints = currentPoints.filter(Boolean);
     return `
       <div class="development-highlight-line-card">
         <svg class="development-highlight-line-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">
           ${scalePoints.map(y => `<line class="development-line-grid" x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}"></line>`).join('')}
-          <polyline class="development-line-previous" points="${previousPoints.map(point => `${point.x},${point.y}`).join(' ')}"></polyline>
-          <polyline class="development-highlight-line-current ${metricClass}" points="${currentPoints.map(point => `${point.x},${point.y}`).join(' ')}"></polyline>
-          ${previousPoints.map(point => `<circle class="development-line-point-previous" cx="${point.x}" cy="${point.y}" r="3"></circle>`).join('')}
-          ${currentPoints.map(point => `<circle class="development-highlight-line-point-current ${metricClass}" cx="${point.x}" cy="${point.y}" r="3.5"></circle>`).join('')}
-          ${previousPoints.map((point, index) => `<text class="development-highlight-line-value-previous" x="${point.x}" y="${Math.max(12, point.y - 8)}">${series.previous[index] || 0}</text>`).join('')}
-          ${currentPoints.map((point, index) => `<text class="development-highlight-line-value-current" x="${point.x}" y="${Math.max(24, point.y - 18)}">${series.current[index] || 0}</text>`).join('')}
+          <polyline class="development-line-previous" points="${visiblePreviousPoints.map(point => `${point.x},${point.y}`).join(' ')}"></polyline>
+          <polyline class="development-highlight-line-current ${metricClass}" points="${visibleCurrentPoints.map(point => `${point.x},${point.y}`).join(' ')}"></polyline>
+          ${visiblePreviousPoints.map(point => `<circle class="development-line-point-previous" cx="${point.x}" cy="${point.y}" r="3"></circle>`).join('')}
+          ${visibleCurrentPoints.map(point => `<circle class="development-highlight-line-point-current ${metricClass}" cx="${point.x}" cy="${point.y}" r="3.5"></circle>`).join('')}
+          ${visiblePreviousPoints.map(point => `<text class="development-highlight-line-value-previous" x="${point.x}" y="${Math.max(12, point.y - 8)}">${point.value || 0}</text>`).join('')}
+          ${visibleCurrentPoints.map(point => `<text class="development-highlight-line-value-current" x="${point.x}" y="${Math.max(24, point.y - 18)}">${point.value || 0}</text>`).join('')}
         </svg>
         <div class="development-highlight-line-labels">${series.labels.map(label => `<span>${label}</span>`).join('')}</div>
       </div>
@@ -8428,8 +8459,9 @@
     const stepX = values.length > 1 ? (width - padding * 2) / (values.length - 1) : 0;
     return values.map((value, index) => {
       const x = padding + stepX * index;
+      if (value === null || value === undefined) return null;
       const y = height - padding - ((value / maxValue) * (height - padding * 2));
-      return { x, y };
+      return { x, y, index, value };
     });
   }
 
@@ -8437,11 +8469,13 @@
     const width = 420;
     const height = 220;
     const padding = 24;
-    const allValues = [...currentValues, ...previousValues];
+    const allValues = [...currentValues, ...previousValues].filter(value => value !== null && value !== undefined);
     const maxValue = Math.max(...allValues, 1);
     const scalePoints = getLineChartPoints([0, maxValue / 2, maxValue], width, height, padding, maxValue).map(point => Math.round(point.y));
     const currentPoints = getLineChartPoints(currentValues, width, height, padding, maxValue);
     const previousPoints = getLineChartPoints(previousValues, width, height, padding, maxValue);
+    const visibleCurrentPoints = currentPoints.filter(Boolean);
+    const visiblePreviousPoints = previousPoints.filter(Boolean);
     return `
       <div class="development-visual-card">
         <div class="development-card-title">${title}</div>
@@ -8449,10 +8483,10 @@
         <div class="development-line-card">
           <svg class="development-line-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">
             ${scalePoints.map(y => `<line class="development-line-grid" x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}"></line>`).join('')}
-            <polyline class="development-line-previous" points="${previousPoints.map(point => `${point.x},${point.y}`).join(' ')}"></polyline>
-            <polyline class="development-line-current" points="${currentPoints.map(point => `${point.x},${point.y}`).join(' ')}"></polyline>
-            ${previousPoints.map(point => `<circle class="development-line-point-previous" cx="${point.x}" cy="${point.y}" r="3.5"></circle>`).join('')}
-            ${currentPoints.map(point => `<circle class="development-line-point-current" cx="${point.x}" cy="${point.y}" r="4"></circle>`).join('')}
+            <polyline class="development-line-previous" points="${visiblePreviousPoints.map(point => `${point.x},${point.y}`).join(' ')}"></polyline>
+            <polyline class="development-line-current" points="${visibleCurrentPoints.map(point => `${point.x},${point.y}`).join(' ')}"></polyline>
+            ${visiblePreviousPoints.map(point => `<circle class="development-line-point-previous" cx="${point.x}" cy="${point.y}" r="3.5"></circle>`).join('')}
+            ${visibleCurrentPoints.map(point => `<circle class="development-line-point-current" cx="${point.x}" cy="${point.y}" r="4"></circle>`).join('')}
           </svg>
           <div class="development-line-labels">${labels.map(label => `<span>${label}</span>`).join('')}</div>
           <div class="development-chart-legend">
