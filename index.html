@@ -4127,6 +4127,8 @@
       fill: #fbbf24;
     }
 
+    .development-line-value-current,
+    .development-line-value-previous,
     .development-highlight-line-value-current,
     .development-highlight-line-value-previous {
       font-size: 11px;
@@ -4138,10 +4140,12 @@
       stroke-linejoin: round;
     }
 
+    .development-line-value-current,
     .development-highlight-line-value-current {
       fill: #e2e8f0;
     }
 
+    .development-line-value-previous,
     .development-highlight-line-value-previous {
       fill: rgba(226, 232, 240, 0.75);
     }
@@ -7614,7 +7618,7 @@
     return `<div class="bar-chart">` + data.map(d => {
       const h = Math.round((d.value / max) * 100);
       return `<div class="bar-col">
-        <div class="bar-val">${d.value > 0 ? d.value : ''}</div>
+        <div class="bar-val">${d.value ?? 0}</div>
         <div class="bar-fill${barClass ? ' ' + barClass : ''}" style="height:${h}%"></div>
         <div class="bar-lbl">${d.label}</div>
       </div>`;
@@ -7626,6 +7630,7 @@
     return `<div class="bar-chart">` + data.map(d => {
       if (d.isFuture) {
         return `<div class="bar-col">
+          <div class="bar-val">—</div>
           <div class="bar-stack is-future" aria-hidden="true"></div>
           <div class="bar-lbl">${d.label}</div>
         </div>`;
@@ -7641,7 +7646,7 @@
           </div>`
         : `<div class="bar-stack" style="height:4px"><div class="bar-seg-teal" style="flex:1;opacity:0.25"></div></div>`;
       return `<div class="bar-col">
-        <div class="bar-val">${total > 0 ? total : ''}</div>
+        <div class="bar-val">${total}</div>
         ${bar}
         <div class="bar-lbl">${d.label}</div>
       </div>`;
@@ -8487,6 +8492,8 @@
             <polyline class="development-line-current" points="${visibleCurrentPoints.map(point => `${point.x},${point.y}`).join(' ')}"></polyline>
             ${visiblePreviousPoints.map(point => `<circle class="development-line-point-previous" cx="${point.x}" cy="${point.y}" r="3.5"></circle>`).join('')}
             ${visibleCurrentPoints.map(point => `<circle class="development-line-point-current" cx="${point.x}" cy="${point.y}" r="4"></circle>`).join('')}
+            ${visiblePreviousPoints.map(point => `<text class="development-line-value-previous" x="${point.x}" y="${Math.max(12, point.y - 8)}">${point.value || 0}</text>`).join('')}
+            ${visibleCurrentPoints.map(point => `<text class="development-line-value-current" x="${point.x}" y="${Math.max(24, point.y - 18)}">${point.value || 0}</text>`).join('')}
           </svg>
           <div class="development-line-labels">${labels.map(label => `<span>${label}</span>`).join('')}</div>
           <div class="development-chart-legend">
