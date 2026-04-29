@@ -4502,90 +4502,108 @@
 
     .leaderboard-row {
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto;
-      gap: 14px;
-      align-items: center;
-      padding: 14px 16px;
+      grid-template-columns: 52px minmax(0, 1fr) 96px;
+      gap: 16px;
+      align-items: stretch;
+      padding: 16px 18px;
       border-radius: 18px;
       border: 1px solid rgba(148, 163, 184, 0.12);
-      background: rgba(15, 23, 42, 0.56);
+      background: rgba(15, 23, 42, 0.7);
     }
 
     .leaderboard-row.is-you {
       border-color: rgba(56, 189, 248, 0.34);
       box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.14);
-      background: rgba(17, 34, 59, 0.78);
+      background: rgba(17, 34, 59, 0.92);
     }
 
     .leaderboard-rank {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
+      width: 52px;
+      min-height: 52px;
+      border-radius: 16px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      background: rgba(148, 163, 184, 0.12);
+      background: linear-gradient(180deg, rgba(148, 163, 184, 0.16), rgba(148, 163, 184, 0.08));
       color: var(--text);
-      font-size: 0.92rem;
+      font-size: 0.96rem;
       font-weight: 900;
     }
 
     .leaderboard-user {
       min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 10px;
     }
 
     .leaderboard-user-name {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
       color: var(--text);
-      font-size: 0.96rem;
+      font-size: 1rem;
       font-weight: 800;
-    }
-
-    .leaderboard-you-badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 4px 8px;
-      border-radius: 999px;
-      background: rgba(56, 189, 248, 0.14);
-      color: #7dd3fc;
-      font-size: 0.72rem;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+      line-height: 1.25;
     }
 
     .leaderboard-user-stats,
-    .leaderboard-user-stat,
     .leaderboard-value-label {
-      margin-top: 6px;
       color: var(--muted);
       font-size: 0.78rem;
       line-height: 1.4;
     }
 
     .leaderboard-user-stats {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin-top: 8px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, max-content));
+      gap: 10px;
+      align-items: center;
     }
 
     .leaderboard-user-stat {
-      margin-top: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(148, 163, 184, 0.08);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      color: #cbd5e1;
+      font-size: 0.78rem;
+      line-height: 1.2;
+    }
+
+    .leaderboard-user-stat-value {
+      color: var(--text);
+      font-size: 0.92rem;
+      font-weight: 800;
     }
 
     .leaderboard-value-block {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 6px;
+      min-width: 0;
+      padding-left: 14px;
+      border-left: 1px solid rgba(148, 163, 184, 0.12);
       text-align: right;
     }
 
     .leaderboard-value {
       color: var(--text);
-      font-size: 1.5rem;
+      font-size: 1.7rem;
       font-weight: 900;
       line-height: 1;
+    }
+
+    .leaderboard-value-label {
+      margin-top: 0;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
 
     @media (max-width: 900px) {
@@ -4659,10 +4677,21 @@
       .leaderboard-row {
         grid-template-columns: 1fr;
         justify-items: start;
+        gap: 12px;
       }
 
       .leaderboard-value-block {
+        width: 100%;
+        padding-left: 0;
+        padding-top: 12px;
+        border-left: none;
+        border-top: 1px solid rgba(148, 163, 184, 0.12);
         text-align: left;
+        align-items: flex-start;
+      }
+
+      .leaderboard-user-stats {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -9745,21 +9774,17 @@
         </div>
         <div class="leaderboard-list">
           ${sorted.length ? sorted.map((row, index) => {
-            const isCurrentUser = row.user_id === currentUser?.id;
             const points = getLeaderboardPeriodValue(row, period.id, 'points');
             const sales = getLeaderboardPeriodValue(row, period.id, 'sales');
             const over6 = getLeaderboardPeriodValue(row, period.id, 'over6');
             return `
-              <div class="leaderboard-row${isCurrentUser ? ' is-you' : ''}">
+              <div class="leaderboard-row${row.user_id === currentUser?.id ? ' is-you' : ''}">
                 <div class="leaderboard-rank">#${index + 1}</div>
                 <div class="leaderboard-user">
-                  <div class="leaderboard-user-name">
-                    ${escHtml(row.display_name)}
-                    ${isCurrentUser ? '<span class="leaderboard-you-badge">Deg</span>' : ''}
-                  </div>
+                  <div class="leaderboard-user-name">${escHtml(row.display_name)}</div>
                   <div class="leaderboard-user-stats">
-                    <div class="leaderboard-user-stat">1. ${over6} 6-minuttere</div>
-                    <div class="leaderboard-user-stat">2. ${sales} Abo</div>
+                    <div class="leaderboard-user-stat"><span class="leaderboard-user-stat-value">${over6}</span><span>6-minuttere</span></div>
+                    <div class="leaderboard-user-stat"><span class="leaderboard-user-stat-value">${sales}</span><span>Abo</span></div>
                   </div>
                 </div>
                 <div class="leaderboard-value-block">
