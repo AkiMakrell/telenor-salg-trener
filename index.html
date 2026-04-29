@@ -4528,7 +4528,7 @@
 
     .leaderboard-row {
       display: grid;
-      grid-template-columns: 52px minmax(0, 1fr);
+      grid-template-columns: 52px minmax(0, 1fr) auto;
       gap: 16px;
       align-items: center;
       padding: 16px 18px;
@@ -4595,6 +4595,8 @@
       color: var(--muted);
       font-size: 0.78rem;
       line-height: 1.35;
+      text-align: right;
+      white-space: nowrap;
     }
 
     @media (max-width: 900px) {
@@ -4672,6 +4674,12 @@
       .leaderboard-row {
         grid-template-columns: 52px minmax(0, 1fr);
         gap: 12px;
+      }
+
+      .leaderboard-user-meta {
+        grid-column: 2;
+        text-align: left;
+        white-space: normal;
       }
     }
 
@@ -9885,8 +9893,8 @@
                     <span class="leaderboard-user-points-value">${points}</span>
                     <span class="leaderboard-value-label">poeng</span>
                   </div>
-                  <div class="leaderboard-user-meta">${over6} 6-min · ${sales} abo</div>
                 </div>
+                <div class="leaderboard-user-meta">${over6} 6-min · ${sales} abo</div>
               </div>
             `;
           }).join('') : `<div class="stats-empty-card">${period.emptyLabel} Når noen logger salg eller 6 minutter, oppdateres lista automatisk.</div>`}
