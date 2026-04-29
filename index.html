@@ -6707,6 +6707,7 @@
   ];
 
   const APP_META_LAST_IMPORT_USER = 'telenorSalgTrainer:lastImportedUserId';
+  const APP_META_DEVICE_BACKUP_PREFIX = 'telenorSalgTrainer:deviceBackup:';
   const _origSetItem    = localStorage.setItem.bind(localStorage);
   const _origRemoveItem = localStorage.removeItem.bind(localStorage);
   const _origGetItem    = localStorage.getItem.bind(localStorage);
@@ -6872,6 +6873,10 @@
     _origSetItem(APP_META_LAST_IMPORT_USER, userId);
   }
 
+  function getDeviceBackupKey(userId) {
+    return `${APP_META_DEVICE_BACKUP_PREFIX}${userId}`;
+  }
+
   function scheduleSync() {
     clearTimeout(syncTimeout);
     syncTimeout = setTimeout(syncToCloud, 800);
@@ -6993,6 +6998,23 @@
 
   function hasMeaningfulTrackedState(state) {
     return Object.entries(state || {}).some(([key, value]) => isMeaningfulTrackedStateValue(key, value));
+  }
+
+  function readDeviceBackup(userId) {
+    if (!userId) return {};
+    const raw = _origGetItem(getDeviceBackupKey(userId));
+    if (!raw) return {};
+    try {
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (_error) {
+      return {};
+    }
+  }
+
+  function writeDeviceBackup(userId, data) {
+    if (!userId || !hasMeaningfulTrackedState(data)) return;
+    _origSetItem(getDeviceBackupKey(userId), JSON.stringify(data));
   }
 
   function getMissingDemoStatePatch(state, demoState) {
@@ -7215,6 +7237,7 @@
     }
 
     pendingSyncKeys.clear();
+    writeDeviceBackup(currentUser.id, data);
     setSyncStatus('ok');
   }
 
@@ -7237,6 +7260,7 @@
     if (error) throw error;
 
     rows.forEach(row => pendingSyncKeys.delete(row.state_key));
+    writeDeviceBackup(currentUser.id, getAllData());
     setSyncStatus('ok');
   }
 
@@ -7287,6 +7311,7 @@
       }
     }
 
+    writeDeviceBackup(currentUser.id, getAllData());
     setSyncStatus('ok');
   }
 
@@ -7304,7 +7329,6 @@
     }
 
     const state = rowsToState(data);
-    replaceTrackedLocalData(state);
     setSyncStatus('ok');
     return state;
   }
@@ -7558,23 +7582,37 @@
   async function activateAuthenticatedApp(user, previousDeviceData) {
     const remoteState = await loadFromCloud();
     let hasRemoteState = hasMeaningfulTrackedState(remoteState);
-    const hasDeviceState = Object.keys(previousDeviceData).length > 0;
+    const deviceBackup = readDeviceBackup(user.id);
+    const fallbackDeviceData = hasMeaningfulTrackedState(previousDeviceData) ? previousDeviceData : deviceBackup;
+    const hasDeviceState = hasMeaningfulTrackedState(fallbackDeviceData);
+
+    if (hasRemoteState) {
+      replaceTrackedLocalData(remoteState);
+      writeDeviceBackup(user.id, remoteState);
+    }
 
     if (!hasRemoteState && hasDeviceState && getLocalImportMarker() !== user.id) {
       const shouldImport = confirm('Fant lokal data på denne enheten. Vil du importere den til kontoen din?');
       if (shouldImport) {
-        replaceTrackedLocalData(previousDeviceData);
-        await overwriteCloudData(previousDeviceData);
+        replaceTrackedLocalData(fallbackDeviceData);
+        await overwriteCloudData(fallbackDeviceData);
         setLocalImportMarker(user.id);
         hasRemoteState = true;
       }
+    } else if (!hasRemoteState && hasDeviceState) {
+      replaceTrackedLocalData(fallbackDeviceData);
+      await overwriteCloudData(fallbackDeviceData);
+      hasRemoteState = true;
+    } else if (!hasRemoteState) {
+      clearTrackedLocalData();
     }
 
     if (isDemoSeedUser(user)) {
       const demoState = getDemoSeedState();
-      const demoPatch = getMissingDemoStatePatch(remoteState, demoState);
+      const currentTrackedState = getAllData();
+      const demoPatch = getMissingDemoStatePatch(currentTrackedState, demoState);
       if (Object.keys(demoPatch).length) {
-        replaceTrackedLocalData({ ...remoteState, ...demoPatch });
+        replaceTrackedLocalData({ ...currentTrackedState, ...demoPatch });
         await upsertCloudData(demoPatch);
         hasRemoteState = true;
       }
@@ -7599,6 +7637,9 @@
 
     if (!session?.user) {
       unsubscribeLeaderboardRealtime();
+      if (currentUser && hasMeaningfulTrackedState(previousDeviceData)) {
+        writeDeviceBackup(currentUser.id, previousDeviceData);
+      }
       currentUser = null;
       clearTrackedLocalData();
       clearLeaderboardState();
