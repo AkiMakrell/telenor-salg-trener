@@ -2856,6 +2856,31 @@
       margin: 0 auto;
     }
 
+    .register-intro-section {
+      max-width: 1100px;
+      margin: 30px auto 0 auto;
+      padding-top: 28px;
+      border-top: 1px solid rgba(148, 163, 184, 0.28);
+      position: relative;
+    }
+
+    .register-intro-section::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(220px, 42%);
+      height: 3px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(41,168,224,0), rgba(41,168,224,0.9), rgba(41,168,224,0));
+    }
+
+    .register-intro-section-head {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
     .register-quick-card {
       max-width: 1100px;
       margin: 0 auto 16px auto;
@@ -3022,10 +3047,12 @@
     }
 
     .register-intro-title {
-      font-size: 1.05rem;
+      font-size: 2rem;
       font-weight: 800;
       color: var(--primary-dark);
-      letter-spacing: -0.01em;
+      letter-spacing: -0.03em;
+      text-align: center;
+      width: 100%;
     }
 
     .register-intro-library {
@@ -6403,13 +6430,15 @@
     <button class="backup-btn undo-history-btn register-quick-undo" data-intro-history-undo type="button" onclick="undoLastIntroHistoryAction()">Angre siste registrering</button>
   </div>
 
-  <div class="intro-layout">
-    <!-- LEFT: scorecard form -->
-    <div>
-      <div class="card register-intro-card">
-        <div class="register-intro-head">
-          <div class="register-intro-title">Introtest</div>
-        </div>
+  <div class="register-intro-section">
+    <div class="register-intro-section-head">
+      <div class="register-intro-title">Introtest</div>
+    </div>
+
+    <div class="intro-layout">
+      <!-- LEFT: scorecard form -->
+      <div>
+        <div class="card register-intro-card">
         <div id="intro-daily-stats" class="stats-grid stats-grid-2" style="margin-bottom:16px;"></div>
 
         <label class="form-label">Aktiv intro:</label>
@@ -6461,15 +6490,14 @@
             </div>
           </div>
           <div id="intro-history" class="history-list"></div>
-        </div>
+      </div>
+      </div>
+
+      <div class="leaderboard-card">
+        <h2>Introer</h2>
+        <div id="intro-library" class="intro-library"></div>
       </div>
     </div>
-
-    <div class="leaderboard-card">
-      <h2>Introer</h2>
-      <div id="intro-library" class="intro-library"></div>
-    </div>
-
   </div>
 </div>
 
