@@ -2849,7 +2849,7 @@
 
     .intro-layout {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 340px;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
       gap: 20px;
       align-items: start;
       max-width: 1100px;
@@ -3101,7 +3101,9 @@
       .settings-trigger-profile {
         max-width: 110px;
       }
+    }
 
+    @media (max-width: 860px) {
       .intro-layout {
         grid-template-columns: 1fr;
         max-width: 100%;
