@@ -4592,11 +4592,50 @@
     }
 
     .leaderboard-user-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
       color: var(--muted);
       font-size: 0.78rem;
       line-height: 1.35;
       text-align: right;
       white-space: nowrap;
+    }
+
+    .leaderboard-user-meta-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .leaderboard-user-meta-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 40px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .leaderboard-user-meta-badge.over6 {
+      background: rgba(20, 184, 166, 0.14);
+      color: #5eead4;
+      border: 1px solid rgba(45, 212, 191, 0.24);
+    }
+
+    .leaderboard-user-meta-badge.sales {
+      background: rgba(245, 158, 11, 0.16);
+      color: #fcd34d;
+      border: 1px solid rgba(251, 191, 36, 0.24);
+    }
+
+    .leaderboard-user-meta-value {
+      color: var(--text);
+      font-size: 0.86rem;
+      font-weight: 800;
     }
 
     @media (max-width: 900px) {
@@ -4680,6 +4719,7 @@
         grid-column: 2;
         text-align: left;
         white-space: normal;
+        flex-wrap: wrap;
       }
     }
 
@@ -9894,7 +9934,16 @@
                     <span class="leaderboard-value-label">poeng</span>
                   </div>
                 </div>
-                <div class="leaderboard-user-meta">${over6} 6-min · ${sales} abo</div>
+                <div class="leaderboard-user-meta">
+                  <span class="leaderboard-user-meta-item">
+                    <span class="leaderboard-user-meta-badge over6">6-min</span>
+                    <span class="leaderboard-user-meta-value">${over6}</span>
+                  </span>
+                  <span class="leaderboard-user-meta-item">
+                    <span class="leaderboard-user-meta-badge sales">Abo</span>
+                    <span class="leaderboard-user-meta-value">${sales}</span>
+                  </span>
+                </div>
               </div>
             `;
           }).join('') : `<div class="stats-empty-card">${period.emptyLabel} Når noen logger salg eller 6 minutter, oppdateres lista automatisk.</div>`}
