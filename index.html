@@ -2856,6 +2856,95 @@
       align-items: start;
     }
 
+    .register-quick-card,
+    .register-intro-card {
+      margin: 0 0 16px 0;
+    }
+
+    .register-quick-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .register-quick-btn {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(15,23,42,0.08));
+      min-height: 148px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 8px;
+      color: var(--text);
+      cursor: pointer;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+      text-align: left;
+      width: 100%;
+    }
+
+    .register-quick-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 38px rgba(15, 23, 42, 0.12);
+    }
+
+    .register-quick-btn:focus-visible {
+      outline: 2px solid rgba(41,168,224,0.45);
+      outline-offset: 3px;
+    }
+
+    .register-quick-btn.over5 {
+      border-color: rgba(45, 212, 191, 0.35);
+      background: linear-gradient(180deg, rgba(45, 212, 191, 0.18), rgba(15, 23, 42, 0.05));
+    }
+
+    .register-quick-btn.salg {
+      border-color: rgba(251, 191, 36, 0.38);
+      background: linear-gradient(180deg, rgba(251, 191, 36, 0.2), rgba(15, 23, 42, 0.05));
+    }
+
+    .register-quick-btn-title {
+      font-size: 1.22rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      letter-spacing: -0.02em;
+    }
+
+    .register-quick-btn-subtitle {
+      font-size: 0.92rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .register-intro-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .register-intro-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      letter-spacing: -0.01em;
+    }
+
+    .register-intro-empty {
+      grid-column: 1 / -1;
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      background: rgba(248, 250, 252, 0.72);
+      color: var(--muted);
+      font-size: 0.92rem;
+      text-align: center;
+    }
+
     @media (max-width: 980px) {
       .top-bar {
         flex-direction: column;
@@ -2877,6 +2966,10 @@
 
       .settings-trigger-profile {
         max-width: 110px;
+      }
+
+      .register-quick-grid {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -4735,6 +4828,9 @@
       display: grid;
       gap: 14px;
     }
+    .stats-metric-grid {
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    }
     .stats-grid-4 { grid-template-columns: repeat(4, 1fr); }
     .stats-grid-2 { grid-template-columns: 1fr 1fr; }
 
@@ -6184,7 +6280,23 @@
 
     <!-- LEFT: scorecard form -->
     <div>
-      <div class="card" style="margin:0 0 16px 0;">
+      <div class="card register-quick-card">
+        <div class="register-quick-grid">
+          <button class="register-quick-btn over5" type="button" onclick="quickRegister('over5min')">
+            <span class="register-quick-btn-title">Registrer 6-minutter</span>
+            <span class="register-quick-btn-subtitle">Legg til en 6-minutter med ett trykk.</span>
+          </button>
+          <button class="register-quick-btn salg" type="button" onclick="quickRegister('salg')">
+            <span class="register-quick-btn-title">Registrer salg</span>
+            <span class="register-quick-btn-subtitle">Registrer abo og velg antall før feiring.</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="card register-intro-card">
+        <div class="register-intro-head">
+          <div class="register-intro-title">Introtest</div>
+        </div>
         <div id="intro-daily-stats" class="stats-grid stats-grid-2" style="margin-bottom:16px;"></div>
 
         <label class="form-label">Aktiv intro:</label>
@@ -7687,6 +7799,7 @@
       sessionId: currentSession ? currentSession.id : null,
       sessionLabel: currentSession ? currentSession.label : null,
       sessionDate: makeLocalDateKey(entryDate),
+      quickEntry: !!options.quickEntry,
     };
   }
 
@@ -7929,6 +8042,10 @@
     const dayEntries = history.filter(entry => isToday(entry.isoDate));
     const dayStats = statsFor(dayEntries);
     const todaySessionCount = getStartedSessionCountForDate(reference, reference);
+    if (!dayStats.introSuccesses) {
+      container.innerHTML = '<div class="register-intro-empty">Ingen opptak registrert i dag ennå.</div>';
+      return;
+    }
     container.innerHTML = `
       ${statCard(dayStats.introSuccesses, 'Opptak i dag', false, 'blue')}
       ${statCard(formatAveragePerSession(dayStats.introSuccesses, todaySessionCount), todaySessionCount ? `Snitt per økt (${dayStats.introSuccesses}/${todaySessionCount})` : 'Snitt per økt', false, 'purple')}
@@ -8127,6 +8244,14 @@
     if (metricKey === 'introSuccesses') return isIntroSuccessEntry(entry) ? 1 : 0;
     if (metricKey === 'over5') return entry.over5min === 'ja' ? 1 : 0;
     return getEntrySalesCount(entry);
+  }
+
+  function hasIntroStats(stats) {
+    return Number(stats?.introSuccesses || 0) > 0;
+  }
+
+  function renderStatsMetricGrid(cards) {
+    return `<div class="stats-grid stats-metric-grid">${cards.join('')}</div>`;
   }
 
   function buildWeekRecordBreakdown(history, weekKey, metricKey) {
@@ -10029,24 +10154,29 @@
   }
 
   function renderStatsDaySection(dag, dayGoal, dayGoalStatus, todaySessionCount) {
+    const cards = [];
+    if (hasIntroStats(dag)) cards.push(statCard(dag.introSuccesses, 'Opptak', true, 'blue', 'metric-card'));
+    cards.push(statCard(formatAveragePerSession(dag.over5, todaySessionCount), todaySessionCount ? `6 min per økt (${dag.over5}/${todaySessionCount})` : '6 min per økt', true, 'purple', 'metric-card'));
+    cards.push(statCard(dag.over5, 'Over 6 min', true, 'teal', 'metric-card'));
+    cards.push(statCard(dag.salg, 'Abo', true, 'gold', 'metric-card'));
     return `
       <div class="stats-section">
         <div class="stats-section-head">
           <div class="stats-section-title">I dag</div>
           <button class="backup-btn stats-goal-btn" type="button" onclick="openGoalsPage('day')">${getStatsGoalButtonLabel('day', dayGoal)}</button>
         </div>
-        <div class="stats-grid stats-grid-4">
-          ${statCard(dag.introSuccesses, 'Opptak', true, 'blue', 'metric-card')}
-          ${statCard(formatAveragePerSession(dag.over5, todaySessionCount), todaySessionCount ? `6 min per økt (${dag.over5}/${todaySessionCount})` : '6 min per økt', true, 'purple', 'metric-card')}
-          ${statCard(dag.over5, 'Over 6 min', true, 'teal', 'metric-card')}
-          ${statCard(dag.salg, 'Abo', true, 'gold', 'metric-card')}
-        </div>
+        ${renderStatsMetricGrid(cards)}
         <div class="stats-goal-after-stats">${renderStatsGoalSummary(dayGoalStatus)}</div>
       </div>
     `;
   }
 
   function renderStatsWeekSection(uke, weekGoal, weekGoalStatus, weekData, stackedChartMax, elapsedWeekBusinessDays, weekProgress, bestWeekComparison) {
+    const cards = [];
+    if (hasIntroStats(uke)) cards.push(statCard(uke.introSuccesses, 'Opptak', false, 'blue'));
+    cards.push(statCard(formatAverageForUnits(uke.over5, elapsedWeekBusinessDays), elapsedWeekBusinessDays ? `6 min per dag (${uke.over5}/${elapsedWeekBusinessDays})` : '6 min per dag', false, 'purple'));
+    cards.push(statCard(uke.over5, 'Over 6 min', false, 'teal'));
+    cards.push(statCard(uke.salg, 'Abo', false, 'gold'));
     return `
       <div class="stats-section">
         <div class="stats-section-head">
@@ -10058,12 +10188,7 @@
             <div class="chart-card-title">6-min & abo per dag</div>
             ${stackedBarChart(weekData, stackedChartMax)}
           </div>
-          <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
-            ${statCard(uke.introSuccesses, 'Opptak', false, 'blue')}
-            ${statCard(formatAverageForUnits(uke.over5, elapsedWeekBusinessDays), elapsedWeekBusinessDays ? `6 min per dag (${uke.over5}/${elapsedWeekBusinessDays})` : '6 min per dag', false, 'purple')}
-            ${statCard(uke.over5, 'Over 6 min', false, 'teal')}
-            ${statCard(uke.salg, 'Abo', false, 'gold')}
-          </div>
+          ${renderStatsMetricGrid(cards)}
         </div>
         <div class="stats-goal-after-stats">${renderStatsGoalSummary(weekGoalStatus)}</div>
       </div>
@@ -10071,6 +10196,11 @@
   }
 
   function renderStatsMonthSection(mnd, monthTitle, monthGoal, monthGoalStatus, weekBuckets, stackedChartMax, elapsedMonthWeekCount) {
+    const cards = [];
+    if (hasIntroStats(mnd)) cards.push(statCard(mnd.introSuccesses, 'Opptak', false, 'blue'));
+    cards.push(statCard(formatAverageForUnits(mnd.over5, elapsedMonthWeekCount), elapsedMonthWeekCount ? `6 min per uke (${mnd.over5}/${elapsedMonthWeekCount})` : '6 min per uke', false, 'purple'));
+    cards.push(statCard(mnd.over5, 'Over 6 min', false, 'teal'));
+    cards.push(statCard(mnd.salg, 'Abo', false, 'gold'));
     return `
       <div class="stats-section">
         <div class="stats-section-head">
@@ -10082,12 +10212,7 @@
             <div class="chart-card-title">6-min & abo per uke</div>
             ${stackedBarChart(weekBuckets, stackedChartMax)}
           </div>
-          <div class="stats-grid" style="grid-template-columns:1fr 1fr; gap:14px; align-content:start;">
-            ${statCard(mnd.introSuccesses, 'Opptak', false, 'blue')}
-            ${statCard(formatAverageForUnits(mnd.over5, elapsedMonthWeekCount), elapsedMonthWeekCount ? `6 min per uke (${mnd.over5}/${elapsedMonthWeekCount})` : '6 min per uke', false, 'purple')}
-            ${statCard(mnd.over5, 'Over 6 min', false, 'teal')}
-            ${statCard(mnd.salg, 'Abo', false, 'gold')}
-          </div>
+          ${renderStatsMetricGrid(cards)}
         </div>
         <div class="stats-goal-after-stats">${renderStatsGoalSummary(monthGoalStatus)}</div>
       </div>
@@ -12752,33 +12877,29 @@
 
   // ---- Eksport / Import ----
   function quickUnregister(type) {
-    const history = getIntroHistory();
+    const history = cloneIntroHistory();
     const todayStr = new Date().toISOString().slice(0, 10);
     // Find last today-entry where this field is 'ja' and it's a quickEntry
     const idx = [...history].map((h, i) => ({ h, i })).reverse()
       .find(({ h }) => h.quickEntry && h[type] === 'ja' && (h.isoDate || '').slice(0, 10) === todayStr);
     if (idx) {
       history.splice(idx.i, 1);
-      localStorage.setItem('introHistory', JSON.stringify(history));
+      commitIntroHistory(history, { clearUndo: true });
     }
-    renderStatsHome();
   }
 
-  function quickRegister(type) {
-    const history = getIntroHistory();
-    const now = new Date();
-    const entry = {
-      text: '',
-      opptak: null,
+  async function quickRegister(type) {
+    const salesCount = type === 'salg' ? await requestSaleCount() : 0;
+    if (type === 'salg' && salesCount === null) return;
+    const history = cloneIntroHistory();
+    history.unshift(buildIntroHistoryEntry(null, {
+      opptak: 'nei',
       over5min: type === 'over5min' ? 'ja' : 'nei',
       salg: type === 'salg' ? 'ja' : 'nei',
-      isoDate: now.toISOString(),
-      tid: now.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' }),
+      salesCount,
       quickEntry: true
-    };
-    history.push(entry);
-    localStorage.setItem('introHistory', JSON.stringify(history));
-    renderStatsHome();
+    }));
+    commitIntroHistory(history, { clearUndo: true });
     showCelebrationGif(type);
   }
 
