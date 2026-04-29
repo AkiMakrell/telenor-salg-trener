@@ -6291,6 +6291,7 @@
   const DEMO_SEED_EMAILS = ['aki.fackrell@gmail.com'];
   const LEADERBOARD_POINTS_PER_SALE = 300;
   const LEADERBOARD_POINTS_PER_OVER6 = 100;
+  const LEADERBOARD_SCHEMA_WARNING = 'Leaderboard trenger en Supabase-oppdatering før dag/uke/måned kan vises. Kjør den nyeste supabase-schema.sql i SQL Editor.';
   const LEADERBOARD_PERIOD_CONFIG = [
     { id: 'day', title: 'I dag', subtitle: 'Poeng akkurat i dag.', emptyLabel: 'Ingen registreringer i dag ennå.' },
     { id: 'week', title: 'Denne uken', subtitle: 'Poeng samlet denne uken.', emptyLabel: 'Ingen registreringer denne uken ennå.' },
@@ -6427,6 +6428,17 @@
     setLeaderboardState('idle');
   }
 
+  function isLeaderboardSchemaMismatch(error) {
+    const message = String(error?.message || error || '');
+    return /schema cache/i.test(message) && /(day_over6|day_sales|day_points|week_over6|week_sales|week_points|month_over6|month_sales|month_points)/i.test(message);
+  }
+
+  function getLeaderboardErrorMessage(error, fallback = 'Kunne ikke laste leaderboard.') {
+    return isLeaderboardSchemaMismatch(error)
+      ? LEADERBOARD_SCHEMA_WARNING
+      : (error?.message || fallback);
+  }
+
   function getAuthCredentials() {
     const name = document.getElementById('auth-name')?.value.trim() || '';
     const email = document.getElementById('auth-email')?.value.trim() || '';
@@ -6460,7 +6472,7 @@
     clearTimeout(leaderboardSyncTimeout);
     leaderboardSyncTimeout = setTimeout(() => {
       syncPublicLeaderboard().catch(error => {
-        setLeaderboardState('error', error.message || 'Kunne ikke synkronisere leaderboard.');
+        setLeaderboardState('error', getLeaderboardErrorMessage(error, 'Kunne ikke synkronisere leaderboard.'));
       });
     }, 800);
   }
@@ -6987,7 +6999,7 @@
       .select('user_id, display_name, total_intro_successes, total_over6, total_sales, day_over6, day_sales, day_points, week_over6, week_sales, week_points, month_over6, month_sales, month_points, latest_entry_at, updated_at');
 
     if (error) {
-      setLeaderboardState('error', error.message || 'Kunne ikke laste leaderboard.');
+      setLeaderboardState('error', getLeaderboardErrorMessage(error, 'Kunne ikke laste leaderboard.'));
       throw error;
     }
 
@@ -7019,7 +7031,7 @@
         { event: '*', schema: 'public', table: SUPABASE_PUBLIC_STATS_TABLE },
         () => {
           loadLeaderboardRows({ silentLoading: activeStatsSubview !== 'leaderboard' }).catch(error => {
-            setLeaderboardState('error', error.message || 'Kunne ikke oppdatere leaderboard.');
+            setLeaderboardState('error', getLeaderboardErrorMessage(error, 'Kunne ikke oppdatere leaderboard.'));
           });
         }
       )
@@ -7164,7 +7176,7 @@
       await loadLeaderboardRows({ silentLoading: true });
       subscribeToLeaderboardRealtime();
     } catch (error) {
-      setLeaderboardState('error', error.message || 'Kunne ikke starte leaderboard.');
+      setLeaderboardState('error', getLeaderboardErrorMessage(error, 'Kunne ikke starte leaderboard.'));
     }
     updateUserBar(user);
     setAppVisible(true);
