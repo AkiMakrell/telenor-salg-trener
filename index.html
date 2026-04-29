@@ -4384,7 +4384,6 @@
     }
 
     .leaderboard-hero-text,
-    .leaderboard-list-subtitle,
     .leaderboard-live-meta {
       color: var(--muted);
       font-size: 0.88rem;
@@ -4488,10 +4487,6 @@
 
     .leaderboard-list-head {
       margin-bottom: 16px;
-    }
-
-    .leaderboard-list-subtitle {
-      margin-top: 8px;
     }
 
     .leaderboard-list {
@@ -6278,9 +6273,9 @@
   const LEADERBOARD_POINTS_PER_OVER6 = 100;
   const LEADERBOARD_SCHEMA_WARNING = 'Leaderboard trenger en Supabase-oppdatering før dag/uke/måned kan vises. Kjør den nyeste supabase-schema.sql i SQL Editor.';
   const LEADERBOARD_PERIOD_CONFIG = [
-    { id: 'day', title: 'I dag', subtitle: 'Poeng akkurat i dag.', emptyLabel: 'Ingen registreringer i dag ennå.' },
-    { id: 'week', title: 'Denne uken', subtitle: 'Poeng samlet denne uken.', emptyLabel: 'Ingen registreringer denne uken ennå.' },
-    { id: 'month', title: 'Denne måneden', subtitle: 'Poeng samlet denne måneden.', emptyLabel: 'Ingen registreringer denne måneden ennå.' },
+    { id: 'day', title: 'I dag', emptyLabel: 'Ingen registreringer i dag ennå.' },
+    { id: 'week', title: 'Denne uken', emptyLabel: 'Ingen registreringer denne uken ennå.' },
+    { id: 'month', title: 'Denne måneden', emptyLabel: 'Ingen registreringer denne måneden ennå.' },
   ];
 
   const APP_META_LAST_IMPORT_USER = 'telenorSalgTrainer:lastImportedUserId';
@@ -9709,11 +9704,10 @@
   function renderLeaderboardPeriodList(period) {
     const sorted = getSortedLeaderboardRows(period.id);
     return `
-      <div class="leaderboard-list-card period-${period.id}">
-        <div class="leaderboard-list-head">
+        <div class="leaderboard-list-card period-${period.id}">
+          <div class="leaderboard-list-head">
           <div>
             <div class="stats-section-title ${period.id === 'day' ? 'st-teal' : period.id === 'week' ? 'st-green' : 'st-purple'}">${period.title}</div>
-            <div class="leaderboard-list-subtitle">${period.subtitle} 300 poeng per abo og 100 poeng per 6 minutter.</div>
           </div>
         </div>
         <div class="leaderboard-list">
@@ -9765,7 +9759,7 @@
         <div class="leaderboard-hero">
           <div>
             <div class="leaderboard-hero-title">Leaderboard</div>
-            <div class="leaderboard-hero-text">Sammenlign deg mot resten av teamet på tre perioder: i dag, denne uken og denne måneden. Poengene regnes automatisk som 300 per abo og 100 per 6 minutter.</div>
+            <div class="leaderboard-hero-text">Poengberegning: 300 per abo, 100 per 6-minutter</div>
           </div>
           <div class="leaderboard-live-meta">
             <span class="leaderboard-live-pill">Live</span>
