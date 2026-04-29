@@ -4557,12 +4557,24 @@
       text-transform: uppercase;
     }
 
-    .leaderboard-user-meta,
+    .leaderboard-user-stats,
+    .leaderboard-user-stat,
     .leaderboard-value-label {
       margin-top: 6px;
       color: var(--muted);
       font-size: 0.78rem;
       line-height: 1.4;
+    }
+
+    .leaderboard-user-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .leaderboard-user-stat {
+      margin-top: 0;
     }
 
     .leaderboard-value-block {
@@ -9745,7 +9757,10 @@
                     ${escHtml(row.display_name)}
                     ${isCurrentUser ? '<span class="leaderboard-you-badge">Deg</span>' : ''}
                   </div>
-                  <div class="leaderboard-user-meta">${sales} abo · ${over6} stk 6 min · siste aktivitet ${escHtml(formatLeaderboardTimestamp(row.latest_entry_at || row.updated_at))}</div>
+                  <div class="leaderboard-user-stats">
+                    <div class="leaderboard-user-stat">1. ${over6} 6-minuttere</div>
+                    <div class="leaderboard-user-stat">2. ${sales} Abo</div>
+                  </div>
                 </div>
                 <div class="leaderboard-value-block">
                   <div class="leaderboard-value">${points}</div>
