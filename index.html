@@ -4412,10 +4412,41 @@
       text-transform: uppercase;
     }
 
+    .leaderboard-period-switcher {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .leaderboard-period-btn {
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(15, 23, 42, 0.72);
+      color: #cbd5e1;
+      border-radius: 14px;
+      padding: 13px 16px;
+      font-size: 0.92rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+
+    .leaderboard-period-btn:hover {
+      color: var(--text);
+      border-color: rgba(125, 211, 252, 0.24);
+      background: rgba(17, 34, 59, 0.88);
+    }
+
+    .leaderboard-period-btn.active {
+      color: var(--text);
+      border-color: rgba(56, 189, 248, 0.38);
+      background: linear-gradient(180deg, rgba(17, 34, 59, 0.98), rgba(15, 23, 42, 0.98));
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.12);
+    }
+
     .leaderboard-summary-grid,
     .leaderboard-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: 1fr;
       gap: 16px;
     }
 
@@ -4619,6 +4650,10 @@
 
     @media (max-width: 640px) {
       .stats-nav {
+        grid-template-columns: 1fr;
+      }
+
+      .leaderboard-period-switcher {
         grid-template-columns: 1fr;
       }
 
@@ -7411,6 +7446,7 @@
   let selectedOver5min = 'nei';
   let selectedSalg = 'nei';
   let activeStatsSubview = 'overview';
+  let activeLeaderboardPeriod = 'day';
   let retroHistoryFeedback = null;
   let retroHistoryDraft = null;
   let introHistoryUndoState = null;
@@ -9716,6 +9752,12 @@
     renderStatsHome();
   }
 
+  function setLeaderboardPeriod(periodId) {
+    const allowedPeriods = LEADERBOARD_PERIOD_CONFIG.map(period => period.id);
+    activeLeaderboardPeriod = allowedPeriods.includes(periodId) ? periodId : 'day';
+    if (activeStatsSubview === 'leaderboard') renderStatsHome();
+  }
+
   function renderStatsSubviewNav(activeView) {
     const items = [
       { id: 'overview', label: 'Hovedside' },
@@ -9778,6 +9820,20 @@
     });
   }
 
+  function renderLeaderboardPeriodSwitcher(activePeriodId) {
+    return `
+      <div class="leaderboard-period-switcher">
+        ${LEADERBOARD_PERIOD_CONFIG.map(period => `
+          <button
+            class="leaderboard-period-btn${activePeriodId === period.id ? ' active' : ''}"
+            type="button"
+            onclick="setLeaderboardPeriod('${period.id}')"
+          >${period.title}</button>
+        `).join('')}
+      </div>
+    `;
+  }
+
   function renderLeaderboardSummaryCard(period) {
     const sorted = getSortedLeaderboardRows(period.id);
     const ownRow = sorted.find(row => row.user_id === currentUser?.id) || null;
@@ -9832,6 +9888,9 @@
 
   function renderLeaderboardPane() {
     const hasRows = leaderboardRows.length > 0;
+    const allowedPeriods = LEADERBOARD_PERIOD_CONFIG.map(period => period.id);
+    const activePeriodId = allowedPeriods.includes(activeLeaderboardPeriod) ? activeLeaderboardPeriod : 'day';
+    const activePeriod = LEADERBOARD_PERIOD_CONFIG.find(period => period.id === activePeriodId) || LEADERBOARD_PERIOD_CONFIG[0];
     const latestUpdate = leaderboardRows
       .map(row => row.updated_at || row.latest_entry_at)
       .filter(Boolean)
@@ -9865,12 +9924,13 @@
             <span>${hasRows ? `${leaderboardRows.length} brukere · sist oppdatert ${escHtml(formatLeaderboardTimestamp(latestUpdate))}` : 'Venter på de første registreringene'}</span>
           </div>
         </div>
+        ${renderLeaderboardPeriodSwitcher(activePeriodId)}
         ${leaderboardState === 'error' ? `<div class="stats-empty-card">${escHtml(leaderboardErrorMessage || 'Leaderboard er midlertidig utilgjengelig.')}</div>` : ''}
         <div class="leaderboard-summary-grid">
-          ${LEADERBOARD_PERIOD_CONFIG.map(period => renderLeaderboardSummaryCard(period)).join('')}
+          ${renderLeaderboardSummaryCard(activePeriod)}
         </div>
         <div class="leaderboard-grid">
-          ${LEADERBOARD_PERIOD_CONFIG.map(period => renderLeaderboardPeriodList(period)).join('')}
+          ${renderLeaderboardPeriodList(activePeriod)}
         </div>
       </div>
     `;
