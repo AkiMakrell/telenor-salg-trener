@@ -4416,7 +4416,7 @@
     .leaderboard-summary-grid,
     .leaderboard-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 16px;
     }
 
@@ -4429,14 +4429,19 @@
       box-shadow: 0 16px 34px rgba(2, 6, 23, 0.2);
     }
 
-    .leaderboard-summary-card.sales,
-    .leaderboard-list-card.sales {
+    .leaderboard-summary-card.period-day,
+    .leaderboard-list-card.period-day {
+      border-color: rgba(20, 184, 166, 0.22);
+    }
+
+    .leaderboard-summary-card.period-week,
+    .leaderboard-list-card.period-week {
       border-color: rgba(245, 158, 11, 0.22);
     }
 
-    .leaderboard-summary-card.over6,
-    .leaderboard-list-card.over6 {
-      border-color: rgba(20, 184, 166, 0.22);
+    .leaderboard-summary-card.period-month,
+    .leaderboard-list-card.period-month {
+      border-color: rgba(139, 92, 246, 0.22);
     }
 
     .leaderboard-summary-label {
@@ -4455,12 +4460,16 @@
       color: var(--text);
     }
 
-    .leaderboard-summary-card.sales .leaderboard-summary-value {
+    .leaderboard-summary-card.period-day .leaderboard-summary-value {
+      color: #5eead4;
+    }
+
+    .leaderboard-summary-card.period-week .leaderboard-summary-value {
       color: #fcd34d;
     }
 
-    .leaderboard-summary-card.over6 .leaderboard-summary-value {
-      color: #5eead4;
+    .leaderboard-summary-card.period-month .leaderboard-summary-value {
+      color: #c4b5fd;
     }
 
     .leaderboard-summary-meta,
@@ -6280,6 +6289,13 @@
     INTRO_LEADERBOARD_DATA_VERSION_KEY
   ];
   const DEMO_SEED_EMAILS = ['aki.fackrell@gmail.com'];
+  const LEADERBOARD_POINTS_PER_SALE = 300;
+  const LEADERBOARD_POINTS_PER_OVER6 = 100;
+  const LEADERBOARD_PERIOD_CONFIG = [
+    { id: 'day', title: 'I dag', subtitle: 'Poeng akkurat i dag.', emptyLabel: 'Ingen registreringer i dag ennå.' },
+    { id: 'week', title: 'Denne uken', subtitle: 'Poeng samlet denne uken.', emptyLabel: 'Ingen registreringer denne uken ennå.' },
+    { id: 'month', title: 'Denne måneden', subtitle: 'Poeng samlet denne måneden.', emptyLabel: 'Ingen registreringer denne måneden ennå.' },
+  ];
 
   const APP_META_LAST_IMPORT_USER = 'telenorSalgTrainer:lastImportedUserId';
   const _origSetItem    = localStorage.setItem.bind(localStorage);
@@ -6880,29 +6896,81 @@
       total_intro_successes: Math.max(0, Number(row.total_intro_successes) || 0),
       total_over6: Math.max(0, Number(row.total_over6) || 0),
       total_sales: Math.max(0, Number(row.total_sales) || 0),
+      day_over6: Math.max(0, Number(row.day_over6) || 0),
+      day_sales: Math.max(0, Number(row.day_sales) || 0),
+      day_points: Math.max(0, Number(row.day_points) || 0),
+      week_over6: Math.max(0, Number(row.week_over6) || 0),
+      week_sales: Math.max(0, Number(row.week_sales) || 0),
+      week_points: Math.max(0, Number(row.week_points) || 0),
+      month_over6: Math.max(0, Number(row.month_over6) || 0),
+      month_sales: Math.max(0, Number(row.month_sales) || 0),
+      month_points: Math.max(0, Number(row.month_points) || 0),
       latest_entry_at: row.latest_entry_at ? String(row.latest_entry_at) : '',
       updated_at: row.updated_at ? String(row.updated_at) : ''
     };
   }
 
+  function getLeaderboardPoints(sales = 0, over6 = 0) {
+    return (Math.max(0, Number(sales) || 0) * LEADERBOARD_POINTS_PER_SALE)
+      + (Math.max(0, Number(over6) || 0) * LEADERBOARD_POINTS_PER_OVER6);
+  }
+
+  function getLeaderboardPeriodStats(history = getIntroHistory()) {
+    const dayStats = statsFor(history.filter(entry => isToday(entry.isoDate)));
+    const weekStats = statsFor(history.filter(entry => isThisWeek(entry.isoDate)));
+    const monthStats = statsFor(history.filter(entry => isThisMonth(entry.isoDate)));
+    return {
+      day: {
+        sales: dayStats.salg,
+        over6: dayStats.over5,
+        points: getLeaderboardPoints(dayStats.salg, dayStats.over5)
+      },
+      week: {
+        sales: weekStats.salg,
+        over6: weekStats.over5,
+        points: getLeaderboardPoints(weekStats.salg, weekStats.over5)
+      },
+      month: {
+        sales: monthStats.salg,
+        over6: monthStats.over5,
+        points: getLeaderboardPoints(monthStats.salg, monthStats.over5)
+      }
+    };
+  }
+
   function getLeaderboardPayload(history = getIntroHistory()) {
     const totals = statsFor(history);
+    const periods = getLeaderboardPeriodStats(history);
     const latestEntry = getSortedIntroHistory(history)[0];
     return {
       display_name: getUserDisplayName(currentUser),
       total_intro_successes: totals.introSuccesses,
       total_over6: totals.over5,
       total_sales: totals.salg,
+      day_over6: periods.day.over6,
+      day_sales: periods.day.sales,
+      day_points: periods.day.points,
+      week_over6: periods.week.over6,
+      week_sales: periods.week.sales,
+      week_points: periods.week.points,
+      month_over6: periods.month.over6,
+      month_sales: periods.month.sales,
+      month_points: periods.month.points,
       latest_entry_at: latestEntry?.isoDate || null
     };
   }
 
-  function hasLeaderboardActivity(payload) {
+  function hasVisibleLeaderboardActivity(payload) {
     return Boolean(
-      Number(payload?.total_intro_successes) > 0 ||
-      Number(payload?.total_over6) > 0 ||
-      Number(payload?.total_sales) > 0 ||
-      payload?.latest_entry_at
+      Number(payload?.day_sales) > 0 ||
+      Number(payload?.day_over6) > 0 ||
+      Number(payload?.day_points) > 0 ||
+      Number(payload?.week_sales) > 0 ||
+      Number(payload?.week_over6) > 0 ||
+      Number(payload?.week_points) > 0 ||
+      Number(payload?.month_sales) > 0 ||
+      Number(payload?.month_over6) > 0 ||
+      Number(payload?.month_points) > 0
     );
   }
 
@@ -6916,10 +6984,7 @@
 
     const { data, error } = await supabaseClient
       .from(SUPABASE_PUBLIC_STATS_TABLE)
-      .select('user_id, display_name, total_intro_successes, total_over6, total_sales, latest_entry_at, updated_at')
-      .order('total_sales', { ascending: false })
-      .order('total_over6', { ascending: false })
-      .order('display_name', { ascending: true });
+      .select('user_id, display_name, total_intro_successes, total_over6, total_sales, day_over6, day_sales, day_points, week_over6, week_sales, week_points, month_over6, month_sales, month_points, latest_entry_at, updated_at');
 
     if (error) {
       setLeaderboardState('error', error.message || 'Kunne ikke laste leaderboard.');
@@ -6928,6 +6993,7 @@
 
     leaderboardRows = (data || [])
       .map(normalizeLeaderboardRow)
+      .filter(hasVisibleLeaderboardActivity)
       .filter(Boolean);
     setLeaderboardState('ready');
     return leaderboardRows;
@@ -6964,21 +7030,13 @@
     if (!supabaseClient || !currentUser) return;
 
     const payload = getLeaderboardPayload();
-    if (!hasLeaderboardActivity(payload)) {
-      const { error } = await supabaseClient
-        .from(SUPABASE_PUBLIC_STATS_TABLE)
-        .delete()
-        .eq('user_id', currentUser.id);
-      if (error) throw error;
-    } else {
-      const { error } = await supabaseClient
-        .from(SUPABASE_PUBLIC_STATS_TABLE)
-        .upsert(
-          [{ user_id: currentUser.id, ...payload }],
-          { onConflict: 'user_id' }
-        );
-      if (error) throw error;
-    }
+    const { error } = await supabaseClient
+      .from(SUPABASE_PUBLIC_STATS_TABLE)
+      .upsert(
+        [{ user_id: currentUser.id, ...payload }],
+        { onConflict: 'user_id' }
+      );
+    if (error) throw error;
 
     if (!options.skipReload) await loadLeaderboardRows({ silentLoading: activeStatsSubview !== 'leaderboard' });
   }
@@ -9591,22 +9649,28 @@
     `;
   }
 
-  function getLeaderboardMetricValue(row, metricKey) {
-    return metricKey === 'total_sales' ? row.total_sales : row.total_over6;
+  function getLeaderboardPeriodField(periodId, metric) {
+    return `${periodId}_${metric}`;
   }
 
-  function getSortedLeaderboardRows(metricKey) {
+  function getLeaderboardPeriodValue(row, periodId, metric) {
+    return Math.max(0, Number(row?.[getLeaderboardPeriodField(periodId, metric)]) || 0);
+  }
+
+  function getSortedLeaderboardRows(periodId) {
     return [...leaderboardRows].sort((a, b) => {
-      const valueDiff = getLeaderboardMetricValue(b, metricKey) - getLeaderboardMetricValue(a, metricKey);
-      if (valueDiff) return valueDiff;
-      const successDiff = b.total_intro_successes - a.total_intro_successes;
-      if (successDiff) return successDiff;
+      const pointsDiff = getLeaderboardPeriodValue(b, periodId, 'points') - getLeaderboardPeriodValue(a, periodId, 'points');
+      if (pointsDiff) return pointsDiff;
+      const salesDiff = getLeaderboardPeriodValue(b, periodId, 'sales') - getLeaderboardPeriodValue(a, periodId, 'sales');
+      if (salesDiff) return salesDiff;
+      const over6Diff = getLeaderboardPeriodValue(b, periodId, 'over6') - getLeaderboardPeriodValue(a, periodId, 'over6');
+      if (over6Diff) return over6Diff;
       return a.display_name.localeCompare(b.display_name, 'no-NO');
     });
   }
 
-  function getLeaderboardRank(metricKey, userId = currentUser?.id) {
-    const sorted = getSortedLeaderboardRows(metricKey);
+  function getLeaderboardRank(periodId, userId = currentUser?.id) {
+    const sorted = getSortedLeaderboardRows(periodId);
     const index = sorted.findIndex(row => row.user_id === userId);
     return index >= 0 ? index + 1 : null;
   }
@@ -9623,39 +9687,44 @@
     });
   }
 
-  function renderLeaderboardSummaryCard(metricKey, title, label, accentClass) {
-    const sorted = getSortedLeaderboardRows(metricKey);
+  function renderLeaderboardSummaryCard(period) {
+    const sorted = getSortedLeaderboardRows(period.id);
     const ownRow = sorted.find(row => row.user_id === currentUser?.id) || null;
-    const ownValue = ownRow ? getLeaderboardMetricValue(ownRow, metricKey) : 0;
-    const leaderValue = sorted.length ? getLeaderboardMetricValue(sorted[0], metricKey) : 0;
-    const rank = ownRow ? getLeaderboardRank(metricKey, ownRow.user_id) : null;
-    const gap = Math.max(0, leaderValue - ownValue);
+    const ownPoints = ownRow ? getLeaderboardPeriodValue(ownRow, period.id, 'points') : 0;
+    const ownSales = ownRow ? getLeaderboardPeriodValue(ownRow, period.id, 'sales') : 0;
+    const ownOver6 = ownRow ? getLeaderboardPeriodValue(ownRow, period.id, 'over6') : 0;
+    const leaderPoints = sorted.length ? getLeaderboardPeriodValue(sorted[0], period.id, 'points') : 0;
+    const rank = ownRow ? getLeaderboardRank(period.id, ownRow.user_id) : null;
+    const gap = Math.max(0, leaderPoints - ownPoints);
     const meta = ownRow
-      ? `${rank === 1 ? 'Du leder akkurat nå' : `Plass #${rank}`} · ${gap === 0 ? 'Delt førsteplass' : `${gap} opp til toppen`}`
+      ? `${rank === 1 ? 'Du leder akkurat nå' : `Plass #${rank}`} · ${gap === 0 ? 'Delt førsteplass' : `${gap} poeng opp til toppen`}`
       : 'Registrer et opptak for å komme inn på lista';
     return `
-      <div class="leaderboard-summary-card ${accentClass}">
-        <div class="leaderboard-summary-label">${title}</div>
-        <div class="leaderboard-summary-value">${ownValue}</div>
-        <div class="leaderboard-summary-meta">${label}</div>
+      <div class="leaderboard-summary-card period-${period.id}">
+        <div class="leaderboard-summary-label">${period.title}</div>
+        <div class="leaderboard-summary-value">${ownPoints}</div>
+        <div class="leaderboard-summary-meta">${ownSales} abo · ${ownOver6} stk 6 min</div>
         <div class="leaderboard-summary-foot">${meta}</div>
       </div>
     `;
   }
 
-  function renderLeaderboardMetricList(metricKey, title, subtitle, accentClass, valueLabel) {
-    const sorted = getSortedLeaderboardRows(metricKey);
+  function renderLeaderboardPeriodList(period) {
+    const sorted = getSortedLeaderboardRows(period.id);
     return `
-      <div class="leaderboard-list-card ${accentClass}">
+      <div class="leaderboard-list-card period-${period.id}">
         <div class="leaderboard-list-head">
           <div>
-            <div class="stats-section-title ${accentClass === 'sales' ? 'st-green' : 'st-teal'}">${title}</div>
-            <div class="leaderboard-list-subtitle">${subtitle}</div>
+            <div class="stats-section-title ${period.id === 'day' ? 'st-teal' : period.id === 'week' ? 'st-green' : 'st-purple'}">${period.title}</div>
+            <div class="leaderboard-list-subtitle">${period.subtitle} 300 poeng per abo og 100 poeng per 6 minutter.</div>
           </div>
         </div>
         <div class="leaderboard-list">
           ${sorted.length ? sorted.map((row, index) => {
             const isCurrentUser = row.user_id === currentUser?.id;
+            const points = getLeaderboardPeriodValue(row, period.id, 'points');
+            const sales = getLeaderboardPeriodValue(row, period.id, 'sales');
+            const over6 = getLeaderboardPeriodValue(row, period.id, 'over6');
             return `
               <div class="leaderboard-row${isCurrentUser ? ' is-you' : ''}">
                 <div class="leaderboard-rank">#${index + 1}</div>
@@ -9664,15 +9733,15 @@
                     ${escHtml(row.display_name)}
                     ${isCurrentUser ? '<span class="leaderboard-you-badge">Deg</span>' : ''}
                   </div>
-                  <div class="leaderboard-user-meta">Siste aktivitet ${escHtml(formatLeaderboardTimestamp(row.latest_entry_at || row.updated_at))}</div>
+                  <div class="leaderboard-user-meta">${sales} abo · ${over6} stk 6 min · siste aktivitet ${escHtml(formatLeaderboardTimestamp(row.latest_entry_at || row.updated_at))}</div>
                 </div>
                 <div class="leaderboard-value-block">
-                  <div class="leaderboard-value">${getLeaderboardMetricValue(row, metricKey)}</div>
-                  <div class="leaderboard-value-label">${valueLabel}</div>
+                  <div class="leaderboard-value">${points}</div>
+                  <div class="leaderboard-value-label">poeng</div>
                 </div>
               </div>
             `;
-          }).join('') : '<div class="stats-empty-card">Ingen brukere har registrert aktivitet ennå. Når noen logger salg eller 6 minutter, dukker de opp her automatisk.</div>'}
+          }).join('') : `<div class="stats-empty-card">${period.emptyLabel} Når noen logger salg eller 6 minutter, oppdateres lista automatisk.</div>`}
         </div>
       </div>
     `;
@@ -9680,7 +9749,6 @@
 
   function renderLeaderboardPane() {
     const hasRows = leaderboardRows.length > 0;
-    const ownRow = leaderboardRows.find(row => row.user_id === currentUser?.id) || null;
     const latestUpdate = leaderboardRows
       .map(row => row.updated_at || row.latest_entry_at)
       .filter(Boolean)
@@ -9707,7 +9775,7 @@
         <div class="leaderboard-hero">
           <div>
             <div class="leaderboard-hero-title">Leaderboard</div>
-            <div class="leaderboard-hero-text">Sammenlign dine egne 6 minuttere og abo mot resten av teamet. Siden oppdaterer seg automatisk når noen registrerer ny aktivitet.</div>
+            <div class="leaderboard-hero-text">Sammenlign deg mot resten av teamet på tre perioder: i dag, denne uken og denne måneden. Poengene regnes automatisk som 300 per abo og 100 per 6 minutter.</div>
           </div>
           <div class="leaderboard-live-meta">
             <span class="leaderboard-live-pill">Live</span>
@@ -9716,12 +9784,10 @@
         </div>
         ${leaderboardState === 'error' ? `<div class="stats-empty-card">${escHtml(leaderboardErrorMessage || 'Leaderboard er midlertidig utilgjengelig.')}</div>` : ''}
         <div class="leaderboard-summary-grid">
-          ${renderLeaderboardSummaryCard('total_sales', 'Dine abo', ownRow ? 'Totalt registrerte salg' : 'Ikke rangert ennå', 'sales')}
-          ${renderLeaderboardSummaryCard('total_over6', 'Dine 6 minuttere', ownRow ? 'Totalt registrerte 6 min' : 'Ikke rangert ennå', 'over6')}
+          ${LEADERBOARD_PERIOD_CONFIG.map(period => renderLeaderboardSummaryCard(period)).join('')}
         </div>
         <div class="leaderboard-grid">
-          ${renderLeaderboardMetricList('total_sales', 'Abo-ranking', 'Hvem har registrert flest abo totalt.', 'sales', 'abo')}
-          ${renderLeaderboardMetricList('total_over6', '6 min-ranking', 'Hvem har registrert flest samtaler over 6 minutter.', 'over6', '6 min')}
+          ${LEADERBOARD_PERIOD_CONFIG.map(period => renderLeaderboardPeriodList(period)).join('')}
         </div>
       </div>
     `;

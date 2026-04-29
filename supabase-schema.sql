@@ -62,6 +62,17 @@ create table if not exists public.user_public_stats (
   primary key (user_id)
 );
 
+alter table public.user_public_stats
+  add column if not exists day_over6 integer not null default 0 check (day_over6 >= 0),
+  add column if not exists day_sales integer not null default 0 check (day_sales >= 0),
+  add column if not exists day_points integer not null default 0 check (day_points >= 0),
+  add column if not exists week_over6 integer not null default 0 check (week_over6 >= 0),
+  add column if not exists week_sales integer not null default 0 check (week_sales >= 0),
+  add column if not exists week_points integer not null default 0 check (week_points >= 0),
+  add column if not exists month_over6 integer not null default 0 check (month_over6 >= 0),
+  add column if not exists month_sales integer not null default 0 check (month_sales >= 0),
+  add column if not exists month_points integer not null default 0 check (month_points >= 0);
+
 drop trigger if exists user_public_stats_set_updated_at on public.user_public_stats;
 create trigger user_public_stats_set_updated_at
 before update on public.user_public_stats
