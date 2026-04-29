@@ -4591,6 +4591,12 @@
       line-height: 1;
     }
 
+    .leaderboard-user-meta {
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.35;
+    }
+
     @media (max-width: 900px) {
       .development-highlights-grid,
       .development-insights-grid,
@@ -9868,6 +9874,8 @@
         <div class="leaderboard-list">
           ${sorted.length ? sorted.map((row, index) => {
             const points = getLeaderboardPeriodValue(row, period.id, 'points');
+            const sales = getLeaderboardPeriodValue(row, period.id, 'sales');
+            const over6 = getLeaderboardPeriodValue(row, period.id, 'over6');
             return `
               <div class="leaderboard-row${row.user_id === currentUser?.id ? ' is-you' : ''}">
                 <div class="leaderboard-rank">#${index + 1}</div>
@@ -9877,6 +9885,7 @@
                     <span class="leaderboard-user-points-value">${points}</span>
                     <span class="leaderboard-value-label">poeng</span>
                   </div>
+                  <div class="leaderboard-user-meta">${over6} 6-min · ${sales} abo</div>
                 </div>
               </div>
             `;
