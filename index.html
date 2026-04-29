@@ -2867,6 +2867,37 @@
       gap: 14px;
     }
 
+    .register-quick-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .register-quick-stat {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 18px;
+      background: rgba(248, 250, 252, 0.92);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    .register-quick-stat-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .register-quick-stat-value {
+      margin-top: 6px;
+      font-size: 1.9rem;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--primary-dark);
+    }
+
     .register-quick-btn {
       border: 1px solid transparent;
       border-radius: 18px;
@@ -2910,7 +2941,7 @@
     .register-quick-btn-title {
       font-size: 1.22rem;
       font-weight: 800;
-      color: var(--primary-dark);
+      color: #ffffff;
       letter-spacing: -0.02em;
     }
 
@@ -3027,6 +3058,10 @@
       }
 
       .register-quick-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .register-quick-stats {
         grid-template-columns: 1fr;
       }
     }
@@ -6294,13 +6329,12 @@
     <div class="register-quick-grid">
       <button class="register-quick-btn over5" type="button" onclick="quickRegister('over5min')">
         <span class="register-quick-btn-title">Registrer 6-minutter</span>
-        <span class="register-quick-btn-subtitle">Legg til en 6-minutter med ett trykk.</span>
       </button>
       <button class="register-quick-btn salg" type="button" onclick="quickRegister('salg')">
         <span class="register-quick-btn-title">Registrer salg</span>
-        <span class="register-quick-btn-subtitle">Registrer abo og velg antall før feiring.</span>
       </button>
     </div>
+    <div id="register-quick-stats" class="register-quick-stats"></div>
   </div>
 
   <div class="intro-layout">
@@ -7886,6 +7920,7 @@
       subtitle.textContent = 'Ingen aktiv økt akkurat nå';
     }
 
+    renderRegisterQuickStats(now);
     renderIntroDailyStats(now);
     renderLastRegisteredNote();
   }
@@ -8061,6 +8096,24 @@
     container.innerHTML = `
       ${statCard(dayStats.introSuccesses, 'Opptak i dag', false, 'blue')}
       ${statCard(formatAveragePerSession(dayStats.introSuccesses, todaySessionCount), todaySessionCount ? `Snitt per økt (${dayStats.introSuccesses}/${todaySessionCount})` : 'Snitt per økt', false, 'purple')}
+    `;
+  }
+
+  function renderRegisterQuickStats(reference = new Date()) {
+    const container = document.getElementById('register-quick-stats');
+    if (!container) return;
+    const history = getIntroHistory();
+    const dayEntries = history.filter(entry => isToday(entry.isoDate));
+    const dayStats = statsFor(dayEntries);
+    container.innerHTML = `
+      <div class="register-quick-stat">
+        <div class="register-quick-stat-label">6 minutter i dag</div>
+        <div class="register-quick-stat-value">${dayStats.over5}</div>
+      </div>
+      <div class="register-quick-stat">
+        <div class="register-quick-stat-label">Salg i dag</div>
+        <div class="register-quick-stat-value">${dayStats.salg}</div>
+      </div>
     `;
   }
 
