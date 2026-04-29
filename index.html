@@ -2875,11 +2875,23 @@
     }
 
     .register-quick-stat {
-      border: 1px solid var(--border);
+      border: 1px solid transparent;
       border-radius: 16px;
       padding: 16px 18px;
       background: rgba(248, 250, 252, 0.92);
-      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 8px 18px rgba(15, 23, 42, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .register-quick-stat.over5 {
+      border-color: rgba(20, 184, 166, 0.26);
+      background: linear-gradient(180deg, rgba(45, 212, 191, 0.22), rgba(13, 148, 136, 0.08));
+    }
+
+    .register-quick-stat.salg {
+      border-color: rgba(245, 158, 11, 0.26);
+      background: linear-gradient(180deg, rgba(251, 191, 36, 0.24), rgba(217, 119, 6, 0.08));
     }
 
     .register-quick-stat-label {
@@ -2888,6 +2900,20 @@
       letter-spacing: 0.03em;
       text-transform: uppercase;
       color: var(--muted);
+    }
+
+    .register-quick-stat-meta {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: rgba(15, 23, 42, 0.72);
+      background: rgba(255,255,255,0.42);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
     }
 
     .register-quick-stat-value {
@@ -2915,12 +2941,19 @@
       box-shadow: 0 16px 36px rgba(15, 23, 42, 0.14);
       text-align: left;
       width: 100%;
+      position: relative;
+      overflow: hidden;
     }
 
     .register-quick-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 22px 44px rgba(15, 23, 42, 0.18);
       filter: saturate(1.06);
+    }
+
+    .register-quick-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
     }
 
     .register-quick-btn:focus-visible {
@@ -2943,6 +2976,24 @@
       font-weight: 800;
       color: #ffffff;
       letter-spacing: -0.02em;
+      text-shadow: 0 1px 1px rgba(15, 23, 42, 0.18);
+    }
+
+    .register-quick-btn::after {
+      content: '+';
+      position: absolute;
+      top: 16px;
+      right: 18px;
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      color: rgba(255,255,255,0.96);
+      font-size: 1.2rem;
+      font-weight: 800;
+      background: rgba(255,255,255,0.16);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.22);
     }
 
     .register-quick-btn-subtitle {
@@ -8106,11 +8157,13 @@
     const dayEntries = history.filter(entry => isToday(entry.isoDate));
     const dayStats = statsFor(dayEntries);
     container.innerHTML = `
-      <div class="register-quick-stat">
+      <div class="register-quick-stat over5">
+        <div class="register-quick-stat-meta">I dag</div>
         <div class="register-quick-stat-label">6 minutter i dag</div>
         <div class="register-quick-stat-value">${dayStats.over5}</div>
       </div>
-      <div class="register-quick-stat">
+      <div class="register-quick-stat salg">
+        <div class="register-quick-stat-meta">I dag</div>
         <div class="register-quick-stat-label">Salg i dag</div>
         <div class="register-quick-stat-value">${dayStats.salg}</div>
       </div>
