@@ -7492,6 +7492,10 @@
       : new Date();
     const currentSession = getCurrentCallSession(entryDate);
     const isOpptak = options.opptak === 'nei' ? 'nei' : 'ja';
+    const hasSale = options.salg === 'ja';
+    const salesCount = hasSale
+      ? Math.max(1, Math.floor(Number(options.salesCount) || 1))
+      : 0;
     return {
       id: options.id || createIntroHistoryEntryId(),
       type: isOpptak === 'ja' ? 'introSuccess' : 'introAttempt',
@@ -7499,7 +7503,8 @@
       text: intro?.text || String(options.text || '').trim(),
       opptak: isOpptak,
       over5min: options.over5min === 'ja' ? 'ja' : 'nei',
-      salg: options.salg === 'ja' ? 'ja' : 'nei',
+      salg: hasSale ? 'ja' : 'nei',
+      salesCount,
       isoDate: entryDate.toISOString(),
       tid: formatHistoryTimestamp(entryDate),
       sessionId: currentSession ? currentSession.id : null,
@@ -7661,11 +7666,16 @@
     return day >= 1 && day <= 5;
   }
 
+  function getEntrySalesCount(entry) {
+    if (!entry || entry.salg !== 'ja') return 0;
+    return Math.max(1, Math.floor(Number(entry.salesCount) || 1));
+  }
+
   function getSuccessStats(entries) {
     return {
       introSuccesses: entries.filter(isIntroSuccessEntry).length,
       over5: entries.filter(h => h.over5min === 'ja').length,
-      salg: entries.filter(h => h.salg === 'ja').length,
+      salg: entries.reduce((sum, entry) => sum + getEntrySalesCount(entry), 0),
     };
   }
 
@@ -7939,7 +7949,7 @@
   function getMetricValueForEntry(entry, metricKey) {
     if (metricKey === 'introSuccesses') return isIntroSuccessEntry(entry) ? 1 : 0;
     if (metricKey === 'over5') return entry.over5min === 'ja' ? 1 : 0;
-    return entry.salg === 'ja' ? 1 : 0;
+    return getEntrySalesCount(entry);
   }
 
   function buildWeekRecordBreakdown(history, weekKey, metricKey) {
@@ -8202,10 +8212,11 @@
         const itemDate = new Date(item.isoDate);
         return itemDate >= day && itemDate < next && item.over5min === 'ja';
       }).length;
-      const sales = entries.filter(item => {
+      const sales = entries.reduce((sum, item) => {
         const itemDate = new Date(item.isoDate);
-        return itemDate >= day && itemDate < next && item.salg === 'ja';
-      }).length;
+        if (itemDate < day || itemDate >= next) return sum;
+        return sum + getEntrySalesCount(item);
+      }, 0);
       return { label, fiveMin, sales, isFuture: false };
     });
   }
@@ -8222,10 +8233,11 @@
         const itemDate = new Date(item.isoDate);
         return itemDate >= range.start && itemDate < range.end && item.over5min === 'ja';
       }).length;
-      const sales = entries.filter(item => {
+      const sales = entries.reduce((sum, item) => {
         const itemDate = new Date(item.isoDate);
-        return itemDate >= range.start && itemDate < range.end && item.salg === 'ja';
-      }).length;
+        if (itemDate < range.start || itemDate >= range.end) return sum;
+        return sum + getEntrySalesCount(item);
+      }, 0);
       return { label: range.label, fiveMin, sales, isFuture: false };
     });
   }
@@ -10090,7 +10102,7 @@
         sessionCount,
         averagePerSession: sessionCount ? successes / sessionCount : 0,
         over5: entries.filter(h => h.over5min === 'ja').length,
-        sales: entries.filter(h => h.salg === 'ja').length,
+        sales: entries.reduce((sum, entry) => sum + getEntrySalesCount(entry), 0),
       };
     });
 
@@ -10168,9 +10180,17 @@
     const history = raw
       .map(entry => {
         if (!entry || typeof entry !== 'object') return null;
-        if (entry.id) return entry;
-        changed = true;
-        return { ...entry, id: createIntroHistoryEntryId() };
+        const normalized = { ...entry };
+        if (!normalized.id) {
+          normalized.id = createIntroHistoryEntryId();
+          changed = true;
+        }
+        const normalizedSalesCount = getEntrySalesCount(normalized);
+        if (Number(normalized.salesCount || 0) !== normalizedSalesCount) {
+          normalized.salesCount = normalizedSalesCount;
+          changed = true;
+        }
+        return normalized;
       })
       .filter(Boolean);
     if (changed) localStorage.setItem('introHistory', JSON.stringify(history));
@@ -10323,14 +10343,28 @@
     return intro;
   }
 
+  function requestSaleCount(defaultValue = 1) {
+    while (true) {
+      const raw = window.prompt('Hvor mange abo?', String(defaultValue));
+      if (raw === null) return null;
+      const trimmed = String(raw).trim();
+      const value = Math.floor(Number(trimmed));
+      if (trimmed && Number.isFinite(value) && value >= 1) return value;
+      alert('Skriv inn et heltall på 1 eller mer.');
+    }
+  }
+
   function registerIntroSuccess() {
     const intro = resolveIntroForRegistration();
     if (!intro) return;
+    const salesCount = selectedSalg === 'ja' ? requestSaleCount() : 0;
+    if (selectedSalg === 'ja' && salesCount === null) return;
 
     const history = getIntroHistory();
     history.unshift(buildOpptakEntry(intro, {
       over5min: selectedOver5min === 'ja' ? 'ja' : 'nei',
       salg: selectedSalg === 'ja' ? 'ja' : 'nei',
+      salesCount,
     }));
     commitIntroHistory(history, { clearUndo: true });
 
@@ -10466,7 +10500,15 @@
     if (salg === 'ja') opptak = 'ja';
 
     const history = getIntroHistory();
-    const nextEntry = buildIntroHistoryEntry(intro, { id: editId || undefined, date: entryDate, opptak, over5min, salg });
+    const existingEntry = editId ? history.find(entry => entry.id === editId) : null;
+    const nextEntry = buildIntroHistoryEntry(intro, {
+      id: editId || undefined,
+      date: entryDate,
+      opptak,
+      over5min,
+      salg,
+      salesCount: salg === 'ja' ? getEntrySalesCount(existingEntry) || 1 : 0
+    });
     if (editId) {
       const index = history.findIndex(entry => entry.id === editId);
       if (index === -1) {
