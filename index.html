@@ -5133,6 +5133,79 @@
       from { opacity: 0; } to { opacity: 1; }
     }
 
+    .abo-count-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9998;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(2, 6, 23, 0.76);
+      backdrop-filter: blur(8px);
+    }
+
+    .abo-count-overlay.visible {
+      display: flex;
+    }
+
+    .abo-count-modal {
+      width: min(100%, 420px);
+      border-radius: 24px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: linear-gradient(180deg, rgba(11, 18, 32, 0.98), rgba(15, 23, 42, 0.96));
+      box-shadow: 0 24px 60px rgba(2, 6, 23, 0.42);
+      padding: 24px;
+      color: var(--text);
+    }
+
+    .abo-count-modal-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .abo-count-modal-text {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .abo-count-modal-input {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: #0b1220;
+      color: var(--text);
+      padding: 14px 16px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      outline: none;
+    }
+
+    .abo-count-modal-input:focus {
+      border-color: rgba(56, 189, 248, 0.45);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+    }
+
+    .abo-count-modal-error {
+      min-height: 20px;
+      margin-top: 10px;
+      color: #fca5a5;
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+
+    .abo-count-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
     /* Objection collapse */
     /* ===== SAMTALEFLYT v2 ===== */
     #sf-outer {
@@ -5862,6 +5935,19 @@
   <div style="color:white;font-size:0.9rem;opacity:0.6;">Trykk for å lukke</div>
 </div>
 
+<div id="abo-count-overlay" class="abo-count-overlay" aria-hidden="true">
+  <div class="abo-count-modal" role="dialog" aria-modal="true" aria-labelledby="abo-count-title">
+    <div id="abo-count-title" class="abo-count-modal-title">Hvor mange abo?</div>
+    <div class="abo-count-modal-text">Fyll inn hvor mange abonnement salget gjaldt før registreringen lagres.</div>
+    <input id="abo-count-input" class="abo-count-modal-input" type="text" inputmode="numeric" pattern="[0-9]*" value="1" />
+    <div id="abo-count-error" class="abo-count-modal-error"></div>
+    <div class="abo-count-modal-actions">
+      <button type="button" class="backup-btn" style="margin-top:0;" onclick="cancelAboCountPrompt()">Avbryt</button>
+      <button type="button" class="save-btn" style="margin-top:0;" onclick="confirmAboCountPrompt()">Lagre</button>
+    </div>
+  </div>
+</div>
+
 <div id="auth-card" class="auth-card">
   <div class="auth-card-title">Logg inn for din egen data</div>
   <div class="auth-card-text">
@@ -6294,6 +6380,7 @@
   let leaderboardRows = [];
   let leaderboardState = 'idle';
   let leaderboardErrorMessage = '';
+  let aboCountPromptResolver = null;
 
   localStorage.setItem = function(k, v) {
     _origSetItem(k, v);
@@ -10343,21 +10430,60 @@
     return intro;
   }
 
-  function requestSaleCount(defaultValue = 1) {
-    while (true) {
-      const raw = window.prompt('Hvor mange abo?', String(defaultValue));
-      if (raw === null) return null;
-      const trimmed = String(raw).trim();
-      const value = Math.floor(Number(trimmed));
-      if (trimmed && Number.isFinite(value) && value >= 1) return value;
-      alert('Skriv inn et heltall på 1 eller mer.');
+  function closeAboCountPrompt(result = null) {
+    const overlay = document.getElementById('abo-count-overlay');
+    const error = document.getElementById('abo-count-error');
+    if (overlay) {
+      overlay.classList.remove('visible');
+      overlay.setAttribute('aria-hidden', 'true');
     }
+    if (error) error.textContent = '';
+    const resolver = aboCountPromptResolver;
+    aboCountPromptResolver = null;
+    if (resolver) resolver(result);
   }
 
-  function registerIntroSuccess() {
+  function cancelAboCountPrompt() {
+    closeAboCountPrompt(null);
+  }
+
+  function confirmAboCountPrompt() {
+    const input = document.getElementById('abo-count-input');
+    const error = document.getElementById('abo-count-error');
+    const trimmed = String(input?.value || '').trim();
+    const value = Math.floor(Number(trimmed));
+    if (!trimmed || !Number.isFinite(value) || value < 1) {
+      if (error) error.textContent = 'Skriv inn et heltall på 1 eller mer.';
+      input?.focus();
+      input?.select();
+      return;
+    }
+    closeAboCountPrompt(value);
+  }
+
+  function requestSaleCount(defaultValue = 1) {
+    return new Promise(resolve => {
+      aboCountPromptResolver = resolve;
+      const overlay = document.getElementById('abo-count-overlay');
+      const input = document.getElementById('abo-count-input');
+      const error = document.getElementById('abo-count-error');
+      if (error) error.textContent = '';
+      if (input) input.value = String(Math.max(1, Math.floor(Number(defaultValue) || 1)));
+      if (overlay) {
+        overlay.classList.add('visible');
+        overlay.setAttribute('aria-hidden', 'false');
+      }
+      requestAnimationFrame(() => {
+        input?.focus();
+        input?.select();
+      });
+    });
+  }
+
+  async function registerIntroSuccess() {
     const intro = resolveIntroForRegistration();
     if (!intro) return;
-    const salesCount = selectedSalg === 'ja' ? requestSaleCount() : 0;
+    const salesCount = selectedSalg === 'ja' ? await requestSaleCount() : 0;
     if (selectedSalg === 'ja' && salesCount === null) return;
 
     const history = getIntroHistory();
@@ -12431,6 +12557,23 @@
     clearTimeout(gifTimer);
     stopConfetti();
   }
+
+  document.addEventListener('keydown', event => {
+    const overlay = document.getElementById('abo-count-overlay');
+    if (!overlay || !overlay.classList.contains('visible')) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      cancelAboCountPrompt();
+      return;
+    }
+    if (event.key === 'Enter') {
+      const active = document.activeElement;
+      if (active?.id === 'abo-count-input') {
+        event.preventDefault();
+        confirmAboCountPrompt();
+      }
+    }
+  });
 
   function startConfetti(colors) {
     const canvas = document.getElementById('confetti-canvas');
