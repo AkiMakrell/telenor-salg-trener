@@ -3107,6 +3107,12 @@
       .intro-layout {
         grid-template-columns: 1fr;
         max-width: 100%;
+        justify-items: center;
+      }
+
+      .register-intro-main,
+      .intro-layout .leaderboard-card {
+        width: min(100%, 720px);
       }
     }
 
@@ -6554,7 +6560,7 @@
 
     <div class="intro-layout">
       <!-- LEFT: scorecard form -->
-      <div>
+      <div class="register-intro-main">
         <div class="card register-intro-card">
         <div id="intro-daily-stats" class="stats-grid stats-grid-2" style="margin-bottom:16px;"></div>
 
