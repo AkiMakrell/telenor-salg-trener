@@ -4363,13 +4363,219 @@
       background: rgba(15, 23, 42, 0.45);
     }
 
+    .leaderboard-hero {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 24px;
+      border-radius: 24px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: linear-gradient(135deg, rgba(10, 19, 36, 0.98), rgba(17, 24, 39, 0.94));
+      box-shadow: 0 18px 36px rgba(2, 6, 23, 0.22);
+    }
+
+    .leaderboard-hero-title {
+      font-size: 1.45rem;
+      font-weight: 900;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .leaderboard-hero-text,
+    .leaderboard-list-subtitle,
+    .leaderboard-live-meta {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .leaderboard-live-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .leaderboard-live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.14);
+      border: 1px solid rgba(34, 197, 94, 0.28);
+      color: #86efac;
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .leaderboard-summary-grid,
+    .leaderboard-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .leaderboard-summary-card,
+    .leaderboard-list-card {
+      border-radius: 22px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: linear-gradient(180deg, rgba(10, 18, 32, 0.96), rgba(15, 23, 42, 0.92));
+      padding: 22px;
+      box-shadow: 0 16px 34px rgba(2, 6, 23, 0.2);
+    }
+
+    .leaderboard-summary-card.sales,
+    .leaderboard-list-card.sales {
+      border-color: rgba(245, 158, 11, 0.22);
+    }
+
+    .leaderboard-summary-card.over6,
+    .leaderboard-list-card.over6 {
+      border-color: rgba(20, 184, 166, 0.22);
+    }
+
+    .leaderboard-summary-label {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .leaderboard-summary-value {
+      margin-top: 10px;
+      font-size: 2.6rem;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--text);
+    }
+
+    .leaderboard-summary-card.sales .leaderboard-summary-value {
+      color: #fcd34d;
+    }
+
+    .leaderboard-summary-card.over6 .leaderboard-summary-value {
+      color: #5eead4;
+    }
+
+    .leaderboard-summary-meta,
+    .leaderboard-summary-foot {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .leaderboard-summary-foot {
+      margin-top: 14px;
+      color: #cbd5e1;
+      font-weight: 600;
+    }
+
+    .leaderboard-list-head {
+      margin-bottom: 16px;
+    }
+
+    .leaderboard-list-subtitle {
+      margin-top: 8px;
+    }
+
+    .leaderboard-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .leaderboard-row {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      background: rgba(15, 23, 42, 0.56);
+    }
+
+    .leaderboard-row.is-you {
+      border-color: rgba(56, 189, 248, 0.34);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.14);
+      background: rgba(17, 34, 59, 0.78);
+    }
+
+    .leaderboard-rank {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(148, 163, 184, 0.12);
+      color: var(--text);
+      font-size: 0.92rem;
+      font-weight: 900;
+    }
+
+    .leaderboard-user {
+      min-width: 0;
+    }
+
+    .leaderboard-user-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      color: var(--text);
+      font-size: 0.96rem;
+      font-weight: 800;
+    }
+
+    .leaderboard-you-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.14);
+      color: #7dd3fc;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .leaderboard-user-meta,
+    .leaderboard-value-label {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.4;
+    }
+
+    .leaderboard-value-block {
+      text-align: right;
+    }
+
+    .leaderboard-value {
+      color: var(--text);
+      font-size: 1.5rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+
     @media (max-width: 900px) {
       .development-highlights-grid,
       .development-insights-grid,
       .development-kpi-grid,
       .development-section-grid,
       .development-summary-grid,
-      .development-race-grid {
+      .development-race-grid,
+      .leaderboard-summary-grid,
+      .leaderboard-grid {
         grid-template-columns: 1fr;
       }
 
@@ -4421,6 +4627,21 @@
     @media (max-width: 640px) {
       .stats-nav {
         grid-template-columns: 1fr;
+      }
+
+      .leaderboard-hero,
+      .leaderboard-summary-card,
+      .leaderboard-list-card {
+        padding: 18px;
+      }
+
+      .leaderboard-row {
+        grid-template-columns: 1fr;
+        justify-items: start;
+      }
+
+      .leaderboard-value-block {
+        text-align: left;
       }
     }
 
@@ -6030,6 +6251,7 @@
   const SUPABASE_URL = 'https://ptdehitxlzzqblvjmjra.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_HFO3PiVNLlBcSechlL_esA_5CaK2nrl';
   const SUPABASE_STATE_TABLE = 'user_app_state';
+  const SUPABASE_PUBLIC_STATS_TABLE = 'user_public_stats';
   const INTRO_LEADERBOARD_DATA_VERSION = '2';
   const INTRO_LEADERBOARD_DATA_VERSION_KEY = 'introLeaderboardDataVersion';
   const STORAGE_KEYS = [
@@ -6069,7 +6291,12 @@
   let isHydratingRemoteState = false;
   let authChangeToken = 0;
   let syncTimeout = null;
+  let leaderboardSyncTimeout = null;
+  let leaderboardRealtimeChannel = null;
   const pendingSyncKeys = new Set();
+  let leaderboardRows = [];
+  let leaderboardState = 'idle';
+  let leaderboardErrorMessage = '';
 
   localStorage.setItem = function(k, v) {
     _origSetItem(k, v);
@@ -6172,6 +6399,18 @@
     if (avatarEl) avatarEl.textContent = initials;
   }
 
+  function setLeaderboardState(state, errorMessage = '') {
+    leaderboardState = state;
+    leaderboardErrorMessage = errorMessage;
+    if (activeStatsSubview === 'leaderboard') renderStatsHome();
+  }
+
+  function clearLeaderboardState() {
+    leaderboardRows = [];
+    leaderboardErrorMessage = '';
+    setLeaderboardState('idle');
+  }
+
   function getAuthCredentials() {
     const name = document.getElementById('auth-name')?.value.trim() || '';
     const email = document.getElementById('auth-email')?.value.trim() || '';
@@ -6201,10 +6440,20 @@
     syncTimeout = setTimeout(syncToCloud, 800);
   }
 
+  function scheduleLeaderboardSync() {
+    clearTimeout(leaderboardSyncTimeout);
+    leaderboardSyncTimeout = setTimeout(() => {
+      syncPublicLeaderboard().catch(error => {
+        setLeaderboardState('error', error.message || 'Kunne ikke synkronisere leaderboard.');
+      });
+    }, 800);
+  }
+
   function queueSyncKey(key) {
     if (!STORAGE_KEYS.includes(key) || isHydratingRemoteState || !currentUser) return;
     pendingSyncKeys.add(key);
     scheduleSync();
+    if (key === 'introHistory') scheduleLeaderboardSync();
   }
 
   function readStoredValue(key, reader = _origGetItem) {
@@ -6623,6 +6872,117 @@
     return state;
   }
 
+  function normalizeLeaderboardRow(row) {
+    if (!row || typeof row !== 'object') return null;
+    return {
+      user_id: String(row.user_id || ''),
+      display_name: String(row.display_name || '').trim() || 'Ukjent bruker',
+      total_intro_successes: Math.max(0, Number(row.total_intro_successes) || 0),
+      total_over6: Math.max(0, Number(row.total_over6) || 0),
+      total_sales: Math.max(0, Number(row.total_sales) || 0),
+      latest_entry_at: row.latest_entry_at ? String(row.latest_entry_at) : '',
+      updated_at: row.updated_at ? String(row.updated_at) : ''
+    };
+  }
+
+  function getLeaderboardPayload(history = getIntroHistory()) {
+    const totals = statsFor(history);
+    const latestEntry = getSortedIntroHistory(history)[0];
+    return {
+      display_name: getUserDisplayName(currentUser),
+      total_intro_successes: totals.introSuccesses,
+      total_over6: totals.over5,
+      total_sales: totals.salg,
+      latest_entry_at: latestEntry?.isoDate || null
+    };
+  }
+
+  function hasLeaderboardActivity(payload) {
+    return Boolean(
+      Number(payload?.total_intro_successes) > 0 ||
+      Number(payload?.total_over6) > 0 ||
+      Number(payload?.total_sales) > 0 ||
+      payload?.latest_entry_at
+    );
+  }
+
+  async function loadLeaderboardRows(options = {}) {
+    if (!supabaseClient || !currentUser) {
+      clearLeaderboardState();
+      return [];
+    }
+
+    if (!options.silentLoading) setLeaderboardState('loading');
+
+    const { data, error } = await supabaseClient
+      .from(SUPABASE_PUBLIC_STATS_TABLE)
+      .select('user_id, display_name, total_intro_successes, total_over6, total_sales, latest_entry_at, updated_at')
+      .order('total_sales', { ascending: false })
+      .order('total_over6', { ascending: false })
+      .order('display_name', { ascending: true });
+
+    if (error) {
+      setLeaderboardState('error', error.message || 'Kunne ikke laste leaderboard.');
+      throw error;
+    }
+
+    leaderboardRows = (data || [])
+      .map(normalizeLeaderboardRow)
+      .filter(Boolean);
+    setLeaderboardState('ready');
+    return leaderboardRows;
+  }
+
+  function unsubscribeLeaderboardRealtime() {
+    clearTimeout(leaderboardSyncTimeout);
+    if (!supabaseClient || !leaderboardRealtimeChannel) {
+      leaderboardRealtimeChannel = null;
+      return;
+    }
+    supabaseClient.removeChannel(leaderboardRealtimeChannel);
+    leaderboardRealtimeChannel = null;
+  }
+
+  function subscribeToLeaderboardRealtime() {
+    unsubscribeLeaderboardRealtime();
+    if (!supabaseClient || !currentUser) return;
+    leaderboardRealtimeChannel = supabaseClient
+      .channel(`leaderboard-${currentUser.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: SUPABASE_PUBLIC_STATS_TABLE },
+        () => {
+          loadLeaderboardRows({ silentLoading: activeStatsSubview !== 'leaderboard' }).catch(error => {
+            setLeaderboardState('error', error.message || 'Kunne ikke oppdatere leaderboard.');
+          });
+        }
+      )
+      .subscribe();
+  }
+
+  async function syncPublicLeaderboard(options = {}) {
+    if (!supabaseClient || !currentUser) return;
+
+    const payload = getLeaderboardPayload();
+    if (!hasLeaderboardActivity(payload)) {
+      const { error } = await supabaseClient
+        .from(SUPABASE_PUBLIC_STATS_TABLE)
+        .delete()
+        .eq('user_id', currentUser.id);
+      if (error) throw error;
+    } else {
+      const { error } = await supabaseClient
+        .from(SUPABASE_PUBLIC_STATS_TABLE)
+        .upsert(
+          [{ user_id: currentUser.id, ...payload }],
+          { onConflict: 'user_id' }
+        );
+      if (error) throw error;
+    }
+
+    if (!options.skipReload) await loadLeaderboardRows({ silentLoading: activeStatsSubview !== 'leaderboard' });
+  }
+
   function setSyncStatus(s) {
     const el = document.getElementById('sync-status');
     const map = {
@@ -6741,6 +7101,13 @@
       }
     }
 
+    try {
+      await syncPublicLeaderboard({ skipReload: true });
+      await loadLeaderboardRows({ silentLoading: true });
+      subscribeToLeaderboardRealtime();
+    } catch (error) {
+      setLeaderboardState('error', error.message || 'Kunne ikke starte leaderboard.');
+    }
     updateUserBar(user);
     setAppVisible(true);
     setAuthStatus('');
@@ -6752,8 +7119,10 @@
     const previousDeviceData = getAllData();
 
     if (!session?.user) {
+      unsubscribeLeaderboardRealtime();
       currentUser = null;
       clearTrackedLocalData();
+      clearLeaderboardState();
       setAppVisible(false);
       setSyncStatus('signedout');
       return;
@@ -6766,8 +7135,10 @@
       await activateAuthenticatedApp(session.user, previousDeviceData);
     } catch (error) {
       if (token !== authChangeToken) return;
+      unsubscribeLeaderboardRealtime();
       currentUser = null;
       clearTrackedLocalData();
+      clearLeaderboardState();
       setAppVisible(false);
       setSyncStatus('error');
       setAuthStatus(error.message || 'Kunne ikke laste brukerdata.', 'error');
@@ -9191,7 +9562,7 @@
   }
 
   function setStatsSubview(view) {
-    const allowedViews = ['overview', 'development', 'records', 'goals'];
+    const allowedViews = ['overview', 'development', 'records', 'leaderboard', 'goals'];
     activeStatsSubview = allowedViews.includes(view) ? view : 'overview';
     renderStatsHome();
   }
@@ -9201,6 +9572,7 @@
       { id: 'overview', label: 'Hovedside' },
       { id: 'development', label: 'Utvikling' },
       { id: 'records', label: 'Rekorder' },
+      { id: 'leaderboard', label: 'Leaderboard' },
       { id: 'goals', label: 'Mål' },
     ];
     return `
@@ -9214,6 +9586,142 @@
               onclick="setStatsSubview('${item.id}')"
             >${item.label}</button>
           `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  function getLeaderboardMetricValue(row, metricKey) {
+    return metricKey === 'total_sales' ? row.total_sales : row.total_over6;
+  }
+
+  function getSortedLeaderboardRows(metricKey) {
+    return [...leaderboardRows].sort((a, b) => {
+      const valueDiff = getLeaderboardMetricValue(b, metricKey) - getLeaderboardMetricValue(a, metricKey);
+      if (valueDiff) return valueDiff;
+      const successDiff = b.total_intro_successes - a.total_intro_successes;
+      if (successDiff) return successDiff;
+      return a.display_name.localeCompare(b.display_name, 'no-NO');
+    });
+  }
+
+  function getLeaderboardRank(metricKey, userId = currentUser?.id) {
+    const sorted = getSortedLeaderboardRows(metricKey);
+    const index = sorted.findIndex(row => row.user_id === userId);
+    return index >= 0 ? index + 1 : null;
+  }
+
+  function formatLeaderboardTimestamp(isoDate) {
+    if (!isoDate) return 'Ingen registreringer ennå';
+    const parsed = new Date(isoDate);
+    if (Number.isNaN(parsed.getTime())) return 'Nylig oppdatert';
+    return parsed.toLocaleString('no-NO', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  function renderLeaderboardSummaryCard(metricKey, title, label, accentClass) {
+    const sorted = getSortedLeaderboardRows(metricKey);
+    const ownRow = sorted.find(row => row.user_id === currentUser?.id) || null;
+    const ownValue = ownRow ? getLeaderboardMetricValue(ownRow, metricKey) : 0;
+    const leaderValue = sorted.length ? getLeaderboardMetricValue(sorted[0], metricKey) : 0;
+    const rank = ownRow ? getLeaderboardRank(metricKey, ownRow.user_id) : null;
+    const gap = Math.max(0, leaderValue - ownValue);
+    const meta = ownRow
+      ? `${rank === 1 ? 'Du leder akkurat nå' : `Plass #${rank}`} · ${gap === 0 ? 'Delt førsteplass' : `${gap} opp til toppen`}`
+      : 'Registrer et opptak for å komme inn på lista';
+    return `
+      <div class="leaderboard-summary-card ${accentClass}">
+        <div class="leaderboard-summary-label">${title}</div>
+        <div class="leaderboard-summary-value">${ownValue}</div>
+        <div class="leaderboard-summary-meta">${label}</div>
+        <div class="leaderboard-summary-foot">${meta}</div>
+      </div>
+    `;
+  }
+
+  function renderLeaderboardMetricList(metricKey, title, subtitle, accentClass, valueLabel) {
+    const sorted = getSortedLeaderboardRows(metricKey);
+    return `
+      <div class="leaderboard-list-card ${accentClass}">
+        <div class="leaderboard-list-head">
+          <div>
+            <div class="stats-section-title ${accentClass === 'sales' ? 'st-green' : 'st-teal'}">${title}</div>
+            <div class="leaderboard-list-subtitle">${subtitle}</div>
+          </div>
+        </div>
+        <div class="leaderboard-list">
+          ${sorted.length ? sorted.map((row, index) => {
+            const isCurrentUser = row.user_id === currentUser?.id;
+            return `
+              <div class="leaderboard-row${isCurrentUser ? ' is-you' : ''}">
+                <div class="leaderboard-rank">#${index + 1}</div>
+                <div class="leaderboard-user">
+                  <div class="leaderboard-user-name">
+                    ${escHtml(row.display_name)}
+                    ${isCurrentUser ? '<span class="leaderboard-you-badge">Deg</span>' : ''}
+                  </div>
+                  <div class="leaderboard-user-meta">Siste aktivitet ${escHtml(formatLeaderboardTimestamp(row.latest_entry_at || row.updated_at))}</div>
+                </div>
+                <div class="leaderboard-value-block">
+                  <div class="leaderboard-value">${getLeaderboardMetricValue(row, metricKey)}</div>
+                  <div class="leaderboard-value-label">${valueLabel}</div>
+                </div>
+              </div>
+            `;
+          }).join('') : '<div class="stats-empty-card">Ingen brukere har registrert aktivitet ennå. Når noen logger salg eller 6 minutter, dukker de opp her automatisk.</div>'}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderLeaderboardPane() {
+    const hasRows = leaderboardRows.length > 0;
+    const ownRow = leaderboardRows.find(row => row.user_id === currentUser?.id) || null;
+    const latestUpdate = leaderboardRows
+      .map(row => row.updated_at || row.latest_entry_at)
+      .filter(Boolean)
+      .sort((a, b) => String(b).localeCompare(String(a)))[0] || '';
+
+    if (leaderboardState === 'loading' && !hasRows) {
+      return `
+        <div class="stats-pane">
+          <div class="stats-empty-card">Laster leaderboard...</div>
+        </div>
+      `;
+    }
+
+    if (leaderboardState === 'error' && !hasRows) {
+      return `
+        <div class="stats-pane">
+          <div class="stats-empty-card">${escHtml(leaderboardErrorMessage || 'Kunne ikke laste leaderboard akkurat nå.')}</div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="stats-pane">
+        <div class="leaderboard-hero">
+          <div>
+            <div class="leaderboard-hero-title">Leaderboard</div>
+            <div class="leaderboard-hero-text">Sammenlign dine egne 6 minuttere og abo mot resten av teamet. Siden oppdaterer seg automatisk når noen registrerer ny aktivitet.</div>
+          </div>
+          <div class="leaderboard-live-meta">
+            <span class="leaderboard-live-pill">Live</span>
+            <span>${hasRows ? `${leaderboardRows.length} brukere · sist oppdatert ${escHtml(formatLeaderboardTimestamp(latestUpdate))}` : 'Venter på de første registreringene'}</span>
+          </div>
+        </div>
+        ${leaderboardState === 'error' ? `<div class="stats-empty-card">${escHtml(leaderboardErrorMessage || 'Leaderboard er midlertidig utilgjengelig.')}</div>` : ''}
+        <div class="leaderboard-summary-grid">
+          ${renderLeaderboardSummaryCard('total_sales', 'Dine abo', ownRow ? 'Totalt registrerte salg' : 'Ikke rangert ennå', 'sales')}
+          ${renderLeaderboardSummaryCard('total_over6', 'Dine 6 minuttere', ownRow ? 'Totalt registrerte 6 min' : 'Ikke rangert ennå', 'over6')}
+        </div>
+        <div class="leaderboard-grid">
+          ${renderLeaderboardMetricList('total_sales', 'Abo-ranking', 'Hvem har registrert flest abo totalt.', 'sales', 'abo')}
+          ${renderLeaderboardMetricList('total_over6', '6 min-ranking', 'Hvem har registrert flest samtaler over 6 minutter.', 'over6', '6 min')}
         </div>
       </div>
     `;
@@ -9385,7 +9893,7 @@
     const weekBuckets = buildMonthWeekBuckets(mndEntries, now);
     const stackedChartMax = getStackedBarChartScaleMax(weekData, weekBuckets);
     const monthTitle = now.toLocaleString('no-NO', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase());
-    const activeView = ['overview', 'development', 'records', 'goals'].includes(activeStatsSubview) ? activeStatsSubview : 'overview';
+    const activeView = ['overview', 'development', 'records', 'leaderboard', 'goals'].includes(activeStatsSubview) ? activeStatsSubview : 'overview';
     const developmentInsights = getDevelopmentInsights(history, now);
     const developmentHighlights = getDevelopmentHighlights(developmentInsights);
     const showMonthStartComparisons = isEarlyInMonth(now);
@@ -9486,6 +9994,7 @@
       overview: overviewPane,
       development: developmentPane,
       records: `<div class="stats-pane">${renderStatsRecordsSection(personalRecords, history)}</div>`,
+      leaderboard: renderLeaderboardPane(),
       goals: goalsPane,
     };
 
@@ -11803,7 +12312,7 @@
   }
 
   function escHtml(str) {
-    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
   // ---- Init ----
