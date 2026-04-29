@@ -50,6 +50,68 @@ on public.user_app_state
 for delete
 using (auth.uid() = user_id);
 
+create table if not exists public.user_intro_history_events (
+  event_id uuid not null primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  entry_id text,
+  event_type text not null check (event_type in ('upsert', 'delete', 'clear')),
+  entry_payload jsonb,
+  event_source text not null default 'app',
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+create index if not exists user_intro_history_events_user_created_idx
+  on public.user_intro_history_events (user_id, created_at desc);
+
+alter table public.user_intro_history_events enable row level security;
+
+grant select, insert on public.user_intro_history_events to authenticated;
+
+drop policy if exists "Users can read own intro history events" on public.user_intro_history_events;
+create policy "Users can read own intro history events"
+on public.user_intro_history_events
+for select
+using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert own intro history events" on public.user_intro_history_events;
+create policy "Users can insert own intro history events"
+on public.user_intro_history_events
+for insert
+with check (auth.uid() = user_id);
+
+create table if not exists public.user_app_snapshots (
+  snapshot_id uuid not null primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  snapshot_source text not null default 'app',
+  state_value jsonb not null,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+create index if not exists user_app_snapshots_user_created_idx
+  on public.user_app_snapshots (user_id, created_at desc);
+
+alter table public.user_app_snapshots enable row level security;
+
+grant select, insert, delete on public.user_app_snapshots to authenticated;
+
+drop policy if exists "Users can read own app snapshots" on public.user_app_snapshots;
+create policy "Users can read own app snapshots"
+on public.user_app_snapshots
+for select
+using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert own app snapshots" on public.user_app_snapshots;
+create policy "Users can insert own app snapshots"
+on public.user_app_snapshots
+for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "Users can delete own app snapshots" on public.user_app_snapshots;
+create policy "Users can delete own app snapshots"
+on public.user_app_snapshots
+for delete
+using (auth.uid() = user_id);
+
 create table if not exists public.user_public_stats (
   user_id uuid not null references auth.users (id) on delete cascade,
   display_name text not null,

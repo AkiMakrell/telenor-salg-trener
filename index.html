@@ -5532,6 +5532,106 @@
       flex-wrap: wrap;
     }
 
+    .recovery-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(2, 6, 23, 0.76);
+      backdrop-filter: blur(8px);
+    }
+
+    .recovery-overlay.visible {
+      display: flex;
+    }
+
+    .recovery-modal {
+      width: min(100%, 760px);
+      max-height: min(88vh, 920px);
+      overflow: auto;
+      border-radius: 24px;
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      background: linear-gradient(180deg, rgba(11, 18, 32, 0.98), rgba(15, 23, 42, 0.96));
+      box-shadow: 0 24px 60px rgba(2, 6, 23, 0.42);
+      padding: 24px;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .recovery-modal-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .recovery-modal-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .recovery-modal-text {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .recovery-modal-body {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .recovery-section-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .recovery-card {
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 18px;
+      background: rgba(15, 23, 42, 0.74);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .recovery-card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .recovery-card-title {
+      font-size: 0.96rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .recovery-card-meta {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .recovery-card-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     /* Objection collapse */
     /* ===== SAMTALEFLYT v2 ===== */
     #sf-outer {
@@ -6274,6 +6374,20 @@
   </div>
 </div>
 
+<div id="recovery-overlay" class="recovery-overlay" aria-hidden="true">
+  <div class="recovery-modal" role="dialog" aria-modal="true" aria-labelledby="recovery-title">
+    <div class="recovery-modal-head">
+      <div>
+        <div id="recovery-title" class="recovery-modal-title">Gjenopprett data</div>
+        <div class="recovery-modal-text">Her kan du hente tilbake data fra lokal nødbackup, sky-snapshots eller den append-only historikkloggen for opptak.</div>
+      </div>
+      <button type="button" class="backup-btn" style="margin-top:0;" onclick="closeRecoveryModal()">Lukk</button>
+    </div>
+    <div id="recovery-status" class="auth-message auth-message-info"></div>
+    <div id="recovery-body" class="recovery-modal-body"></div>
+  </div>
+</div>
+
 <div id="auth-card" class="auth-card">
   <div class="auth-card-title">Logg inn for din egen data</div>
   <div class="auth-card-text">
@@ -6385,6 +6499,7 @@
         <div class="settings-menu-section">
           <span class="settings-menu-heading">Data</span>
           <button class="backup-btn" type="button" onclick="openRetroHistoryPage(); closeTopBarSettings();">Etterregistrer historikk</button>
+          <button class="backup-btn" type="button" onclick="openRecoveryModal()">Gjenopprett data</button>
           <button class="backup-btn" type="button" onclick="exportData(); closeTopBarSettings();" title="Last ned sikkerhetskopi">Eksporter data</button>
           <label class="backup-btn" title="Gjenopprett fra sikkerhetskopi">Importer data<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
         </div>
@@ -6668,6 +6783,8 @@
   const SUPABASE_URL = 'https://ptdehitxlzzqblvjmjra.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_HFO3PiVNLlBcSechlL_esA_5CaK2nrl';
   const SUPABASE_STATE_TABLE = 'user_app_state';
+  const SUPABASE_SNAPSHOTS_TABLE = 'user_app_snapshots';
+  const SUPABASE_INTRO_EVENTS_TABLE = 'user_intro_history_events';
   const SUPABASE_PUBLIC_STATS_TABLE = 'user_public_stats';
   const INTRO_LEADERBOARD_DATA_VERSION = '2';
   const INTRO_LEADERBOARD_DATA_VERSION_KEY = 'introLeaderboardDataVersion';
@@ -6700,6 +6817,9 @@
   const LEADERBOARD_POINTS_PER_SALE = 300;
   const LEADERBOARD_POINTS_PER_OVER6 = 100;
   const LEADERBOARD_SCHEMA_WARNING = 'Leaderboard trenger en Supabase-oppdatering før dag/uke/måned kan vises. Kjør den nyeste supabase-schema.sql i SQL Editor.';
+  const DATA_SAFETY_SCHEMA_WARNING = 'Databeskyttelse trenger en Supabase-oppdatering. Kjør den nyeste supabase-schema.sql i SQL Editor.';
+  const MAX_APP_SNAPSHOTS = 20;
+  const MAX_RECOVERY_SNAPSHOTS = 12;
   const LEADERBOARD_PERIOD_CONFIG = [
     { id: 'day', title: 'I dag', emptyLabel: 'Ingen registreringer i dag ennå.' },
     { id: 'week', title: 'Denne uken', emptyLabel: 'Ingen registreringer denne uken ennå.' },
@@ -6724,6 +6844,8 @@
   let leaderboardState = 'idle';
   let leaderboardErrorMessage = '';
   let aboCountPromptResolver = null;
+  let recoverySnapshots = [];
+  let recoveryEventRows = [];
 
   localStorage.setItem = function(k, v) {
     _origSetItem(k, v);
@@ -6779,7 +6901,10 @@
     const authCard = document.getElementById('auth-card');
     if (appShell) appShell.style.display = isVisible ? 'block' : 'none';
     if (authCard) authCard.style.display = isVisible ? 'none' : 'block';
-    if (!isVisible) closeTopBarSettings();
+    if (!isVisible) {
+      closeTopBarSettings();
+      closeRecoveryModal();
+    }
   }
 
   function formatAuthEmailFallback(email) {
@@ -6877,6 +7002,17 @@
     return `${APP_META_DEVICE_BACKUP_PREFIX}${userId}`;
   }
 
+  function createClientUuid() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+    return `id_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  function isSafetySchemaMismatch(error) {
+    const message = String(error?.message || error || '');
+    return /relation .* does not exist|schema cache/i.test(message)
+      && /(user_app_snapshots|user_intro_history_events)/i.test(message);
+  }
+
   function scheduleSync() {
     clearTimeout(syncTimeout);
     syncTimeout = setTimeout(syncToCloud, 800);
@@ -6912,6 +7048,27 @@
       if (v !== null) data[k] = v;
     });
     return data;
+  }
+
+  function normalizeIntroHistoryEntries(entries = []) {
+    let changed = false;
+    const history = (Array.isArray(entries) ? entries : [])
+      .map(entry => {
+        if (!entry || typeof entry !== 'object') return null;
+        const normalized = { ...entry };
+        if (!normalized.id) {
+          normalized.id = createIntroHistoryEntryId();
+          changed = true;
+        }
+        const normalizedSalesCount = getEntrySalesCount(normalized);
+        if (Number(normalized.salesCount || 0) !== normalizedSalesCount) {
+          normalized.salesCount = normalizedSalesCount;
+          changed = true;
+        }
+        return normalized;
+      })
+      .filter(Boolean);
+    return { history, changed };
   }
 
   function clearTrackedLocalData() {
@@ -7015,6 +7172,156 @@
   function writeDeviceBackup(userId, data) {
     if (!userId || !hasMeaningfulTrackedState(data)) return;
     _origSetItem(getDeviceBackupKey(userId), JSON.stringify(data));
+  }
+
+  function buildIntroHistoryEventRows(previousHistory = [], nextHistory = [], source = 'app') {
+    if (!currentUser) return [];
+    const previous = normalizeIntroHistoryEntries(previousHistory).history;
+    const next = normalizeIntroHistoryEntries(nextHistory).history;
+    const previousMap = new Map(previous.map(entry => [entry.id, JSON.stringify(entry)]));
+    const nextMap = new Map(next.map(entry => [entry.id, JSON.stringify(entry)]));
+    const rows = [];
+
+    if (previous.length && !next.length) {
+      rows.push({
+        event_id: createClientUuid(),
+        user_id: currentUser.id,
+        entry_id: null,
+        event_type: 'clear',
+        entry_payload: null,
+        event_source: source
+      });
+      return rows;
+    }
+
+    previous.forEach(entry => {
+      if (nextMap.has(entry.id)) return;
+      rows.push({
+        event_id: createClientUuid(),
+        user_id: currentUser.id,
+        entry_id: entry.id,
+        event_type: 'delete',
+        entry_payload: null,
+        event_source: source
+      });
+    });
+
+    next.forEach(entry => {
+      const serialized = JSON.stringify(entry);
+      if (previousMap.get(entry.id) === serialized) return;
+      rows.push({
+        event_id: createClientUuid(),
+        user_id: currentUser.id,
+        entry_id: entry.id,
+        event_type: 'upsert',
+        entry_payload: entry,
+        event_source: source
+      });
+    });
+
+    return rows;
+  }
+
+  async function appendIntroHistoryEvents(previousHistory = [], nextHistory = [], source = 'app') {
+    if (!supabaseClient || !currentUser) return;
+    const rows = buildIntroHistoryEventRows(previousHistory, nextHistory, source);
+    if (!rows.length) return;
+    const { error } = await supabaseClient
+      .from(SUPABASE_INTRO_EVENTS_TABLE)
+      .insert(rows);
+    if (error) throw error;
+  }
+
+  async function loadIntroHistoryEvents() {
+    if (!supabaseClient || !currentUser) return [];
+    const { data, error } = await supabaseClient
+      .from(SUPABASE_INTRO_EVENTS_TABLE)
+      .select('event_id, entry_id, event_type, entry_payload, event_source, created_at')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    return data || [];
+  }
+
+  function rebuildIntroHistoryFromEvents(rows = []) {
+    const entryMap = new Map();
+    (rows || []).forEach(row => {
+      if (!row) return;
+      if (row.event_type === 'clear') {
+        entryMap.clear();
+        return;
+      }
+      if (row.event_type === 'delete') {
+        if (row.entry_id) entryMap.delete(row.entry_id);
+        return;
+      }
+      if (row.event_type === 'upsert' && row.entry_payload && row.entry_id) {
+        entryMap.set(row.entry_id, row.entry_payload);
+      }
+    });
+    return normalizeIntroHistoryEntries([...entryMap.values()]).history;
+  }
+
+  async function hydrateTrackedStateFromSafetyLayers(baseState = {}) {
+    if (!supabaseClient || !currentUser) return baseState;
+    try {
+      const rows = await loadIntroHistoryEvents();
+      if (rows.length) {
+        recoveryEventRows = rows;
+        return { ...baseState, introHistory: rebuildIntroHistoryFromEvents(rows) };
+      }
+      if (Array.isArray(baseState?.introHistory) && baseState.introHistory.length) {
+        appendIntroHistoryEvents([], baseState.introHistory, 'bootstrap').catch(() => {});
+      }
+      return baseState;
+    } catch (error) {
+      if (isSafetySchemaMismatch(error)) return baseState;
+      throw error;
+    }
+  }
+
+  async function createAppSnapshot(snapshotSource = 'app', state = getAllData()) {
+    if (!supabaseClient || !currentUser || !hasMeaningfulTrackedState(state)) return null;
+    const row = {
+      snapshot_id: createClientUuid(),
+      user_id: currentUser.id,
+      snapshot_source: snapshotSource,
+      state_value: state
+    };
+    const { error } = await supabaseClient
+      .from(SUPABASE_SNAPSHOTS_TABLE)
+      .insert(row);
+    if (error) throw error;
+
+    const { data: staleRows, error: staleError } = await supabaseClient
+      .from(SUPABASE_SNAPSHOTS_TABLE)
+      .select('snapshot_id')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false })
+      .range(MAX_APP_SNAPSHOTS, MAX_APP_SNAPSHOTS + 40);
+    if (staleError) throw staleError;
+    const staleIds = (staleRows || []).map(item => item.snapshot_id).filter(Boolean);
+    if (staleIds.length) {
+      const { error: deleteError } = await supabaseClient
+        .from(SUPABASE_SNAPSHOTS_TABLE)
+        .delete()
+        .eq('user_id', currentUser.id)
+        .in('snapshot_id', staleIds);
+      if (deleteError) throw deleteError;
+    }
+    return row;
+  }
+
+  async function loadRecoverySnapshots(limit = MAX_RECOVERY_SNAPSHOTS) {
+    if (!supabaseClient || !currentUser) return [];
+    const { data, error } = await supabaseClient
+      .from(SUPABASE_SNAPSHOTS_TABLE)
+      .select('snapshot_id, snapshot_source, state_value, created_at')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data || [];
   }
 
   function getMissingDemoStatePatch(state, demoState) {
@@ -7238,6 +7545,11 @@
 
     pendingSyncKeys.clear();
     writeDeviceBackup(currentUser.id, data);
+    try {
+      await createAppSnapshot('overwrite', data);
+    } catch (error) {
+      if (!isSafetySchemaMismatch(error)) throw error;
+    }
     setSyncStatus('ok');
   }
 
@@ -7261,6 +7573,11 @@
 
     rows.forEach(row => pendingSyncKeys.delete(row.state_key));
     writeDeviceBackup(currentUser.id, getAllData());
+    try {
+      await createAppSnapshot('upsert');
+    } catch (error) {
+      if (!isSafetySchemaMismatch(error)) throw error;
+    }
     setSyncStatus('ok');
   }
 
@@ -7312,6 +7629,11 @@
     }
 
     writeDeviceBackup(currentUser.id, getAllData());
+    try {
+      await createAppSnapshot('sync');
+    } catch (error) {
+      if (!isSafetySchemaMismatch(error)) throw error;
+    }
     setSyncStatus('ok');
   }
 
@@ -7545,6 +7867,189 @@
     toggleTopBarTools(false);
   }
 
+  function setRecoveryStatus(message = '', tone = 'info') {
+    const el = document.getElementById('recovery-status');
+    if (!el) return;
+    if (!message) {
+      clearElementMessage('recovery-status');
+      return;
+    }
+    setElementMessage('recovery-status', message, tone);
+  }
+
+  function formatRecoveryTimestamp(value) {
+    if (!value) return 'Ukjent tidspunkt';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value);
+    return date.toLocaleString('no-NO', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  function renderRecoveryModalBody() {
+    const container = document.getElementById('recovery-body');
+    if (!container) return;
+    if (!currentUser) {
+      container.innerHTML = '<div class="empty-state">Logg inn for å bruke gjenoppretting.</div>';
+      return;
+    }
+
+    const localBackup = readDeviceBackup(currentUser.id);
+    const hasLocalBackup = hasMeaningfulTrackedState(localBackup);
+    const latestEventAt = recoveryEventRows.length ? recoveryEventRows[recoveryEventRows.length - 1].created_at : '';
+    const sections = [];
+
+    sections.push(`
+      <div class="recovery-section-label">Lokal sikkerhet</div>
+      <div class="recovery-card">
+        <div class="recovery-card-head">
+          <div>
+            <div class="recovery-card-title">Lokal nødbackup</div>
+            <div class="recovery-card-meta">${hasLocalBackup ? 'Lagret på denne enheten for den innloggede brukeren.' : 'Ingen lokal nødbackup tilgjengelig akkurat nå.'}</div>
+          </div>
+        </div>
+        ${hasLocalBackup ? `
+          <div class="recovery-card-actions">
+            <button class="save-btn" type="button" style="margin-top:0;" onclick="restoreLocalDeviceBackup()">Gjenopprett lokal backup</button>
+          </div>
+        ` : ''}
+      </div>
+    `);
+
+    sections.push(`
+      <div class="recovery-section-label">Historikklogg</div>
+      <div class="recovery-card">
+        <div class="recovery-card-head">
+          <div>
+            <div class="recovery-card-title">Append-only opptakslogg</div>
+            <div class="recovery-card-meta">${recoveryEventRows.length ? `${recoveryEventRows.length} hendelser. Siste loggførte endring: ${formatRecoveryTimestamp(latestEventAt)}.` : 'Ingen hendelser funnet i skyen ennå.'}</div>
+          </div>
+        </div>
+        ${recoveryEventRows.length ? `
+          <div class="recovery-card-actions">
+            <button class="save-btn" type="button" style="margin-top:0;" onclick="restoreIntroHistoryFromRecoveryLog()">Gjenoppbygg historikk</button>
+          </div>
+        ` : ''}
+      </div>
+    `);
+
+    sections.push(`
+      <div class="recovery-section-label">Sky-snapshots</div>
+      ${recoverySnapshots.length
+        ? recoverySnapshots.map((snapshot, index) => `
+          <div class="recovery-card">
+            <div class="recovery-card-head">
+              <div>
+                <div class="recovery-card-title">Snapshot ${index + 1}</div>
+                <div class="recovery-card-meta">Kilde: ${escHtml(snapshot.snapshot_source || 'app')} · Lagret ${formatRecoveryTimestamp(snapshot.created_at)}</div>
+              </div>
+            </div>
+            <div class="recovery-card-actions">
+              <button class="save-btn" type="button" style="margin-top:0;" onclick="restoreRecoverySnapshot('${snapshot.snapshot_id}')">Gjenopprett snapshot</button>
+            </div>
+          </div>
+        `).join('')
+        : '<div class="recovery-card"><div class="recovery-card-title">Ingen sky-snapshots ennå</div><div class="recovery-card-meta">Nye snapshots lagres automatisk etter endringer når den nyeste Supabase-skjemaoppdateringen er kjørt.</div></div>'}
+    `);
+
+    container.innerHTML = sections.join('');
+  }
+
+  async function openRecoveryModal() {
+    closeTopBarSettings();
+    const overlay = document.getElementById('recovery-overlay');
+    if (!overlay) return;
+    recoverySnapshots = [];
+    recoveryEventRows = [];
+    overlay.classList.add('visible');
+    overlay.setAttribute('aria-hidden', 'false');
+    setRecoveryStatus('Laster sikkerhetskopier...', 'info');
+    renderRecoveryModalBody();
+    try {
+      const [snapshots, eventRows] = await Promise.all([
+        loadRecoverySnapshots().catch(error => {
+          if (isSafetySchemaMismatch(error)) return null;
+          throw error;
+        }),
+        loadIntroHistoryEvents().catch(error => {
+          if (isSafetySchemaMismatch(error)) return null;
+          throw error;
+        })
+      ]);
+      if (snapshots === null || eventRows === null) {
+        setRecoveryStatus(DATA_SAFETY_SCHEMA_WARNING, 'warning');
+      } else {
+        setRecoveryStatus('');
+      }
+      recoverySnapshots = Array.isArray(snapshots) ? snapshots : [];
+      recoveryEventRows = Array.isArray(eventRows) ? eventRows : [];
+      renderRecoveryModalBody();
+    } catch (error) {
+      setRecoveryStatus(error.message || 'Kunne ikke laste gjenopprettingsdata.', 'error');
+      renderRecoveryModalBody();
+    }
+  }
+
+  function closeRecoveryModal() {
+    const overlay = document.getElementById('recovery-overlay');
+    if (!overlay) return;
+    overlay.classList.remove('visible');
+    overlay.setAttribute('aria-hidden', 'true');
+    setRecoveryStatus('');
+  }
+
+  async function restoreTrackedState(state, successMessage, source = 'recovery') {
+    if (!hasMeaningfulTrackedState(state)) {
+      setRecoveryStatus('Valgt backup inneholder ingen data å gjenopprette.', 'warning');
+      return;
+    }
+    if (!confirm('Dette vil erstatte dagens lokale data med valgt backup. Vil du fortsette?')) return;
+    const previousState = getAllData();
+    try {
+      setRecoveryStatus('Gjenoppretter data...', 'info');
+      replaceTrackedLocalData(state);
+      if (currentUser) {
+        await overwriteCloudData(state);
+        await appendIntroHistoryEvents(previousState.introHistory || [], state.introHistory || [], source).catch(error => {
+          if (!isSafetySchemaMismatch(error)) throw error;
+        });
+      }
+      try {
+        await syncPublicLeaderboard({ skipReload: true });
+        await loadLeaderboardRows({ silentLoading: true });
+      } catch (_error) {}
+      renderAll();
+      closeRecoveryModal();
+      alert(successMessage);
+    } catch (error) {
+      setRecoveryStatus(error.message || 'Kunne ikke gjenopprette data.', 'error');
+    }
+  }
+
+  async function restoreLocalDeviceBackup() {
+    if (!currentUser) return;
+    await restoreTrackedState(readDeviceBackup(currentUser.id), 'Lokal nødbackup ble gjenopprettet.', 'recovery-local');
+  }
+
+  async function restoreRecoverySnapshot(snapshotId) {
+    const snapshot = recoverySnapshots.find(item => item.snapshot_id === snapshotId);
+    if (!snapshot) {
+      setRecoveryStatus('Fant ikke snapshotet du valgte.', 'warning');
+      return;
+    }
+    await restoreTrackedState(snapshot.state_value || {}, 'Sky-snapshot ble gjenopprettet.', 'recovery-snapshot');
+  }
+
+  async function restoreIntroHistoryFromRecoveryLog() {
+    const rebuiltHistory = rebuildIntroHistoryFromEvents(recoveryEventRows);
+    const nextState = { ...getAllData(), introHistory: rebuiltHistory };
+    await restoreTrackedState(nextState, 'Historikken ble gjenoppbygd fra hendelsesloggen.', 'recovery-events');
+  }
+
   document.addEventListener('click', event => {
     const settings = document.getElementById('top-bar-settings');
     if (settings && !settings.contains(event.target)) closeTopBarSettings();
@@ -7580,7 +8085,7 @@
   }
 
   async function activateAuthenticatedApp(user, previousDeviceData) {
-    const remoteState = await loadFromCloud();
+    const remoteState = await hydrateTrackedStateFromSafetyLayers(await loadFromCloud());
     let hasRemoteState = hasMeaningfulTrackedState(remoteState);
     const deviceBackup = readDeviceBackup(user.id);
     const fallbackDeviceData = hasMeaningfulTrackedState(previousDeviceData) ? previousDeviceData : deviceBackup;
@@ -7589,6 +8094,11 @@
     if (hasRemoteState) {
       replaceTrackedLocalData(remoteState);
       writeDeviceBackup(user.id, remoteState);
+      try {
+        await createAppSnapshot('session-load', remoteState);
+      } catch (error) {
+        if (!isSafetySchemaMismatch(error)) throw error;
+      }
     }
 
     if (!hasRemoteState && hasDeviceState && getLocalImportMarker() !== user.id) {
@@ -10717,23 +11227,7 @@
 
   function getIntroHistory() {
     const raw = JSON.parse(localStorage.getItem('introHistory') || '[]');
-    let changed = false;
-    const history = raw
-      .map(entry => {
-        if (!entry || typeof entry !== 'object') return null;
-        const normalized = { ...entry };
-        if (!normalized.id) {
-          normalized.id = createIntroHistoryEntryId();
-          changed = true;
-        }
-        const normalizedSalesCount = getEntrySalesCount(normalized);
-        if (Number(normalized.salesCount || 0) !== normalizedSalesCount) {
-          normalized.salesCount = normalizedSalesCount;
-          changed = true;
-        }
-        return normalized;
-      })
-      .filter(Boolean);
+    const { history, changed } = normalizeIntroHistoryEntries(raw);
     if (changed) localStorage.setItem('introHistory', JSON.stringify(history));
     return history;
   }
@@ -10797,7 +11291,17 @@
   }
 
   function commitIntroHistory(history, options = {}) {
+    const previousHistory = Array.isArray(options.previousHistory)
+      ? cloneIntroHistory(options.previousHistory)
+      : cloneIntroHistory();
     const normalizedHistory = saveIntroHistoryToStorage(history);
+    if (currentUser) {
+      appendIntroHistoryEvents(previousHistory, normalizedHistory, options.eventSource || 'app').catch(error => {
+        if (isSafetySchemaMismatch(error)) return;
+        setSyncStatus('error');
+        setAuthStatus(error.message || 'Kunne ikke lagre historikkloggen i skyen.', 'error');
+      });
+    }
     if (Object.prototype.hasOwnProperty.call(options, 'feedback')) {
       retroHistoryFeedback = options.feedback;
     }
@@ -13028,6 +13532,12 @@
   }
 
   document.addEventListener('keydown', event => {
+    const recoveryOverlay = document.getElementById('recovery-overlay');
+    if (recoveryOverlay && recoveryOverlay.classList.contains('visible') && event.key === 'Escape') {
+      event.preventDefault();
+      closeRecoveryModal();
+      return;
+    }
     const overlay = document.getElementById('abo-count-overlay');
     if (!overlay || !overlay.classList.contains('visible')) return;
     if (event.key === 'Escape') {
@@ -13151,6 +13661,7 @@
     const reader = new FileReader();
     reader.onload = async e => {
       let data;
+      const previousState = getAllData();
       try {
         data = JSON.parse(e.target.result);
       } catch (error) {
@@ -13163,6 +13674,9 @@
       if (currentUser) {
         try {
           await overwriteCloudData(getAllData());
+          await appendIntroHistoryEvents(previousState.introHistory || [], getAllData().introHistory || [], 'import').catch(error => {
+            if (!isSafetySchemaMismatch(error)) throw error;
+          });
         } catch (error) {
           alert('Importert lokalt, men kunne ikke lagre til kontoen: ' + error.message);
           renderAll();
