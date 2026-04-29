@@ -2874,6 +2874,13 @@
       margin-top: 14px;
     }
 
+    .register-quick-undo {
+      width: 100%;
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+    }
+
     .register-quick-stat {
       border: 1px solid transparent;
       border-radius: 16px;
@@ -6386,6 +6393,7 @@
       </button>
     </div>
     <div id="register-quick-stats" class="register-quick-stats"></div>
+    <button class="backup-btn undo-history-btn register-quick-undo" data-intro-history-undo type="button" onclick="undoLastIntroHistoryAction()">Angre siste registrering</button>
   </div>
 
   <div class="intro-layout">
@@ -10686,6 +10694,10 @@
     };
   }
 
+  function buildRegistrationUndoState(actionLabel, previousHistory) {
+    return buildIntroHistoryUndoState(actionLabel, previousHistory);
+  }
+
   function updateIntroHistoryUndoUi() {
     const hasUndo = !!introHistoryUndoState;
     document.querySelectorAll('[data-intro-history-undo]').forEach(button => {
@@ -10784,9 +10796,12 @@
     selectedIntroId = intro.id;
     fillIntroText(intro);
     assignIntroToCurrentSession(intro.id);
-    const history = getIntroHistory();
+    const previousHistory = cloneIntroHistory();
+    const history = cloneIntroHistory(previousHistory);
     history.unshift(buildOpptakEntry(intro));
-    commitIntroHistory(history, { clearUndo: true });
+    commitIntroHistory(history, {
+      undoState: buildRegistrationUndoState('Registrerte opptak', previousHistory)
+    });
     resetOpptak();
   }
 
@@ -10855,13 +10870,21 @@
     const salesCount = selectedSalg === 'ja' ? await requestSaleCount() : 0;
     if (selectedSalg === 'ja' && salesCount === null) return;
 
-    const history = getIntroHistory();
+    const previousHistory = cloneIntroHistory();
+    const history = cloneIntroHistory(previousHistory);
     history.unshift(buildOpptakEntry(intro, {
       over5min: selectedOver5min === 'ja' ? 'ja' : 'nei',
       salg: selectedSalg === 'ja' ? 'ja' : 'nei',
       salesCount,
     }));
-    commitIntroHistory(history, { clearUndo: true });
+    const actionLabel = selectedSalg === 'ja'
+      ? `Registrerte opptak med ${salesCount} abo`
+      : selectedOver5min === 'ja'
+        ? 'Registrerte opptak med 6-minutter'
+        : 'Registrerte opptak';
+    commitIntroHistory(history, {
+      undoState: buildRegistrationUndoState(actionLabel, previousHistory)
+    });
 
     if (selectedSalg === 'ja') showCelebrationGif('salg');
     else if (selectedOver5min === 'ja') showCelebrationGif('over5min');
@@ -13009,7 +13032,8 @@
   async function quickRegister(type) {
     const salesCount = type === 'salg' ? await requestSaleCount() : 0;
     if (type === 'salg' && salesCount === null) return;
-    const history = cloneIntroHistory();
+    const previousHistory = cloneIntroHistory();
+    const history = cloneIntroHistory(previousHistory);
     history.unshift(buildIntroHistoryEntry(null, {
       opptak: 'nei',
       over5min: type === 'over5min' ? 'ja' : 'nei',
@@ -13017,7 +13041,12 @@
       salesCount,
       quickEntry: true
     }));
-    commitIntroHistory(history, { clearUndo: true });
+    const actionLabel = type === 'salg'
+      ? `Registrerte ${salesCount} abo`
+      : 'Registrerte 6-minutter';
+    commitIntroHistory(history, {
+      undoState: buildRegistrationUndoState(actionLabel, previousHistory)
+    });
     showCelebrationGif(type);
   }
 
