@@ -2848,6 +2848,10 @@
     }
 
     .intro-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 20px;
+      align-items: start;
       max-width: 1100px;
       margin: 0 auto;
     }
@@ -3071,7 +3075,10 @@
         max-width: 110px;
       }
 
-      .intro-layout { max-width: 100%; }
+      .intro-layout {
+        grid-template-columns: 1fr;
+        max-width: 100%;
+      }
     }
 
     @media (max-width: 700px) {
@@ -6441,11 +6448,6 @@
         <button class="save-btn" style="width:100%;margin-top:22px;padding:14px;font-size:1.1rem;" onclick="registerIntroSuccess()">Registrer opptak</button>
         <div id="last-registered-note" style="margin-top:10px;font-size:0.82rem;color:var(--muted);text-align:center;"></div>
 
-        <div class="register-intro-library">
-          <div class="register-intro-library-title">Introer</div>
-          <div id="intro-library" class="intro-library"></div>
-        </div>
-
         <button class="history-toggle-btn" onclick="toggleHistory()">Vis historikk</button>
         <div id="history-panel" class="history-panel">
           <div class="history-panel-head">
@@ -6461,6 +6463,11 @@
           <div id="intro-history" class="history-list"></div>
         </div>
       </div>
+    </div>
+
+    <div class="leaderboard-card">
+      <h2>Introer</h2>
+      <div id="intro-library" class="intro-library"></div>
     </div>
 
   </div>
