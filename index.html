@@ -4502,9 +4502,9 @@
 
     .leaderboard-row {
       display: grid;
-      grid-template-columns: 52px minmax(0, 1fr) 96px;
+      grid-template-columns: 52px minmax(0, 1fr);
       gap: 16px;
-      align-items: stretch;
+      align-items: center;
       padding: 16px 18px;
       border-radius: 18px;
       border: 1px solid rgba(148, 163, 184, 0.12);
@@ -4535,7 +4535,7 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      gap: 10px;
+      gap: 6px;
     }
 
     .leaderboard-user-name {
@@ -4545,65 +4545,24 @@
       line-height: 1.25;
     }
 
-    .leaderboard-user-stats,
+    .leaderboard-user-points,
     .leaderboard-value-label {
       color: var(--muted);
-      font-size: 0.78rem;
+      font-size: 0.82rem;
       line-height: 1.4;
     }
 
-    .leaderboard-user-stats {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, max-content));
-      gap: 10px;
-      align-items: center;
-    }
-
-    .leaderboard-user-stat {
+    .leaderboard-user-points {
       display: inline-flex;
-      align-items: center;
+      align-items: baseline;
       gap: 8px;
-      min-width: 0;
-      padding: 8px 10px;
-      border-radius: 12px;
-      background: rgba(148, 163, 184, 0.08);
-      border: 1px solid rgba(148, 163, 184, 0.1);
-      color: #cbd5e1;
-      font-size: 0.78rem;
-      line-height: 1.2;
     }
 
-    .leaderboard-user-stat-value {
-      color: var(--text);
-      font-size: 0.92rem;
-      font-weight: 800;
-    }
-
-    .leaderboard-value-block {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      justify-content: center;
-      gap: 6px;
-      min-width: 0;
-      padding-left: 14px;
-      border-left: 1px solid rgba(148, 163, 184, 0.12);
-      text-align: right;
-    }
-
-    .leaderboard-value {
+    .leaderboard-user-points-value {
       color: var(--text);
       font-size: 1.7rem;
       font-weight: 900;
       line-height: 1;
-    }
-
-    .leaderboard-value-label {
-      margin-top: 0;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
     }
 
     @media (max-width: 900px) {
@@ -4675,23 +4634,8 @@
       }
 
       .leaderboard-row {
-        grid-template-columns: 1fr;
-        justify-items: start;
+        grid-template-columns: 52px minmax(0, 1fr);
         gap: 12px;
-      }
-
-      .leaderboard-value-block {
-        width: 100%;
-        padding-left: 0;
-        padding-top: 12px;
-        border-left: none;
-        border-top: 1px solid rgba(148, 163, 184, 0.12);
-        text-align: left;
-        align-items: flex-start;
-      }
-
-      .leaderboard-user-stats {
-        grid-template-columns: 1fr;
       }
     }
 
@@ -9775,21 +9719,15 @@
         <div class="leaderboard-list">
           ${sorted.length ? sorted.map((row, index) => {
             const points = getLeaderboardPeriodValue(row, period.id, 'points');
-            const sales = getLeaderboardPeriodValue(row, period.id, 'sales');
-            const over6 = getLeaderboardPeriodValue(row, period.id, 'over6');
             return `
               <div class="leaderboard-row${row.user_id === currentUser?.id ? ' is-you' : ''}">
                 <div class="leaderboard-rank">#${index + 1}</div>
                 <div class="leaderboard-user">
                   <div class="leaderboard-user-name">${escHtml(row.display_name)}</div>
-                  <div class="leaderboard-user-stats">
-                    <div class="leaderboard-user-stat"><span class="leaderboard-user-stat-value">${over6}</span><span>6-minuttere</span></div>
-                    <div class="leaderboard-user-stat"><span class="leaderboard-user-stat-value">${sales}</span><span>Abo</span></div>
+                  <div class="leaderboard-user-points">
+                    <span class="leaderboard-user-points-value">${points}</span>
+                    <span class="leaderboard-value-label">poeng</span>
                   </div>
-                </div>
-                <div class="leaderboard-value-block">
-                  <div class="leaderboard-value">${points}</div>
-                  <div class="leaderboard-value-label">poeng</div>
                 </div>
               </div>
             `;
