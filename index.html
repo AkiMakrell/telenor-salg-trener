@@ -2848,17 +2848,17 @@
     }
 
     .intro-layout {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
       max-width: 1100px;
       margin: 0 auto;
-      align-items: start;
     }
 
-    .register-quick-card,
+    .register-quick-card {
+      max-width: 1100px;
+      margin: 0 auto 16px auto;
+    }
+
     .register-intro-card {
-      margin: 0 0 16px 0;
+      margin: 0;
     }
 
     .register-quick-grid {
@@ -2868,9 +2868,9 @@
     }
 
     .register-quick-btn {
-      border: 1px solid var(--border);
+      border: 1px solid transparent;
       border-radius: 18px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(15,23,42,0.08));
+      background: linear-gradient(180deg, rgba(15,23,42,0.06), rgba(15,23,42,0.12));
       min-height: 148px;
       padding: 22px;
       display: flex;
@@ -2880,15 +2880,16 @@
       gap: 8px;
       color: var(--text);
       cursor: pointer;
-      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
-      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, filter 0.16s ease;
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.14);
       text-align: left;
       width: 100%;
     }
 
     .register-quick-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 18px 38px rgba(15, 23, 42, 0.12);
+      box-shadow: 0 22px 44px rgba(15, 23, 42, 0.18);
+      filter: saturate(1.06);
     }
 
     .register-quick-btn:focus-visible {
@@ -2897,13 +2898,13 @@
     }
 
     .register-quick-btn.over5 {
-      border-color: rgba(45, 212, 191, 0.35);
-      background: linear-gradient(180deg, rgba(45, 212, 191, 0.18), rgba(15, 23, 42, 0.05));
+      border-color: rgba(20, 184, 166, 0.58);
+      background: linear-gradient(180deg, rgba(45, 212, 191, 0.48), rgba(13, 148, 136, 0.2));
     }
 
     .register-quick-btn.salg {
-      border-color: rgba(251, 191, 36, 0.38);
-      background: linear-gradient(180deg, rgba(251, 191, 36, 0.2), rgba(15, 23, 42, 0.05));
+      border-color: rgba(245, 158, 11, 0.62);
+      background: linear-gradient(180deg, rgba(251, 191, 36, 0.54), rgba(217, 119, 6, 0.2));
     }
 
     .register-quick-btn-title {
@@ -2932,6 +2933,19 @@
       font-weight: 800;
       color: var(--primary-dark);
       letter-spacing: -0.01em;
+    }
+
+    .register-intro-library {
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .register-intro-library-title {
+      font-size: 0.96rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      margin-bottom: 12px;
     }
 
     .register-intro-empty {
@@ -2968,14 +2982,10 @@
         max-width: 110px;
       }
 
-      .register-quick-grid {
-        grid-template-columns: 1fr;
-      }
+      .intro-layout { max-width: 100%; }
     }
 
     @media (max-width: 700px) {
-      .intro-layout { grid-template-columns: 1fr; }
-
       .samtalerating-hero,
       .samtalerating-section-head,
       .samtalerating-item-head {
@@ -3014,6 +3024,10 @@
       .ov-actions .save-btn,
       .ov-actions .backup-btn {
         width: 100%;
+      }
+
+      .register-quick-grid {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -6276,23 +6290,22 @@
     </div>
   </div>
 
-  <div class="intro-layout">
+  <div class="card register-quick-card">
+    <div class="register-quick-grid">
+      <button class="register-quick-btn over5" type="button" onclick="quickRegister('over5min')">
+        <span class="register-quick-btn-title">Registrer 6-minutter</span>
+        <span class="register-quick-btn-subtitle">Legg til en 6-minutter med ett trykk.</span>
+      </button>
+      <button class="register-quick-btn salg" type="button" onclick="quickRegister('salg')">
+        <span class="register-quick-btn-title">Registrer salg</span>
+        <span class="register-quick-btn-subtitle">Registrer abo og velg antall før feiring.</span>
+      </button>
+    </div>
+  </div>
 
+  <div class="intro-layout">
     <!-- LEFT: scorecard form -->
     <div>
-      <div class="card register-quick-card">
-        <div class="register-quick-grid">
-          <button class="register-quick-btn over5" type="button" onclick="quickRegister('over5min')">
-            <span class="register-quick-btn-title">Registrer 6-minutter</span>
-            <span class="register-quick-btn-subtitle">Legg til en 6-minutter med ett trykk.</span>
-          </button>
-          <button class="register-quick-btn salg" type="button" onclick="quickRegister('salg')">
-            <span class="register-quick-btn-title">Registrer salg</span>
-            <span class="register-quick-btn-subtitle">Registrer abo og velg antall før feiring.</span>
-          </button>
-        </div>
-      </div>
-
       <div class="card register-intro-card">
         <div class="register-intro-head">
           <div class="register-intro-title">Introtest</div>
@@ -6335,6 +6348,11 @@
         <button class="save-btn" style="width:100%;margin-top:22px;padding:14px;font-size:1.1rem;" onclick="registerIntroSuccess()">Registrer opptak</button>
         <div id="last-registered-note" style="margin-top:10px;font-size:0.82rem;color:var(--muted);text-align:center;"></div>
 
+        <div class="register-intro-library">
+          <div class="register-intro-library-title">Introer</div>
+          <div id="intro-library" class="intro-library"></div>
+        </div>
+
         <button class="history-toggle-btn" onclick="toggleHistory()">Vis historikk</button>
         <div id="history-panel" class="history-panel">
           <div class="history-panel-head">
@@ -6350,12 +6368,6 @@
           <div id="intro-history" class="history-list"></div>
         </div>
       </div>
-    </div>
-
-    <!-- RIGHT: leaderboard -->
-    <div class="leaderboard-card">
-      <h2>Introer</h2>
-      <div id="intro-library" class="intro-library"></div>
     </div>
 
   </div>
