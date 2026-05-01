@@ -8881,7 +8881,7 @@
   let activeLeaderboardPeriod = 'day';
   let retroHistoryFeedback = null;
   let retroHistoryDraft = null;
-  let introHistoryUndoState = null;
+  let introHistoryUndoStack = [];
 
   function updateToggleSelectionState(key, value) {
     const group = document.getElementById(`${key}-toggle-group`);
@@ -12059,25 +12059,41 @@
     return buildIntroHistoryUndoState(actionLabel, previousHistory);
   }
 
+  function cloneIntroHistoryUndoState(state) {
+    if (!state) return null;
+    return {
+      actionLabel: String(state.actionLabel || ''),
+      previousHistory: cloneIntroHistory(state.previousHistory),
+      message: String(state.message || '')
+    };
+  }
+
+  function getCurrentIntroHistoryUndoState() {
+    return introHistoryUndoStack.length ? introHistoryUndoStack[introHistoryUndoStack.length - 1] : null;
+  }
+
+  function setIntroHistoryUndoStack(stack = []) {
+    introHistoryUndoStack = Array.isArray(stack)
+      ? stack.map(cloneIntroHistoryUndoState).filter(Boolean)
+      : [];
+    updateIntroHistoryUndoUi();
+  }
+
   function updateIntroHistoryUndoUi() {
-    const hasUndo = !!introHistoryUndoState;
+    const currentUndoState = getCurrentIntroHistoryUndoState();
+    const hasUndo = !!currentUndoState;
     document.querySelectorAll('[data-intro-history-undo]').forEach(button => {
       button.disabled = !hasUndo;
       button.setAttribute('aria-disabled', hasUndo ? 'false' : 'true');
-      button.title = hasUndo ? introHistoryUndoState.actionLabel : 'Ingen handling å angre ennå';
+      button.title = hasUndo ? currentUndoState.actionLabel : 'Ingen handling å angre ennå';
     });
     const note = document.getElementById('intro-history-undo-note');
     if (note) {
       note.textContent = hasUndo
-        ? introHistoryUndoState.message
+        ? currentUndoState.message
         : 'Tøm all historikk sletter alle opptak og tidligere forsøk. Du kan angre siste sletting.';
       note.classList.toggle('has-undo', hasUndo);
     }
-  }
-
-  function setIntroHistoryUndoState(state = null) {
-    introHistoryUndoState = state;
-    updateIntroHistoryUndoUi();
   }
 
   function commitIntroHistory(history, options = {}) {
@@ -12097,9 +12113,12 @@
     }
     refreshIntroHistoryUi();
     if (Object.prototype.hasOwnProperty.call(options, 'undoState')) {
-      setIntroHistoryUndoState(options.undoState);
+      const nextUndoStack = options.undoState
+        ? [...introHistoryUndoStack, cloneIntroHistoryUndoState(options.undoState)]
+        : [];
+      setIntroHistoryUndoStack(nextUndoStack);
     } else if (options.clearUndo !== false) {
-      setIntroHistoryUndoState(null);
+      setIntroHistoryUndoStack([]);
     } else {
       updateIntroHistoryUndoUi();
     }
@@ -12107,12 +12126,15 @@
   }
 
   function undoLastIntroHistoryAction() {
-    if (!introHistoryUndoState) return;
-    const previousHistory = cloneIntroHistory(introHistoryUndoState.previousHistory);
+    const currentUndoState = getCurrentIntroHistoryUndoState();
+    if (!currentUndoState) return;
+    const remainingUndoStack = introHistoryUndoStack.slice(0, -1);
+    const previousHistory = cloneIntroHistory(currentUndoState.previousHistory);
     commitIntroHistory(previousHistory, {
-      undoState: null,
+      clearUndo: false,
       feedback: { tone: 'success', message: 'Siste historikkhandling ble angret.' }
     });
+    setIntroHistoryUndoStack(remainingUndoStack);
   }
 
   function clearIntroHistory() {
