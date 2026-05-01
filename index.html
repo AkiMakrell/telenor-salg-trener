@@ -3762,9 +3762,6 @@
 
     .dashboard-today-card {
       padding: 16px 18px;
-      border-color: rgba(45, 212, 191, 0.18);
-      background: linear-gradient(180deg, rgba(8, 35, 38, 0.94), rgba(15, 23, 42, 0.92));
-      box-shadow: 0 16px 34px rgba(2, 6, 23, 0.22), 0 0 0 1px rgba(45, 212, 191, 0.06);
     }
 
     .dashboard-today-card .dashboard-card-heading {
@@ -3785,9 +3782,9 @@
     }
 
     .dashboard-today-pill {
-      border: 1px solid rgba(45, 212, 191, 0.14);
+      border: 1px solid rgba(148, 163, 184, 0.12);
       border-radius: 16px;
-      background: linear-gradient(180deg, rgba(20, 43, 45, 0.72), rgba(15, 23, 42, 0.68));
+      background: rgba(15, 23, 42, 0.66);
       padding: 10px 12px;
     }
 
@@ -3805,6 +3802,18 @@
       font-size: 1.12rem;
       font-weight: 900;
       line-height: 1;
+    }
+
+    .dashboard-today-pill-value.sales {
+      color: #fde68a;
+    }
+
+    .dashboard-today-pill-value.over6 {
+      color: #5eead4;
+    }
+
+    .dashboard-today-pill-value.sessions {
+      color: #93c5fd;
     }
 
     .dashboard-leaderboard-list {
@@ -11559,9 +11568,9 @@
 
   function renderDashboardTodayCard(dag, todaySessionCount) {
     const cards = [
-      { label: 'Abo', value: dag.salg },
-      { label: '6-min', value: dag.over5 },
-      { label: 'Økter', value: todaySessionCount }
+      { label: 'Abo', value: dag.salg, accent: 'sales' },
+      { label: '6-min', value: dag.over5, accent: 'over6' },
+      { label: 'Økter', value: todaySessionCount, accent: 'sessions' }
     ];
     return `
       <div class="dashboard-card dashboard-today-card">
@@ -11572,7 +11581,7 @@
           ${cards.map(card => `
             <div class="dashboard-today-pill">
               <div class="dashboard-today-pill-label">${card.label}</div>
-              <div class="dashboard-today-pill-value">${card.value}</div>
+              <div class="dashboard-today-pill-value ${card.accent}">${card.value}</div>
             </div>
           `).join('')}
         </div>
