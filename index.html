@@ -11434,7 +11434,7 @@
           ${renderLeaderboardPeriodSwitcher(activePeriodId)}
         </div>
         <div class="dashboard-card-meta centered">
-          <span class="dashboard-card-pill">${ownPoints} poeng · ${Math.max(0, leaderPoints - ownPoints)} poeng opp til toppen</span>
+          <span class="dashboard-card-pill">${ownPoints} poeng</span>
         </div>
         <div class="dashboard-leaderboard-list">
           ${previewRows.map(item => renderDashboardLeaderboardPreviewRow(item.row, item.rank, activePeriodId)).join('')}
