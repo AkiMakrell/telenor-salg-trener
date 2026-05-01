@@ -7191,28 +7191,6 @@
           <button class="backup-btn" style="font-size:0.9rem;padding:10px 14px;border-radius:8px;color:var(--muted);" onclick="clearIntroSelection()">Ny intro</button>
         </div>
 
-        <div style="margin-top: 18px; display:flex; flex-direction:column; gap:14px;">
-
-          <div>
-            <strong>Over 6 minutter? <span style="font-weight:400;color:var(--muted);font-size:0.85rem;">(valgfri)</span></strong>
-            <div id="over5min-toggle-group" class="toggle-group is-unset">
-              <button class="toggle-btn" id="over5min-ja" onclick="selectOver5min('ja')">Ja</button>
-              <button class="toggle-btn" id="over5min-nei" onclick="selectOver5min('nei')">Nei</button>
-            </div>
-            <div id="over5min-toggle-status" class="toggle-status">Valgt: Nei</div>
-          </div>
-
-          <div>
-            <strong>Salg? <span style="font-weight:400;color:var(--muted);font-size:0.85rem;">(valgfri)</span></strong>
-            <div id="salg-toggle-group" class="toggle-group is-unset">
-              <button class="toggle-btn" id="salg-ja" onclick="selectSalg('ja')">Ja</button>
-              <button class="toggle-btn" id="salg-nei" onclick="selectSalg('nei')">Nei</button>
-            </div>
-            <div id="salg-toggle-status" class="toggle-status">Valgt: Nei</div>
-          </div>
-
-        </div>
-
         <button class="save-btn" style="width:100%;margin-top:22px;padding:14px;font-size:1.1rem;" onclick="registerIntroSuccess()">Registrer opptak</button>
         <div id="last-registered-note" style="margin-top:10px;font-size:0.82rem;color:var(--muted);text-align:center;"></div>
 
@@ -9010,15 +8988,19 @@
 
   function selectOver5min(val) {
     selectedOver5min = val;
-    document.getElementById('over5min-ja').className = 'toggle-btn' + (val === 'ja' ? ' selected-ja' : '');
-    document.getElementById('over5min-nei').className = 'toggle-btn' + (val === 'nei' ? ' selected-nei' : '');
+    const yesButton = document.getElementById('over5min-ja');
+    const noButton = document.getElementById('over5min-nei');
+    if (yesButton) yesButton.className = 'toggle-btn' + (val === 'ja' ? ' selected-ja' : '');
+    if (noButton) noButton.className = 'toggle-btn' + (val === 'nei' ? ' selected-nei' : '');
     updateToggleSelectionState('over5min', val);
   }
 
   function selectSalg(val) {
     selectedSalg = val;
-    document.getElementById('salg-ja').className = 'toggle-btn' + (val === 'ja' ? ' selected-ja' : '');
-    document.getElementById('salg-nei').className = 'toggle-btn' + (val === 'nei' ? ' selected-nei' : '');
+    const yesButton = document.getElementById('salg-ja');
+    const noButton = document.getElementById('salg-nei');
+    if (yesButton) yesButton.className = 'toggle-btn' + (val === 'ja' ? ' selected-ja' : '');
+    if (noButton) noButton.className = 'toggle-btn' + (val === 'nei' ? ' selected-nei' : '');
     updateToggleSelectionState('salg', val);
   }
 
