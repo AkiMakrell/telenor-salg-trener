@@ -3773,6 +3773,58 @@
       margin-top: 14px;
     }
 
+    .dashboard-today-card {
+      padding: 16px 18px;
+    }
+
+    .dashboard-today-card .dashboard-card-heading {
+      justify-content: space-between;
+      margin-bottom: 10px;
+      text-align: left;
+    }
+
+    .dashboard-today-card .dashboard-card-title {
+      font-size: 1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .dashboard-today-subtitle {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .dashboard-today-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .dashboard-today-pill {
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.66);
+      padding: 10px 12px;
+    }
+
+    .dashboard-today-pill-label {
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .dashboard-today-pill-value {
+      margin-top: 6px;
+      color: var(--text);
+      font-size: 1.12rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+
     .dashboard-leaderboard-list {
       display: flex;
       flex-direction: column;
@@ -5520,7 +5572,8 @@
       .dashboard-quick-grid,
       .dashboard-tool-grid,
       .dashboard-progress-grid,
-      .dashboard-week-summary {
+      .dashboard-week-summary,
+      .dashboard-today-summary {
         grid-template-columns: 1fr;
       }
 
@@ -11523,6 +11576,30 @@
     `;
   }
 
+  function renderDashboardTodayCard(dag, todaySessionCount) {
+    const cards = [
+      { label: 'Abo', value: dag.salg },
+      { label: '6-min', value: dag.over5 },
+      { label: 'Økter', value: todaySessionCount }
+    ];
+    return `
+      <div class="dashboard-card dashboard-today-card">
+        <div class="dashboard-card-heading">
+          <div class="dashboard-card-title">I dag</div>
+          <div class="dashboard-today-subtitle">Kompakt oversikt</div>
+        </div>
+        <div class="dashboard-today-summary">
+          ${cards.map(card => `
+            <div class="dashboard-today-pill">
+              <div class="dashboard-today-pill-label">${card.label}</div>
+              <div class="dashboard-today-pill-value">${card.value}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
   function renderDashboardLeaderboardPreviewRow(row, rank, periodId) {
     const points = getLeaderboardPeriodValue(row, periodId, 'points');
     const sales = getLeaderboardPeriodValue(row, periodId, 'sales');
@@ -11903,6 +11980,7 @@
         <div class="dashboard-home-grid">
           <div class="dashboard-stack">
             ${renderDashboardQuickRegisterCard(dag, uke)}
+            ${renderDashboardTodayCard(dag, todaySessionCount)}
             ${renderDashboardWeekCard(uke, weekData, stackedChartMax)}
           </div>
           <div class="dashboard-stack">
