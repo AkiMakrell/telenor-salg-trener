@@ -3788,14 +3788,6 @@
       letter-spacing: -0.01em;
     }
 
-    .dashboard-today-subtitle {
-      color: var(--muted);
-      font-size: 0.8rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
     .dashboard-today-summary {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -11586,7 +11578,6 @@
       <div class="dashboard-card dashboard-today-card">
         <div class="dashboard-card-heading">
           <div class="dashboard-card-title">I dag</div>
-          <div class="dashboard-today-subtitle">Kompakt oversikt</div>
         </div>
         <div class="dashboard-today-summary">
           ${cards.map(card => `
