@@ -208,7 +208,7 @@
     .more-tab-btn {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-start;
       width: 100%;
       padding: 10px 12px;
       border: none;
@@ -220,14 +220,6 @@
       font-weight: 600;
       transition: all 0.2s;
       text-align: left;
-    }
-
-    .more-tab-btn-meta {
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
     }
 
     .settings-menu-section {
@@ -7087,27 +7079,21 @@
       <div id="top-bar-tools-menu" class="tools-menu" role="menu">
         <button class="more-tab-btn" data-tab="innvendinger" type="button" onclick="switchTab('innvendinger', this); closeTopBarTools();">
           <span>Innvendinger</span>
-          <span class="more-tab-btn-meta">Svar i samtalen</span>
         </button>
         <button class="more-tab-btn" data-tab="notater" type="button" onclick="switchTab('notater', this); closeTopBarTools();">
           <span>Notater</span>
-          <span class="more-tab-btn-meta">Fang behov og oppsummer</span>
         </button>
         <button class="more-tab-btn" data-tab="priser" type="button" onclick="switchTab('priser', this); closeTopBarTools();">
           <span>Pris kalkulator</span>
-          <span class="more-tab-btn-meta">Regn på tilbud raskt</span>
         </button>
         <button class="more-tab-btn" data-tab="ov" type="button" onclick="switchTab('ov', this); closeTopBarTools();">
           <span>OV</span>
-          <span class="more-tab-btn-meta">Utviklingsverktøy</span>
         </button>
         <button class="more-tab-btn" data-tab="samtalerating" type="button" onclick="switchTab('samtalerating', this); closeTopBarTools();">
           <span>Samtalerating</span>
-          <span class="more-tab-btn-meta">Vurder samtaler</span>
         </button>
         <button class="more-tab-btn" data-tab="samtaleflyt" type="button" onclick="switchTab('samtaleflyt', this); closeTopBarTools();">
           <span>Flyt</span>
-          <span class="more-tab-btn-meta">Lengre samtalestøtte</span>
         </button>
       </div>
     </div>
