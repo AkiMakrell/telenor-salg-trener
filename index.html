@@ -3616,7 +3616,7 @@
 
     .intro-layout {
       display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 34%);
       gap: 24px;
       align-items: start;
       width: 100%;
@@ -3627,16 +3627,21 @@
     .intro-main-stack,
     .intro-sidebar {
       min-width: 0;
+      width: 100%;
+      justify-self: stretch;
     }
 
     .intro-main-stack {
       display: flex;
       flex-direction: column;
       gap: 18px;
+      width: 100%;
     }
 
     .intro-panel,
     .intro-sidebar-card {
+      width: 100%;
+      max-width: none;
       padding: 22px;
       border-radius: 22px;
       border: 1px solid rgba(148, 163, 184, 0.16);
