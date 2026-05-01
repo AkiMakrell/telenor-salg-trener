@@ -2897,6 +2897,14 @@
       gap: 14px;
     }
 
+    .register-quick-action,
+    .dashboard-quick-action {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
     .register-quick-stats {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2904,11 +2912,35 @@
       margin-top: 14px;
     }
 
-    .register-quick-undo {
-      width: 100%;
-      margin-top: 12px;
-      padding: 12px 14px;
-      border-radius: 12px;
+    .quick-undo-link {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      font-size: 0.86rem;
+      font-weight: 700;
+      line-height: 1.2;
+      text-decoration: underline;
+      text-underline-offset: 0.16em;
+      cursor: pointer;
+      transition: opacity 0.18s ease, color 0.18s ease;
+    }
+
+    .quick-undo-link:disabled {
+      opacity: 0.42;
+      cursor: not-allowed;
+      text-decoration: none;
+    }
+
+    .register-quick-action .quick-undo-link {
+      color: var(--primary-dark);
+    }
+
+    .dashboard-quick-action .quick-undo-link {
+      color: rgba(191, 219, 254, 0.96);
+    }
+
+    .dashboard-quick-action .quick-undo-link:hover:not(:disabled) {
+      color: #ffffff;
     }
 
     .register-quick-stat {
@@ -7041,15 +7073,20 @@
 
   <div class="card register-quick-card">
     <div class="register-quick-grid">
-      <button class="register-quick-btn over5" type="button" onclick="quickRegister('over5min')">
-        <span class="register-quick-btn-title">Registrer 6-minutter</span>
-      </button>
-      <button class="register-quick-btn salg" type="button" onclick="quickRegister('salg')">
-        <span class="register-quick-btn-title">Registrer salg</span>
-      </button>
+      <div class="register-quick-action">
+        <button class="register-quick-btn over5" type="button" onclick="quickRegister('over5min')">
+          <span class="register-quick-btn-title">Registrer 6-minutter</span>
+        </button>
+        <button class="quick-undo-link" data-quick-undo-type="over5min" type="button" onclick="quickUnregister('over5min')">Angre siste</button>
+      </div>
+      <div class="register-quick-action">
+        <button class="register-quick-btn salg" type="button" onclick="quickRegister('salg')">
+          <span class="register-quick-btn-title">Registrer salg</span>
+        </button>
+        <button class="quick-undo-link" data-quick-undo-type="salg" type="button" onclick="quickUnregister('salg')">Angre siste</button>
+      </div>
     </div>
     <div id="register-quick-stats" class="register-quick-stats"></div>
-    <button class="backup-btn undo-history-btn register-quick-undo" data-intro-history-undo type="button" onclick="undoLastIntroHistoryAction()">Angre siste registrering</button>
   </div>
 
   <div class="register-intro-section">
@@ -8631,6 +8668,7 @@
     renderRetroHistoryPage();
     renderAllPriceCalculators();
     renderSamtaleflyt();
+    updateQuickUndoUi();
   }
 
   async function activateAuthenticatedApp(user, previousDeviceData) {
@@ -11356,18 +11394,30 @@
   }
 
   function renderDashboardQuickRegisterCard(dag, uke) {
+    const canUndoOver5 = hasQuickUndoEntry('over5min');
+    const canUndoSale = hasQuickUndoEntry('salg');
     return `
       <div class="dashboard-card dashboard-card-strong dashboard-card-interactive" role="button" tabindex="0" onclick="switchTab('intro')" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); switchTab('intro'); }">
         <div class="dashboard-card-heading">
           <div class="dashboard-card-title">Registrering</div>
         </div>
         <div class="dashboard-quick-grid">
-          <button class="dashboard-quick-btn over6" type="button" onclick="event.stopPropagation(); quickRegister('over5min')">
-            <span class="dashboard-quick-btn-title">Registrer 6-minutter</span>
-          </button>
-          <button class="dashboard-quick-btn sales" type="button" onclick="event.stopPropagation(); quickRegister('salg')">
-            <span class="dashboard-quick-btn-title">Registrer salg</span>
-          </button>
+          <div class="dashboard-quick-action">
+            <button class="dashboard-quick-btn over6" type="button" onclick="event.stopPropagation(); quickRegister('over5min')">
+              <span class="dashboard-quick-btn-title">Registrer 6-minutter</span>
+            </button>
+            <button class="quick-undo-link" data-quick-undo-type="over5min" type="button" onclick="event.stopPropagation(); quickUnregister('over5min')" ${canUndoOver5 ? '' : 'disabled aria-disabled="true" title="Ingen 6-minuttere å angre ennå"'}>
+              Angre siste
+            </button>
+          </div>
+          <div class="dashboard-quick-action">
+            <button class="dashboard-quick-btn sales" type="button" onclick="event.stopPropagation(); quickRegister('salg')">
+              <span class="dashboard-quick-btn-title">Registrer salg</span>
+            </button>
+            <button class="quick-undo-link" data-quick-undo-type="salg" type="button" onclick="event.stopPropagation(); quickUnregister('salg')" ${canUndoSale ? '' : 'disabled aria-disabled="true" title="Ingen salg å angre ennå"'}>
+              Angre siste
+            </button>
+          </div>
         </div>
       </div>
     `;
@@ -12011,6 +12061,7 @@
     renderIntroLibrary();
     renderSessionStatus();
     renderRetroHistoryPage();
+    updateQuickUndoUi();
   }
 
   function summarizeHistoryEntry(text) {
@@ -12029,6 +12080,29 @@
 
   function buildRegistrationUndoState(actionLabel, previousHistory) {
     return buildIntroHistoryUndoState(actionLabel, previousHistory);
+  }
+
+  function hasQuickUndoEntry(type) {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    return getIntroHistory().some(entry =>
+      entry?.quickEntry
+      && entry?.[type] === 'ja'
+      && String(entry?.isoDate || '').slice(0, 10) === todayStr
+    );
+  }
+
+  function updateQuickUndoUi() {
+    document.querySelectorAll('[data-quick-undo-type]').forEach(button => {
+      const type = button.getAttribute('data-quick-undo-type');
+      const hasUndo = hasQuickUndoEntry(type);
+      button.disabled = !hasUndo;
+      button.setAttribute('aria-disabled', hasUndo ? 'false' : 'true');
+      if (hasUndo) {
+        button.title = type === 'salg' ? 'Angre siste hurtigregistrerte salg i dag' : 'Angre siste hurtigregistrerte 6-minutter i dag';
+      } else {
+        button.title = type === 'salg' ? 'Ingen salg å angre ennå' : 'Ingen 6-minuttere å angre ennå';
+      }
+    });
   }
 
   function updateIntroHistoryUndoUi() {
