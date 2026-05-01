@@ -17,6 +17,7 @@
       --text:          #e5eefb;
       --muted:         #94a3b8;
       --border:        #223049;
+      --app-shell-max: 1240px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -54,7 +55,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      max-width: 1100px;
+      max-width: var(--app-shell-max);
       margin: 0 auto 28px auto;
       padding: 12px;
       border: 1px solid var(--border);
@@ -3244,7 +3245,7 @@
 
     /* ===== STATS HOME PAGE ===== */
     .stats-page-shell {
-      max-width: 1100px;
+      max-width: var(--app-shell-max);
       margin: 0 auto;
       display: grid;
       grid-template-columns: 180px minmax(0, 1fr);
@@ -3326,13 +3327,19 @@
       gap: 20px;
     }
 
+    .stats-main-standalone {
+      width: 100%;
+      max-width: var(--app-shell-max);
+      margin: 0 auto;
+    }
+
     .stats-pane {
       display: flex;
       flex-direction: column;
       gap: 20px;
     }
 
-    .stats-section { max-width: 1100px; margin: 0 auto 32px auto; }
+    .stats-section { max-width: var(--app-shell-max); margin: 0 auto 32px auto; }
     .stats-main .stats-section { max-width: none; margin: 0 0 32px 0; }
     .stats-main .stats-section:last-child { margin-bottom: 0; }
 
@@ -11556,7 +11563,7 @@
 
     document.getElementById('stats-home').innerHTML = activeView === 'overview'
       ? `
-        <div class="stats-main">
+        <div class="stats-main stats-main-standalone">
           ${panes[activeView]}
         </div>
       `
