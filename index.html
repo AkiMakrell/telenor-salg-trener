@@ -3726,6 +3726,14 @@
       gap: 8px;
     }
 
+    .dashboard-progress-value.over6 {
+      color: #5eead4;
+    }
+
+    .dashboard-progress-value.sales {
+      color: #fde68a;
+    }
+
     .dashboard-progress-unit {
       color: var(--muted);
       font-size: 0.76rem;
@@ -11528,8 +11536,8 @@
 
   function renderDashboardWeekCard(uke, weekData, stackedChartMax) {
     const cards = [
-      { label: '6-minuttere', value: uke.over5, unit: 'stk' },
-      { label: 'Salg', value: uke.salg, unit: 'abo' }
+      { label: '6-minuttere', value: uke.over5, unit: 'stk', accent: 'over6' },
+      { label: 'Salg', value: uke.salg, unit: 'abo', accent: 'sales' }
     ];
     return `
       <div class="dashboard-card dashboard-card-interactive" role="button" tabindex="0" onclick="openStatsDashboardView('development')" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openStatsDashboardView('development'); }">
@@ -11544,7 +11552,7 @@
           ${cards.map(card => `
             <div class="dashboard-progress-item">
               <div class="dashboard-progress-label">${card.label}</div>
-              <div class="dashboard-progress-value with-unit">${card.value}<span class="dashboard-progress-unit">${card.unit}</span></div>
+              <div class="dashboard-progress-value with-unit ${card.accent}">${card.value}<span class="dashboard-progress-unit">${card.unit}</span></div>
             </div>
           `).join('')}
         </div>
