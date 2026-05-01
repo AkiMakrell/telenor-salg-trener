@@ -3467,6 +3467,11 @@
       gap: 10px;
     }
 
+    .dashboard-card-meta.centered {
+      justify-content: center;
+      text-align: center;
+    }
+
     .dashboard-card-pill {
       display: inline-flex;
       align-items: center;
@@ -3508,6 +3513,17 @@
       background: linear-gradient(180deg, rgba(10, 18, 32, 0.96), rgba(15, 23, 42, 0.92));
       padding: 22px;
       box-shadow: 0 16px 34px rgba(2, 6, 23, 0.2);
+    }
+
+    .dashboard-card-interactive {
+      cursor: pointer;
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .dashboard-card-interactive:hover {
+      transform: translateY(-2px);
+      border-color: rgba(56, 189, 248, 0.26);
+      box-shadow: 0 20px 40px rgba(2, 6, 23, 0.26);
     }
 
     .dashboard-card-strong {
@@ -3607,6 +3623,20 @@
       font-size: 1.5rem;
       font-weight: 900;
       line-height: 1;
+    }
+
+    .dashboard-progress-value.with-unit {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .dashboard-progress-unit {
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
     }
 
     .dashboard-leaderboard-list {
@@ -11031,60 +11061,39 @@
 
   function renderDashboardQuickRegisterCard(dag, uke) {
     return `
-      <div class="dashboard-card dashboard-card-strong">
+      <div class="dashboard-card dashboard-card-strong dashboard-card-interactive" role="button" tabindex="0" onclick="switchTab('intro')" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); switchTab('intro'); }">
         <div class="dashboard-card-heading">
           <div class="dashboard-card-title">Registrering</div>
         </div>
         <div class="dashboard-quick-grid">
-          <button class="dashboard-quick-btn over6" type="button" onclick="quickRegister('over5min')">
+          <button class="dashboard-quick-btn over6" type="button" onclick="event.stopPropagation(); quickRegister('over5min')">
             <span class="dashboard-quick-btn-title">Registrer 6-minutter</span>
           </button>
-          <button class="dashboard-quick-btn sales" type="button" onclick="quickRegister('salg')">
+          <button class="dashboard-quick-btn sales" type="button" onclick="event.stopPropagation(); quickRegister('salg')">
             <span class="dashboard-quick-btn-title">Registrer salg</span>
           </button>
-        </div>
-        <div class="dashboard-card-meta">
-          <span class="dashboard-card-pill">I dag: ${dag.over5} stk 6-min · ${dag.salg} abo</span>
-          <span class="dashboard-card-pill">Denne uken: ${uke.over5} stk 6-min · ${uke.salg} abo</span>
-        </div>
-        <div class="dashboard-card-actions">
-          <button class="backup-btn" style="margin-top:0;" type="button" onclick="switchTab('intro')">Gå til full registrering</button>
         </div>
       </div>
     `;
   }
 
-  function renderDashboardProgressCard(dag, uke, mnd) {
+  function renderDashboardWeekCard(uke) {
     const cards = [
-      {
-        label: 'I dag',
-        value: `${dag.over5} / ${dag.salg}`
-      },
-      {
-        label: 'Denne uken',
-        value: `${uke.over5} / ${uke.salg}`
-      },
-      {
-        label: 'Denne måneden',
-        value: `${mnd.over5} / ${mnd.salg}`
-      }
+      { label: '6-minuttere', value: uke.over5, unit: 'stk' },
+      { label: 'Salg', value: uke.salg, unit: 'abo' }
     ];
     return `
-      <div class="dashboard-card">
+      <div class="dashboard-card dashboard-card-interactive" role="button" tabindex="0" onclick="openStatsDashboardView('development')" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openStatsDashboardView('development'); }">
         <div class="dashboard-card-heading">
-          <div class="dashboard-card-title">Progresjon</div>
+          <div class="dashboard-card-title">Denne uken</div>
         </div>
         <div class="dashboard-progress-grid">
           ${cards.map(card => `
             <div class="dashboard-progress-item">
               <div class="dashboard-progress-label">${card.label}</div>
-              <div class="dashboard-progress-value">${card.value}</div>
+              <div class="dashboard-progress-value with-unit">${card.value}<span class="dashboard-progress-unit">${card.unit}</span></div>
             </div>
           `).join('')}
-        </div>
-        <div class="dashboard-card-actions">
-          <button class="backup-btn" style="margin-top:0;" type="button" onclick="openStatsDashboardView('development')">Se utvikling</button>
-          <button class="backup-btn" style="margin-top:0;" type="button" onclick="openGoalsPage('week')">Åpne mål</button>
         </div>
       </div>
     `;
@@ -11116,16 +11125,9 @@
     const ownRank = ownRow ? getLeaderboardRank(activePeriodId, ownRow.user_id) : null;
     const ownPoints = ownRow ? getLeaderboardPeriodValue(ownRow, activePeriodId, 'points') : 0;
     const leaderPoints = sorted.length ? getLeaderboardPeriodValue(sorted[0], activePeriodId, 'points') : 0;
-    const latestUpdate = leaderboardRows
-      .map(row => row.updated_at || row.latest_entry_at)
-      .filter(Boolean)
-      .sort((a, b) => String(b).localeCompare(String(a)))[0] || '';
     const topRows = sorted.slice(0, 5).map((row, index) => ({ row, rank: index + 1 }));
     const previewRows = [...topRows];
-    if (ownRow && ownRank && ownRank > topRows.length) {
-      previewRows.push({ divider: true });
-      previewRows.push({ row: ownRow, rank: ownRank });
-    }
+    if (ownRow && ownRank && ownRank > topRows.length) previewRows.push({ row: ownRow, rank: ownRank });
 
     let content = '';
     if (leaderboardState === 'loading' && !hasRows) {
@@ -11136,29 +11138,24 @@
       content = '<div class="stats-empty-card">Ingen på leaderboardet ennå. Så snart teamet begynner å registrere, dukker toppen opp her.</div>';
     } else {
       content = `
-        ${renderLeaderboardPeriodSwitcher(activePeriodId)}
-        <div class="dashboard-card-meta">
-          <span class="dashboard-card-pill">${ownRank ? `Din plass: #${ownRank}` : 'Du er ikke på lista ennå'}</span>
-          <span class="dashboard-card-pill">${ownRow ? `${ownPoints} poeng · ${Math.max(0, leaderPoints - ownPoints)} poeng opp til toppen` : 'Logg et resultat for å komme på lista'}</span>
+        <div onclick="event.stopPropagation()">
+          ${renderLeaderboardPeriodSwitcher(activePeriodId)}
+        </div>
+        <div class="dashboard-card-meta centered">
+          <span class="dashboard-card-pill">${ownPoints} poeng · ${Math.max(0, leaderPoints - ownPoints)} poeng opp til toppen</span>
         </div>
         <div class="dashboard-leaderboard-list">
-          ${previewRows.map(item => item.divider
-            ? '<div class="dashboard-leaderboard-divider">Din plass</div>'
-            : renderDashboardLeaderboardPreviewRow(item.row, item.rank, activePeriodId)).join('')}
+          ${previewRows.map(item => renderDashboardLeaderboardPreviewRow(item.row, item.rank, activePeriodId)).join('')}
         </div>
       `;
     }
 
     return `
-      <div class="dashboard-card">
+      <div class="dashboard-card dashboard-card-interactive" role="button" tabindex="0" onclick="openStatsDashboardView('leaderboard')" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openStatsDashboardView('leaderboard'); }">
         <div class="dashboard-card-heading">
           <div class="dashboard-card-title">Leaderboard</div>
         </div>
         ${content}
-        <div class="dashboard-card-actions">
-          <button class="backup-btn" style="margin-top:0;" type="button" onclick="openStatsDashboardView('leaderboard')">Åpne full leaderboard</button>
-          ${latestUpdate ? `<span class="dashboard-card-pill">Oppdatert ${escHtml(formatLeaderboardTimestamp(latestUpdate))}</span>` : ''}
-        </div>
       </div>
     `;
   }
@@ -11470,16 +11467,13 @@
         <div class="dashboard-home-grid">
           <div class="dashboard-stack">
             ${renderDashboardQuickRegisterCard(dag, uke)}
-            ${renderDashboardProgressCard(dag, uke, mnd)}
+            ${renderDashboardWeekCard(uke)}
           </div>
           <div class="dashboard-stack">
             ${renderDashboardLeaderboardCard()}
             ${renderDashboardToolsCard()}
           </div>
         </div>
-        ${renderStatsDaySection(dag, dayGoal, dayGoalStatus, todaySessionCount)}
-        ${renderStatsWeekSection(uke, weekGoal, weekGoalStatus, weekData, stackedChartMax, elapsedWeekBusinessDays, weekProgress, bestWeekComparison)}
-        ${renderStatsMonthSection(mnd, monthTitle, monthGoal, monthGoalStatus, weekBuckets, stackedChartMax, elapsedMonthWeekCount)}
       </div>
     `;
     const developmentPane = `
