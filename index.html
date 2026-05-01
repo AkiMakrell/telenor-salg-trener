@@ -2936,6 +2936,33 @@
       margin: 0;
     }
 
+    .intro-dashboard-shortcut-row {
+      margin-top: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.04);
+      padding: 12px 14px;
+    }
+
+    .intro-dashboard-shortcut-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--primary-dark);
+      font-size: 0.92rem;
+      font-weight: 700;
+      line-height: 1.35;
+      cursor: pointer;
+    }
+
+    .intro-dashboard-shortcut-label input {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      accent-color: var(--primary);
+      flex-shrink: 0;
+    }
+
     .register-quick-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3633,6 +3660,10 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .dashboard-quick-grid.has-opptak {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .dashboard-tool-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -3671,6 +3702,13 @@
       box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.18), 0 0 22px rgba(245, 158, 11, 0.22);
     }
 
+    .dashboard-quick-btn.opptak {
+      border-color: #60a5fa;
+      background: linear-gradient(to top, #2563eb, #60a5fa);
+      color: #eff6ff;
+      box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.18), 0 0 22px rgba(59, 130, 246, 0.22);
+    }
+
     .dashboard-quick-btn.over6:hover {
       border-color: #2dd4bf;
       background: linear-gradient(to top, #0f766e, #14b8a6);
@@ -3679,6 +3717,11 @@
     .dashboard-quick-btn.sales:hover {
       border-color: #fbbf24;
       background: linear-gradient(to top, #d97706, #f59e0b);
+    }
+
+    .dashboard-quick-btn.opptak:hover {
+      border-color: #93c5fd;
+      background: linear-gradient(to top, #1d4ed8, #3b82f6);
     }
 
     .dashboard-quick-btn-title,
@@ -7191,6 +7234,13 @@
           <button class="backup-btn" style="font-size:0.9rem;padding:10px 14px;border-radius:8px;color:var(--muted);" onclick="clearIntroSelection()">Ny intro</button>
         </div>
 
+        <div class="intro-dashboard-shortcut-row">
+          <label class="intro-dashboard-shortcut-label" for="dashboard-opptak-shortcut-toggle">
+            <input id="dashboard-opptak-shortcut-toggle" type="checkbox" onchange="toggleDashboardOpptakShortcut(this.checked)">
+            <span>Vis Registrer opptak på hjem</span>
+          </label>
+        </div>
+
         <button class="save-btn" style="width:100%;margin-top:22px;padding:14px;font-size:1.1rem;" onclick="registerIntroSuccess()">Registrer opptak</button>
         <div id="last-registered-note" style="margin-top:10px;font-size:0.82rem;color:var(--muted);text-align:center;"></div>
 
@@ -8729,6 +8779,7 @@
   function renderAll() {
     ensureIntroLeaderboardDataVersion();
     syncSelectedIntroFromSession();
+    syncDashboardOpptakShortcutToggle();
     resizeActiveIntroTextarea();
     applyDefaultOpptakSelections();
     renderSessionStatus();
@@ -8970,6 +9021,7 @@
   let retroHistoryFeedback = null;
   let retroHistoryDraft = null;
   let introHistoryUndoStack = [];
+  const DASHBOARD_OPPTAK_SHORTCUT_KEY = 'dashboardOpptakShortcutEnabled';
 
   function updateToggleSelectionState(key, value) {
     const group = document.getElementById(`${key}-toggle-group`);
@@ -9006,6 +9058,26 @@
 
   function resetOpptak() {
     applyDefaultOpptakSelections();
+  }
+
+  function isDashboardOpptakShortcutEnabled() {
+    return localStorage.getItem(DASHBOARD_OPPTAK_SHORTCUT_KEY) === 'true';
+  }
+
+  function setDashboardOpptakShortcutEnabled(enabled) {
+    if (enabled) localStorage.setItem(DASHBOARD_OPPTAK_SHORTCUT_KEY, 'true');
+    else localStorage.removeItem(DASHBOARD_OPPTAK_SHORTCUT_KEY);
+  }
+
+  function syncDashboardOpptakShortcutToggle() {
+    const toggle = document.getElementById('dashboard-opptak-shortcut-toggle');
+    if (toggle) toggle.checked = isDashboardOpptakShortcutEnabled();
+  }
+
+  function toggleDashboardOpptakShortcut(enabled) {
+    setDashboardOpptakShortcutEnabled(enabled);
+    syncDashboardOpptakShortcutToggle();
+    renderStatsHome();
   }
 
   // ---- Intro ----
@@ -11473,18 +11545,24 @@
   }
 
   function renderDashboardQuickRegisterCard(dag, uke) {
+    const showOpptakShortcut = isDashboardOpptakShortcutEnabled();
     return `
       <div class="dashboard-card dashboard-card-strong dashboard-card-interactive" role="button" tabindex="0" onclick="switchTab('intro')" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); switchTab('intro'); }">
         <div class="dashboard-card-heading">
           <div class="dashboard-card-title">Registrering</div>
         </div>
-        <div class="dashboard-quick-grid">
+        <div class="dashboard-quick-grid${showOpptakShortcut ? ' has-opptak' : ''}">
           <button class="dashboard-quick-btn over6" type="button" onclick="event.stopPropagation(); quickRegister('over5min')">
             <span class="dashboard-quick-btn-title">Registrer 6-minutter</span>
           </button>
           <button class="dashboard-quick-btn sales" type="button" onclick="event.stopPropagation(); quickRegister('salg')">
             <span class="dashboard-quick-btn-title">Registrer salg</span>
           </button>
+          ${showOpptakShortcut ? `
+            <button class="dashboard-quick-btn opptak" type="button" onclick="event.stopPropagation(); registerDashboardOpptak()">
+              <span class="dashboard-quick-btn-title">Registrer opptak</span>
+            </button>
+          ` : ''}
         </div>
         <div class="quick-undo-row dashboard-quick-undo">
           <button class="quick-undo-link" data-intro-history-undo type="button" onclick="event.stopPropagation(); undoLastIntroHistoryAction()">Angre siste</button>
@@ -12321,6 +12399,23 @@
       intro = saveIntro();
     }
     return intro;
+  }
+
+  function registerDashboardOpptak() {
+    const introField = document.getElementById('intro-text');
+    const typedText = String(introField?.value || '').trim();
+    if (!selectedIntroId && !typedText) {
+      switchTab('intro');
+      introField?.focus();
+      return;
+    }
+    const intro = resolveIntroForRegistration();
+    if (!intro) {
+      switchTab('intro');
+      introField?.focus();
+      return;
+    }
+    registerIntroSuccessById(intro.id);
   }
 
   function closeAboCountPrompt(result = null) {
