@@ -3175,6 +3175,437 @@
       text-align: center;
     }
 
+    .intro-page-header {
+      margin: 0 auto 24px auto;
+    }
+
+    .intro-hero-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.9fr);
+      gap: 20px;
+      width: 100%;
+      max-width: var(--app-shell-max);
+      padding: 28px;
+      border-radius: 28px;
+      border: 1px solid rgba(96, 165, 250, 0.18);
+      background:
+        radial-gradient(circle at top right, rgba(45, 212, 191, 0.18), transparent 36%),
+        radial-gradient(circle at bottom left, rgba(251, 191, 36, 0.16), transparent 32%),
+        linear-gradient(135deg, rgba(8, 15, 28, 0.98), rgba(15, 23, 42, 0.95) 58%, rgba(30, 41, 59, 0.94));
+      box-shadow: 0 24px 52px rgba(2, 6, 23, 0.28);
+      overflow: hidden;
+    }
+
+    .intro-hero-copy {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .intro-hero-eyebrow,
+    .intro-section-kicker {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(96, 165, 250, 0.12);
+      color: #93c5fd;
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .intro-hero-title {
+      color: #f8fafc;
+      font-size: clamp(2rem, 3.2vw, 2.85rem);
+      font-weight: 900;
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+      max-width: 11ch;
+    }
+
+    .intro-hero-text {
+      max-width: 560px;
+      color: rgba(226, 232, 240, 0.86);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .intro-hero-note {
+      width: fit-content;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.46);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      color: #cbd5e1;
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    .intro-page-status {
+      width: 100%;
+      max-width: 380px;
+      margin-top: 4px;
+      padding: 16px 18px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 18px;
+      background: rgba(15, 23, 42, 0.46);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    .intro-page-status-title {
+      color: #f8fafc;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .intro-page-status-subtitle {
+      color: #93c5fd;
+      font-size: 0.86rem;
+      margin-top: 6px;
+    }
+
+    .intro-motivation-panel {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      align-self: stretch;
+      min-width: 0;
+    }
+
+    .intro-motivation-card {
+      min-width: 0;
+      padding: 16px;
+      border-radius: 20px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: rgba(255,255,255,0.06);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+      backdrop-filter: blur(8px);
+    }
+
+    .intro-motivation-label {
+      color: rgba(226, 232, 240, 0.76);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .intro-motivation-value {
+      margin-top: 10px;
+      font-size: 1.9rem;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.04em;
+      color: #f8fafc;
+    }
+
+    .intro-motivation-value.tone-blue { color: #93c5fd; }
+    .intro-motivation-value.tone-purple { color: #ddd6fe; }
+    .intro-motivation-value.tone-teal { color: #5eead4; }
+    .intro-motivation-value.tone-gold { color: #fde68a; }
+
+    .intro-motivation-meta {
+      margin-top: 10px;
+      color: rgba(203, 213, 225, 0.72);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .register-intro-section {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    .register-intro-section::before,
+    .register-intro-section-head {
+      display: none;
+    }
+
+    .intro-layout {
+      grid-template-columns: minmax(0, 1.08fr) minmax(330px, 0.92fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .register-intro-main,
+    .intro-sidebar {
+      min-width: 0;
+    }
+
+    .register-intro-card,
+    .intro-sidebar-card {
+      border-radius: 24px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+      overflow: hidden;
+    }
+
+    .register-intro-card {
+      padding: 26px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248, 250, 252, 0.98));
+    }
+
+    .intro-workspace-head,
+    .intro-library-panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .intro-workspace-head {
+      margin-bottom: 18px;
+    }
+
+    .intro-workspace-title,
+    .intro-library-title {
+      margin: 12px 0 0 0;
+      color: var(--primary-dark);
+      font-size: 1.4rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.08;
+    }
+
+    .intro-last-registered {
+      display: none;
+      flex-shrink: 0;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.06);
+      color: #475569;
+      font-size: 0.78rem;
+      font-weight: 800;
+      line-height: 1.3;
+      text-align: center;
+      min-height: 34px;
+    }
+
+    .intro-performance-strip {
+      margin-bottom: 18px;
+    }
+
+    .intro-form-label {
+      margin-bottom: 10px;
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .register-intro-card textarea {
+      min-height: 164px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      border-color: rgba(148, 163, 184, 0.24);
+      background: rgba(255,255,255,0.94);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+      font-size: 1rem;
+      line-height: 1.55;
+    }
+
+    .register-intro-card textarea:focus {
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
+    }
+
+    .intro-inline-note {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(59, 130, 246, 0.08);
+      color: #1e3a8a;
+      font-size: 0.82rem;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .intro-workspace-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .intro-workspace-actions .save-btn,
+    .intro-workspace-actions .backup-btn {
+      margin-top: 0;
+    }
+
+    .intro-dashboard-shortcut-row {
+      margin-top: 18px;
+      border-radius: 18px;
+      border-color: rgba(96, 165, 250, 0.18);
+      background: rgba(239, 246, 255, 0.94);
+      padding: 14px 16px;
+    }
+
+    .intro-dashboard-shortcut-label {
+      color: #1e3a8a;
+      font-weight: 800;
+    }
+
+    .intro-primary-register {
+      width: 100%;
+      margin-top: 18px;
+      padding: 16px;
+      font-size: 1.02rem;
+      font-weight: 800;
+      border-radius: 16px;
+      box-shadow: 0 14px 28px rgba(41, 168, 224, 0.18);
+    }
+
+    .register-intro-card .history-toggle-btn {
+      margin-top: 18px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border-color: rgba(148, 163, 184, 0.24);
+      background: rgba(15, 23, 42, 0.03);
+      font-weight: 700;
+    }
+
+    .register-intro-card .history-panel {
+      margin-top: 12px;
+    }
+
+    .intro-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .intro-sidebar-card {
+      padding: 24px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(246, 248, 252, 0.98));
+    }
+
+    .intro-library-meta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.06);
+      color: #334155;
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .intro-library-empty {
+      padding: 18px;
+      border: 1px dashed rgba(148, 163, 184, 0.28);
+      border-radius: 16px;
+      background: rgba(248, 250, 252, 0.94);
+      color: #64748b;
+      font-size: 0.9rem;
+      font-style: normal;
+      text-align: center;
+    }
+
+    .intro-library {
+      gap: 12px;
+      margin-bottom: 0;
+    }
+
+    .intro-chip {
+      gap: 12px;
+      padding: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.86);
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .intro-chip:hover {
+      transform: translateY(-1px);
+      border-color: rgba(59, 130, 246, 0.26);
+      background: rgba(255,255,255,0.96);
+      box-shadow: 0 14px 28px rgba(15, 23, 42, 0.12);
+    }
+
+    .intro-chip.selected {
+      border-color: rgba(59, 130, 246, 0.34);
+      background: linear-gradient(180deg, rgba(239, 246, 255, 0.96), rgba(255,255,255,0.98));
+      font-weight: 600;
+    }
+
+    .intro-chip-delete {
+      color: #94a3b8;
+      padding: 4px;
+      font-size: 1.08rem;
+    }
+
+    .intro-chip-stats {
+      margin-top: 7px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    .intro-chip-active {
+      margin-bottom: 8px;
+      color: #0f766e;
+      font-size: 0.76rem;
+      font-weight: 800;
+    }
+
+    .intro-chip-register-btn {
+      margin-top: 12px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      box-shadow: none;
+    }
+
+    @media (max-width: 980px) {
+      .intro-hero-card,
+      .intro-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .intro-page-status {
+        max-width: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .intro-hero-card,
+      .register-intro-card,
+      .intro-sidebar-card {
+        padding: 20px;
+      }
+
+      .intro-motivation-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .intro-workspace-head,
+      .intro-library-panel-head,
+      .intro-workspace-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .intro-last-registered,
+      .intro-library-meta {
+        width: fit-content;
+      }
+
+      .intro-workspace-actions .save-btn,
+      .intro-workspace-actions .backup-btn {
+        width: 100%;
+      }
+    }
+
     @media (max-width: 980px) {
       .app-footer-top {
         flex-direction: column;
@@ -6813,6 +7244,34 @@
       background: #162235;
     }
 
+    #tab-intro #intro-text {
+      background: rgba(255,255,255,0.94);
+      color: var(--text);
+      border-color: rgba(148, 163, 184, 0.24);
+    }
+
+    #tab-intro #intro-text:focus {
+      background: #ffffff;
+    }
+
+    #tab-intro .intro-chip {
+      background: rgba(255,255,255,0.86);
+      color: var(--text);
+      border-color: rgba(148, 163, 184, 0.16);
+    }
+
+    #tab-intro .intro-chip:hover {
+      background: rgba(255,255,255,0.96);
+    }
+
+    #tab-intro .intro-chip.selected {
+      background: linear-gradient(180deg, rgba(239, 246, 255, 0.96), rgba(255,255,255,0.98));
+    }
+
+    #tab-intro .intro-chip-delete {
+      color: #94a3b8;
+    }
+
     .choice-chip.pricing-mode-chip-forbund:hover {
       border-color: #16a34a;
       background: rgba(22, 163, 74, 0.16);
@@ -7206,30 +7665,42 @@
 <div id="tab-intro" class="tab-content">
 
   <div class="intro-page-header">
-    <div id="session-status" class="intro-page-status">
-      <div id="session-status-title" class="intro-page-status-title">Laster aktiv økt...</div>
-      <div id="session-status-subtitle" class="intro-page-status-subtitle"></div>
+    <div class="intro-hero-card">
+      <div class="intro-hero-copy">
+        <div class="intro-hero-eyebrow">Introtest</div>
+        <div class="intro-hero-title">Gjør introene dine skarpere</div>
+        <div class="intro-hero-text">Test en intro bevisst, registrer opptak fortløpende og bygg videre på det som faktisk fungerer.</div>
+        <div class="intro-hero-note">Én intro per økt gir tydeligere signaler.</div>
+        <div id="session-status" class="intro-page-status">
+          <div id="session-status-title" class="intro-page-status-title">Laster aktiv økt...</div>
+          <div id="session-status-subtitle" class="intro-page-status-subtitle"></div>
+        </div>
+      </div>
+      <div id="intro-motivation-panel" class="intro-motivation-panel"></div>
     </div>
   </div>
 
   <div class="register-intro-section">
-    <div class="register-intro-section-head">
-      <div class="register-intro-title">Introtest</div>
-    </div>
-
     <div class="intro-layout">
-      <!-- LEFT: scorecard form -->
       <div class="register-intro-main">
         <div class="card register-intro-card">
-        <div id="intro-daily-stats" class="stats-grid stats-grid-2" style="margin-bottom:16px;"></div>
+        <div class="intro-workspace-head">
+          <div>
+            <div class="intro-section-kicker">Verksted</div>
+            <div class="intro-workspace-title">Aktiv intro</div>
+          </div>
+          <div id="last-registered-note" class="intro-last-registered"></div>
+        </div>
 
-        <label class="form-label">Aktiv intro:</label>
+        <div id="intro-daily-stats" class="stats-grid stats-grid-2 intro-performance-strip"></div>
+
+        <label class="form-label intro-form-label">Introtekst</label>
         <textarea id="intro-text" placeholder="Hei, jeg ringer fra Telenor..." oninput="autoResizeTextarea(this)"></textarea>
         <div class="intro-inline-note">OBS: Test kun 1 intro per økt for korrekt vurdering</div>
 
         <div id="intro-library-inline" style="display:none;"></div>
 
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
+        <div class="intro-workspace-actions">
           <button class="save-btn" style="margin-top:0;background:#e8f4fb;color:var(--primary-dark);box-shadow:none;" onclick="saveIntro()">Lagre intro i bibliotek</button>
           <button class="backup-btn" style="font-size:0.9rem;padding:10px 14px;border-radius:8px;color:var(--muted);" onclick="clearIntroSelection()">Ny intro</button>
         </div>
@@ -7241,8 +7712,7 @@
           </label>
         </div>
 
-        <button class="save-btn" style="width:100%;margin-top:22px;padding:14px;font-size:1.1rem;" onclick="registerIntroSuccess()">Registrer opptak</button>
-        <div id="last-registered-note" style="margin-top:10px;font-size:0.82rem;color:var(--muted);text-align:center;"></div>
+        <button class="save-btn intro-primary-register" onclick="registerIntroSuccess()">Registrer opptak</button>
 
         <button class="history-toggle-btn" onclick="toggleHistory()">Vis historikk</button>
         <div id="history-panel" class="history-panel">
@@ -7261,9 +7731,17 @@
       </div>
       </div>
 
-      <div class="leaderboard-card">
-        <h2>Introer</h2>
-        <div id="intro-library" class="intro-library"></div>
+      <div class="intro-sidebar">
+        <div class="leaderboard-card intro-sidebar-card">
+          <div class="intro-library-panel-head">
+            <div>
+              <div class="intro-section-kicker">Bibliotek</div>
+              <h2 class="intro-library-title">Introer som er klare</h2>
+            </div>
+            <div id="intro-library-meta" class="intro-library-meta"></div>
+          </div>
+          <div id="intro-library" class="intro-library"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -9306,6 +9784,7 @@
 
     renderRegisterQuickStats(now);
     renderIntroDailyStats(now);
+    renderIntroMotivationPanel(now);
     renderLastRegisteredNote();
   }
 
@@ -9473,13 +9952,46 @@
     const dayEntries = history.filter(entry => isToday(entry.isoDate));
     const dayStats = statsFor(dayEntries);
     const todaySessionCount = getStartedSessionCountForDate(reference, reference);
-    if (!dayStats.introSuccesses) {
-      container.innerHTML = '<div class="register-intro-empty">Ingen opptak registrert i dag ennå.</div>';
-      return;
-    }
     container.innerHTML = `
       ${statCard(dayStats.introSuccesses, 'Opptak i dag', false, 'blue')}
       ${statCard(formatAveragePerSession(dayStats.introSuccesses, todaySessionCount), todaySessionCount ? `Snitt per økt (${dayStats.introSuccesses}/${todaySessionCount})` : 'Snitt per økt', false, 'purple')}
+    `;
+  }
+
+  function renderIntroMotivationPanel(reference = new Date()) {
+    const container = document.getElementById('intro-motivation-panel');
+    if (!container) return;
+    const history = getIntroHistory();
+    const intros = getSavedIntros();
+    const todayEntries = history.filter(entry => isToday(entry.isoDate));
+    const weekEntries = history.filter(entry => isThisWeek(entry.isoDate));
+    const todayStats = statsFor(todayEntries);
+    const weekStats = statsFor(weekEntries);
+    const todaySessionCount = getStartedSessionCountForDate(reference, reference);
+    const performanceRows = getIntroPerformanceRows(intros, history);
+    const bestIntro = performanceRows[0] || null;
+
+    container.innerHTML = `
+      <div class="intro-motivation-card">
+        <div class="intro-motivation-label">Opptak i dag</div>
+        <div class="intro-motivation-value tone-blue">${todayStats.introSuccesses}</div>
+        <div class="intro-motivation-meta">${todayStats.over5} over 6 min · ${todayStats.salg} salg</div>
+      </div>
+      <div class="intro-motivation-card">
+        <div class="intro-motivation-label">Snitt i dag</div>
+        <div class="intro-motivation-value tone-purple">${formatAveragePerSession(todayStats.introSuccesses, todaySessionCount)}</div>
+        <div class="intro-motivation-meta">${todaySessionCount ? `${todayStats.introSuccesses}/${todaySessionCount} økter startet` : 'Ingen økter startet'}</div>
+      </div>
+      <div class="intro-motivation-card">
+        <div class="intro-motivation-label">Denne uken</div>
+        <div class="intro-motivation-value tone-teal">${weekStats.introSuccesses}</div>
+        <div class="intro-motivation-meta">${weekStats.over5} over 6 min · ${weekStats.salg} salg</div>
+      </div>
+      <div class="intro-motivation-card">
+        <div class="intro-motivation-label">Beste intro</div>
+        <div class="intro-motivation-value tone-gold">${bestIntro ? formatAveragePerSession(bestIntro.successes, bestIntro.sessionCount) : '—'}</div>
+        <div class="intro-motivation-meta">${bestIntro ? escHtml(summarizeHistoryEntry(bestIntro.i.text)) : 'Ingen data ennå'}</div>
+      </div>
     `;
   }
 
@@ -9509,11 +10021,13 @@
     const latest = getIntroHistory().find(entry => entry && entry.isoDate);
     if (!latest) {
       note.textContent = '';
+      note.style.display = 'none';
       return;
     }
     const latestDate = new Date(latest.isoDate);
     const timeText = latestDate.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' });
     note.textContent = `Sist registrert kl. ${timeText}`;
+    note.style.display = 'inline-flex';
   }
 
   function resetIntroLeaderboardData() {
@@ -12112,24 +12626,15 @@
 
   function selectIntroInline(id) { selectIntro(id); }
 
-  function renderIntroLibrary() {
-    const container = document.getElementById('intro-library');
-    const intros = getSavedIntros();
-    if (!intros.length) {
-      container.innerHTML = '<p class="intro-library-empty">Ingen introen lagret ennå – skriv den første nedenfor.</p>';
-      return;
-    }
-    const history = getIntroHistory();
-    const now = new Date();
-    const activeSession = getCurrentCallSession();
-    const activeIntroId = activeSession ? getAssignedIntroIdForSession(activeSession) : getStoredSelectedIntroId();
-
-    const withStats = intros.map(i => {
-      const entries = history.filter(h => {
-        const entryIntro = resolveEntryIntro(h, intros);
+  function getIntroPerformanceRows(intros = getSavedIntros(), history = getIntroHistory()) {
+    const safeIntros = Array.isArray(intros) ? intros : [];
+    const safeHistory = Array.isArray(history) ? history : [];
+    const rows = safeIntros.map(i => {
+      const entries = safeHistory.filter(h => {
+        const entryIntro = resolveEntryIntro(h, safeIntros);
         return entryIntro && entryIntro.id === i.id;
       });
-      const sessionCount = getStartedSessionKeysForIntro(i.id, intros, history).size;
+      const sessionCount = getStartedSessionKeysForIntro(i.id, safeIntros, safeHistory).size;
       const successes = entries.filter(isIntroSuccessEntry).length;
       return {
         i,
@@ -12141,17 +12646,39 @@
       };
     });
 
-    withStats.sort((a, b) => {
+    rows.sort((a, b) => {
       if (b.averagePerSession !== a.averagePerSession) return b.averagePerSession - a.averagePerSession;
       return b.successes - a.successes;
     });
 
-    container.innerHTML = withStats.map(({ i, successes, sessionCount, averagePerSession, over5, sales }, index) => {
+    return rows;
+  }
+
+  function renderIntroLibraryMeta(introCount) {
+    const meta = document.getElementById('intro-library-meta');
+    if (!meta) return;
+    meta.textContent = introCount ? `${introCount} ${introCount === 1 ? 'intro' : 'introer'}` : 'Tomt';
+  }
+
+  function renderIntroLibrary() {
+    const container = document.getElementById('intro-library');
+    const intros = getSavedIntros();
+    renderIntroLibraryMeta(intros.length);
+    if (!intros.length) {
+      container.innerHTML = '<p class="intro-library-empty">Ingen introer lagret ennå.</p>';
+      return;
+    }
+    const history = getIntroHistory();
+    const activeSession = getCurrentCallSession();
+    const activeIntroId = activeSession ? getAssignedIntroIdForSession(activeSession) : getStoredSelectedIntroId();
+    const withStats = getIntroPerformanceRows(intros, history);
+
+    container.innerHTML = withStats.map(({ i, successes, sessionCount, over5, sales }, index) => {
       const statsRow = sessionCount
-        ? `<div class="intro-chip-stats" style="margin-top:5px;">${successes} opptak på ${sessionCount} ${sessionCount === 1 ? 'økt' : 'økter'} &nbsp; ${over5} over 6 min &nbsp; ${sales} salg</div>`
-        : `<div class="intro-chip-stats" style="margin-top:5px;">Ingen økter registrert ennå</div>`;
+        ? `<div class="intro-chip-stats">${successes} opptak på ${sessionCount} ${sessionCount === 1 ? 'økt' : 'økter'} &nbsp; ${over5} over 6 min &nbsp; ${sales} salg</div>`
+        : `<div class="intro-chip-stats">Ingen økter registrert ennå</div>`;
       const activeBadge = activeIntroId === i.id
-        ? `<div style="font-size:0.75rem;font-weight:700;color:#0f766e;margin-bottom:6px;">Aktiv for økten</div>`
+        ? '<div class="intro-chip-active">Aktiv for økten</div>'
         : '';
       return `
         <div class="intro-chip ${selectedIntroId === i.id ? 'selected' : ''}" onclick="selectIntro('${i.id}')">
@@ -12166,7 +12693,7 @@
             ${activeBadge}
             <div>${escHtml(i.text)}</div>
             ${statsRow}
-            <button class="save-btn" style="margin-top:10px;padding:8px 12px;font-size:0.85rem;box-shadow:none;" onclick="event.stopPropagation(); registerIntroSuccessById('${i.id}')">+ Registrer opptak</button>
+            <button class="save-btn intro-chip-register-btn" onclick="event.stopPropagation(); registerIntroSuccessById('${i.id}')">+ Registrer opptak</button>
           </div>
           <button class="intro-chip-delete" title="Slett intro" onclick="event.stopPropagation(); deleteSavedIntro('${i.id}')">×</button>
         </div>
