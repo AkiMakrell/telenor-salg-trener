@@ -5936,6 +5936,19 @@
       text-shadow: 0 2px 8px rgba(0,0,0,0.5);
       letter-spacing: 0.02em;
     }
+    #gif-media {
+      display: block;
+      width: min(92vw, 540px);
+      max-height: min(62vh, 540px);
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+      object-fit: contain;
+      background: rgba(15, 23, 42, 0.92);
+    }
+    #gif-media[hidden] {
+      display: none;
+    }
     @keyframes fadeInOverlay {
       from { opacity: 0; } to { opacity: 1; }
     }
@@ -6839,6 +6852,7 @@
 <div id="gif-overlay" onclick="closeGif()">
   <canvas id="confetti-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></canvas>
   <div id="gif-label"></div>
+  <img id="gif-media" alt="" hidden>
   <div style="color:white;font-size:0.9rem;opacity:0.6;">Trykk for å lukke</div>
 </div>
 
@@ -12201,11 +12215,12 @@
 
     const previousHistory = cloneIntroHistory();
     const history = cloneIntroHistory(previousHistory);
-    history.unshift(buildOpptakEntry(intro, {
+    const nextEntry = buildOpptakEntry(intro, {
       over5min: selectedOver5min === 'ja' ? 'ja' : 'nei',
       salg: selectedSalg === 'ja' ? 'ja' : 'nei',
       salesCount,
-    }));
+    });
+    history.unshift(nextEntry);
     const actionLabel = selectedSalg === 'ja'
       ? `Registrerte opptak med ${salesCount} abo`
       : selectedOver5min === 'ja'
@@ -12214,9 +12229,7 @@
     commitIntroHistory(history, {
       undoState: buildRegistrationUndoState(actionLabel, previousHistory)
     });
-
-    if (selectedSalg === 'ja') showCelebrationGif('salg');
-    else if (selectedOver5min === 'ja') showCelebrationGif('over5min');
+    queueCelebrationsForEntryChange(null, nextEntry);
 
     resetOpptak();
   }
@@ -12387,6 +12400,7 @@
           : `Historikk lagret for ${formatHistoryTimestamp(entryDate)}.`
       }
     });
+    queueCelebrationsForEntryChange(existingEntry, nextEntry);
   }
 
   function renderRetroHistoryPage() {
@@ -14260,26 +14274,137 @@
   });
 
   // ---- Celebration confetti ----
+  const CELEBRATION_GIFS = {
+    salg: [
+      'GIFS/salg/Credit Card Snl GIF by Saturday Night Live.gif',
+      'GIFS/salg/Donald Duck Money GIF.gif',
+      'GIFS/salg/Flexing Make It Rain GIF by WTF Leagues.gif',
+      'GIFS/salg/gif.gif',
+      'GIFS/salg/Jon Stewart Crying GIF.gif',
+      'GIFS/salg/Leonardo Dicaprio Reaction GIF.gif',
+      'GIFS/salg/Make It Rain Money GIF.gif',
+      'GIFS/salg/Mr Bean Beach GIF by Working Title.gif',
+      'GIFS/salg/The Order Money GIF.gif',
+      'GIFS/salg/Vince Mcmahon Money GIF.gif'
+    ],
+    over5min: [
+      'GIFS/6-minuttere/Lionel Messi Football GIF by FC Barcelona.gif',
+      'GIFS/6-minuttere/Moon Walk Dance GIF.gif',
+      'GIFS/6-minuttere/Pablo Narcos GIF by NETFLIX.gif',
+      'GIFS/6-minuttere/Premier League Celebration GIF (1).gif',
+      'GIFS/6-minuttere/Premier League Celebration GIF (2).gif',
+      'GIFS/6-minuttere/Premier League Celebration GIF.gif',
+      'GIFS/6-minuttere/Real Madrid Win GIF by KICK.gif',
+      'GIFS/6-minuttere/The Office Party Hard GIF (1).gif',
+      'GIFS/6-minuttere/The Office Party Hard GIF.gif',
+      'GIFS/6-minuttere/Tiger Woods Sport GIF by sportseditor.gif',
+      'GIFS/6-minuttere/Tongue Goat GIF.gif',
+      'GIFS/6-minuttere/Will Ferrell Reaction GIF.gif'
+    ]
+  };
+  const celebrationQueue = [];
+  let activeCelebration = null;
   let gifTimer = null;
   let confettiFrame = null;
   let confettiStopTimer = null;
 
-  function showCelebrationGif(type) {
-    const label = type === 'salg' ? 'SALG!' : '6-MINUTTERS!';
-    document.getElementById('gif-label').textContent = label;
-    document.getElementById('gif-overlay').classList.add('visible');
+  function encodeAssetPath(path) {
+    return String(path || '')
+      .split('/')
+      .map(segment => encodeURIComponent(segment))
+      .join('/');
+  }
+
+  function getRandomCelebrationGif(type) {
+    const gifs = CELEBRATION_GIFS[type] || [];
+    if (!gifs.length) return '';
+    return encodeAssetPath(gifs[Math.floor(Math.random() * gifs.length)]);
+  }
+
+  function getCelebrationLabel(celebration) {
+    if (celebration?.type === 'salg') {
+      const salesCount = Math.max(1, Math.floor(Number(celebration?.salesCount) || 1));
+      return salesCount > 1 ? `${salesCount} ABO!` : 'SALG!';
+    }
+    return '6-MINUTTER!';
+  }
+
+  function enqueueCelebration(type, options = {}) {
+    if (!type) return;
+    celebrationQueue.push({
+      type,
+      salesCount: Math.max(1, Math.floor(Number(options.salesCount) || 1))
+    });
+    if (!activeCelebration) showNextCelebrationGif();
+  }
+
+  function queueCelebrationsForEntryChange(previousEntry, nextEntry) {
+    if (!nextEntry) return;
+    const previousSales = getEntrySalesCount(previousEntry);
+    const nextSales = getEntrySalesCount(nextEntry);
+    if (nextEntry.salg === 'ja' && nextSales > previousSales) {
+      enqueueCelebration('salg', { salesCount: nextSales - previousSales });
+    }
+    if (nextEntry.over5min === 'ja' && previousEntry?.over5min !== 'ja') {
+      enqueueCelebration('over5min');
+    }
+  }
+
+  function showNextCelebrationGif() {
+    if (activeCelebration || !celebrationQueue.length) return;
+    activeCelebration = celebrationQueue.shift();
+    showCelebrationGif(activeCelebration);
+  }
+
+  function showCelebrationGif(celebration) {
+    const overlay = document.getElementById('gif-overlay');
+    const label = document.getElementById('gif-label');
+    const media = document.getElementById('gif-media');
+    if (!overlay || !label || !media) return;
+    const gifSrc = getRandomCelebrationGif(celebration?.type);
+    label.textContent = getCelebrationLabel(celebration);
+    media.onerror = () => {
+      media.hidden = true;
+      media.removeAttribute('src');
+    };
+    if (gifSrc) {
+      media.hidden = false;
+      media.src = gifSrc;
+      media.alt = label.textContent;
+    } else {
+      media.hidden = true;
+      media.removeAttribute('src');
+      media.alt = '';
+    }
+    overlay.classList.add('visible');
     clearTimeout(gifTimer);
+    clearTimeout(confettiStopTimer);
     gifTimer = setTimeout(closeGif, 6500);
-    startConfetti(type === 'salg' ? ['#f7c948','#4CAF50','#fff','#ff9800'] : ['#3b82f6','#a855f7','#fff','#22c55e']);
+    startConfetti(celebration?.type === 'salg' ? ['#f7c948', '#4CAF50', '#fff', '#ff9800'] : ['#3b82f6', '#a855f7', '#fff', '#22c55e']);
   }
 
   function closeGif() {
-    document.getElementById('gif-overlay').classList.remove('visible');
+    const overlay = document.getElementById('gif-overlay');
+    const media = document.getElementById('gif-media');
+    overlay?.classList.remove('visible');
+    if (media) {
+      media.hidden = true;
+      media.removeAttribute('src');
+      media.alt = '';
+    }
     clearTimeout(gifTimer);
     stopConfetti();
+    activeCelebration = null;
+    if (celebrationQueue.length) setTimeout(showNextCelebrationGif, 60);
   }
 
   document.addEventListener('keydown', event => {
+    const gifOverlay = document.getElementById('gif-overlay');
+    if (gifOverlay && gifOverlay.classList.contains('visible') && event.key === 'Escape') {
+      event.preventDefault();
+      closeGif();
+      return;
+    }
     const recoveryOverlay = document.getElementById('recovery-overlay');
     if (recoveryOverlay && recoveryOverlay.classList.contains('visible') && event.key === 'Escape') {
       event.preventDefault();
@@ -14369,20 +14494,21 @@
     if (type === 'salg' && salesCount === null) return;
     const previousHistory = cloneIntroHistory();
     const history = cloneIntroHistory(previousHistory);
-    history.unshift(buildIntroHistoryEntry(null, {
+    const nextEntry = buildIntroHistoryEntry(null, {
       opptak: 'nei',
       over5min: type === 'over5min' ? 'ja' : 'nei',
       salg: type === 'salg' ? 'ja' : 'nei',
       salesCount,
       quickEntry: true
-    }));
+    });
+    history.unshift(nextEntry);
     const actionLabel = type === 'salg'
       ? `Registrerte ${salesCount} abo`
       : 'Registrerte 6-minutter';
     commitIntroHistory(history, {
       undoState: buildRegistrationUndoState(actionLabel, previousHistory)
     });
-    showCelebrationGif(type);
+    queueCelebrationsForEntryChange(null, nextEntry);
   }
 
   function exportData() {
