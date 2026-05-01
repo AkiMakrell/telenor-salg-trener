@@ -471,6 +471,75 @@
       display: none;
     }
 
+    .app-footer {
+      max-width: var(--app-shell-max);
+      margin: 40px auto 0;
+      padding: 20px 24px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 22px;
+      background: rgba(11, 18, 32, 0.82);
+      box-shadow: 0 18px 42px rgba(2, 6, 23, 0.22);
+      backdrop-filter: blur(12px);
+    }
+
+    .app-footer-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 14px;
+    }
+
+    .app-footer-brand {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .app-footer-copy {
+      margin-top: 6px;
+      max-width: 560px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    .app-footer-meta {
+      color: #64748b;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .app-footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(148, 163, 184, 0.12);
+    }
+
+    .app-footer-link {
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 999px;
+      padding: 9px 14px;
+      background: rgba(15, 23, 42, 0.68);
+      color: var(--text);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+
+    .app-footer-link:hover {
+      border-color: rgba(56, 189, 248, 0.3);
+      background: rgba(17, 34, 59, 0.9);
+      transform: translateY(-1px);
+    }
+
     .tab-btn {
       padding: 8px 22px;
       border: none;
@@ -3104,6 +3173,14 @@
     }
 
     @media (max-width: 980px) {
+      .app-footer-top {
+        flex-direction: column;
+      }
+
+      .app-footer-meta {
+        white-space: normal;
+      }
+
       .top-bar {
         flex-direction: column;
         align-items: stretch;
@@ -7308,6 +7385,25 @@
 </div>
 </div>
 </div>
+
+<footer class="app-footer">
+  <div class="app-footer-top">
+    <div>
+      <div class="app-footer-brand">Telenor Salg Trener</div>
+      <div class="app-footer-copy">
+        Dette er en enkel plassholder-footer du kan redigere videre med egen tekst, lenker, kontaktinfo eller annet innhold du vil ha nederst på alle sider.
+      </div>
+    </div>
+    <div class="app-footer-meta">Rediger meg</div>
+  </div>
+  <div class="app-footer-links">
+    <button class="app-footer-link" type="button" onclick="switchTab('hjem')">Dashboard</button>
+    <button class="app-footer-link" type="button" onclick="switchTab('intro')">Registrering</button>
+    <button class="app-footer-link" type="button" onclick="openRetroHistoryPage()">Historikk</button>
+    <button class="app-footer-link" type="button" onclick="switchTab('goals')">Mål</button>
+    <button class="app-footer-link" type="button" onclick="switchTab('innvendinger')">Innvendinger</button>
+  </div>
+</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
