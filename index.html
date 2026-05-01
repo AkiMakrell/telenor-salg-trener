@@ -3606,6 +3606,177 @@
       }
     }
 
+    .intro-page-header {
+      max-width: var(--app-shell-max);
+      margin: 0 auto;
+    }
+
+    .intro-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+      gap: 24px;
+      align-items: start;
+      max-width: var(--app-shell-max);
+      margin: 0 auto;
+    }
+
+    .intro-main-stack,
+    .intro-sidebar {
+      min-width: 0;
+    }
+
+    .intro-main-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .intro-panel,
+    .intro-sidebar-card {
+      padding: 22px;
+      border-radius: 22px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.98));
+      box-shadow: 0 16px 34px rgba(15, 23, 42, 0.1);
+    }
+
+    .intro-action-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .intro-primary-register {
+      margin-top: 0;
+      width: 100%;
+      padding: 16px;
+      border-radius: 16px;
+      font-size: 1.02rem;
+      font-weight: 800;
+    }
+
+    .intro-page-status-inline {
+      max-width: none;
+      margin-top: 0;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border-color: rgba(148, 163, 184, 0.14);
+      background: rgba(15, 23, 42, 0.04);
+      box-shadow: none;
+    }
+
+    .intro-page-status-inline .intro-page-status-title {
+      color: var(--primary-dark);
+      font-size: 0.98rem;
+    }
+
+    .intro-page-status-inline .intro-page-status-subtitle {
+      color: var(--muted);
+    }
+
+    .intro-panel-title {
+      color: var(--primary-dark);
+      font-size: 1.08rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin-bottom: 14px;
+    }
+
+    .intro-stats-panel .intro-performance-strip {
+      margin-bottom: 0;
+    }
+
+    .intro-editor-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .intro-editor-head .intro-panel-title {
+      margin-bottom: 0;
+    }
+
+    .intro-form-label {
+      margin-bottom: 10px;
+    }
+
+    .intro-editor-panel textarea {
+      min-height: 168px;
+    }
+
+    .intro-workspace-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .intro-workspace-actions .save-btn,
+    .intro-workspace-actions .backup-btn {
+      margin-top: 0;
+    }
+
+    .intro-dashboard-shortcut-row {
+      margin-top: 0;
+    }
+
+    .intro-library-panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .intro-library-title {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .intro-sidebar-card .intro-library {
+      margin-bottom: 0;
+    }
+
+    .intro-sidebar-card .intro-chip-register-btn {
+      width: 100%;
+    }
+
+    .intro-sidebar-card .intro-chip-score-label {
+      color: #64748b;
+    }
+
+    @media (max-width: 980px) {
+      .intro-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .intro-panel,
+      .intro-sidebar-card {
+        padding: 18px;
+      }
+
+      .intro-editor-head,
+      .intro-library-panel-head,
+      .intro-workspace-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .intro-last-registered,
+      .intro-library-meta {
+        width: fit-content;
+      }
+
+      .intro-workspace-actions .save-btn,
+      .intro-workspace-actions .backup-btn {
+        width: 100%;
+      }
+    }
+
     @media (max-width: 980px) {
       .app-footer-top {
         flex-direction: column;
@@ -7665,78 +7836,68 @@
 <div id="tab-intro" class="tab-content">
 
   <div class="intro-page-header">
-    <div class="intro-hero-card">
-      <div class="intro-hero-copy">
-        <div class="intro-hero-eyebrow">Introtest</div>
-        <div class="intro-hero-title">Gjør introene dine skarpere</div>
-        <div class="intro-hero-text">Test en intro bevisst, registrer opptak fortløpende og bygg videre på det som faktisk fungerer.</div>
-        <div class="intro-hero-note">Én intro per økt gir tydeligere signaler.</div>
-        <div id="session-status" class="intro-page-status">
-          <div id="session-status-title" class="intro-page-status-title">Laster aktiv økt...</div>
-          <div id="session-status-subtitle" class="intro-page-status-subtitle"></div>
-        </div>
-      </div>
-      <div id="intro-motivation-panel" class="intro-motivation-panel"></div>
-    </div>
-  </div>
-
-  <div class="register-intro-section">
     <div class="intro-layout">
-      <div class="register-intro-main">
-        <div class="card register-intro-card">
-        <div class="intro-workspace-head">
-          <div>
-            <div class="intro-section-kicker">Verksted</div>
-            <div class="intro-workspace-title">Aktiv intro</div>
+      <div class="intro-main-stack">
+        <div class="card intro-panel intro-action-panel">
+          <button class="save-btn intro-primary-register" onclick="registerIntroSuccess()">Registrer Intro</button>
+
+          <div class="intro-dashboard-shortcut-row">
+            <label class="intro-dashboard-shortcut-label" for="dashboard-opptak-shortcut-toggle">
+              <input id="dashboard-opptak-shortcut-toggle" type="checkbox" onchange="toggleDashboardOpptakShortcut(this.checked)">
+              <span>Vis registrer opptak på hjem</span>
+            </label>
           </div>
-          <div id="last-registered-note" class="intro-last-registered"></div>
-        </div>
 
-        <div id="intro-daily-stats" class="stats-grid stats-grid-2 intro-performance-strip"></div>
-
-        <label class="form-label intro-form-label">Introtekst</label>
-        <textarea id="intro-text" placeholder="Hei, jeg ringer fra Telenor..." oninput="autoResizeTextarea(this)"></textarea>
-        <div class="intro-inline-note">OBS: Test kun 1 intro per økt for korrekt vurdering</div>
-
-        <div id="intro-library-inline" style="display:none;"></div>
-
-        <div class="intro-workspace-actions">
-          <button class="save-btn" style="margin-top:0;background:#e8f4fb;color:var(--primary-dark);box-shadow:none;" onclick="saveIntro()">Lagre intro i bibliotek</button>
-          <button class="backup-btn" style="font-size:0.9rem;padding:10px 14px;border-radius:8px;color:var(--muted);" onclick="clearIntroSelection()">Ny intro</button>
-        </div>
-
-        <div class="intro-dashboard-shortcut-row">
-          <label class="intro-dashboard-shortcut-label" for="dashboard-opptak-shortcut-toggle">
-            <input id="dashboard-opptak-shortcut-toggle" type="checkbox" onchange="toggleDashboardOpptakShortcut(this.checked)">
-            <span>Vis Registrer opptak på hjem</span>
-          </label>
-        </div>
-
-        <button class="save-btn intro-primary-register" onclick="registerIntroSuccess()">Registrer opptak</button>
-
-        <button class="history-toggle-btn" onclick="toggleHistory()">Vis historikk</button>
-        <div id="history-panel" class="history-panel">
-          <div class="history-panel-head">
-            <div>
-              <span style="font-weight:600;color:var(--primary-dark);">Historikk</span>
-              <div id="intro-history-undo-note" class="history-danger-note">Tøm all historikk sletter alle opptak og tidligere forsøk. Du kan angre siste sletting.</div>
-            </div>
-            <div class="history-panel-actions">
-              <button class="clear-history-btn" type="button" onclick="clearIntroHistory()">Tøm all historikk</button>
-              <button id="intro-history-undo-btn" class="backup-btn undo-history-btn" data-intro-history-undo type="button" onclick="undoLastIntroHistoryAction()">Angre siste handling</button>
-            </div>
+          <div id="session-status" class="intro-page-status intro-page-status-inline">
+            <div id="session-status-title" class="intro-page-status-title">Laster aktiv økt...</div>
+            <div id="session-status-subtitle" class="intro-page-status-subtitle"></div>
           </div>
-          <div id="intro-history" class="history-list"></div>
         </div>
-      </div>
+
+        <div class="card intro-panel intro-stats-panel">
+          <div class="intro-panel-title">I dag</div>
+          <div id="intro-daily-stats" class="stats-grid stats-grid-2 intro-performance-strip"></div>
+        </div>
+
+        <div class="card intro-panel intro-editor-panel">
+          <div class="intro-editor-head">
+            <div class="intro-panel-title">Aktiv Intro</div>
+            <div id="last-registered-note" class="intro-last-registered"></div>
+          </div>
+
+          <label class="form-label intro-form-label">Introtekst</label>
+          <textarea id="intro-text" placeholder="Hei, jeg ringer fra Telenor..." oninput="autoResizeTextarea(this)"></textarea>
+          <div class="intro-inline-note">OBS: Test kun 1 intro per økt for korrekt vurdering</div>
+
+          <div id="intro-library-inline" style="display:none;"></div>
+
+          <div class="intro-workspace-actions">
+            <button class="save-btn" style="margin-top:0;background:#e8f4fb;color:var(--primary-dark);box-shadow:none;" onclick="saveIntro()">Lagre intro i bibliotek</button>
+            <button class="backup-btn" style="font-size:0.9rem;padding:10px 14px;border-radius:8px;color:var(--muted);" onclick="clearIntroSelection()">Ny intro</button>
+          </div>
+
+          <button class="history-toggle-btn" onclick="toggleHistory()">Vis historikk</button>
+          <div id="history-panel" class="history-panel">
+            <div class="history-panel-head">
+              <div>
+                <span style="font-weight:600;color:var(--primary-dark);">Historikk</span>
+                <div id="intro-history-undo-note" class="history-danger-note">Tøm all historikk sletter alle opptak og tidligere forsøk. Du kan angre siste sletting.</div>
+              </div>
+              <div class="history-panel-actions">
+                <button class="clear-history-btn" type="button" onclick="clearIntroHistory()">Tøm all historikk</button>
+                <button id="intro-history-undo-btn" class="backup-btn undo-history-btn" data-intro-history-undo type="button" onclick="undoLastIntroHistoryAction()">Angre siste handling</button>
+              </div>
+            </div>
+            <div id="intro-history" class="history-list"></div>
+          </div>
+        </div>
       </div>
 
       <div class="intro-sidebar">
         <div class="leaderboard-card intro-sidebar-card">
           <div class="intro-library-panel-head">
             <div>
-              <div class="intro-section-kicker">Bibliotek</div>
-              <h2 class="intro-library-title">Introer som er klare</h2>
+              <h2 class="intro-library-title">Intro leaderboard</h2>
             </div>
             <div id="intro-library-meta" class="intro-library-meta"></div>
           </div>
