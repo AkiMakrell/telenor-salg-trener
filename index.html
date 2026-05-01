@@ -3453,6 +3453,302 @@
       background: linear-gradient(90deg, #f59e0b, #fbbf24);
     }
 
+    .dashboard-home-hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: 24px;
+      border: 1px solid rgba(56, 189, 248, 0.16);
+      background:
+        radial-gradient(circle at top right, rgba(56, 189, 248, 0.16), transparent 36%),
+        linear-gradient(135deg, rgba(10, 19, 36, 0.98), rgba(15, 23, 42, 0.96));
+      box-shadow: 0 18px 36px rgba(2, 6, 23, 0.24);
+      padding: 26px;
+    }
+
+    .dashboard-home-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.24);
+      background: rgba(17, 34, 59, 0.72);
+      color: #bae6fd;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .dashboard-home-title {
+      margin-top: 16px;
+      font-size: 2rem;
+      font-weight: 900;
+      line-height: 1.05;
+      color: var(--text);
+      letter-spacing: -0.03em;
+    }
+
+    .dashboard-home-text {
+      max-width: 760px;
+      margin-top: 12px;
+      color: #cbd5e1;
+      font-size: 0.96rem;
+      line-height: 1.6;
+    }
+
+    .dashboard-home-meta,
+    .dashboard-card-meta {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .dashboard-home-pill,
+    .dashboard-card-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: rgba(15, 23, 42, 0.68);
+      color: var(--text);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .dashboard-home-actions,
+    .dashboard-card-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .dashboard-home-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.88fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .dashboard-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-width: 0;
+    }
+
+    .dashboard-card {
+      border-radius: 22px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: linear-gradient(180deg, rgba(10, 18, 32, 0.96), rgba(15, 23, 42, 0.92));
+      padding: 22px;
+      box-shadow: 0 16px 34px rgba(2, 6, 23, 0.2);
+    }
+
+    .dashboard-card-strong {
+      border-color: rgba(56, 189, 248, 0.18);
+      box-shadow: 0 18px 36px rgba(2, 6, 23, 0.24);
+    }
+
+    .dashboard-card-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .dashboard-card-title {
+      color: var(--text);
+      font-size: 1.08rem;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    .dashboard-card-text {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+
+    .dashboard-quick-grid,
+    .dashboard-tool-grid,
+    .dashboard-progress-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .dashboard-quick-grid,
+    .dashboard-progress-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-tool-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-quick-btn,
+    .dashboard-tool-btn {
+      width: 100%;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 18px;
+      background: rgba(15, 23, 42, 0.76);
+      color: var(--text);
+      text-align: left;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+
+    .dashboard-quick-btn:hover,
+    .dashboard-tool-btn:hover {
+      border-color: rgba(56, 189, 248, 0.24);
+      background: rgba(17, 34, 59, 0.9);
+      transform: translateY(-1px);
+    }
+
+    .dashboard-quick-btn.over6 {
+      background: linear-gradient(135deg, rgba(20, 184, 166, 0.18), rgba(15, 23, 42, 0.88));
+      border-color: rgba(45, 212, 191, 0.18);
+    }
+
+    .dashboard-quick-btn.sales {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(15, 23, 42, 0.88));
+      border-color: rgba(251, 191, 36, 0.18);
+    }
+
+    .dashboard-quick-btn-title,
+    .dashboard-tool-btn-title {
+      display: block;
+      color: var(--text);
+      font-size: 0.96rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .dashboard-quick-btn-text,
+    .dashboard-tool-btn-text {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    .dashboard-progress-item {
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 18px;
+      background: rgba(15, 23, 42, 0.68);
+      padding: 16px;
+    }
+
+    .dashboard-progress-label {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .dashboard-progress-value {
+      margin-top: 10px;
+      color: var(--text);
+      font-size: 1.5rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .dashboard-progress-meta {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .dashboard-leaderboard-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .dashboard-leaderboard-row {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.72);
+      padding: 12px 14px;
+    }
+
+    .dashboard-leaderboard-row.is-you {
+      border-color: rgba(56, 189, 248, 0.34);
+      background: rgba(17, 34, 59, 0.92);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.14);
+    }
+
+    .dashboard-leaderboard-rank {
+      width: 42px;
+      min-height: 42px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(180deg, rgba(148, 163, 184, 0.16), rgba(148, 163, 184, 0.08));
+      color: var(--text);
+      font-size: 0.86rem;
+      font-weight: 900;
+    }
+
+    .dashboard-leaderboard-name {
+      color: var(--text);
+      font-size: 0.92rem;
+      font-weight: 800;
+      line-height: 1.3;
+    }
+
+    .dashboard-leaderboard-sub {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.4;
+    }
+
+    .dashboard-leaderboard-points {
+      text-align: right;
+      color: var(--text);
+      font-size: 1.15rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .dashboard-leaderboard-points span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .dashboard-leaderboard-divider {
+      color: var(--muted);
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-align: center;
+      padding: 6px 0 2px;
+    }
+
     .personal-records-shell {
       background: linear-gradient(135deg, #181a31, #101828 58%, #0f172a);
       border: 1px solid rgba(148, 163, 184, 0.18);
@@ -4935,6 +5231,10 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
       }
+
+      .dashboard-home-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 640px) {
@@ -4962,6 +5262,30 @@
         text-align: left;
         white-space: normal;
         flex-wrap: wrap;
+      }
+
+      .dashboard-home-hero,
+      .dashboard-card {
+        padding: 18px;
+      }
+
+      .dashboard-home-title {
+        font-size: 1.6rem;
+      }
+
+      .dashboard-quick-grid,
+      .dashboard-tool-grid,
+      .dashboard-progress-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .dashboard-leaderboard-row {
+        grid-template-columns: 42px minmax(0, 1fr);
+      }
+
+      .dashboard-leaderboard-points {
+        grid-column: 2;
+        text-align: left;
       }
     }
 
@@ -6438,11 +6762,8 @@
 
   <div class="top-bar">
   <div class="tabs">
-    <button class="tab-btn" data-tab="intro" onclick="switchTab('intro', this)">Registrer</button>
-    <button class="tab-btn active" data-tab="hjem" onclick="switchTab('hjem', this)">Stats</button>
-    <button class="tab-btn" data-tab="innvendinger" onclick="switchTab('innvendinger', this)">Innvendinger</button>
-    <button class="tab-btn" data-tab="notater" onclick="switchTab('notater', this)">Notater</button>
-    <button class="tab-btn" data-tab="priser" onclick="switchTab('priser', this)">Pris kalkulator</button>
+    <button class="tab-btn active" data-tab="hjem" onclick="switchTab('hjem', this)">Dashboard</button>
+    <button class="tab-btn" data-tab="intro" onclick="switchTab('intro', this)">Full registrering</button>
     <div id="top-bar-tools" class="top-bar-tools">
       <button
         id="top-bar-tools-button"
@@ -6453,18 +6774,33 @@
         aria-label="Åpne flere faner"
         onclick="toggleTopBarTools()"
       >
-        <span>Mer</span>
+        <span>Verktøy</span>
         <span class="menu-trigger-icon" aria-hidden="true">&#9662;</span>
       </button>
       <div id="top-bar-tools-menu" class="tools-menu" role="menu">
+        <button class="more-tab-btn" data-tab="innvendinger" type="button" onclick="switchTab('innvendinger', this); closeTopBarTools();">
+          <span>Innvendinger</span>
+          <span class="more-tab-btn-meta">Svar i samtalen</span>
+        </button>
+        <button class="more-tab-btn" data-tab="notater" type="button" onclick="switchTab('notater', this); closeTopBarTools();">
+          <span>Notater</span>
+          <span class="more-tab-btn-meta">Fang behov og oppsummer</span>
+        </button>
+        <button class="more-tab-btn" data-tab="priser" type="button" onclick="switchTab('priser', this); closeTopBarTools();">
+          <span>Pris kalkulator</span>
+          <span class="more-tab-btn-meta">Regn på tilbud raskt</span>
+        </button>
         <button class="more-tab-btn" data-tab="ov" type="button" onclick="switchTab('ov', this); closeTopBarTools();">
           <span>OV</span>
+          <span class="more-tab-btn-meta">Utviklingsverktøy</span>
         </button>
         <button class="more-tab-btn" data-tab="samtalerating" type="button" onclick="switchTab('samtalerating', this); closeTopBarTools();">
           <span>Samtalerating</span>
+          <span class="more-tab-btn-meta">Vurder samtaler</span>
         </button>
         <button class="more-tab-btn" data-tab="samtaleflyt" type="button" onclick="switchTab('samtaleflyt', this); closeTopBarTools();">
           <span>Flyt</span>
+          <span class="more-tab-btn-meta">Lengre samtalestøtte</span>
         </button>
       </div>
     </div>
@@ -6962,7 +7298,7 @@
   function setLeaderboardState(state, errorMessage = '') {
     leaderboardState = state;
     leaderboardErrorMessage = errorMessage;
-    if (activeStatsSubview === 'leaderboard') renderStatsHome();
+    if (activeStatsSubview === 'leaderboard' || activeStatsSubview === 'overview') renderStatsHome();
   }
 
   function clearLeaderboardState() {
@@ -8286,7 +8622,7 @@
     document.getElementById('tab-' + name).classList.add('active');
     const button = triggerButton || document.querySelector(`.tab-btn[data-tab="${activeButtonName}"], .more-tab-btn[data-tab="${activeButtonName}"]`);
     if (button) button.classList.add('active');
-    if (name === 'ov' || name === 'samtalerating' || name === 'samtaleflyt') {
+    if (['innvendinger', 'notater', 'priser', 'ov', 'samtalerating', 'samtaleflyt'].includes(name)) {
       document.getElementById('top-bar-tools-button')?.classList.add('active');
     }
     closeTopBarTools();
@@ -10655,12 +10991,18 @@
   function setLeaderboardPeriod(periodId) {
     const allowedPeriods = LEADERBOARD_PERIOD_CONFIG.map(period => period.id);
     activeLeaderboardPeriod = allowedPeriods.includes(periodId) ? periodId : 'day';
-    if (activeStatsSubview === 'leaderboard') renderStatsHome();
+    if (activeStatsSubview === 'leaderboard' || activeStatsSubview === 'overview') renderStatsHome();
+  }
+
+  function openStatsDashboardView(view = 'overview') {
+    const allowedViews = ['overview', 'development', 'records', 'leaderboard', 'goals'];
+    activeStatsSubview = allowedViews.includes(view) ? view : 'overview';
+    activateTab('hjem', 'hjem');
   }
 
   function renderStatsSubviewNav(activeView) {
     const items = [
-      { id: 'overview', label: 'Hovedside' },
+      { id: 'overview', label: 'Dashboard' },
       { id: 'development', label: 'Utvikling' },
       { id: 'records', label: 'Rekorder' },
       { id: 'leaderboard', label: 'Leaderboard' },
@@ -10668,7 +11010,7 @@
     ];
     return `
       <div class="stats-sidebar-card">
-        <span class="stats-sidebar-label">Stats</span>
+        <span class="stats-sidebar-label">Oversikt</span>
         <div class="stats-nav">
           ${items.map(item => `
             <button
@@ -10752,6 +11094,209 @@
         <div class="leaderboard-summary-value">${ownPoints}</div>
         <div class="leaderboard-summary-meta">${ownSales} abo · ${ownOver6} stk 6 min</div>
         <div class="leaderboard-summary-foot">${meta}</div>
+      </div>
+    `;
+  }
+
+  function renderDashboardHomeHero(displayName, dag, uke, monthGoalStatus) {
+    const monthlyGoalCopy = monthGoalStatus?.helperParts?.length
+      ? monthGoalStatus.helperParts.join(' og ')
+      : 'Hold trykket oppe og bruk dashboardet til å se hvor du kan hente neste løft.';
+    return `
+      <div class="dashboard-home-hero">
+        <div class="dashboard-home-kicker">Telenor salg cockpit</div>
+        <div class="dashboard-home-title">Hei ${escHtml(displayName)} - her har du dagens viktigste arbeidsflate.</div>
+        <div class="dashboard-home-text">
+          Logg resultater raskt, se hvor du ligger mot teamet, og hold fokus på utviklingen din uten å lete gjennom flere forskjellige verktøy.
+        </div>
+        <div class="dashboard-home-meta">
+          <span class="dashboard-home-pill">I dag: ${dag.over5} stk 6-min · ${dag.salg} abo</span>
+          <span class="dashboard-home-pill">Denne uken: ${uke.over5} stk 6-min · ${uke.salg} abo</span>
+          <span class="dashboard-home-pill">${escHtml(monthlyGoalCopy)}</span>
+        </div>
+        <div class="dashboard-home-actions">
+          <button class="save-btn" style="margin-top:0;" type="button" onclick="quickRegister('over5min')">Logg 6-minutter</button>
+          <button class="save-btn" style="margin-top:0;background:linear-gradient(135deg,#16a34a,#15803d);box-shadow:0 10px 24px rgba(22,163,74,0.24);" type="button" onclick="quickRegister('salg')">Logg salg</button>
+          <button class="backup-btn" style="margin-top:0;" type="button" onclick="switchTab('intro')">Åpne full registrering</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderDashboardQuickRegisterCard(dag, uke) {
+    return `
+      <div class="dashboard-card dashboard-card-strong">
+        <div class="dashboard-card-heading">
+          <div>
+            <div class="dashboard-card-title">Registrer det viktigste med en gang</div>
+            <div class="dashboard-card-text">Hurtiglogging er førstelinjen. Full registrering ligger fortsatt tilgjengelig når du vil gå dypere.</div>
+          </div>
+        </div>
+        <div class="dashboard-quick-grid">
+          <button class="dashboard-quick-btn over6" type="button" onclick="quickRegister('over5min')">
+            <span class="dashboard-quick-btn-title">Registrer 6-minutter</span>
+            <span class="dashboard-quick-btn-text">Ett trykk for å få dagen oppdatert.</span>
+          </button>
+          <button class="dashboard-quick-btn sales" type="button" onclick="quickRegister('salg')">
+            <span class="dashboard-quick-btn-title">Registrer salg</span>
+            <span class="dashboard-quick-btn-text">Logg abo direkte uten å gå via fullskjemaet.</span>
+          </button>
+        </div>
+        <div class="dashboard-card-meta">
+          <span class="dashboard-card-pill">I dag: ${dag.over5} stk 6-min · ${dag.salg} abo</span>
+          <span class="dashboard-card-pill">Denne uken: ${uke.over5} stk 6-min · ${uke.salg} abo</span>
+        </div>
+        <div class="dashboard-card-actions">
+          <button class="backup-btn" style="margin-top:0;" type="button" onclick="switchTab('intro')">Gå til full registrering</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderDashboardProgressCard(dag, uke, mnd, dayGoalStatus, weekGoalStatus, monthGoalStatus) {
+    const cards = [
+      {
+        label: 'I dag',
+        value: `${dag.over5} / ${dag.salg}`,
+        meta: dayGoalStatus?.helperParts?.length ? dayGoalStatus.helperParts.join(' og ') : 'Dagens tempo vises live etter hver registrering.'
+      },
+      {
+        label: 'Denne uken',
+        value: `${uke.over5} / ${uke.salg}`,
+        meta: weekGoalStatus?.helperParts?.length ? weekGoalStatus.helperParts.join(' og ') : 'Ukestotalen gir deg retning på om trykket holder.'
+      },
+      {
+        label: 'Denne måneden',
+        value: `${mnd.over5} / ${mnd.salg}`,
+        meta: monthGoalStatus?.helperParts?.length ? monthGoalStatus.helperParts.join(' og ') : 'Månedsbildet hjelper deg å holde jevn progresjon.'
+      }
+    ];
+    return `
+      <div class="dashboard-card">
+        <div class="dashboard-card-heading">
+          <div>
+            <div class="dashboard-card-title">Din progresjon</div>
+            <div class="dashboard-card-text">Tallene er lagt opp for at du skal se både kortsiktig energi og langsiktig utvikling med en gang.</div>
+          </div>
+        </div>
+        <div class="dashboard-progress-grid">
+          ${cards.map(card => `
+            <div class="dashboard-progress-item">
+              <div class="dashboard-progress-label">${card.label}</div>
+              <div class="dashboard-progress-value">${card.value}</div>
+              <div class="dashboard-progress-meta">6-min / abo · ${escHtml(card.meta)}</div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="dashboard-card-actions">
+          <button class="backup-btn" style="margin-top:0;" type="button" onclick="openStatsDashboardView('development')">Se utvikling</button>
+          <button class="backup-btn" style="margin-top:0;" type="button" onclick="openGoalsPage('week')">Åpne mål</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderDashboardLeaderboardPreviewRow(row, rank, periodId) {
+    const points = getLeaderboardPeriodValue(row, periodId, 'points');
+    const sales = getLeaderboardPeriodValue(row, periodId, 'sales');
+    const over6 = getLeaderboardPeriodValue(row, periodId, 'over6');
+    return `
+      <div class="dashboard-leaderboard-row${row.user_id === currentUser?.id ? ' is-you' : ''}">
+        <div class="dashboard-leaderboard-rank">#${rank}</div>
+        <div>
+          <div class="dashboard-leaderboard-name">${escHtml(row.display_name)}</div>
+          <div class="dashboard-leaderboard-sub">${sales} abo · ${over6} stk 6-min</div>
+        </div>
+        <div class="dashboard-leaderboard-points">${points}<span>poeng</span></div>
+      </div>
+    `;
+  }
+
+  function renderDashboardLeaderboardCard() {
+    const hasRows = leaderboardRows.length > 0;
+    const allowedPeriods = LEADERBOARD_PERIOD_CONFIG.map(period => period.id);
+    const activePeriodId = allowedPeriods.includes(activeLeaderboardPeriod) ? activeLeaderboardPeriod : 'day';
+    const activePeriod = LEADERBOARD_PERIOD_CONFIG.find(period => period.id === activePeriodId) || LEADERBOARD_PERIOD_CONFIG[0];
+    const sorted = getSortedLeaderboardRows(activePeriodId);
+    const ownRow = sorted.find(row => row.user_id === currentUser?.id) || null;
+    const ownRank = ownRow ? getLeaderboardRank(activePeriodId, ownRow.user_id) : null;
+    const ownPoints = ownRow ? getLeaderboardPeriodValue(ownRow, activePeriodId, 'points') : 0;
+    const leaderPoints = sorted.length ? getLeaderboardPeriodValue(sorted[0], activePeriodId, 'points') : 0;
+    const latestUpdate = leaderboardRows
+      .map(row => row.updated_at || row.latest_entry_at)
+      .filter(Boolean)
+      .sort((a, b) => String(b).localeCompare(String(a)))[0] || '';
+    const topRows = sorted.slice(0, 5).map((row, index) => ({ row, rank: index + 1 }));
+    const previewRows = [...topRows];
+    if (ownRow && ownRank && ownRank > topRows.length) {
+      previewRows.push({ divider: true });
+      previewRows.push({ row: ownRow, rank: ownRank });
+    }
+
+    let content = '';
+    if (leaderboardState === 'loading' && !hasRows) {
+      content = '<div class="stats-empty-card">Laster leaderboard...</div>';
+    } else if (leaderboardState === 'error' && !hasRows) {
+      content = `<div class="stats-empty-card">${escHtml(leaderboardErrorMessage || 'Kunne ikke laste leaderboard akkurat nå.')}</div>`;
+    } else if (!hasRows) {
+      content = '<div class="stats-empty-card">Ingen på leaderboardet ennå. Så snart teamet begynner å registrere, dukker toppen opp her.</div>';
+    } else {
+      content = `
+        ${renderLeaderboardPeriodSwitcher(activePeriodId)}
+        <div class="dashboard-card-meta">
+          <span class="dashboard-card-pill">${ownRank ? `Din plass: #${ownRank}` : 'Du er ikke på lista ennå'}</span>
+          <span class="dashboard-card-pill">${ownRow ? `${ownPoints} poeng · ${Math.max(0, leaderPoints - ownPoints)} poeng opp til toppen` : 'Logg et resultat for å komme på lista'}</span>
+        </div>
+        <div class="dashboard-leaderboard-list">
+          ${previewRows.map(item => item.divider
+            ? '<div class="dashboard-leaderboard-divider">Din plass</div>'
+            : renderDashboardLeaderboardPreviewRow(item.row, item.rank, activePeriodId)).join('')}
+        </div>
+      `;
+    }
+
+    return `
+      <div class="dashboard-card">
+        <div class="dashboard-card-heading">
+          <div>
+            <div class="dashboard-card-title">Leaderboard</div>
+            <div class="dashboard-card-text">Kompakt visning av ${escHtml(activePeriod.title.toLowerCase())} med toppen og plasseringen din i samme kort.</div>
+          </div>
+        </div>
+        ${content}
+        <div class="dashboard-card-actions">
+          <button class="backup-btn" style="margin-top:0;" type="button" onclick="openStatsDashboardView('leaderboard')">Åpne full leaderboard</button>
+          ${latestUpdate ? `<span class="dashboard-card-pill">Oppdatert ${escHtml(formatLeaderboardTimestamp(latestUpdate))}</span>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderDashboardToolsCard() {
+    const items = [
+      { tab: 'innvendinger', title: 'Innvendinger', text: 'Finn raske svar mens samtalen går.' },
+      { tab: 'notater', title: 'Notater', text: 'Samle behov og lag oppsummering.' },
+      { tab: 'priser', title: 'Pris kalkulator', text: 'Regn ut tilbud uten å miste flyten.' },
+      { tab: 'ov', title: 'OV', text: 'Bruk utviklingsverktøyene når du vil øve mer.' },
+      { tab: 'samtalerating', title: 'Samtalerating', text: 'Vurder kvalitet og se hva som må løftes.' },
+      { tab: 'samtaleflyt', title: 'Flyt', text: 'Støtte for lengre eller mer spesielle samtaler.' }
+    ];
+    return `
+      <div class="dashboard-card">
+        <div class="dashboard-card-heading">
+          <div>
+            <div class="dashboard-card-title">Forbedringsverktøy</div>
+            <div class="dashboard-card-text">Resten av verktøyene er fortsatt her, men de ligger bak hovedjobbene dine i prioritet.</div>
+          </div>
+        </div>
+        <div class="dashboard-tool-grid">
+          ${items.map(item => `
+            <button class="dashboard-tool-btn" type="button" onclick="switchTab('${item.tab}')">
+              <span class="dashboard-tool-btn-title">${item.title}</span>
+              <span class="dashboard-tool-btn-text">${item.text}</span>
+            </button>
+          `).join('')}
+        </div>
       </div>
     `;
   }
@@ -11033,8 +11578,20 @@
     const monthWeekRace = showMonthStartComparisons ? buildMonthRaceRows(history, now, 'weeks') : null;
     const monthLabels = getMonthComparisonLabels(now);
     const sameDayLastMonthLabel = formatMonthName(sameDayLastMonthDate);
+    const displayName = getUserDisplayName(currentUser);
     const overviewPane = `
       <div class="stats-pane">
+        ${renderDashboardHomeHero(displayName, dag, uke, monthGoalStatus)}
+        <div class="dashboard-home-grid">
+          <div class="dashboard-stack">
+            ${renderDashboardQuickRegisterCard(dag, uke)}
+            ${renderDashboardProgressCard(dag, uke, mnd, dayGoalStatus, weekGoalStatus, monthGoalStatus)}
+          </div>
+          <div class="dashboard-stack">
+            ${renderDashboardLeaderboardCard()}
+            ${renderDashboardToolsCard()}
+          </div>
+        </div>
         ${renderStatsDaySection(dag, dayGoal, dayGoalStatus, todaySessionCount)}
         ${renderStatsWeekSection(uke, weekGoal, weekGoalStatus, weekData, stackedChartMax, elapsedWeekBusinessDays, weekProgress, bestWeekComparison)}
         ${renderStatsMonthSection(mnd, monthTitle, monthGoal, monthGoalStatus, weekBuckets, stackedChartMax, elapsedMonthWeekCount)}
