@@ -4705,9 +4705,20 @@
 
     .dashboard-leaderboard-name {
       color: var(--text);
+      display: inline-block;
       font-size: 0.92rem;
       font-weight: 800;
       line-height: 1.3;
+      padding-bottom: 4px;
+      border-bottom: 2px solid transparent;
+    }
+
+    .dashboard-leaderboard-name.team-agrol {
+      border-bottom-color: #22c55e;
+    }
+
+    .dashboard-leaderboard-name.team-nysalg {
+      border-bottom-color: #60a5fa;
     }
 
     .dashboard-leaderboard-sub {
@@ -6143,9 +6154,20 @@
 
     .leaderboard-user-name {
       color: var(--text);
+      display: inline-block;
       font-size: 1rem;
       font-weight: 800;
       line-height: 1.25;
+      padding-bottom: 4px;
+      border-bottom: 2px solid transparent;
+    }
+
+    .leaderboard-user-name.team-agrol {
+      border-bottom-color: #22c55e;
+    }
+
+    .leaderboard-user-name.team-nysalg {
+      border-bottom-color: #60a5fa;
     }
 
     .leaderboard-user-points,
@@ -8423,6 +8445,13 @@
     return team || '';
   }
 
+  function getLeaderboardTeamClass(team) {
+    const normalized = String(team || '').trim().toLowerCase();
+    if (normalized === 'agrol' || normalized === 'argol') return 'team-agrol';
+    if (normalized === 'nysalg') return 'team-nysalg';
+    return '';
+  }
+
   function getUserInitials(name) {
     const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
     if (!parts.length) return '?';
@@ -8500,7 +8529,7 @@
 
   function isLeaderboardSchemaMismatch(error) {
     const message = String(error?.message || error || '');
-    return /schema cache/i.test(message) && /(day_over6|day_sales|day_points|week_over6|week_sales|week_points|month_over6|month_sales|month_points)/i.test(message);
+    return /schema cache/i.test(message) && /(team|day_over6|day_sales|day_points|week_over6|week_sales|week_points|month_over6|month_sales|month_points)/i.test(message);
   }
 
   function getLeaderboardErrorMessage(error, fallback = 'Kunne ikke laste leaderboard.') {
@@ -9198,6 +9227,7 @@
     return {
       user_id: String(row.user_id || ''),
       display_name: String(row.display_name || '').trim() || 'Ukjent bruker',
+      team: String(row.team || '').trim(),
       total_intro_successes: Math.max(0, Number(row.total_intro_successes) || 0),
       total_over6: Math.max(0, Number(row.total_over6) || 0),
       total_sales: Math.max(0, Number(row.total_sales) || 0),
@@ -9249,6 +9279,7 @@
     const latestEntry = getSortedIntroHistory(history)[0];
     return {
       display_name: getUserDisplayName(currentUser),
+      team: getUserTeam(currentUser),
       total_intro_successes: totals.introSuccesses,
       total_over6: totals.over5,
       total_sales: totals.salg,
@@ -9289,7 +9320,7 @@
 
     const { data, error } = await supabaseClient
       .from(SUPABASE_PUBLIC_STATS_TABLE)
-      .select('user_id, display_name, total_intro_successes, total_over6, total_sales, day_over6, day_sales, day_points, week_over6, week_sales, week_points, month_over6, month_sales, month_points, latest_entry_at, updated_at');
+      .select('user_id, display_name, team, total_intro_successes, total_over6, total_sales, day_over6, day_sales, day_points, week_over6, week_sales, week_points, month_over6, month_sales, month_points, latest_entry_at, updated_at');
 
     if (error) {
       setLeaderboardState('error', getLeaderboardErrorMessage(error, 'Kunne ikke laste leaderboard.'));
@@ -12573,12 +12604,13 @@
     const sales = getLeaderboardPeriodValue(row, periodId, 'sales');
     const over6 = getLeaderboardPeriodValue(row, periodId, 'over6');
     const podiumClass = getLeaderboardPodiumClass(rank);
+    const teamClass = getLeaderboardTeamClass(row.team);
     return `
       <div class="dashboard-leaderboard-row ${podiumClass}${row.user_id === currentUser?.id ? ' is-you' : ''}">
         <div class="dashboard-leaderboard-rank ${podiumClass}">#${rank}</div>
         <div>
           <div class="dashboard-leaderboard-name-row">
-            <div class="dashboard-leaderboard-name">${escHtml(row.display_name)}</div>
+            <div class="dashboard-leaderboard-name ${teamClass}">${escHtml(row.display_name)}</div>
             ${renderLeaderboardCrown(rank)}
           </div>
           <div class="dashboard-leaderboard-sub">${sales} abo · ${over6} stk 6-min</div>
@@ -12674,12 +12706,13 @@
             const over6 = getLeaderboardPeriodValue(row, period.id, 'over6');
             const rank = index + 1;
             const podiumClass = getLeaderboardPodiumClass(rank);
+            const teamClass = getLeaderboardTeamClass(row.team);
             return `
               <div class="leaderboard-row ${podiumClass}${row.user_id === currentUser?.id ? ' is-you' : ''}">
                 <div class="leaderboard-rank ${podiumClass}">#${rank}</div>
                 <div class="leaderboard-user">
                   <div class="leaderboard-user-name-row">
-                    <div class="leaderboard-user-name">${escHtml(row.display_name)}</div>
+                    <div class="leaderboard-user-name ${teamClass}">${escHtml(row.display_name)}</div>
                     ${renderLeaderboardCrown(rank)}
                   </div>
                   <div class="leaderboard-user-points">

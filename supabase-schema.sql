@@ -125,6 +125,7 @@ create table if not exists public.user_public_stats (
 );
 
 alter table public.user_public_stats
+  add column if not exists team text,
   add column if not exists day_over6 integer not null default 0 check (day_over6 >= 0),
   add column if not exists day_sales integer not null default 0 check (day_sales >= 0),
   add column if not exists day_points integer not null default 0 check (day_points >= 0),
