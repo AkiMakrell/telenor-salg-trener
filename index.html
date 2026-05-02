@@ -11062,6 +11062,10 @@
     ].sort((a, b) => b.priority - a.priority || b.delta - a.delta || a.title.localeCompare(b.title, 'no'));
   }
 
+  function hasComparableDevelopmentHighlightData(insight) {
+    return Number(insight?.currentValue) > 0 && Number(insight?.previousValue) > 0;
+  }
+
   function getDevelopmentHighlights(insights) {
     const withScores = insights.map(item => ({
       ...item,
@@ -11070,6 +11074,7 @@
     }));
     const positives = withScores
       .filter(item => item.direction === 'positive')
+      .filter(hasComparableDevelopmentHighlightData)
       .sort((a, b) => b.highlightScore - a.highlightScore || b.delta - a.delta || a.title.localeCompare(b.title, 'no'));
     if (!positives.length) return [];
     const selectedIds = new Set();
