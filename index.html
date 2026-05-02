@@ -9317,10 +9317,12 @@
 
   function normalizeLeaderboardRow(row) {
     if (!row || typeof row !== 'object') return null;
+    const userId = String(row.user_id || '');
+    const fallbackOwnTeam = userId && userId === String(currentUser?.id || '') ? getUserTeam(currentUser) : '';
     return {
-      user_id: String(row.user_id || ''),
+      user_id: userId,
       display_name: String(row.display_name || '').trim() || 'Ukjent bruker',
-      team: String(row.team || '').trim(),
+      team: String(row.team || '').trim() || fallbackOwnTeam,
       total_intro_successes: Math.max(0, Number(row.total_intro_successes) || 0),
       total_over6: Math.max(0, Number(row.total_over6) || 0),
       total_sales: Math.max(0, Number(row.total_sales) || 0),
