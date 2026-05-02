@@ -3665,6 +3665,11 @@
       font-weight: 800;
     }
 
+    .intro-workspace-actions .intro-primary-register {
+      width: auto;
+      margin-top: 0;
+    }
+
     .intro-page-status-inline {
       max-width: none;
       margin-top: 0;
@@ -7874,6 +7879,7 @@
           <div id="intro-library-inline" style="display:none;"></div>
 
           <div class="intro-workspace-actions">
+            <button class="save-btn intro-primary-register" onclick="registerIntroSuccess()">Registrer Intro</button>
             <button class="save-btn" style="margin-top:0;background:#e8f4fb;color:var(--primary-dark);box-shadow:none;" onclick="saveIntro()">Lagre intro i bibliotek</button>
             <button class="backup-btn" style="font-size:0.9rem;padding:10px 14px;border-radius:8px;color:var(--muted);" onclick="clearIntroSelection()">Ny intro</button>
           </div>
@@ -7895,8 +7901,6 @@
         </div>
 
         <div class="card intro-panel intro-action-panel">
-          <button class="save-btn intro-primary-register" onclick="registerIntroSuccess()">Registrer Intro</button>
-
           <div class="intro-dashboard-shortcut-row">
             <label class="intro-dashboard-shortcut-label" for="dashboard-opptak-shortcut-toggle">
               <input id="dashboard-opptak-shortcut-toggle" type="checkbox" onchange="toggleDashboardOpptakShortcut(this.checked)">
