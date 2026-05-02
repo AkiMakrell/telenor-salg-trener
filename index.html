@@ -4510,6 +4510,10 @@
       gap: 10px;
     }
 
+    .stats-overview-today-summary {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .dashboard-today-pill {
       border: 1px solid rgba(148, 163, 184, 0.12);
       border-radius: 16px;
@@ -7865,7 +7869,7 @@
   <div class="top-bar">
   <div class="tabs">
     <button class="tab-btn active" data-tab="hjem" onclick="switchTab('hjem', this)">Dashboard</button>
-    <button class="tab-btn" data-tab="stats" onclick="openStatsPage(activeStatsSubview, this)">Stats</button>
+    <button class="tab-btn" data-tab="stats" onclick="openStatsPage('overview', this)">Stats</button>
     <div id="top-bar-tools" class="top-bar-tools">
       <button
         id="top-bar-tools-button"
@@ -9811,7 +9815,7 @@
 
   let selectedOver5min = 'nei';
   let selectedSalg = 'nei';
-  let activeStatsSubview = 'development';
+  let activeStatsSubview = 'overview';
   let activeLeaderboardPeriod = 'day';
   let retroHistoryFeedback = null;
   let retroHistoryDraft = null;
@@ -12178,7 +12182,7 @@
       <div class="goals-page">
         <div class="goals-hero">
           <div class="goals-hero-top">
-            <button class="save-btn goals-back-btn" type="button" onclick="openStatsPage()">← Tilbake til stats</button>
+            <button class="save-btn goals-back-btn" type="button" onclick="openStatsPage('overview')">← Tilbake til stats</button>
           </div>
           <div class="goals-title">Mål</div>
           <div class="goals-text">Bruk mål bare hvis det hjelper deg. Du kan sette mål for dagen, uken og måneden, og progresjonen vises direkte på Stats-siden.</div>
@@ -12211,8 +12215,8 @@
   }
 
   function getDetailedStatsSubview(view) {
-    const allowedViews = ['development', 'records', 'leaderboard', 'goals'];
-    return allowedViews.includes(view) ? view : 'development';
+    const allowedViews = ['overview', 'development', 'records', 'leaderboard', 'goals'];
+    return allowedViews.includes(view) ? view : 'overview';
   }
 
   function refreshVisibleStatsSurface() {
@@ -12234,7 +12238,7 @@
     refreshVisibleStatsSurface();
   }
 
-  function openStatsPage(view = activeStatsSubview, triggerButton = null) {
+  function openStatsPage(view = 'overview', triggerButton = null) {
     activeStatsSubview = getDetailedStatsSubview(view || activeStatsSubview);
     activateTab('stats', 'stats', triggerButton);
   }
@@ -12245,6 +12249,7 @@
 
   function renderStatsSubviewNav(activeView) {
     const items = [
+      { id: 'overview', label: 'Hjem' },
       { id: 'development', label: 'Utvikling' },
       { id: 'records', label: 'Rekorder' },
       { id: 'leaderboard', label: 'Leaderboard' },
@@ -12464,6 +12469,42 @@
               <div class="dashboard-today-pill-value ${card.accent}">${card.value}</div>
             </div>
           `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderStatsOverviewTodayCard(dag) {
+    const cards = [
+      { label: '6-minuttere', value: dag.over5, accent: 'over6' },
+      { label: 'Salg', value: dag.salg, accent: 'sales' }
+    ];
+    return `
+      <div class="dashboard-card dashboard-today-card">
+        <div class="dashboard-card-heading">
+          <div class="dashboard-card-title">I dag</div>
+        </div>
+        <div class="dashboard-today-summary stats-overview-today-summary">
+          ${cards.map(card => `
+            <div class="dashboard-today-pill">
+              <div class="dashboard-today-pill-label">${card.label}</div>
+              <div class="dashboard-today-pill-value ${card.accent}">${card.value}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderStatsOverviewChartCard(title, chartTitle, data, maxScale) {
+    return `
+      <div class="dashboard-card">
+        <div class="dashboard-card-heading">
+          <div class="dashboard-card-title">${title}</div>
+        </div>
+        <div class="dashboard-week-chart">
+          <div class="chart-card-title">${chartTitle}</div>
+          ${stackedBarChart(data, maxScale)}
         </div>
       </div>
     `;
@@ -12824,6 +12865,7 @@
     const weekData = buildWeekChartData(ukeEntries, now);
     const weekBuckets = buildMonthWeekBuckets(mndEntries, now);
     const stackedChartMax = getStackedBarChartScaleMax(weekData, weekBuckets);
+    const monthChartMax = getStackedBarChartScaleMax(weekBuckets);
     const monthTitle = now.toLocaleString('no-NO', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase());
     const activeView = mode === 'overview' ? 'overview' : getDetailedStatsSubview(activeStatsSubview);
     const developmentInsights = getDevelopmentInsights(history, now);
@@ -12856,6 +12898,15 @@
             ${renderDashboardLeaderboardCard()}
             ${renderDashboardToolsCard()}
           </div>
+        </div>
+      </div>
+    `;
+    const statsOverviewPane = `
+      <div class="stats-pane">
+        ${renderStatsOverviewTodayCard(dag)}
+        <div class="development-section-grid">
+          ${renderStatsOverviewChartCard('Denne uken', '6-min & salg per dag', weekData, stackedChartMax)}
+          ${renderStatsOverviewChartCard('Denne måneden', `6-min & salg per uke i ${monthTitle}`, weekBuckets, monthChartMax)}
         </div>
       </div>
     `;
@@ -12931,7 +12982,7 @@
       </div>
     `;
     const panes = {
-      overview: overviewPane,
+      overview: mode === 'overview' ? overviewPane : statsOverviewPane,
       development: developmentPane,
       records: `<div class="stats-pane">${renderStatsRecordsSection(personalRecords, history)}</div>`,
       leaderboard: renderLeaderboardPane(),
@@ -12941,7 +12992,7 @@
     const target = document.getElementById(containerId);
     if (!target) return;
 
-    target.innerHTML = activeView === 'overview'
+    target.innerHTML = mode === 'overview' && activeView === 'overview'
       ? `
         <div class="stats-main stats-main-standalone">
           ${panes[activeView]}
