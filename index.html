@@ -3709,8 +3709,44 @@
       margin-bottom: 14px;
     }
 
+    .intro-editor-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
     .intro-editor-head .intro-panel-title {
       margin-bottom: 0;
+    }
+
+    .intro-help-btn {
+      width: 34px;
+      height: 34px;
+      min-width: 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: rgba(15, 23, 42, 0.88);
+      color: #e0f2fe;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+      box-shadow: 0 10px 24px rgba(2, 6, 23, 0.22);
+    }
+
+    .intro-help-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(96, 165, 250, 0.5);
+      background: rgba(30, 41, 59, 0.96);
+    }
+
+    .intro-help-btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.22);
     }
 
     .intro-form-label {
@@ -6892,6 +6928,24 @@
       gap: 14px;
     }
 
+    .intro-help-modal {
+      width: min(100%, 560px);
+    }
+
+    .intro-help-list {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+      display: grid;
+      gap: 10px;
+      line-height: 1.55;
+      font-size: 0.94rem;
+    }
+
+    .intro-help-list strong {
+      color: var(--text);
+    }
+
     .recovery-section-label {
       font-size: 0.72rem;
       font-weight: 700;
@@ -7721,6 +7775,26 @@
   </div>
 </div>
 
+<div id="intro-help-overlay" class="recovery-overlay" aria-hidden="true" onclick="if (event.target === this) closeIntroHelpModal()">
+  <div class="recovery-modal intro-help-modal" role="dialog" aria-modal="true" aria-labelledby="intro-help-title">
+    <div class="recovery-modal-head">
+      <div>
+        <div id="intro-help-title" class="recovery-modal-title">Slik bruker du Introtest</div>
+        <div class="recovery-modal-text">Denne siden er laget for at du raskt skal kunne teste, registrere og forbedre introene dine gjennom dagen.</div>
+      </div>
+      <button type="button" class="backup-btn" style="margin-top:0;" onclick="closeIntroHelpModal()">Lukk</button>
+    </div>
+    <div class="recovery-modal-body">
+      <ol class="intro-help-list">
+        <li><strong>Aktiv Intro:</strong> skriv eller velg introen du vil jobbe med akkurat nå.</li>
+        <li><strong>Registrer Intro:</strong> bruk denne når du faktisk har testet introen i samtale, så havner resultatet i historikk og stats.</li>
+        <li><strong>Lagre intro i bibliotek:</strong> lagrer introen så du kan hente den frem igjen senere.</li>
+        <li><strong>I dag og leaderboard:</strong> bruk disse feltene for å følge utvikling, sammenligne introer og se hva som fungerer best.</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
 <div id="auth-card" class="auth-card">
   <div class="auth-card-title">Logg inn for din egen data</div>
   <div class="auth-card-text">
@@ -7868,7 +7942,10 @@
       <div class="intro-main-stack">
         <div class="card intro-panel intro-editor-panel">
           <div class="intro-editor-head">
-            <div class="intro-panel-title">Aktiv Intro</div>
+            <div class="intro-editor-title-row">
+              <div class="intro-panel-title">Aktiv Intro</div>
+              <button type="button" class="intro-help-btn" onclick="openIntroHelpModal()" aria-label="Vis forklaring for Introtest-siden" title="Hva brukes siden til?">?</button>
+            </div>
             <div id="last-registered-note" class="intro-last-registered"></div>
           </div>
 
@@ -8242,6 +8319,7 @@
     if (!isVisible) {
       closeTopBarSettings();
       closeRecoveryModal();
+      closeIntroHelpModal();
     }
   }
 
@@ -9378,6 +9456,20 @@
     overlay.classList.remove('visible');
     overlay.setAttribute('aria-hidden', 'true');
     setRecoveryStatus('');
+  }
+
+  function openIntroHelpModal() {
+    const overlay = document.getElementById('intro-help-overlay');
+    if (!overlay) return;
+    overlay.classList.add('visible');
+    overlay.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeIntroHelpModal() {
+    const overlay = document.getElementById('intro-help-overlay');
+    if (!overlay) return;
+    overlay.classList.remove('visible');
+    overlay.setAttribute('aria-hidden', 'true');
   }
 
   async function restoreTrackedState(state, successMessage, source = 'recovery') {
@@ -15379,6 +15471,12 @@
     if (gifOverlay && gifOverlay.classList.contains('visible') && event.key === 'Escape') {
       event.preventDefault();
       closeGif();
+      return;
+    }
+    const introHelpOverlay = document.getElementById('intro-help-overlay');
+    if (introHelpOverlay && introHelpOverlay.classList.contains('visible') && event.key === 'Escape') {
+      event.preventDefault();
+      closeIntroHelpModal();
       return;
     }
     const recoveryOverlay = document.getElementById('recovery-overlay');
