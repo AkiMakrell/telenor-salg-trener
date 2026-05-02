@@ -7861,27 +7861,6 @@
   <div class="intro-page-header">
     <div class="intro-layout">
       <div class="intro-main-stack">
-        <div class="card intro-panel intro-action-panel">
-          <button class="save-btn intro-primary-register" onclick="registerIntroSuccess()">Registrer Intro</button>
-
-          <div class="intro-dashboard-shortcut-row">
-            <label class="intro-dashboard-shortcut-label" for="dashboard-opptak-shortcut-toggle">
-              <input id="dashboard-opptak-shortcut-toggle" type="checkbox" onchange="toggleDashboardOpptakShortcut(this.checked)">
-              <span>Vis registrer opptak på hjem</span>
-            </label>
-          </div>
-
-          <div id="session-status" class="intro-page-status intro-page-status-inline">
-            <div id="session-status-title" class="intro-page-status-title">Laster aktiv økt...</div>
-            <div id="session-status-subtitle" class="intro-page-status-subtitle"></div>
-          </div>
-        </div>
-
-        <div class="card intro-panel intro-stats-panel">
-          <div class="intro-panel-title">I dag</div>
-          <div id="intro-daily-stats" class="stats-grid stats-grid-2 intro-performance-strip"></div>
-        </div>
-
         <div class="card intro-panel intro-editor-panel">
           <div class="intro-editor-head">
             <div class="intro-panel-title">Aktiv Intro</div>
@@ -7913,6 +7892,27 @@
             </div>
             <div id="intro-history" class="history-list"></div>
           </div>
+        </div>
+
+        <div class="card intro-panel intro-action-panel">
+          <button class="save-btn intro-primary-register" onclick="registerIntroSuccess()">Registrer Intro</button>
+
+          <div class="intro-dashboard-shortcut-row">
+            <label class="intro-dashboard-shortcut-label" for="dashboard-opptak-shortcut-toggle">
+              <input id="dashboard-opptak-shortcut-toggle" type="checkbox" onchange="toggleDashboardOpptakShortcut(this.checked)">
+              <span>Vis registrer opptak på hjem</span>
+            </label>
+          </div>
+
+          <div id="session-status" class="intro-page-status intro-page-status-inline">
+            <div id="session-status-title" class="intro-page-status-title">Laster aktiv økt...</div>
+            <div id="session-status-subtitle" class="intro-page-status-subtitle"></div>
+          </div>
+        </div>
+
+        <div class="card intro-panel intro-stats-panel">
+          <div class="intro-panel-title">I dag</div>
+          <div id="intro-daily-stats" class="stats-grid stats-grid-2 intro-performance-strip"></div>
         </div>
       </div>
 
