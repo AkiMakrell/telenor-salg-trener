@@ -7865,7 +7865,7 @@
   <div class="top-bar">
   <div class="tabs">
     <button class="tab-btn active" data-tab="hjem" onclick="switchTab('hjem', this)">Dashboard</button>
-    <button class="tab-btn" data-tab="intro" onclick="switchTab('intro', this)">Introtest</button>
+    <button class="tab-btn" data-tab="stats" onclick="openStatsPage(activeStatsSubview, this)">Stats</button>
     <div id="top-bar-tools" class="top-bar-tools">
       <button
         id="top-bar-tools-button"
@@ -7880,6 +7880,9 @@
         <span class="menu-trigger-icon" aria-hidden="true">&#9662;</span>
       </button>
       <div id="top-bar-tools-menu" class="tools-menu" role="menu">
+        <button class="more-tab-btn" data-tab="intro" type="button" onclick="switchTab('intro', this); closeTopBarTools();">
+          <span>Introtest</span>
+        </button>
         <button class="more-tab-btn" data-tab="innvendinger" type="button" onclick="switchTab('innvendinger', this); closeTopBarTools();">
           <span>Innvendinger</span>
         </button>
@@ -7951,6 +7954,10 @@
 <!-- ===== STATS TAB ===== -->
 <div id="tab-hjem" class="tab-content active">
   <div id="stats-home"></div>
+</div>
+
+<div id="tab-stats" class="tab-content">
+  <div id="stats-page"></div>
 </div>
 
 <div id="tab-etterregistrering" class="tab-content">
@@ -8399,7 +8406,7 @@
   function setLeaderboardState(state, errorMessage = '') {
     leaderboardState = state;
     leaderboardErrorMessage = errorMessage;
-    if (activeStatsSubview === 'leaderboard' || activeStatsSubview === 'overview') renderStatsHome();
+    refreshVisibleStatsSurface();
   }
 
   function clearLeaderboardState() {
@@ -9270,7 +9277,7 @@
         'postgres_changes',
         { event: '*', schema: 'public', table: SUPABASE_PUBLIC_STATS_TABLE },
         () => {
-          loadLeaderboardRows({ silentLoading: activeStatsSubview !== 'leaderboard' }).catch(error => {
+          loadLeaderboardRows({ silentLoading: !(isTabActive('stats') && activeStatsSubview === 'leaderboard') }).catch(error => {
             setLeaderboardState('error', getLeaderboardErrorMessage(error, 'Kunne ikke oppdatere leaderboard.'));
           });
         }
@@ -9290,7 +9297,7 @@
       );
     if (error) throw error;
 
-    if (!options.skipReload) await loadLeaderboardRows({ silentLoading: activeStatsSubview !== 'leaderboard' });
+    if (!options.skipReload) await loadLeaderboardRows({ silentLoading: !(isTabActive('stats') && activeStatsSubview === 'leaderboard') });
   }
 
   function setSyncStatus(s) {
@@ -9778,7 +9785,7 @@
     document.getElementById('tab-' + name).classList.add('active');
     const button = triggerButton || document.querySelector(`.tab-btn[data-tab="${activeButtonName}"], .more-tab-btn[data-tab="${activeButtonName}"]`);
     if (button) button.classList.add('active');
-    if (['innvendinger', 'notater', 'priser', 'ov', 'samtalerating', 'samtaleflyt'].includes(name)) {
+    if (['intro', 'innvendinger', 'notater', 'priser', 'ov', 'samtalerating', 'samtaleflyt'].includes(name)) {
       document.getElementById('top-bar-tools-button')?.classList.add('active');
     }
     closeTopBarTools();
@@ -9793,6 +9800,7 @@
     if (name === 'notater') renderConversationNotes();
     if (name === 'samtalerating') renderSamtaleRating();
     if (name === 'ov') renderOvPage();
+    if (name === 'stats') renderStatsPage();
     if (name === 'goals') renderGoalsPage();
     if (name === 'etterregistrering') renderRetroHistoryPage();
   }
@@ -9803,7 +9811,7 @@
 
   let selectedOver5min = 'nei';
   let selectedSalg = 'nei';
-  let activeStatsSubview = 'overview';
+  let activeStatsSubview = 'development';
   let activeLeaderboardPeriod = 'day';
   let retroHistoryFeedback = null;
   let retroHistoryDraft = null;
@@ -12104,7 +12112,7 @@
 
   function openGoalsPage(period) {
     pendingGoalsFocusPeriod = period;
-    activateTab('goals', 'hjem');
+    activateTab('goals', 'stats');
     requestAnimationFrame(() => {
       const target = document.getElementById(`goals-card-${pendingGoalsFocusPeriod}`);
       if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -12170,7 +12178,7 @@
       <div class="goals-page">
         <div class="goals-hero">
           <div class="goals-hero-top">
-            <button class="save-btn goals-back-btn" type="button" onclick="activateTab('hjem', 'hjem')">← Tilbake til stats</button>
+            <button class="save-btn goals-back-btn" type="button" onclick="openStatsPage()">← Tilbake til stats</button>
           </div>
           <div class="goals-title">Mål</div>
           <div class="goals-text">Bruk mål bare hvis det hjelper deg. Du kan sette mål for dagen, uken og måneden, og progresjonen vises direkte på Stats-siden.</div>
@@ -12198,27 +12206,45 @@
     `;
   }
 
+  function isTabActive(name) {
+    return !!document.getElementById(`tab-${name}`)?.classList.contains('active');
+  }
+
+  function getDetailedStatsSubview(view) {
+    const allowedViews = ['development', 'records', 'leaderboard', 'goals'];
+    return allowedViews.includes(view) ? view : 'development';
+  }
+
+  function refreshVisibleStatsSurface() {
+    if (isTabActive('stats')) {
+      renderStatsPage();
+      return;
+    }
+    if (isTabActive('hjem')) renderStatsHome();
+  }
+
   function setStatsSubview(view) {
-    const allowedViews = ['overview', 'development', 'records', 'leaderboard', 'goals'];
-    activeStatsSubview = allowedViews.includes(view) ? view : 'overview';
-    renderStatsHome();
+    activeStatsSubview = getDetailedStatsSubview(view);
+    renderStatsPage();
   }
 
   function setLeaderboardPeriod(periodId) {
     const allowedPeriods = LEADERBOARD_PERIOD_CONFIG.map(period => period.id);
     activeLeaderboardPeriod = allowedPeriods.includes(periodId) ? periodId : 'day';
-    if (activeStatsSubview === 'leaderboard' || activeStatsSubview === 'overview') renderStatsHome();
+    refreshVisibleStatsSurface();
   }
 
-  function openStatsDashboardView(view = 'overview') {
-    const allowedViews = ['overview', 'development', 'records', 'leaderboard', 'goals'];
-    activeStatsSubview = allowedViews.includes(view) ? view : 'overview';
-    activateTab('hjem', 'hjem');
+  function openStatsPage(view = activeStatsSubview, triggerButton = null) {
+    activeStatsSubview = getDetailedStatsSubview(view || activeStatsSubview);
+    activateTab('stats', 'stats', triggerButton);
+  }
+
+  function openStatsDashboardView(view = 'development', triggerButton = null) {
+    openStatsPage(view, triggerButton);
   }
 
   function renderStatsSubviewNav(activeView) {
     const items = [
-      { id: 'overview', label: 'Dashboard' },
       { id: 'development', label: 'Utvikling' },
       { id: 'records', label: 'Rekorder' },
       { id: 'leaderboard', label: 'Leaderboard' },
@@ -12755,7 +12781,7 @@
     `;
   }
 
-  function renderStatsHome() {
+  function renderStatsSurface(containerId = 'stats-home', mode = 'overview') {
     const history = getIntroHistory();
     const dagEntries = history.filter(h => isToday(h.isoDate));
     const ukeEntries = history.filter(h => isThisWeek(h.isoDate));
@@ -12799,7 +12825,7 @@
     const weekBuckets = buildMonthWeekBuckets(mndEntries, now);
     const stackedChartMax = getStackedBarChartScaleMax(weekData, weekBuckets);
     const monthTitle = now.toLocaleString('no-NO', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase());
-    const activeView = ['overview', 'development', 'records', 'leaderboard', 'goals'].includes(activeStatsSubview) ? activeStatsSubview : 'overview';
+    const activeView = mode === 'overview' ? 'overview' : getDetailedStatsSubview(activeStatsSubview);
     const developmentInsights = getDevelopmentInsights(history, now);
     const developmentHighlights = getDevelopmentHighlights(developmentInsights);
     const showMonthStartComparisons = isEarlyInMonth(now);
@@ -12894,7 +12920,7 @@
         <div class="stats-section">
           <div class="stats-section-head">
             <div class="stats-section-title st-purple">Mål som er lette å lese</div>
-            <button class="backup-btn stats-goal-btn" type="button" onclick="activateTab('goals', 'hjem')">Åpne målsiden</button>
+            <button class="backup-btn stats-goal-btn" type="button" onclick="activateTab('goals', 'stats')">Åpne målsiden</button>
           </div>
           <div class="stats-goals-overview-grid">
             ${renderStatsGoalPanel('day', 'Dagsmål', 'Kort horisont, høy energi. Perfekt når du vil kjenne fremgang raskt.', dayGoal, dayGoalStatus, dag)}
@@ -12912,7 +12938,10 @@
       goals: goalsPane,
     };
 
-    document.getElementById('stats-home').innerHTML = activeView === 'overview'
+    const target = document.getElementById(containerId);
+    if (!target) return;
+
+    target.innerHTML = activeView === 'overview'
       ? `
         <div class="stats-main stats-main-standalone">
           ${panes[activeView]}
@@ -12929,6 +12958,14 @@
         </div>
       `;
     triggerGoalAchievementCelebrations([dayGoalStatus, weekGoalStatus, monthGoalStatus]);
+  }
+
+  function renderStatsHome() {
+    renderStatsSurface('stats-home', 'overview');
+  }
+
+  function renderStatsPage() {
+    renderStatsSurface('stats-page', 'detailed');
   }
 
   function renderIntroLibraryInline() { /* removed — leaderboard click fills the text box instead */ }
