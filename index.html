@@ -12581,7 +12581,7 @@
     const ownRank = ownRow ? getLeaderboardRank(activePeriodId, ownRow.user_id) : null;
     const ownPoints = ownRow ? getLeaderboardPeriodValue(ownRow, activePeriodId, 'points') : 0;
     const leaderPoints = sorted.length ? getLeaderboardPeriodValue(sorted[0], activePeriodId, 'points') : 0;
-    const topRows = sorted.slice(0, 5).map((row, index) => ({ row, rank: index + 1 }));
+    const topRows = sorted.slice(0, 10).map((row, index) => ({ row, rank: index + 1 }));
     const previewRows = [...topRows];
     if (ownRow && ownRank && ownRank > topRows.length) previewRows.push({ row: ownRow, rank: ownRank });
 
