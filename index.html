@@ -292,6 +292,61 @@
       background: rgba(17, 24, 39, 0.85);
     }
 
+    .settings-team-card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(17, 24, 39, 0.72);
+    }
+
+    .settings-team-toggle {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .settings-team-btn {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.82);
+      color: var(--text);
+      font-size: 0.84rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+    }
+
+    .settings-team-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .settings-team-btn.active-agrol {
+      border-color: rgba(34, 197, 94, 0.45);
+      background: rgba(20, 83, 45, 0.42);
+      color: #bbf7d0;
+    }
+
+    .settings-team-btn.active-nysalg {
+      border-color: rgba(96, 165, 250, 0.45);
+      background: rgba(30, 64, 175, 0.34);
+      color: #bfdbfe;
+    }
+
+    .settings-team-btn:disabled {
+      opacity: 0.7;
+      cursor: wait;
+      transform: none;
+    }
+
+    .settings-team-status {
+      margin: 0;
+    }
+
     .settings-status-label {
       font-size: 0.72rem;
       font-weight: 700;
@@ -7994,6 +8049,14 @@
             </div>
           </div>
           <div class="settings-user-note">Din konto har sitt eget datasett. Andre brukere ser bare sitt eget innhold.</div>
+          <div class="settings-team-card">
+            <span class="settings-status-label">Team</span>
+            <div class="settings-team-toggle" role="group" aria-label="Velg team">
+              <button id="settings-team-agrol" class="settings-team-btn" type="button" onclick="updateCurrentUserTeam('Agrol')">Agrol</button>
+              <button id="settings-team-nysalg" class="settings-team-btn" type="button" onclick="updateCurrentUserTeam('Nysalg')">Nysalg</button>
+            </div>
+            <div id="settings-team-status" class="auth-message auth-message-info settings-team-status"></div>
+          </div>
           <div class="settings-status-row">
             <span class="settings-status-label">Skystatus</span>
             <span id="sync-status" class="settings-status-value"></span>
@@ -8452,6 +8515,30 @@
     return '';
   }
 
+  function setSettingsTeamStatus(message, tone = 'info') {
+    if (!message) {
+      clearElementMessage('settings-team-status');
+      return;
+    }
+    setElementMessage('settings-team-status', message, tone);
+  }
+
+  function updateSettingsTeamControls(user = currentUser, isSaving = false) {
+    const team = String(getUserTeam(user) || '').trim().toLowerCase();
+    const agrolButton = document.getElementById('settings-team-agrol');
+    const nysalgButton = document.getElementById('settings-team-nysalg');
+    if (agrolButton) {
+      agrolButton.classList.toggle('active-agrol', team === 'agrol' || team === 'argol');
+      agrolButton.disabled = isSaving;
+      agrolButton.setAttribute('aria-pressed', team === 'agrol' || team === 'argol' ? 'true' : 'false');
+    }
+    if (nysalgButton) {
+      nysalgButton.classList.toggle('active-nysalg', team === 'nysalg');
+      nysalgButton.disabled = isSaving;
+      nysalgButton.setAttribute('aria-pressed', team === 'nysalg' ? 'true' : 'false');
+    }
+  }
+
   function getUserInitials(name) {
     const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
     if (!parts.length) return '?';
@@ -8475,6 +8562,7 @@
     if (nameEl) nameEl.textContent = displayName;
     if (emailEl) emailEl.textContent = [user?.email || '', team].filter(Boolean).join(' · ') || 'Innlogget bruker';
     if (avatarEl) avatarEl.textContent = initials;
+    updateSettingsTeamControls(user);
   }
 
   function setLeaderboardState(state, errorMessage = '') {
@@ -9761,12 +9849,15 @@
       currentUser = null;
       clearTrackedLocalData();
       clearLeaderboardState();
+      updateSettingsTeamControls(null, false);
+      setSettingsTeamStatus('');
       setAppVisible(false);
       setSyncStatus('signedout');
       return;
     }
 
     currentUser = session.user;
+    setSettingsTeamStatus('');
     setAuthStatus('Laster kontoen din...', 'info');
 
     try {
@@ -9777,6 +9868,8 @@
       currentUser = null;
       clearTrackedLocalData();
       clearLeaderboardState();
+      updateSettingsTeamControls(null, false);
+      setSettingsTeamStatus('');
       setAppVisible(false);
       setSyncStatus('error');
       setAuthStatus(error.message || 'Kunne ikke laste brukerdata.', 'error');
@@ -9859,6 +9952,48 @@
 
     if (data.session) setAuthStatus('Konto opprettet og logget inn.', 'success');
     else setAuthStatus('Konto opprettet. Bekreft e-posten din hvis prosjektet krever det.', 'success');
+  }
+
+  async function updateCurrentUserTeam(nextTeam) {
+    if (!supabaseClient || !currentUser) return;
+    const normalizedTeam = String(nextTeam || '').trim();
+    if (!normalizedTeam) return;
+    const currentTeam = getUserTeam(currentUser);
+    if (currentTeam.toLowerCase() === normalizedTeam.toLowerCase()) {
+      setSettingsTeamStatus(`Team er allerede satt til ${normalizedTeam}.`, 'info');
+      return;
+    }
+
+    setSettingsTeamStatus('Lagrer team...', 'info');
+    updateSettingsTeamControls(currentUser, true);
+
+    const nextMetadata = {
+      ...(currentUser.user_metadata || {}),
+      team: normalizedTeam
+    };
+
+    const { data, error } = await supabaseClient.auth.updateUser({ data: nextMetadata });
+    if (error) {
+      updateSettingsTeamControls(currentUser, false);
+      setSettingsTeamStatus(error.message || 'Kunne ikke oppdatere team.', 'error');
+      return;
+    }
+
+    currentUser = data?.user || { ...currentUser, user_metadata: nextMetadata };
+    updateUserBar(currentUser);
+
+    try {
+      await syncPublicLeaderboard({ skipReload: true });
+      await loadLeaderboardRows({ silentLoading: true });
+      renderAll();
+      setSettingsTeamStatus(`Team oppdatert til ${normalizedTeam}.`, 'success');
+    } catch (syncError) {
+      setLeaderboardState('error', getLeaderboardErrorMessage(syncError, 'Kunne ikke oppdatere leaderboard.'));
+      renderAll();
+      setSettingsTeamStatus(`Team ble lagret, men leaderboard kunne ikke oppdateres: ${syncError.message || 'ukjent feil'}`, 'warning');
+    } finally {
+      updateSettingsTeamControls(currentUser, false);
+    }
   }
 
   async function signOutUser() {
