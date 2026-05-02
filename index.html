@@ -4184,6 +4184,11 @@
       box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12), 0 10px 24px rgba(34, 197, 94, 0.08);
     }
 
+    .stats-goal-card.compact {
+      margin: 14px 0 0 0;
+      padding: 12px 14px;
+    }
+
     .stats-goal-after-stats {
       margin-top: 16px;
     }
@@ -4508,6 +4513,20 @@
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
+    }
+
+    .stats-overview-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .stats-overview-card-head .dashboard-card-title {
+      font-size: 1rem;
+      letter-spacing: -0.01em;
     }
 
     .stats-overview-today-summary {
@@ -12074,11 +12093,14 @@
     return 'Sett mål for måneden';
   }
 
-  function renderStatsGoalSummary(goalStatus) {
+  function renderStatsGoalSummary(goalStatus, options = {}) {
     if (!goalStatus?.metrics?.length) return '';
+    const showTitle = options.showTitle !== false;
+    const showHelper = !!options.showHelper;
+    const extraClass = options.extraClass ? ` ${options.extraClass}` : '';
     return `
-      <div class="stats-goal-card${goalStatus.anyComplete ? ' goal-complete' : ''}">
-        <div class="stats-goal-title">${goalStatus.period === 'day' ? 'Mål for dagen' : goalStatus.period === 'week' ? 'Mål i denne uken' : 'Mål i denne måneden'}</div>
+      <div class="stats-goal-card${goalStatus.anyComplete ? ' goal-complete' : ''}${extraClass}">
+        ${showTitle ? `<div class="stats-goal-title">${goalStatus.period === 'day' ? 'Mål for dagen' : goalStatus.period === 'week' ? 'Mål i denne uken' : 'Mål i denne måneden'}</div>` : ''}
         <div class="stats-goal-progress-list">
           ${goalStatus.metrics.map(item => {
             const progress = item.target > 0 ? Math.min((item.current / item.target) * 100, 100) : 100;
@@ -12093,6 +12115,7 @@
             `;
           }).join('')}
         </div>
+        ${showHelper && goalStatus.helperParts?.length ? `<div class="stats-goal-helper">${goalStatus.helperParts.join(' · ')}.</div>` : ''}
       </div>
     `;
   }
@@ -12474,15 +12497,16 @@
     `;
   }
 
-  function renderStatsOverviewTodayCard(dag) {
+  function renderStatsOverviewTodayCard(dag, goalStatus) {
     const cards = [
       { label: '6-minuttere', value: dag.over5, accent: 'over6' },
       { label: 'Salg', value: dag.salg, accent: 'sales' }
     ];
     return `
       <div class="dashboard-card dashboard-today-card">
-        <div class="dashboard-card-heading">
+        <div class="stats-overview-card-head">
           <div class="dashboard-card-title">I dag</div>
+          <button class="backup-btn stats-goal-btn" type="button" onclick="openGoalsPage('day')">Sett mål</button>
         </div>
         <div class="dashboard-today-summary stats-overview-today-summary">
           ${cards.map(card => `
@@ -12492,20 +12516,23 @@
             </div>
           `).join('')}
         </div>
+        ${goalStatus ? renderStatsGoalSummary(goalStatus, { showTitle: false, showHelper: true, extraClass: 'compact' }) : ''}
       </div>
     `;
   }
 
-  function renderStatsOverviewChartCard(title, chartTitle, data, maxScale) {
+  function renderStatsOverviewChartCard(title, chartTitle, data, maxScale, period, goalStatus) {
     return `
       <div class="dashboard-card">
-        <div class="dashboard-card-heading">
+        <div class="stats-overview-card-head">
           <div class="dashboard-card-title">${title}</div>
+          <button class="backup-btn stats-goal-btn" type="button" onclick="openGoalsPage('${period}')">Sett mål</button>
         </div>
         <div class="dashboard-week-chart">
           <div class="chart-card-title">${chartTitle}</div>
           ${stackedBarChart(data, maxScale)}
         </div>
+        ${goalStatus ? renderStatsGoalSummary(goalStatus, { showTitle: false, showHelper: true, extraClass: 'compact' }) : ''}
       </div>
     `;
   }
@@ -12903,10 +12930,10 @@
     `;
     const statsOverviewPane = `
       <div class="stats-pane">
-        ${renderStatsOverviewTodayCard(dag)}
+        ${renderStatsOverviewTodayCard(dag, dayGoalStatus)}
         <div class="development-section-grid">
-          ${renderStatsOverviewChartCard('Denne uken', '6-min & salg per dag', weekData, stackedChartMax)}
-          ${renderStatsOverviewChartCard('Denne måneden', `6-min & salg per uke i ${monthTitle}`, weekBuckets, monthChartMax)}
+          ${renderStatsOverviewChartCard('Denne uken', '6-min & salg per dag', weekData, stackedChartMax, 'week', weekGoalStatus)}
+          ${renderStatsOverviewChartCard('Denne måneden', `6-min & salg per uke i ${monthTitle}`, weekBuckets, monthChartMax, 'month', monthGoalStatus)}
         </div>
       </div>
     `;
