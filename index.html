@@ -391,7 +391,8 @@
       font-weight: 700;
     }
 
-    .auth-field input {
+    .auth-field input,
+    .auth-field select {
       width: 100%;
       padding: 11px 12px;
       border: 1.5px solid var(--border);
@@ -402,7 +403,8 @@
       color: var(--text);
     }
 
-    .auth-field input:focus {
+    .auth-field input:focus,
+    .auth-field select:focus {
       outline: none;
       border-color: var(--primary);
       background: white;
@@ -7865,6 +7867,14 @@
       <label for="auth-name">Navn</label>
       <input id="auth-name" type="text" placeholder="Navnet ditt" autocomplete="name" />
     </div>
+    <div class="auth-field auth-field-full">
+      <label for="auth-team">Team</label>
+      <select id="auth-team" autocomplete="organization-title">
+        <option value="">Velg team ved opprettelse</option>
+        <option value="Agrol">Agrol</option>
+        <option value="Nysalg">Nysalg</option>
+      </select>
+    </div>
     <div class="auth-field">
       <label for="auth-email">E-post</label>
       <input id="auth-email" type="email" placeholder="navn@example.com" autocomplete="email" />
@@ -7885,7 +7895,7 @@
 
   <div class="auth-helper">
     Fyll inn Supabase URL og anon key i script-konfigurasjonen før du publiserer siden.
-    Når en bruker logger inn, lastes bare den brukerens data.
+    Når en bruker logger inn, lastes bare den brukerens data. Nye brukere velger ogsa team ved konto-opprettelse.
   </div>
 </div>
 
@@ -8408,6 +8418,11 @@
     return name ? String(name).trim() : formatAuthEmailFallback(user?.email || '');
   }
 
+  function getUserTeam(user) {
+    const team = String(user?.user_metadata?.team || '').trim();
+    return team || '';
+  }
+
   function getUserInitials(name) {
     const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
     if (!parts.length) return '?';
@@ -8417,6 +8432,7 @@
 
   function updateUserBar(user) {
     const displayName = getUserDisplayName(user);
+    const team = getUserTeam(user);
     const initials = getUserInitials(displayName);
     const button = document.getElementById('top-bar-settings-button');
     const triggerNameEl = document.getElementById('settings-trigger-name');
@@ -8428,7 +8444,7 @@
     if (triggerNameEl) triggerNameEl.textContent = displayName;
     if (triggerAvatarEl) triggerAvatarEl.textContent = initials;
     if (nameEl) nameEl.textContent = displayName;
-    if (emailEl) emailEl.textContent = user?.email || 'Innlogget bruker';
+    if (emailEl) emailEl.textContent = [user?.email || '', team].filter(Boolean).join(' · ') || 'Innlogget bruker';
     if (avatarEl) avatarEl.textContent = initials;
   }
 
@@ -8495,16 +8511,19 @@
 
   function getAuthCredentials() {
     const name = document.getElementById('auth-name')?.value.trim() || '';
+    const team = document.getElementById('auth-team')?.value.trim() || '';
     const email = document.getElementById('auth-email')?.value.trim() || '';
     const password = document.getElementById('auth-password')?.value || '';
-    return { name, email, password };
+    return { name, team, email, password };
   }
 
   function resetAuthForm() {
     const nameInput = document.getElementById('auth-name');
+    const teamInput = document.getElementById('auth-team');
     const emailInput = document.getElementById('auth-email');
     const passwordInput = document.getElementById('auth-password');
     if (nameInput) nameInput.value = '';
+    if (teamInput) teamInput.value = '';
     if (emailInput) emailInput.value = '';
     if (passwordInput) passwordInput.value = '';
   }
@@ -9757,9 +9776,9 @@
 
   async function signUpWithEmail() {
     if (!supabaseClient) return;
-    const { name, email, password } = getAuthCredentials();
-    if (!name || !email || !password) {
-      setAuthStatus('Skriv inn navn, e-post og passord.', 'warning');
+    const { name, team, email, password } = getAuthCredentials();
+    if (!name || !team || !email || !password) {
+      setAuthStatus('Skriv inn navn, team, e-post og passord.', 'warning');
       return;
     }
     if (password.length < 6) {
@@ -9773,6 +9792,7 @@
       password,
       options: {
         data: {
+          team,
           display_name: name,
           full_name: name,
           name
