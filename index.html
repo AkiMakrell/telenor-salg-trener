@@ -8529,7 +8529,12 @@
 
   function isLeaderboardSchemaMismatch(error) {
     const message = String(error?.message || error || '');
-    return /schema cache/i.test(message) && /(team|day_over6|day_sales|day_points|week_over6|week_sales|week_points|month_over6|month_sales|month_points)/i.test(message);
+    return /schema cache/i.test(message) && /(day_over6|day_sales|day_points|week_over6|week_sales|week_points|month_over6|month_sales|month_points)/i.test(message);
+  }
+
+  function isMissingLeaderboardTeamColumn(error) {
+    const message = String(error?.message || error || '');
+    return /(schema cache|column .* does not exist|could not find the .*team.* column)/i.test(message) && /\bteam\b/i.test(message);
   }
 
   function getLeaderboardErrorMessage(error, fallback = 'Kunne ikke laste leaderboard.') {
@@ -9318,9 +9323,15 @@
 
     if (!options.silentLoading) setLeaderboardState('loading');
 
-    const { data, error } = await supabaseClient
+    let { data, error } = await supabaseClient
       .from(SUPABASE_PUBLIC_STATS_TABLE)
       .select('user_id, display_name, team, total_intro_successes, total_over6, total_sales, day_over6, day_sales, day_points, week_over6, week_sales, week_points, month_over6, month_sales, month_points, latest_entry_at, updated_at');
+
+    if (error && isMissingLeaderboardTeamColumn(error)) {
+      ({ data, error } = await supabaseClient
+        .from(SUPABASE_PUBLIC_STATS_TABLE)
+        .select('user_id, display_name, total_intro_successes, total_over6, total_sales, day_over6, day_sales, day_points, week_over6, week_sales, week_points, month_over6, month_sales, month_points, latest_entry_at, updated_at'));
+    }
 
     if (error) {
       setLeaderboardState('error', getLeaderboardErrorMessage(error, 'Kunne ikke laste leaderboard.'));
@@ -9368,12 +9379,23 @@
     if (!supabaseClient || !currentUser) return;
 
     const payload = getLeaderboardPayload();
-    const { error } = await supabaseClient
+    let { error } = await supabaseClient
       .from(SUPABASE_PUBLIC_STATS_TABLE)
       .upsert(
         [{ user_id: currentUser.id, ...payload }],
         { onConflict: 'user_id' }
       );
+
+    if (error && isMissingLeaderboardTeamColumn(error)) {
+      const { team, ...payloadWithoutTeam } = payload;
+      ({ error } = await supabaseClient
+        .from(SUPABASE_PUBLIC_STATS_TABLE)
+        .upsert(
+          [{ user_id: currentUser.id, ...payloadWithoutTeam }],
+          { onConflict: 'user_id' }
+        ));
+    }
+
     if (error) throw error;
 
     if (!options.skipReload) await loadLeaderboardRows({ silentLoading: !(isTabActive('stats') && activeStatsSubview === 'leaderboard') });
