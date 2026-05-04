@@ -9819,10 +9819,27 @@
       + (Math.max(0, Number(over6) || 0) * LEADERBOARD_POINTS_PER_OVER6);
   }
 
+  function getEntryLocalDate(entry) {
+    if (!entry) return null;
+    const dateKey = getEntryDateKey(entry);
+    const date = dateKey ? parseLocalDateKey(dateKey) : isoToDate(entry.isoDate);
+    if (!date || Number.isNaN(date.getTime())) return null;
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+
+  function getHistoryEntriesForPeriod(history = getIntroHistory(), periodId = 'day', reference = new Date()) {
+    const range = getPeriodRange(periodId, reference);
+    return history.filter(entry => {
+      const entryDate = getEntryLocalDate(entry);
+      return entryDate && entryDate >= range.start && entryDate < range.end;
+    });
+  }
+
   function getLeaderboardPeriodStats(history = getIntroHistory()) {
-    const dayStats = statsFor(history.filter(entry => isToday(entry.isoDate)));
-    const weekStats = statsFor(history.filter(entry => isThisWeek(entry.isoDate)));
-    const monthStats = statsFor(history.filter(entry => isThisMonth(entry.isoDate)));
+    const dayStats = statsFor(getHistoryEntriesForPeriod(history, 'day'));
+    const weekStats = statsFor(getHistoryEntriesForPeriod(history, 'week'));
+    const monthStats = statsFor(getHistoryEntriesForPeriod(history, 'month'));
     return {
       day: {
         sales: dayStats.salg,
@@ -9974,6 +9991,24 @@
     });
   }
 
+  function mergeCurrentUserLocalLeaderboardRow(rows = leaderboardRows) {
+    if (!currentUser) return Array.isArray(rows) ? [...rows] : [];
+    const ownUserId = String(currentUser.id || '');
+    const nextRows = (Array.isArray(rows) ? rows : []).filter(row => row?.user_id !== ownUserId);
+    const localOwnRow = buildCurrentUserLocalLeaderboardRow();
+    if (localOwnRow && hasVisibleLeaderboardActivity(localOwnRow)) nextRows.push(localOwnRow);
+    return nextRows;
+  }
+
+  function upsertCurrentUserLocalLeaderboardRow(options = {}) {
+    leaderboardRows = mergeCurrentUserLocalLeaderboardRow(leaderboardRows);
+    if (leaderboardRows.length && leaderboardState !== 'loading') {
+      leaderboardState = 'ready';
+      leaderboardErrorMessage = '';
+    }
+    if (options.refresh !== false) refreshVisibleStatsSurface();
+  }
+
   async function loadLegacyPublicStatsRows() {
     let { data, error } = await supabaseClient
       .from(SUPABASE_PUBLIC_STATS_TABLE)
@@ -10064,18 +10099,25 @@
       const [legacyRows] = await Promise.all([
         loadLegacyPublicStatsRows().catch(() => []),
         loadPublicProfiles(),
-        loadPublicActivityEntries(),
-        loadCompetitionData()
+        loadPublicActivityEntries().catch(error => {
+          if (isLeaderboardSchemaMismatch(error)) {
+            publicActivityRows = [];
+            return [];
+          }
+          throw error;
+        }),
+        loadCompetitionData().catch(error => {
+          if (isLeaderboardSchemaMismatch(error)) {
+            competitionGames = [];
+            competitionParticipants = [];
+            return { games: [], participants: [] };
+          }
+          throw error;
+        })
       ]);
       const freshRows = buildLeaderboardRowsFromPublicActivity();
       const freshUserIds = new Set(freshRows.map(row => row.user_id));
-      const nextRows = [...freshRows, ...legacyRows.filter(row => !freshUserIds.has(row.user_id))];
-      const localOwnRow = buildCurrentUserLocalLeaderboardRow();
-      if (localOwnRow) {
-        const ownIndex = nextRows.findIndex(row => row.user_id === localOwnRow.user_id);
-        if (ownIndex >= 0) nextRows[ownIndex] = localOwnRow;
-        else nextRows.push(localOwnRow);
-      }
+      const nextRows = mergeCurrentUserLocalLeaderboardRow([...freshRows, ...legacyRows.filter(row => !freshUserIds.has(row.user_id))]);
       updateLeaderboardMovementState(nextRows);
       leaderboardRows = nextRows;
       setLeaderboardState('ready');
@@ -11259,7 +11301,7 @@
     const container = document.getElementById('intro-daily-stats');
     if (!container) return;
     const history = getIntroHistory();
-    const dayEntries = history.filter(entry => isToday(entry.isoDate));
+    const dayEntries = getHistoryEntriesForPeriod(history, 'day', reference);
     const dayStats = statsFor(dayEntries);
     const todaySessionCount = getStartedSessionCountForDate(reference, reference);
     container.innerHTML = `
@@ -11273,8 +11315,8 @@
     if (!container) return;
     const history = getIntroHistory();
     const intros = getSavedIntros();
-    const todayEntries = history.filter(entry => isToday(entry.isoDate));
-    const weekEntries = history.filter(entry => isThisWeek(entry.isoDate));
+    const todayEntries = getHistoryEntriesForPeriod(history, 'day', reference);
+    const weekEntries = getHistoryEntriesForPeriod(history, 'week', reference);
     const todayStats = statsFor(todayEntries);
     const weekStats = statsFor(weekEntries);
     const todaySessionCount = getStartedSessionCountForDate(reference, reference);
@@ -11309,7 +11351,7 @@
     const container = document.getElementById('register-quick-stats');
     if (!container) return;
     const history = getIntroHistory();
-    const dayEntries = history.filter(entry => isToday(entry.isoDate));
+    const dayEntries = getHistoryEntriesForPeriod(history, 'day', reference);
     const dayStats = statsFor(dayEntries);
     container.innerHTML = `
       <div class="register-quick-stat over5">
@@ -11689,7 +11731,7 @@
 
   function getRangeEntries(history, start, end) {
     return history.filter(entry => {
-      const date = isoToDate(entry.isoDate);
+      const date = getEntryLocalDate(entry);
       return date && date >= start && date < end;
     });
   }
@@ -13150,9 +13192,9 @@
     const now = new Date();
     const history = getIntroHistory();
     const currentStatsByPeriod = {
-      day: statsFor(history.filter(h => isToday(h.isoDate))),
-      week: statsFor(history.filter(h => isThisWeek(h.isoDate))),
-      month: statsFor(history.filter(h => isThisMonth(h.isoDate))),
+      day: statsFor(getHistoryEntriesForPeriod(history, 'day', now)),
+      week: statsFor(getHistoryEntriesForPeriod(history, 'week', now)),
+      month: statsFor(getHistoryEntriesForPeriod(history, 'month', now)),
     };
     const businessDaysByPeriod = {
       day: 1,
@@ -14416,13 +14458,13 @@
 
   function renderStatsSurface(containerId = 'stats-home', mode = 'overview') {
     const history = getIntroHistory();
-    const dagEntries = history.filter(h => isToday(h.isoDate));
-    const ukeEntries = history.filter(h => isThisWeek(h.isoDate));
-    const mndEntries = history.filter(h => isThisMonth(h.isoDate));
+    const now = new Date();
+    const dagEntries = getHistoryEntriesForPeriod(history, 'day', now);
+    const ukeEntries = getHistoryEntriesForPeriod(history, 'week', now);
+    const mndEntries = getHistoryEntriesForPeriod(history, 'month', now);
     const dayRecords = getGroupedStatsRecords(history, 'day');
     const weekRecords = getGroupedStatsRecords(history, 'week');
     const monthRecords = getGroupedStatsRecords(history, 'month');
-    const now = new Date();
 
     const dag = statsFor(dagEntries);
     const uke = statsFor(ukeEntries);
@@ -14812,6 +14854,7 @@
       ? cloneIntroHistory(options.previousHistory)
       : cloneIntroHistory();
     const normalizedHistory = saveIntroHistoryToStorage(history);
+    upsertCurrentUserLocalLeaderboardRow({ refresh: false });
     if (currentUser) {
       appendIntroHistoryEvents(previousHistory, normalizedHistory, options.eventSource || 'app').catch(error => {
         if (isSafetySchemaMismatch(error)) return;
