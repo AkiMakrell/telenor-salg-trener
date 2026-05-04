@@ -6131,6 +6131,299 @@
       gap: 12px;
     }
 
+    .games-page-shell {
+      display: grid;
+      gap: 18px;
+    }
+
+    .games-hero,
+    .games-section-card,
+    .games-competition-card,
+    .games-competition-detail,
+    .games-template-card,
+    .games-create-card {
+      border-radius: 22px;
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(8, 15, 30, 0.96));
+      box-shadow: 0 18px 40px rgba(2, 6, 23, 0.28);
+      padding: 22px;
+    }
+
+    .games-hero {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .games-hero-title {
+      font-size: 1.55rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      margin-bottom: 6px;
+    }
+
+    .games-hero-text,
+    .games-muted-text,
+    .games-card-meta,
+    .games-detail-meta {
+      color: var(--muted);
+    }
+
+    .games-hero-actions,
+    .games-filter-row,
+    .games-card-actions,
+    .games-form-actions,
+    .games-detail-actions,
+    .games-participant-list {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .games-summary-grid,
+    .games-competition-grid,
+    .games-section-grid,
+    .games-templates-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .games-summary-grid {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+
+    .games-competition-grid {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .games-section-grid {
+      grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+      align-items: start;
+    }
+
+    .games-templates-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .games-section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .games-section-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .games-summary-tile {
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(51, 65, 85, 0.85);
+      background: rgba(10, 16, 30, 0.88);
+    }
+
+    .games-summary-label,
+    .games-badge {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .games-summary-value {
+      font-size: 1.4rem;
+      font-weight: 900;
+      margin-top: 6px;
+      color: var(--text);
+    }
+
+    .games-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(71, 85, 105, 0.8);
+      background: rgba(15, 23, 42, 0.88);
+    }
+
+    .games-badge.active { color: #34d399; border-color: rgba(52, 211, 153, 0.38); }
+    .games-badge.scheduled { color: #fbbf24; border-color: rgba(251, 191, 36, 0.38); }
+    .games-badge.completed { color: #c4b5fd; border-color: rgba(196, 181, 253, 0.4); }
+
+    .games-competition-card,
+    .games-template-card {
+      display: grid;
+      gap: 12px;
+    }
+
+    .games-card-title,
+    .games-detail-title,
+    .games-template-title {
+      font-size: 1.02rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .games-card-top,
+    .games-detail-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .games-metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .games-metric-tile {
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(10, 16, 30, 0.88);
+      border: 1px solid rgba(51, 65, 85, 0.7);
+    }
+
+    .games-metric-value {
+      font-size: 1.1rem;
+      font-weight: 900;
+      margin-top: 4px;
+    }
+
+    .games-participant-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(71, 85, 105, 0.7);
+      background: rgba(10, 16, 30, 0.86);
+      font-size: 0.84rem;
+    }
+
+    .games-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .games-form-grid .full {
+      grid-column: 1 / -1;
+    }
+
+    .games-field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .games-field label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .games-field input,
+    .games-field select,
+    .games-field textarea {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(71, 85, 105, 0.85);
+      background: rgba(8, 15, 30, 0.96);
+      color: var(--text);
+      font: inherit;
+    }
+
+    .games-field textarea {
+      min-height: 92px;
+      resize: vertical;
+    }
+
+    .games-checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+
+    .games-checkbox-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(71, 85, 105, 0.7);
+      background: rgba(10, 16, 30, 0.82);
+    }
+
+    .games-checkbox-card input {
+      width: 16px;
+      height: 16px;
+    }
+
+    .games-standings-table {
+      display: grid;
+      gap: 10px;
+    }
+
+    .games-standing-row {
+      display: grid;
+      grid-template-columns: 54px minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(51, 65, 85, 0.7);
+      background: rgba(10, 16, 30, 0.88);
+    }
+
+    .games-standing-rank {
+      font-size: 1rem;
+      font-weight: 900;
+      color: var(--muted);
+    }
+
+    .games-standing-name {
+      font-weight: 800;
+    }
+
+    .games-standing-score {
+      text-align: right;
+      font-weight: 900;
+    }
+
+    .games-empty-note {
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px dashed rgba(148, 163, 184, 0.24);
+      color: var(--muted);
+      background: rgba(10, 16, 30, 0.82);
+    }
+
+    @media (max-width: 980px) {
+      .games-section-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .games-form-grid,
+      .games-metric-grid,
+      .games-standing-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .leaderboard-row {
       display: grid;
       grid-template-columns: 52px minmax(0, 1fr) auto;
@@ -7982,6 +8275,7 @@
   <div class="tabs">
     <button class="tab-btn active" data-tab="hjem" onclick="switchTab('hjem', this)">Dashboard</button>
     <button class="tab-btn" data-tab="stats" onclick="openStatsPage('overview', this)">Stats</button>
+    <button class="tab-btn" data-tab="ledertavler-spill" onclick="switchTab('ledertavler-spill', this)">Ledertavler/Spill</button>
     <div id="top-bar-tools" class="top-bar-tools">
       <button
         id="top-bar-tools-button"
@@ -8082,6 +8376,10 @@
 
 <div id="tab-stats" class="tab-content">
   <div id="stats-page"></div>
+</div>
+
+<div id="tab-ledertavler-spill" class="tab-content">
+  <div id="ledertavler-spill-page"></div>
 </div>
 
 <div id="tab-etterregistrering" class="tab-content">
@@ -8359,6 +8657,10 @@
   const SUPABASE_SNAPSHOTS_TABLE = 'user_app_snapshots';
   const SUPABASE_INTRO_EVENTS_TABLE = 'user_intro_history_events';
   const SUPABASE_PUBLIC_STATS_TABLE = 'user_public_stats';
+  const SUPABASE_PUBLIC_PROFILES_TABLE = 'user_public_profiles';
+  const SUPABASE_PUBLIC_ACTIVITY_TABLE = 'user_public_activity_entries';
+  const SUPABASE_COMPETITION_GAMES_TABLE = 'competition_games';
+  const SUPABASE_COMPETITION_PARTICIPANTS_TABLE = 'competition_participants';
   const INTRO_LEADERBOARD_DATA_VERSION = '2';
   const INTRO_LEADERBOARD_DATA_VERSION_KEY = 'introLeaderboardDataVersion';
   const STORAGE_KEYS = [
@@ -8398,6 +8700,14 @@
     { id: 'week', title: 'Denne uken', emptyLabel: 'Ingen registreringer denne uken ennå.' },
     { id: 'month', title: 'Denne måneden', emptyLabel: 'Ingen registreringer denne måneden ennå.' },
   ];
+  const COMPETITION_GAME_CONFIG = [
+    { id: 'sales-race', title: 'Abo-race', description: 'Flest abo i perioden vinner.', metricType: 'sales', metricLocked: true },
+    { id: 'over6-challenge', title: '6-min Challenge', description: 'Flest samtaler over 6 minutter.', metricType: 'over6', metricLocked: true },
+    { id: 'points-race', title: 'Poengkamp', description: '300 poeng per abo og 100 per 6-min.', metricType: 'points', metricLocked: true },
+    { id: 'target-hit', title: 'Forst til malet', description: 'Forst til valgt mal vinner.', metricType: 'sales', metricLocked: false, requiresTarget: true },
+    { id: 'sprint', title: 'Sprint', description: 'Kort konkurranse i et egendefinert tidsvindu.', metricType: 'points', metricLocked: false },
+    { id: 'beat-baseline', title: 'Beat your baseline', description: 'Storste forbedring mot forrige periode.', metricType: 'points', metricLocked: false }
+  ];
 
   const APP_META_LAST_IMPORT_USER = 'telenorSalgTrainer:lastImportedUserId';
   const APP_META_DEVICE_BACKUP_PREFIX = 'telenorSalgTrainer:deviceBackup:';
@@ -8421,6 +8731,15 @@
   let aboCountPromptResolver = null;
   let recoverySnapshots = [];
   let recoveryEventRows = [];
+  let publicProfileRows = [];
+  let publicActivityRows = [];
+  let competitionGames = [];
+  let competitionParticipants = [];
+  let competitionState = 'idle';
+  let competitionErrorMessage = '';
+  let activeCompetitionFilter = 'active';
+  let selectedCompetitionId = '';
+  let competitionDraft = null;
 
   localStorage.setItem = function(k, v) {
     _origSetItem(k, v);
@@ -8578,6 +8897,49 @@
     setLeaderboardState('idle');
   }
 
+  function setCompetitionState(state, errorMessage = '') {
+    competitionState = state;
+    competitionErrorMessage = errorMessage;
+    if (isTabActive('ledertavler-spill')) renderLedertavlerSpillPage();
+  }
+
+  function clearCompetitionState() {
+    publicProfileRows = [];
+    publicActivityRows = [];
+    competitionGames = [];
+    competitionParticipants = [];
+    competitionErrorMessage = '';
+    selectedCompetitionId = '';
+    competitionDraft = null;
+    setCompetitionState('idle');
+  }
+
+  function createCompetitionDraft(overrides = {}) {
+    const now = new Date();
+    const startDate = overrides.startsAt instanceof Date && !Number.isNaN(overrides.startsAt.getTime())
+      ? overrides.startsAt
+      : now;
+    const endDate = overrides.endsAt instanceof Date && !Number.isNaN(overrides.endsAt.getTime())
+      ? overrides.endsAt
+      : addDays(now, 7);
+    const defaultConfig = COMPETITION_GAME_CONFIG[0];
+    return {
+      isOpen: overrides.isOpen === false ? false : true,
+      name: String(overrides.name || ''),
+      description: String(overrides.description || ''),
+      gameType: String(overrides.gameType || defaultConfig.id),
+      metricType: String(overrides.metricType || defaultConfig.metricType),
+      targetValue: overrides.targetValue ? String(overrides.targetValue) : '',
+      startDateValue: overrides.startDateValue || getDateInputValue(startDate),
+      startTimeValue: overrides.startTimeValue || getTimeInputValue(startDate),
+      endDateValue: overrides.endDateValue || getDateInputValue(endDate),
+      endTimeValue: overrides.endTimeValue || getTimeInputValue(endDate),
+      participantIds: Array.isArray(overrides.participantIds)
+        ? [...new Set(overrides.participantIds.map(value => String(value || '')).filter(Boolean))]
+        : [String(currentUser?.id || '')].filter(Boolean)
+    };
+  }
+
   function getLeaderboardSnapshotStorageKey(userId = currentUser?.id) {
     return userId ? `${LEADERBOARD_RANK_SNAPSHOT_PREFIX}${userId}` : '';
   }
@@ -8617,7 +8979,8 @@
 
   function isLeaderboardSchemaMismatch(error) {
     const message = String(error?.message || error || '');
-    return /schema cache/i.test(message) && /(day_over6|day_sales|day_points|week_over6|week_sales|week_points|month_over6|month_sales|month_points)/i.test(message);
+    return /schema cache|relation .* does not exist|column .* does not exist/i.test(message)
+      && /(user_public_activity_entries|user_public_profiles|competition_games|competition_participants|day_over6|day_sales|day_points|week_over6|week_sales|week_points|month_over6|month_sales|month_points)/i.test(message);
   }
 
   function isMissingLeaderboardTeamColumn(error) {
@@ -9340,6 +9703,72 @@
     };
   }
 
+  function normalizePublicProfileRow(row) {
+    if (!row || typeof row !== 'object') return null;
+    const userId = String(row.user_id || '').trim();
+    if (!userId) return null;
+    return {
+      user_id: userId,
+      display_name: String(row.display_name || '').trim() || 'Ukjent bruker',
+      team: String(row.team || '').trim(),
+      updated_at: row.updated_at ? String(row.updated_at) : '',
+    };
+  }
+
+  function normalizePublicActivityRow(row) {
+    if (!row || typeof row !== 'object') return null;
+    const userId = String(row.user_id || '').trim();
+    const entryId = String(row.entry_id || '').trim();
+    if (!userId || !entryId) return null;
+    return {
+      entry_id: entryId,
+      user_id: userId,
+      occurred_at: String(row.occurred_at || ''),
+      intro_success_count: Math.max(0, Number(row.intro_success_count) || 0),
+      over6_count: Math.max(0, Number(row.over6_count) || 0),
+      sales_count: Math.max(0, Number(row.sales_count) || 0),
+      points: Math.max(0, Number(row.points) || 0),
+      updated_at: row.updated_at ? String(row.updated_at) : ''
+    };
+  }
+
+  function normalizeCompetitionGame(row) {
+    if (!row || typeof row !== 'object') return null;
+    const competitionId = String(row.competition_id || '').trim();
+    if (!competitionId) return null;
+    return {
+      competition_id: competitionId,
+      creator_user_id: String(row.creator_user_id || '').trim(),
+      name: String(row.name || '').trim() || 'Uten navn',
+      description: String(row.description || '').trim(),
+      game_type: String(row.game_type || '').trim(),
+      metric_type: String(row.metric_type || '').trim(),
+      target_value: row.target_value === null || row.target_value === undefined ? null : Math.max(0, Number(row.target_value) || 0),
+      starts_at: String(row.starts_at || ''),
+      ends_at: String(row.ends_at || ''),
+      status: String(row.status || 'scheduled').trim(),
+      rules_json: row.rules_json && typeof row.rules_json === 'object' ? row.rules_json : {},
+      updated_at: row.updated_at ? String(row.updated_at) : '',
+      created_at: row.created_at ? String(row.created_at) : ''
+    };
+  }
+
+  function normalizeCompetitionParticipant(row) {
+    if (!row || typeof row !== 'object') return null;
+    const competitionId = String(row.competition_id || '').trim();
+    const userId = String(row.user_id || '').trim();
+    if (!competitionId || !userId) return null;
+    return {
+      competition_id: competitionId,
+      user_id: userId,
+      invited_by_user_id: String(row.invited_by_user_id || '').trim(),
+      invite_status: String(row.invite_status || 'invited').trim(),
+      joined_at: row.joined_at ? String(row.joined_at) : '',
+      updated_at: row.updated_at ? String(row.updated_at) : '',
+      created_at: row.created_at ? String(row.created_at) : ''
+    };
+  }
+
   function getLeaderboardPoints(sales = 0, over6 = 0) {
     return (Math.max(0, Number(sales) || 0) * LEADERBOARD_POINTS_PER_SALE)
       + (Math.max(0, Number(over6) || 0) * LEADERBOARD_POINTS_PER_OVER6);
@@ -9405,37 +9834,198 @@
     );
   }
 
-  async function loadLeaderboardRows(options = {}) {
-    if (!supabaseClient || !currentUser) {
-      clearLeaderboardState();
-      return [];
+  function getPeriodRange(periodId, reference = new Date()) {
+    const now = new Date(reference);
+    if (periodId === 'day') {
+      const start = startOfDay(now);
+      return { start, end: addDays(start, 1) };
     }
+    if (periodId === 'week') {
+      const start = getWeekStartFromDate(now);
+      return { start, end: addDays(start, 7) };
+    }
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    return { start, end: new Date(now.getFullYear(), now.getMonth() + 1, 1) };
+  }
 
-    if (!options.silentLoading) setLeaderboardState('loading');
+  function getActivityRowsForRange(entries, start, end) {
+    return entries.filter(entry => {
+      const occurredAt = new Date(entry.occurred_at);
+      return !Number.isNaN(occurredAt.getTime()) && occurredAt >= start && occurredAt < end;
+    });
+  }
 
+  function buildLeaderboardRowsFromPublicActivity(reference = new Date()) {
+    const profileMap = new Map(
+      publicProfileRows
+        .map(row => normalizePublicProfileRow(row))
+        .filter(Boolean)
+        .map(row => [row.user_id, row])
+    );
+    const userIds = new Set([
+      ...profileMap.keys(),
+      ...publicActivityRows.map(row => String(row.user_id || '').trim()).filter(Boolean)
+    ]);
+    const ranges = {
+      day: getPeriodRange('day', reference),
+      week: getPeriodRange('week', reference),
+      month: getPeriodRange('month', reference)
+    };
+
+    return [...userIds].map(userId => {
+      const profile = profileMap.get(userId);
+      const entries = publicActivityRows.filter(entry => entry.user_id === userId);
+      const totals = entries.reduce((acc, entry) => {
+        acc.total_intro_successes += entry.intro_success_count;
+        acc.total_over6 += entry.over6_count;
+        acc.total_sales += entry.sales_count;
+        return acc;
+      }, { total_intro_successes: 0, total_over6: 0, total_sales: 0 });
+
+      const periods = {};
+      Object.entries(ranges).forEach(([periodId, range]) => {
+        const periodEntries = getActivityRowsForRange(entries, range.start, range.end);
+        periods[periodId] = periodEntries.reduce((acc, entry) => {
+          acc.over6 += entry.over6_count;
+          acc.sales += entry.sales_count;
+          acc.points += entry.points;
+          return acc;
+        }, { over6: 0, sales: 0, points: 0 });
+      });
+
+      const latestEntryAt = entries
+        .map(entry => entry.occurred_at)
+        .filter(Boolean)
+        .sort((a, b) => String(b).localeCompare(String(a)))[0] || '';
+
+      return normalizeLeaderboardRow({
+        user_id: userId,
+        display_name: profile?.display_name || (userId === String(currentUser?.id || '') ? getUserDisplayName(currentUser) : 'Ukjent bruker'),
+        team: profile?.team || (userId === String(currentUser?.id || '') ? getUserTeam(currentUser) : ''),
+        total_intro_successes: totals.total_intro_successes,
+        total_over6: totals.total_over6,
+        total_sales: totals.total_sales,
+        day_over6: periods.day.over6,
+        day_sales: periods.day.sales,
+        day_points: periods.day.points,
+        week_over6: periods.week.over6,
+        week_sales: periods.week.sales,
+        week_points: periods.week.points,
+        month_over6: periods.month.over6,
+        month_sales: periods.month.sales,
+        month_points: periods.month.points,
+        latest_entry_at: latestEntryAt,
+        updated_at: profile?.updated_at || latestEntryAt
+      });
+    }).filter(hasVisibleLeaderboardActivity).filter(Boolean);
+  }
+
+  async function loadLegacyPublicStatsRows() {
     let { data, error } = await supabaseClient
       .from(SUPABASE_PUBLIC_STATS_TABLE)
       .select('user_id, display_name, team, total_intro_successes, total_over6, total_sales, day_over6, day_sales, day_points, week_over6, week_sales, week_points, month_over6, month_sales, month_points, latest_entry_at, updated_at');
-
     if (error && isMissingLeaderboardTeamColumn(error)) {
       ({ data, error } = await supabaseClient
         .from(SUPABASE_PUBLIC_STATS_TABLE)
         .select('user_id, display_name, total_intro_successes, total_over6, total_sales, day_over6, day_sales, day_points, week_over6, week_sales, week_points, month_over6, month_sales, month_points, latest_entry_at, updated_at'));
     }
+    if (error) throw error;
+    return (data || []).map(normalizeLeaderboardRow).filter(Boolean).map(row => {
+      const latestAt = row.latest_entry_at ? new Date(row.latest_entry_at) : null;
+      const hasValidLatest = latestAt && !Number.isNaN(latestAt.getTime());
+      return {
+        ...row,
+        day_over6: hasValidLatest && isToday(row.latest_entry_at) ? row.day_over6 : 0,
+        day_sales: hasValidLatest && isToday(row.latest_entry_at) ? row.day_sales : 0,
+        day_points: hasValidLatest && isToday(row.latest_entry_at) ? row.day_points : 0,
+        week_over6: hasValidLatest && isThisWeek(row.latest_entry_at) ? row.week_over6 : 0,
+        week_sales: hasValidLatest && isThisWeek(row.latest_entry_at) ? row.week_sales : 0,
+        week_points: hasValidLatest && isThisWeek(row.latest_entry_at) ? row.week_points : 0,
+        month_over6: hasValidLatest && isThisMonth(row.latest_entry_at) ? row.month_over6 : 0,
+        month_sales: hasValidLatest && isThisMonth(row.latest_entry_at) ? row.month_sales : 0,
+        month_points: hasValidLatest && isThisMonth(row.latest_entry_at) ? row.month_points : 0,
+      };
+    }).filter(hasVisibleLeaderboardActivity);
+  }
 
-    if (error) {
-      setLeaderboardState('error', getLeaderboardErrorMessage(error, 'Kunne ikke laste leaderboard.'));
-      throw error;
+  async function loadPublicProfiles() {
+    let data = [];
+    let error = null;
+    ({ data, error } = await supabaseClient
+      .from(SUPABASE_PUBLIC_PROFILES_TABLE)
+      .select('user_id, display_name, team, updated_at'));
+    if (error && !isLeaderboardSchemaMismatch(error)) throw error;
+    const profileRows = (data || []).map(normalizePublicProfileRow).filter(Boolean);
+    let fallbackProfiles = [];
+    try {
+      fallbackProfiles = (await loadLegacyPublicStatsRows()).map(row => ({
+        user_id: row.user_id,
+        display_name: row.display_name,
+        team: row.team,
+        updated_at: row.updated_at || row.latest_entry_at || ''
+      }));
+    } catch (_error) {}
+    publicProfileRows = [...new Map([...fallbackProfiles, ...profileRows].map(row => [row.user_id, row])).values()];
+    return publicProfileRows;
+  }
+
+  async function loadPublicActivityEntries() {
+    const { data, error } = await supabaseClient
+      .from(SUPABASE_PUBLIC_ACTIVITY_TABLE)
+      .select('entry_id, user_id, occurred_at, intro_success_count, over6_count, sales_count, points, updated_at');
+    if (error) throw error;
+    publicActivityRows = (data || []).map(normalizePublicActivityRow).filter(Boolean);
+    return publicActivityRows;
+  }
+
+  async function loadCompetitionData() {
+    const [gamesResponse, participantsResponse] = await Promise.all([
+      supabaseClient
+        .from(SUPABASE_COMPETITION_GAMES_TABLE)
+        .select('competition_id, creator_user_id, name, description, game_type, metric_type, target_value, starts_at, ends_at, status, rules_json, created_at, updated_at'),
+      supabaseClient
+        .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
+        .select('competition_id, user_id, invited_by_user_id, invite_status, joined_at, created_at, updated_at')
+    ]);
+    if (gamesResponse.error) throw gamesResponse.error;
+    if (participantsResponse.error) throw participantsResponse.error;
+    competitionGames = (gamesResponse.data || []).map(normalizeCompetitionGame).filter(Boolean);
+    competitionParticipants = (participantsResponse.data || []).map(normalizeCompetitionParticipant).filter(Boolean);
+    return { games: competitionGames, participants: competitionParticipants };
+  }
+
+  async function loadLeaderboardRows(options = {}) {
+    if (!supabaseClient || !currentUser) {
+      clearLeaderboardState();
+      clearCompetitionState();
+      return [];
     }
 
-    const nextRows = (data || [])
-      .map(normalizeLeaderboardRow)
-      .filter(hasVisibleLeaderboardActivity)
-      .filter(Boolean);
-    updateLeaderboardMovementState(nextRows);
-    leaderboardRows = nextRows;
-    setLeaderboardState('ready');
-    return leaderboardRows;
+    if (!options.silentLoading) {
+      setLeaderboardState('loading');
+      setCompetitionState('loading');
+    }
+
+    try {
+      const [legacyRows] = await Promise.all([
+        loadLegacyPublicStatsRows().catch(() => []),
+        loadPublicProfiles(),
+        loadPublicActivityEntries(),
+        loadCompetitionData()
+      ]);
+      const freshRows = buildLeaderboardRowsFromPublicActivity();
+      const freshUserIds = new Set(freshRows.map(row => row.user_id));
+      const nextRows = [...freshRows, ...legacyRows.filter(row => !freshUserIds.has(row.user_id))];
+      updateLeaderboardMovementState(nextRows);
+      leaderboardRows = nextRows;
+      setLeaderboardState('ready');
+      setCompetitionState('ready');
+      return leaderboardRows;
+    } catch (error) {
+      setLeaderboardState('error', getLeaderboardErrorMessage(error, 'Kunne ikke laste leaderboard.'));
+      setCompetitionState('error', error?.message || 'Kunne ikke laste spill og konkurranser.');
+      throw error;
+    }
   }
 
   function unsubscribeLeaderboardRealtime() {
@@ -9455,40 +10045,130 @@
       .channel(`leaderboard-${currentUser.id}`)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: SUPABASE_PUBLIC_STATS_TABLE },
+        { event: '*', schema: 'public', table: SUPABASE_PUBLIC_ACTIVITY_TABLE },
         () => {
-          loadLeaderboardRows({ silentLoading: !(isTabActive('stats') && activeStatsSubview === 'leaderboard') }).catch(error => {
+          loadLeaderboardRows({ silentLoading: !(isTabActive('stats') && activeStatsSubview === 'leaderboard') && !isTabActive('ledertavler-spill') }).catch(error => {
             setLeaderboardState('error', getLeaderboardErrorMessage(error, 'Kunne ikke oppdatere leaderboard.'));
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: SUPABASE_PUBLIC_PROFILES_TABLE },
+        () => {
+          loadLeaderboardRows({ silentLoading: !(isTabActive('stats') && activeStatsSubview === 'leaderboard') && !isTabActive('ledertavler-spill') }).catch(error => {
+            setLeaderboardState('error', getLeaderboardErrorMessage(error, 'Kunne ikke oppdatere leaderboard.'));
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: SUPABASE_COMPETITION_GAMES_TABLE },
+        () => {
+          loadLeaderboardRows({ silentLoading: !isTabActive('ledertavler-spill') }).catch(error => {
+            setCompetitionState('error', error?.message || 'Kunne ikke oppdatere spill.');
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: SUPABASE_COMPETITION_PARTICIPANTS_TABLE },
+        () => {
+          loadLeaderboardRows({ silentLoading: !isTabActive('ledertavler-spill') }).catch(error => {
+            setCompetitionState('error', error?.message || 'Kunne ikke oppdatere spill.');
           });
         }
       )
       .subscribe();
   }
 
-  async function syncPublicLeaderboard(options = {}) {
+  async function syncPublicProfile() {
     if (!supabaseClient || !currentUser) return;
+    const row = {
+      user_id: currentUser.id,
+      display_name: getUserDisplayName(currentUser),
+      team: getUserTeam(currentUser)
+    };
+    const { error } = await supabaseClient
+      .from(SUPABASE_PUBLIC_PROFILES_TABLE)
+      .upsert([row], { onConflict: 'user_id' });
+    if (error) throw error;
+  }
 
+  function buildPublicActivityEntries(history = getIntroHistory()) {
+    return history
+      .map(entry => {
+        if (!entry?.id) return null;
+        const salesCount = getEntrySalesCount(entry);
+        const over6Count = entry.over5min === 'ja' ? 1 : 0;
+        const introSuccessCount = isIntroSuccessEntry(entry) ? 1 : 0;
+        return {
+          entry_id: String(entry.id),
+          user_id: currentUser.id,
+          occurred_at: String(entry.isoDate || ''),
+          intro_success_count: introSuccessCount,
+          over6_count: over6Count,
+          sales_count: salesCount,
+          points: getLeaderboardPoints(salesCount, over6Count)
+        };
+      })
+      .filter(Boolean);
+  }
+
+  async function syncPublicActivityEntries() {
+    if (!supabaseClient || !currentUser) return;
+    const nextRows = buildPublicActivityEntries();
+    const { data: existingRows, error: existingError } = await supabaseClient
+      .from(SUPABASE_PUBLIC_ACTIVITY_TABLE)
+      .select('entry_id')
+      .eq('user_id', currentUser.id);
+    if (existingError) throw existingError;
+
+    const nextIds = new Set(nextRows.map(row => row.entry_id));
+    const staleIds = (existingRows || [])
+      .map(row => String(row.entry_id || ''))
+      .filter(entryId => entryId && !nextIds.has(entryId));
+
+    if (staleIds.length) {
+      const { error: deleteError } = await supabaseClient
+        .from(SUPABASE_PUBLIC_ACTIVITY_TABLE)
+        .delete()
+        .eq('user_id', currentUser.id)
+        .in('entry_id', staleIds);
+      if (deleteError) throw deleteError;
+    }
+
+    if (nextRows.length) {
+      const { error: upsertError } = await supabaseClient
+        .from(SUPABASE_PUBLIC_ACTIVITY_TABLE)
+        .upsert(nextRows, { onConflict: 'entry_id' });
+      if (upsertError) throw upsertError;
+    }
+  }
+
+  async function syncLegacyPublicStats() {
+    if (!supabaseClient || !currentUser) return;
     const payload = getLeaderboardPayload();
     let { error } = await supabaseClient
       .from(SUPABASE_PUBLIC_STATS_TABLE)
-      .upsert(
-        [{ user_id: currentUser.id, ...payload }],
-        { onConflict: 'user_id' }
-      );
-
+      .upsert([{ user_id: currentUser.id, ...payload }], { onConflict: 'user_id' });
     if (error && isMissingLeaderboardTeamColumn(error)) {
       const { team, ...payloadWithoutTeam } = payload;
       ({ error } = await supabaseClient
         .from(SUPABASE_PUBLIC_STATS_TABLE)
-        .upsert(
-          [{ user_id: currentUser.id, ...payloadWithoutTeam }],
-          { onConflict: 'user_id' }
-        ));
+        .upsert([{ user_id: currentUser.id, ...payloadWithoutTeam }], { onConflict: 'user_id' }));
     }
+    if (error && !isLeaderboardSchemaMismatch(error)) throw error;
+  }
 
-    if (error) throw error;
-
-    if (!options.skipReload) await loadLeaderboardRows({ silentLoading: !(isTabActive('stats') && activeStatsSubview === 'leaderboard') });
+  async function syncPublicLeaderboard(options = {}) {
+    if (!supabaseClient || !currentUser) return;
+    await syncPublicProfile();
+    await syncPublicActivityEntries();
+    await syncLegacyPublicStats();
+    if (!options.skipReload) {
+      await loadLeaderboardRows({ silentLoading: !(isTabActive('stats') && activeStatsSubview === 'leaderboard') && !isTabActive('ledertavler-spill') });
+    }
   }
 
   function setSyncStatus(s) {
@@ -9778,6 +10458,7 @@
     renderOvPage();
     renderGoalsPage();
     renderRetroHistoryPage();
+    renderLedertavlerSpillPage();
     renderAllPriceCalculators();
     renderSamtaleflyt();
   }
@@ -9851,6 +10532,7 @@
       currentUser = null;
       clearTrackedLocalData();
       clearLeaderboardState();
+      clearCompetitionState();
       updateSettingsTeamControls(null, false);
       setSettingsTeamStatus('');
       setAppVisible(false);
@@ -9870,6 +10552,7 @@
       currentUser = null;
       clearTrackedLocalData();
       clearLeaderboardState();
+      clearCompetitionState();
       updateSettingsTeamControls(null, false);
       setSettingsTeamStatus('');
       setAppVisible(false);
@@ -10039,6 +10722,7 @@
     if (name === 'notater') renderConversationNotes();
     if (name === 'samtalerating') renderSamtaleRating();
     if (name === 'ov') renderOvPage();
+    if (name === 'ledertavler-spill') renderLedertavlerSpillPage();
     if (name === 'stats') renderStatsPage();
     if (name === 'goals') renderGoalsPage();
     if (name === 'etterregistrering') renderRetroHistoryPage();
@@ -12468,6 +13152,10 @@
       renderStatsPage();
       return;
     }
+    if (isTabActive('ledertavler-spill')) {
+      renderLedertavlerSpillPage();
+      return;
+    }
     if (isTabActive('hjem')) renderStatsHome();
   }
 
@@ -12950,6 +13638,565 @@
     `;
   }
 
+  function getCompetitionGameConfig(gameType) {
+    return COMPETITION_GAME_CONFIG.find(item => item.id === gameType) || COMPETITION_GAME_CONFIG[0];
+  }
+
+  function getCompetitionMetricLabel(metricType) {
+    if (metricType === 'sales') return 'Abo';
+    if (metricType === 'over6') return '6-min';
+    return 'Poeng';
+  }
+
+  function getCompetitionMetricValueFromEntry(entry, metricType) {
+    if (metricType === 'sales') return Math.max(0, Number(entry.sales_count) || 0);
+    if (metricType === 'over6') return Math.max(0, Number(entry.over6_count) || 0);
+    return Math.max(0, Number(entry.points) || 0);
+  }
+
+  function getPublicProfileByUserId(userId) {
+    return publicProfileRows.find(row => row.user_id === userId) || null;
+  }
+
+  function getCompetitionStatus(game, reference = new Date()) {
+    const now = new Date(reference);
+    const startsAt = new Date(game.starts_at);
+    const endsAt = new Date(game.ends_at);
+    if (!Number.isNaN(endsAt.getTime()) && now >= endsAt) return 'completed';
+    if (!Number.isNaN(startsAt.getTime()) && now < startsAt) return 'scheduled';
+    return 'active';
+  }
+
+  function getCompetitionStatusLabel(status) {
+    if (status === 'scheduled') return 'Kommende';
+    if (status === 'completed') return 'Ferdig';
+    return 'Aktiv';
+  }
+
+  function getCompetitionFilterLabel(filterId) {
+    if (filterId === 'scheduled') return 'Kommende';
+    if (filterId === 'completed') return 'Ferdige';
+    return 'Aktive';
+  }
+
+  function getCompetitionParticipantsForGame(competitionId) {
+    return competitionParticipants.filter(item => item.competition_id === competitionId);
+  }
+
+  function getCompetitionParticipantIds(game) {
+    return getCompetitionParticipantsForGame(game.competition_id)
+      .filter(item => item.invite_status !== 'declined')
+      .map(item => item.user_id);
+  }
+
+  function getCompetitionVisibleGames(filterId = activeCompetitionFilter) {
+    return competitionGames
+      .filter(game => getCompetitionStatus(game) === filterId)
+      .sort((a, b) => String(a.starts_at).localeCompare(String(b.starts_at)));
+  }
+
+  function formatCompetitionTimeRange(game) {
+    const startsAt = new Date(game.starts_at);
+    const endsAt = new Date(game.ends_at);
+    if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) return 'Ugyldig tidsrom';
+    return `${startsAt.toLocaleString('no-NO', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} - ${endsAt.toLocaleString('no-NO', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}`;
+  }
+
+  function getCompetitionTimeLeft(game, reference = new Date()) {
+    const now = new Date(reference);
+    const startsAt = new Date(game.starts_at);
+    const endsAt = new Date(game.ends_at);
+    if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) return 'Ukjent';
+    if (now < startsAt) return `Starter om ${Math.max(1, Math.ceil((startsAt - now) / (60 * 60 * 1000)))} t`;
+    if (now >= endsAt) return 'Avsluttet';
+    const hoursLeft = Math.ceil((endsAt - now) / (60 * 60 * 1000));
+    if (hoursLeft >= 24) return `${Math.ceil(hoursLeft / 24)} dager igjen`;
+    return `${hoursLeft} t igjen`;
+  }
+
+  function getCompetitionWindowEntries(game, userId = '') {
+    const startsAt = new Date(game.starts_at);
+    const endsAt = new Date(game.ends_at);
+    return publicActivityRows.filter(entry => {
+      if (userId && entry.user_id !== userId) return false;
+      const occurredAt = new Date(entry.occurred_at);
+      return !Number.isNaN(occurredAt.getTime()) && occurredAt >= startsAt && occurredAt <= endsAt;
+    });
+  }
+
+  function getCompetitionBaselineEntries(game, userId = '') {
+    const startsAt = new Date(game.starts_at);
+    const endsAt = new Date(game.ends_at);
+    if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) return [];
+    const duration = Math.max(endsAt.getTime() - startsAt.getTime(), 1);
+    const baselineStart = new Date(startsAt.getTime() - duration);
+    return publicActivityRows.filter(entry => {
+      if (userId && entry.user_id !== userId) return false;
+      const occurredAt = new Date(entry.occurred_at);
+      return !Number.isNaN(occurredAt.getTime()) && occurredAt >= baselineStart && occurredAt < startsAt;
+    });
+  }
+
+  function buildCompetitionStandings(game) {
+    const participantIds = [...new Set(getCompetitionParticipantIds(game))];
+    const config = getCompetitionGameConfig(game.game_type);
+    const metricType = game.metric_type || config.metricType;
+    const targetValue = Math.max(0, Number(game.target_value) || 0);
+    const standings = participantIds.map(userId => {
+      const profile = getPublicProfileByUserId(userId);
+      const entries = getCompetitionWindowEntries(game, userId).sort((a, b) => String(a.occurred_at).localeCompare(String(b.occurred_at)));
+      const currentScore = entries.reduce((sum, entry) => sum + getCompetitionMetricValueFromEntry(entry, metricType), 0);
+      const totalSales = entries.reduce((sum, entry) => sum + entry.sales_count, 0);
+      const totalOver6 = entries.reduce((sum, entry) => sum + entry.over6_count, 0);
+      const totalPoints = entries.reduce((sum, entry) => sum + entry.points, 0);
+      const baselineScore = game.game_type === 'beat-baseline'
+        ? getCompetitionBaselineEntries(game, userId).reduce((sum, entry) => sum + getCompetitionMetricValueFromEntry(entry, metricType), 0)
+        : 0;
+      let score = currentScore;
+      let progressLabel = `${currentScore} ${getCompetitionMetricLabel(metricType).toLowerCase()}`;
+      let reachedAt = '';
+
+      if (game.game_type === 'beat-baseline') {
+        score = Math.max(0, currentScore - baselineScore);
+        progressLabel = `${score} over baseline (${currentScore}/${baselineScore})`;
+      } else if (game.game_type === 'target-hit' && targetValue > 0) {
+        let running = 0;
+        entries.forEach(entry => {
+          running += getCompetitionMetricValueFromEntry(entry, metricType);
+          if (!reachedAt && running >= targetValue) reachedAt = entry.occurred_at;
+        });
+        score = currentScore;
+        progressLabel = reachedAt ? `Mal traff ${formatLeaderboardTimestamp(reachedAt)}` : `${currentScore}/${targetValue}`;
+      }
+
+      return {
+        user_id: userId,
+        display_name: profile?.display_name || (userId === String(currentUser?.id || '') ? getUserDisplayName(currentUser) : 'Ukjent bruker'),
+        team: profile?.team || '',
+        score,
+        totalSales,
+        totalOver6,
+        totalPoints,
+        currentScore,
+        baselineScore,
+        progressLabel,
+        reachedAt
+      };
+    });
+
+    standings.sort((a, b) => {
+      if (game.game_type === 'target-hit' && targetValue > 0) {
+        if (a.reachedAt && b.reachedAt) return String(a.reachedAt).localeCompare(String(b.reachedAt));
+        if (a.reachedAt) return -1;
+        if (b.reachedAt) return 1;
+      }
+      if (b.score !== a.score) return b.score - a.score;
+      if (b.totalSales !== a.totalSales) return b.totalSales - a.totalSales;
+      if (b.totalOver6 !== a.totalOver6) return b.totalOver6 - a.totalOver6;
+      return a.display_name.localeCompare(b.display_name, 'no-NO');
+    });
+    return standings;
+  }
+
+  function openCompetitionCreator() {
+    competitionDraft = competitionDraft?.isOpen ? competitionDraft : createCompetitionDraft();
+    renderLedertavlerSpillPage();
+  }
+
+  function closeCompetitionCreator() {
+    competitionDraft = null;
+    renderLedertavlerSpillPage();
+  }
+
+  function updateCompetitionDraftField(key, value) {
+    const currentDraft = competitionDraft || createCompetitionDraft();
+    const nextDraft = { ...currentDraft, [key]: value };
+    if (key === 'gameType') {
+      const config = getCompetitionGameConfig(value);
+      if (config?.metricType) nextDraft.metricType = config.metricType;
+      if (!config?.requiresTarget) nextDraft.targetValue = '';
+    }
+    competitionDraft = nextDraft;
+    renderLedertavlerSpillPage();
+  }
+
+  function toggleCompetitionParticipant(userId) {
+    const currentDraft = competitionDraft || createCompetitionDraft();
+    const participantIds = new Set(currentDraft.participantIds || []);
+    if (participantIds.has(userId)) participantIds.delete(userId);
+    else participantIds.add(userId);
+    participantIds.add(String(currentUser?.id || ''));
+    competitionDraft = { ...currentDraft, participantIds: [...participantIds].filter(Boolean) };
+    renderLedertavlerSpillPage();
+  }
+
+  function setCompetitionFilter(filterId) {
+    activeCompetitionFilter = ['active', 'scheduled', 'completed'].includes(filterId) ? filterId : 'active';
+    renderLedertavlerSpillPage();
+  }
+
+  function selectCompetition(competitionId = '') {
+    selectedCompetitionId = String(competitionId || '');
+    renderLedertavlerSpillPage();
+  }
+
+  async function saveCompetitionGame() {
+    if (!supabaseClient || !currentUser) return;
+    const draft = competitionDraft || createCompetitionDraft();
+    const config = getCompetitionGameConfig(draft.gameType);
+    const startsAt = parseDateTimeInput(draft.startDateValue, draft.startTimeValue);
+    const endsAt = parseDateTimeInput(draft.endDateValue, draft.endTimeValue);
+    const participantIds = [...new Set((draft.participantIds || []).concat(String(currentUser.id)).filter(Boolean))];
+    const name = String(draft.name || '').trim();
+    const metricType = config.metricLocked ? config.metricType : draft.metricType;
+    const targetValue = config.requiresTarget ? Math.max(1, Math.floor(Number(draft.targetValue) || 0)) : null;
+
+    if (!name) {
+      setCompetitionState('error', 'Gi konkurransen et navn.');
+      return;
+    }
+    if (!startsAt || !endsAt || endsAt <= startsAt) {
+      setCompetitionState('error', 'Velg et gyldig start- og sluttidspunkt.');
+      return;
+    }
+    if (!participantIds.length) {
+      setCompetitionState('error', 'Velg minst en deltaker.');
+      return;
+    }
+    if (config.requiresTarget && !targetValue) {
+      setCompetitionState('error', 'Velg et maltall for denne konkurransen.');
+      return;
+    }
+
+    setCompetitionState('loading');
+    const competitionId = createClientUuid();
+    const gameRow = {
+      competition_id: competitionId,
+      creator_user_id: currentUser.id,
+      name,
+      description: String(draft.description || '').trim(),
+      game_type: draft.gameType,
+      metric_type: metricType,
+      target_value: targetValue,
+      starts_at: startsAt.toISOString(),
+      ends_at: endsAt.toISOString(),
+      status: getCompetitionStatus({ starts_at: startsAt.toISOString(), ends_at: endsAt.toISOString() }),
+      rules_json: {
+        metricType,
+        templateTitle: config.title
+      }
+    };
+    const participantRows = participantIds.map(userId => ({
+      competition_id: competitionId,
+      user_id: userId,
+      invited_by_user_id: currentUser.id,
+      invite_status: userId === currentUser.id ? 'accepted' : 'invited',
+      joined_at: userId === currentUser.id ? new Date().toISOString() : null
+    }));
+
+    try {
+      const { error: gameError } = await supabaseClient
+        .from(SUPABASE_COMPETITION_GAMES_TABLE)
+        .insert([gameRow]);
+      if (gameError) throw gameError;
+      const { error: participantError } = await supabaseClient
+        .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
+        .insert(participantRows);
+      if (participantError) throw participantError;
+      competitionDraft = createCompetitionDraft({ isOpen: false });
+      competitionDraft = null;
+      selectedCompetitionId = competitionId;
+      await loadLeaderboardRows({ silentLoading: true });
+    } catch (error) {
+      setCompetitionState('error', error?.message || 'Kunne ikke opprette konkurransen.');
+    }
+  }
+
+  async function updateCompetitionInviteStatus(competitionId, inviteStatus) {
+    if (!supabaseClient || !currentUser) return;
+    setCompetitionState('loading');
+    try {
+      const payload = {
+        invite_status: inviteStatus,
+        joined_at: inviteStatus === 'accepted' ? new Date().toISOString() : null
+      };
+      const { error } = await supabaseClient
+        .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
+        .update(payload)
+        .eq('competition_id', competitionId)
+        .eq('user_id', currentUser.id);
+      if (error) throw error;
+      await loadLeaderboardRows({ silentLoading: true });
+    } catch (error) {
+      setCompetitionState('error', error?.message || 'Kunne ikke oppdatere invitasjonen.');
+    }
+  }
+
+  function renderCompetitionCreateCard() {
+    if (!competitionDraft?.isOpen) return '';
+    const draft = competitionDraft;
+    const config = getCompetitionGameConfig(draft.gameType);
+    const participantCards = publicProfileRows
+      .filter(row => row.user_id !== String(currentUser?.id || ''))
+      .sort((a, b) => a.display_name.localeCompare(b.display_name, 'no-NO'))
+      .map(profile => `
+        <label class="games-checkbox-card">
+          <input type="checkbox" ${draft.participantIds.includes(profile.user_id) ? 'checked' : ''} onchange="toggleCompetitionParticipant('${profile.user_id}')">
+          <span>${escHtml(profile.display_name)}${profile.team ? ` · ${escHtml(profile.team)}` : ''}</span>
+        </label>
+      `).join('');
+
+    return `
+      <div class="games-create-card">
+        <div class="games-section-head">
+          <div class="games-section-title">Opprett nytt spill</div>
+          <button class="backup-btn" type="button" onclick="closeCompetitionCreator()">Lukk</button>
+        </div>
+        <div class="games-form-grid">
+          <div class="games-field">
+            <label>Navn</label>
+            <input type="text" value="${escAttr(draft.name)}" onchange="updateCompetitionDraftField('name', this.value)" placeholder="F.eks. Tirsdagssprint">
+          </div>
+          <div class="games-field">
+            <label>Spilltype</label>
+            <select onchange="updateCompetitionDraftField('gameType', this.value)">
+              ${COMPETITION_GAME_CONFIG.map(item => `<option value="${item.id}" ${draft.gameType === item.id ? 'selected' : ''}>${escHtml(item.title)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="games-field">
+            <label>Metrikk</label>
+            <select ${config.metricLocked ? 'disabled' : ''} onchange="updateCompetitionDraftField('metricType', this.value)">
+              ${['points', 'sales', 'over6'].map(metric => `<option value="${metric}" ${draft.metricType === metric ? 'selected' : ''}>${getCompetitionMetricLabel(metric)}</option>`).join('')}
+            </select>
+          </div>
+          <div class="games-field">
+            <label>Maltall</label>
+            <input type="number" min="1" value="${escAttr(draft.targetValue)}" ${config.requiresTarget ? '' : 'disabled'} onchange="updateCompetitionDraftField('targetValue', this.value)" placeholder="Kun for Forst til malet">
+          </div>
+          <div class="games-field">
+            <label>Startdato</label>
+            <input type="date" value="${escAttr(draft.startDateValue)}" onchange="updateCompetitionDraftField('startDateValue', this.value)">
+          </div>
+          <div class="games-field">
+            <label>Starttid</label>
+            <input type="time" value="${escAttr(draft.startTimeValue)}" onchange="updateCompetitionDraftField('startTimeValue', this.value)">
+          </div>
+          <div class="games-field">
+            <label>Sluttdato</label>
+            <input type="date" value="${escAttr(draft.endDateValue)}" onchange="updateCompetitionDraftField('endDateValue', this.value)">
+          </div>
+          <div class="games-field">
+            <label>Sluttid</label>
+            <input type="time" value="${escAttr(draft.endTimeValue)}" onchange="updateCompetitionDraftField('endTimeValue', this.value)">
+          </div>
+          <div class="games-field full">
+            <label>Beskrivelse / regler</label>
+            <textarea onchange="updateCompetitionDraftField('description', this.value)" placeholder="Kort forklaring av hva som teller og hvordan vinneren avgjores.">${escHtml(draft.description)}</textarea>
+          </div>
+          <div class="games-field full">
+            <label>Deltakere</label>
+            <div class="games-checkbox-grid">
+              <label class="games-checkbox-card">
+                <input type="checkbox" checked disabled>
+                <span>${escHtml(getUserDisplayName(currentUser))} · deg</span>
+              </label>
+              ${participantCards || '<div class="games-empty-note">Ingen andre brukere er synlige ennå. Be teamet logge inn minst en gang sa dukker de opp her.</div>'}
+            </div>
+          </div>
+        </div>
+        <div class="games-muted-text" style="margin-top:12px;">${escHtml(config.description)}</div>
+        <div class="games-form-actions" style="margin-top:16px;">
+          <button class="save-btn" type="button" onclick="saveCompetitionGame()">Opprett spill</button>
+          <button class="backup-btn" type="button" onclick="closeCompetitionCreator()">Avbryt</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderCompetitionGameCard(game) {
+    const standings = buildCompetitionStandings(game);
+    const topRow = standings[0] || null;
+    const participantCount = getCompetitionParticipantIds(game).length;
+    const status = getCompetitionStatus(game);
+    return `
+      <div class="games-competition-card">
+        <div class="games-card-top">
+          <div>
+            <div class="games-card-title">${escHtml(game.name)}</div>
+            <div class="games-card-meta">${escHtml(formatCompetitionTimeRange(game))}</div>
+          </div>
+          <span class="games-badge ${status}">${getCompetitionStatusLabel(status)}</span>
+        </div>
+        <div class="games-card-meta">${escHtml(getCompetitionGameConfig(game.game_type).title)} · ${participantCount} deltakere · ${escHtml(getCompetitionTimeLeft(game))}</div>
+        <div class="games-metric-grid">
+          <div class="games-metric-tile">
+            <div class="games-summary-label">Leder</div>
+            <div class="games-metric-value">${escHtml(topRow?.display_name || 'Ingen ennå')}</div>
+          </div>
+          <div class="games-metric-tile">
+            <div class="games-summary-label">Score</div>
+            <div class="games-metric-value">${topRow ? topRow.score : 0}</div>
+          </div>
+          <div class="games-metric-tile">
+            <div class="games-summary-label">Type</div>
+            <div class="games-metric-value">${escHtml(getCompetitionMetricLabel(game.metric_type))}</div>
+          </div>
+        </div>
+        <div class="games-card-actions">
+          <button class="backup-btn" type="button" onclick="selectCompetition('${game.competition_id}')">Apne spill</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderCompetitionDetailCard(game) {
+    if (!game) return '';
+    const participants = getCompetitionParticipantsForGame(game);
+    const standings = buildCompetitionStandings(game);
+    const currentParticipant = participants.find(item => item.user_id === String(currentUser?.id || ''));
+    const status = getCompetitionStatus(game);
+    return `
+      <div class="games-competition-detail">
+        <div class="games-detail-top">
+          <div>
+            <div class="games-detail-title">${escHtml(game.name)}</div>
+            <div class="games-detail-meta">${escHtml(getCompetitionGameConfig(game.game_type).title)} · ${escHtml(formatCompetitionTimeRange(game))}</div>
+          </div>
+          <span class="games-badge ${status}">${getCompetitionStatusLabel(status)}</span>
+        </div>
+        ${game.description ? `<div class="games-muted-text" style="margin-top:10px;">${escHtml(game.description)}</div>` : ''}
+        <div class="games-participant-list" style="margin-top:14px;">
+          ${participants.map(item => {
+            const profile = getPublicProfileByUserId(item.user_id);
+            const name = profile?.display_name || 'Ukjent bruker';
+            const statusLabel = item.invite_status === 'accepted' ? 'med' : item.invite_status === 'declined' ? 'avslo' : 'invitert';
+            return `<span class="games-participant-pill">${escHtml(name)} · ${statusLabel}</span>`;
+          }).join('')}
+        </div>
+        ${currentParticipant && currentParticipant.invite_status === 'invited' ? `
+          <div class="games-detail-actions" style="margin-top:14px;">
+            <button class="save-btn" type="button" onclick="updateCompetitionInviteStatus('${game.competition_id}', 'accepted')">Bli med</button>
+            <button class="backup-btn" type="button" onclick="updateCompetitionInviteStatus('${game.competition_id}', 'declined')">Avsla</button>
+          </div>
+        ` : ''}
+        <div class="games-section-head" style="margin-top:18px;">
+          <div class="games-section-title">Stilling</div>
+          <div class="games-muted-text">${escHtml(getCompetitionMetricLabel(game.metric_type))}</div>
+        </div>
+        <div class="games-standings-table">
+          ${standings.length ? standings.map((row, index) => `
+            <div class="games-standing-row">
+              <div class="games-standing-rank">#${index + 1}</div>
+              <div>
+                <div class="games-standing-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
+                <div class="games-card-meta">${escHtml(row.progressLabel)}</div>
+              </div>
+              <div class="games-standing-score">${row.score}</div>
+            </div>
+          `).join('') : '<div class="games-empty-note">Ingen aktivitet registrert i denne konkurransen ennå.</div>'}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderLedertavlerSpillPage() {
+    const container = document.getElementById('ledertavler-spill-page');
+    if (!container) return;
+    if (!currentUser) {
+      container.innerHTML = '';
+      return;
+    }
+    const activePeriod = LEADERBOARD_PERIOD_CONFIG.find(period => period.id === activeLeaderboardPeriod) || LEADERBOARD_PERIOD_CONFIG[0];
+    const selectedGame = competitionGames.find(game => game.competition_id === selectedCompetitionId) || getCompetitionVisibleGames(activeCompetitionFilter)[0] || null;
+    const ownRow = leaderboardRows.find(row => row.user_id === String(currentUser?.id || '')) || null;
+    const ownRank = ownRow ? getLeaderboardRank(activePeriod.id, ownRow.user_id) : null;
+    const ownPoints = ownRow ? getLeaderboardPeriodValue(ownRow, activePeriod.id, 'points') : 0;
+    const leader = getSortedLeaderboardRows(activePeriod.id)[0] || null;
+    const gap = leader ? Math.max(0, getLeaderboardPeriodValue(leader, activePeriod.id, 'points') - ownPoints) : 0;
+    const visibleGames = getCompetitionVisibleGames(activeCompetitionFilter);
+    const latestUpdate = leaderboardRows.map(row => row.updated_at || row.latest_entry_at).filter(Boolean).sort((a, b) => String(b).localeCompare(String(a)))[0] || '';
+
+    container.innerHTML = `
+      <div class="games-page-shell">
+        <div class="games-hero">
+          <div>
+            <div class="games-hero-title">Ledertavler / Spill</div>
+            <div class="games-hero-text">Se hvem som leder akkurat na, og start en konkurranse med teamet.</div>
+          </div>
+          <div class="games-hero-actions">
+            <button class="save-btn" type="button" onclick="openCompetitionCreator()">Ny konkurranse</button>
+          </div>
+        </div>
+
+        <div class="games-section-card">
+          <div class="games-section-head">
+            <div class="games-section-title">Ledertavle</div>
+            <div class="games-muted-text">${latestUpdate ? `Sist oppdatert ${escHtml(formatLeaderboardTimestamp(latestUpdate))}` : 'Venter pa aktivitet'}</div>
+          </div>
+          ${renderLeaderboardPeriodSwitcher(activePeriod.id)}
+          <div class="games-summary-grid" style="margin-top:14px;">
+            <div class="games-summary-tile">
+              <div class="games-summary-label">Din plass</div>
+              <div class="games-summary-value">${ownRank ? `#${ownRank}` : '-'}</div>
+            </div>
+            <div class="games-summary-tile">
+              <div class="games-summary-label">Dine poeng</div>
+              <div class="games-summary-value">${ownPoints}</div>
+            </div>
+            <div class="games-summary-tile">
+              <div class="games-summary-label">Opp til toppen</div>
+              <div class="games-summary-value">${gap}</div>
+            </div>
+          </div>
+          <div style="margin-top:16px;">
+            ${leaderboardState === 'loading' && !leaderboardRows.length ? '<div class="stats-empty-card">Laster leaderboard...</div>' : renderLeaderboardPeriodList(activePeriod)}
+            ${leaderboardState === 'error' ? `<div class="stats-empty-card" style="margin-top:14px;">${escHtml(leaderboardErrorMessage || 'Leaderboard er midlertidig utilgjengelig.')}</div>` : ''}
+          </div>
+        </div>
+
+        ${renderCompetitionCreateCard()}
+
+        <div class="games-section-grid">
+          <div class="games-section-card">
+            <div class="games-section-head">
+              <div class="games-section-title">${getCompetitionFilterLabel(activeCompetitionFilter)}</div>
+              <div class="games-filter-row">
+                ${['active', 'scheduled', 'completed'].map(filterId => `
+                  <button class="backup-btn${activeCompetitionFilter === filterId ? ' active' : ''}" type="button" onclick="setCompetitionFilter('${filterId}')">${getCompetitionFilterLabel(filterId)}</button>
+                `).join('')}
+              </div>
+            </div>
+            ${competitionState === 'error' ? `<div class="stats-empty-card">${escHtml(competitionErrorMessage || 'Kunne ikke laste spill.')}</div>` : ''}
+            <div class="games-competition-grid">
+              ${visibleGames.length ? visibleGames.map(renderCompetitionGameCard).join('') : '<div class="games-empty-note">Ingen spill i denne kategorien ennå.</div>'}
+            </div>
+          </div>
+
+          <div class="games-section-card">
+            <div class="games-section-head">
+              <div class="games-section-title">Spilldetaljer</div>
+            </div>
+            ${selectedGame ? renderCompetitionDetailCard(selectedGame) : '<div class="games-empty-note">Velg en konkurranse for a se stilling, regler og deltakere.</div>'}
+          </div>
+        </div>
+
+        <div class="games-section-card">
+          <div class="games-section-head">
+            <div class="games-section-title">Spill som er lagt til</div>
+          </div>
+          <div class="games-templates-grid">
+            ${COMPETITION_GAME_CONFIG.map(item => `
+              <div class="games-template-card">
+                <div class="games-template-title">${escHtml(item.title)}</div>
+                <div class="games-card-meta">${escHtml(item.description)}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   function renderStatsGoalPanel(period, title, text, goal, goalStatus, currentStats) {
     return `
       <div class="stats-goal-panel">
@@ -13404,6 +14651,7 @@
   function refreshIntroHistoryUi() {
     renderIntroHistory();
     renderStatsHome();
+    renderLedertavlerSpillPage();
     renderIntroLibrary();
     renderSessionStatus();
     renderRetroHistoryPage();
@@ -15701,6 +16949,10 @@
 
   function escHtml(str) {
     return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function escAttr(str) {
+    return escHtml(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
   // ---- Init ----
