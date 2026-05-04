@@ -6131,16 +6131,18 @@
       gap: 12px;
     }
 
-    .games-page-shell {
+    .games-page-shell,
+    .games-create-page-shell {
       display: grid;
       gap: 18px;
+      width: min(100%, var(--app-shell-max));
+      margin: 0 auto;
     }
 
     .games-hero,
     .games-section-card,
     .games-competition-card,
     .games-competition-detail,
-    .games-template-card,
     .games-create-card {
       border-radius: 22px;
       border: 1px solid rgba(51, 65, 85, 0.9);
@@ -6150,15 +6152,18 @@
     }
 
     .games-hero {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 18px;
-      flex-wrap: wrap;
+      display: grid;
+      justify-items: center;
+      text-align: center;
+      gap: 16px;
+      background:
+        radial-gradient(circle at top, rgba(59, 130, 246, 0.22), transparent 42%),
+        radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.16), transparent 36%),
+        linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(8, 15, 30, 0.98));
     }
 
     .games-hero-title {
-      font-size: 1.55rem;
+      font-size: 1.8rem;
       font-weight: 900;
       letter-spacing: -0.03em;
       margin-bottom: 6px;
@@ -6180,6 +6185,27 @@
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+    }
+
+    .games-hero-actions {
+      justify-content: center;
+    }
+
+    .games-hype-row {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .games-hype-pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(96, 165, 250, 0.25);
+      background: rgba(15, 23, 42, 0.8);
+      color: #dbeafe;
+      font-size: 0.84rem;
+      font-weight: 700;
     }
 
     .games-summary-grid,
@@ -6258,15 +6284,13 @@
     .games-badge.scheduled { color: #fbbf24; border-color: rgba(251, 191, 36, 0.38); }
     .games-badge.completed { color: #c4b5fd; border-color: rgba(196, 181, 253, 0.4); }
 
-    .games-competition-card,
-    .games-template-card {
+    .games-competition-card {
       display: grid;
       gap: 12px;
     }
 
     .games-card-title,
-    .games-detail-title,
-    .games-template-title {
+    .games-detail-title {
       font-size: 1.02rem;
       font-weight: 800;
       letter-spacing: -0.02em;
@@ -6301,6 +6325,10 @@
       margin-top: 4px;
     }
 
+    .games-metric-value.highlight {
+      color: #fbbf24;
+    }
+
     .games-participant-pill {
       display: inline-flex;
       align-items: center;
@@ -6310,6 +6338,19 @@
       border: 1px solid rgba(71, 85, 105, 0.7);
       background: rgba(10, 16, 30, 0.86);
       font-size: 0.84rem;
+    }
+
+    .games-prize-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(245, 158, 11, 0.16);
+      border: 1px solid rgba(245, 158, 11, 0.34);
+      color: #fde68a;
+      font-size: 0.84rem;
+      font-weight: 700;
     }
 
     .games-form-grid {
@@ -8382,6 +8423,10 @@
   <div id="ledertavler-spill-page"></div>
 </div>
 
+<div id="tab-competition-create" class="tab-content">
+  <div id="competition-create-page"></div>
+</div>
+
 <div id="tab-etterregistrering" class="tab-content">
   <div id="retro-history-page" class="retro-history-page"></div>
 </div>
@@ -8704,9 +8749,7 @@
     { id: 'sales-race', title: 'Abo-race', description: 'Flest abo i perioden vinner.', metricType: 'sales', metricLocked: true },
     { id: 'over6-challenge', title: '6-min Challenge', description: 'Flest samtaler over 6 minutter.', metricType: 'over6', metricLocked: true },
     { id: 'points-race', title: 'Poengkamp', description: '300 poeng per abo og 100 per 6-min.', metricType: 'points', metricLocked: true },
-    { id: 'target-hit', title: 'Forst til malet', description: 'Forst til valgt mal vinner.', metricType: 'sales', metricLocked: false, requiresTarget: true },
-    { id: 'sprint', title: 'Sprint', description: 'Kort konkurranse i et egendefinert tidsvindu.', metricType: 'points', metricLocked: false },
-    { id: 'beat-baseline', title: 'Beat your baseline', description: 'Storste forbedring mot forrige periode.', metricType: 'points', metricLocked: false }
+    { id: 'target-hit', title: 'Forst til malet', description: 'Forst til valgt mal vinner.', metricType: 'sales', metricLocked: false, requiresTarget: true }
   ];
 
   const APP_META_LAST_IMPORT_USER = 'telenorSalgTrainer:lastImportedUserId';
@@ -8901,6 +8944,7 @@
     competitionState = state;
     competitionErrorMessage = errorMessage;
     if (isTabActive('ledertavler-spill')) renderLedertavlerSpillPage();
+    if (isTabActive('competition-create')) renderCompetitionCreatePage();
   }
 
   function clearCompetitionState() {
@@ -8927,6 +8971,7 @@
       isOpen: overrides.isOpen === false ? false : true,
       name: String(overrides.name || ''),
       description: String(overrides.description || ''),
+      prize: String(overrides.prize || ''),
       gameType: String(overrides.gameType || defaultConfig.id),
       metricType: String(overrides.metricType || defaultConfig.metricType),
       targetValue: overrides.targetValue ? String(overrides.targetValue) : '',
@@ -9920,6 +9965,15 @@
     }).filter(hasVisibleLeaderboardActivity).filter(Boolean);
   }
 
+  function buildCurrentUserLocalLeaderboardRow() {
+    if (!currentUser) return null;
+    return normalizeLeaderboardRow({
+      user_id: currentUser.id,
+      ...getLeaderboardPayload(getIntroHistory()),
+      updated_at: new Date().toISOString()
+    });
+  }
+
   async function loadLegacyPublicStatsRows() {
     let { data, error } = await supabaseClient
       .from(SUPABASE_PUBLIC_STATS_TABLE)
@@ -10016,6 +10070,12 @@
       const freshRows = buildLeaderboardRowsFromPublicActivity();
       const freshUserIds = new Set(freshRows.map(row => row.user_id));
       const nextRows = [...freshRows, ...legacyRows.filter(row => !freshUserIds.has(row.user_id))];
+      const localOwnRow = buildCurrentUserLocalLeaderboardRow();
+      if (localOwnRow) {
+        const ownIndex = nextRows.findIndex(row => row.user_id === localOwnRow.user_id);
+        if (ownIndex >= 0) nextRows[ownIndex] = localOwnRow;
+        else nextRows.push(localOwnRow);
+      }
       updateLeaderboardMovementState(nextRows);
       leaderboardRows = nextRows;
       setLeaderboardState('ready');
@@ -10163,8 +10223,16 @@
 
   async function syncPublicLeaderboard(options = {}) {
     if (!supabaseClient || !currentUser) return;
-    await syncPublicProfile();
-    await syncPublicActivityEntries();
+    try {
+      await syncPublicProfile();
+    } catch (error) {
+      if (!isLeaderboardSchemaMismatch(error)) throw error;
+    }
+    try {
+      await syncPublicActivityEntries();
+    } catch (error) {
+      if (!isLeaderboardSchemaMismatch(error)) throw error;
+    }
     await syncLegacyPublicStats();
     if (!options.skipReload) {
       await loadLeaderboardRows({ silentLoading: !(isTabActive('stats') && activeStatsSubview === 'leaderboard') && !isTabActive('ledertavler-spill') });
@@ -10459,6 +10527,7 @@
     renderGoalsPage();
     renderRetroHistoryPage();
     renderLedertavlerSpillPage();
+    renderCompetitionCreatePage();
     renderAllPriceCalculators();
     renderSamtaleflyt();
   }
@@ -10723,6 +10792,7 @@
     if (name === 'samtalerating') renderSamtaleRating();
     if (name === 'ov') renderOvPage();
     if (name === 'ledertavler-spill') renderLedertavlerSpillPage();
+    if (name === 'competition-create') renderCompetitionCreatePage();
     if (name === 'stats') renderStatsPage();
     if (name === 'goals') renderGoalsPage();
     if (name === 'etterregistrering') renderRetroHistoryPage();
@@ -13800,12 +13870,12 @@
 
   function openCompetitionCreator() {
     competitionDraft = competitionDraft?.isOpen ? competitionDraft : createCompetitionDraft();
-    renderLedertavlerSpillPage();
+    switchTab('competition-create');
   }
 
   function closeCompetitionCreator() {
     competitionDraft = null;
-    renderLedertavlerSpillPage();
+    switchTab('ledertavler-spill');
   }
 
   function updateCompetitionDraftField(key, value) {
@@ -13817,7 +13887,7 @@
       if (!config?.requiresTarget) nextDraft.targetValue = '';
     }
     competitionDraft = nextDraft;
-    renderLedertavlerSpillPage();
+    renderCompetitionCreatePage();
   }
 
   function toggleCompetitionParticipant(userId) {
@@ -13827,7 +13897,7 @@
     else participantIds.add(userId);
     participantIds.add(String(currentUser?.id || ''));
     competitionDraft = { ...currentDraft, participantIds: [...participantIds].filter(Boolean) };
-    renderLedertavlerSpillPage();
+    renderCompetitionCreatePage();
   }
 
   function setCompetitionFilter(filterId) {
@@ -13883,7 +13953,8 @@
       status: getCompetitionStatus({ starts_at: startsAt.toISOString(), ends_at: endsAt.toISOString() }),
       rules_json: {
         metricType,
-        templateTitle: config.title
+        templateTitle: config.title,
+        prize: String(draft.prize || '').trim()
       }
     };
     const participantRows = participantIds.map(userId => ({
@@ -13903,10 +13974,10 @@
         .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
         .insert(participantRows);
       if (participantError) throw participantError;
-      competitionDraft = createCompetitionDraft({ isOpen: false });
       competitionDraft = null;
       selectedCompetitionId = competitionId;
       await loadLeaderboardRows({ silentLoading: true });
+      switchTab('ledertavler-spill');
     } catch (error) {
       setCompetitionState('error', error?.message || 'Kunne ikke opprette konkurransen.');
     }
@@ -13950,8 +14021,9 @@
       <div class="games-create-card">
         <div class="games-section-head">
           <div class="games-section-title">Opprett nytt spill</div>
-          <button class="backup-btn" type="button" onclick="closeCompetitionCreator()">Lukk</button>
+          <button class="backup-btn" type="button" onclick="switchTab('ledertavler-spill')">Tilbake</button>
         </div>
+        ${competitionErrorMessage ? `<div class="stats-empty-card" style="margin-bottom:16px;">${escHtml(competitionErrorMessage)}</div>` : ''}
         <div class="games-form-grid">
           <div class="games-field">
             <label>Navn</label>
@@ -13994,6 +14066,10 @@
             <textarea onchange="updateCompetitionDraftField('description', this.value)" placeholder="Kort forklaring av hva som teller og hvordan vinneren avgjores.">${escHtml(draft.description)}</textarea>
           </div>
           <div class="games-field full">
+            <label>Premie</label>
+            <input type="text" value="${escAttr(draft.prize)}" onchange="updateCompetitionDraftField('prize', this.value)" placeholder="F.eks. kaffe, lunch, gavekort eller skryterett">
+          </div>
+          <div class="games-field full">
             <label>Deltakere</label>
             <div class="games-checkbox-grid">
               <label class="games-checkbox-card">
@@ -14007,8 +14083,34 @@
         <div class="games-muted-text" style="margin-top:12px;">${escHtml(config.description)}</div>
         <div class="games-form-actions" style="margin-top:16px;">
           <button class="save-btn" type="button" onclick="saveCompetitionGame()">Opprett spill</button>
-          <button class="backup-btn" type="button" onclick="closeCompetitionCreator()">Avbryt</button>
+          <button class="backup-btn" type="button" onclick="switchTab('ledertavler-spill')">Avbryt</button>
         </div>
+      </div>
+    `;
+  }
+
+  function renderCompetitionCreatePage() {
+    const container = document.getElementById('competition-create-page');
+    if (!container) return;
+    if (!currentUser) {
+      container.innerHTML = '';
+      return;
+    }
+    competitionDraft = competitionDraft?.isOpen ? competitionDraft : createCompetitionDraft();
+    container.innerHTML = `
+      <div class="games-create-page-shell">
+        <div class="games-hero">
+          <div>
+            <div class="games-hero-title">Opprett konkurranse</div>
+            <div class="games-hero-text">Sett opp premien, inviter riktige folk og gi teamet noe konkret a jage.</div>
+          </div>
+          <div class="games-hype-row">
+            <span class="games-hype-pill">Tydelig mal</span>
+            <span class="games-hype-pill">Synlig premie</span>
+            <span class="games-hype-pill">Rask oppstart</span>
+          </div>
+        </div>
+        ${renderCompetitionCreateCard()}
       </div>
     `;
   }
@@ -14018,6 +14120,7 @@
     const topRow = standings[0] || null;
     const participantCount = getCompetitionParticipantIds(game).length;
     const status = getCompetitionStatus(game);
+    const prize = String(game.rules_json?.prize || '').trim();
     return `
       <div class="games-competition-card">
         <div class="games-card-top">
@@ -14028,6 +14131,7 @@
           <span class="games-badge ${status}">${getCompetitionStatusLabel(status)}</span>
         </div>
         <div class="games-card-meta">${escHtml(getCompetitionGameConfig(game.game_type).title)} · ${participantCount} deltakere · ${escHtml(getCompetitionTimeLeft(game))}</div>
+        ${prize ? `<div><span class="games-prize-chip">Premie: ${escHtml(prize)}</span></div>` : ''}
         <div class="games-metric-grid">
           <div class="games-metric-tile">
             <div class="games-summary-label">Leder</div>
@@ -14055,6 +14159,7 @@
     const standings = buildCompetitionStandings(game);
     const currentParticipant = participants.find(item => item.user_id === String(currentUser?.id || ''));
     const status = getCompetitionStatus(game);
+    const prize = String(game.rules_json?.prize || '').trim();
     return `
       <div class="games-competition-detail">
         <div class="games-detail-top">
@@ -14065,6 +14170,7 @@
           <span class="games-badge ${status}">${getCompetitionStatusLabel(status)}</span>
         </div>
         ${game.description ? `<div class="games-muted-text" style="margin-top:10px;">${escHtml(game.description)}</div>` : ''}
+        ${prize ? `<div style="margin-top:12px;"><span class="games-prize-chip">Premie: ${escHtml(prize)}</span></div>` : ''}
         <div class="games-participant-list" style="margin-top:14px;">
           ${participants.map(item => {
             const profile = getPublicProfileByUserId(item.user_id);
@@ -14121,7 +14227,12 @@
         <div class="games-hero">
           <div>
             <div class="games-hero-title">Ledertavler / Spill</div>
-            <div class="games-hero-text">Se hvem som leder akkurat na, og start en konkurranse med teamet.</div>
+            <div class="games-hero-text">Jakt toppen, bygg energi i teamet og gi hver uke noe gøy a konkurrere om.</div>
+          </div>
+          <div class="games-hype-row">
+            <span class="games-hype-pill">Daglig push</span>
+            <span class="games-hype-pill">Synlig fremgang</span>
+            <span class="games-hype-pill">Konkurranser med premie</span>
           </div>
           <div class="games-hero-actions">
             <button class="save-btn" type="button" onclick="openCompetitionCreator()">Ny konkurranse</button>
@@ -14154,8 +14265,6 @@
           </div>
         </div>
 
-        ${renderCompetitionCreateCard()}
-
         <div class="games-section-grid">
           <div class="games-section-card">
             <div class="games-section-head">
@@ -14177,20 +14286,6 @@
               <div class="games-section-title">Spilldetaljer</div>
             </div>
             ${selectedGame ? renderCompetitionDetailCard(selectedGame) : '<div class="games-empty-note">Velg en konkurranse for a se stilling, regler og deltakere.</div>'}
-          </div>
-        </div>
-
-        <div class="games-section-card">
-          <div class="games-section-head">
-            <div class="games-section-title">Spill som er lagt til</div>
-          </div>
-          <div class="games-templates-grid">
-            ${COMPETITION_GAME_CONFIG.map(item => `
-              <div class="games-template-card">
-                <div class="games-template-title">${escHtml(item.title)}</div>
-                <div class="games-card-meta">${escHtml(item.description)}</div>
-              </div>
-            `).join('')}
           </div>
         </div>
       </div>

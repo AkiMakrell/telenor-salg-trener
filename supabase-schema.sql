@@ -287,7 +287,7 @@ create table if not exists public.competition_games (
   creator_user_id uuid not null references auth.users (id) on delete cascade,
   name text not null check (char_length(trim(name)) > 0),
   description text not null default '',
-  game_type text not null check (game_type in ('sales-race', 'over6-challenge', 'points-race', 'target-hit', 'sprint', 'beat-baseline')),
+  game_type text not null check (game_type in ('sales-race', 'over6-challenge', 'points-race', 'target-hit')),
   metric_type text not null check (metric_type in ('sales', 'over6', 'points')),
   target_value integer check (target_value is null or target_value > 0),
   starts_at timestamptz not null,
