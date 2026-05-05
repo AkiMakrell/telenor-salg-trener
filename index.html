@@ -15007,21 +15007,21 @@
             ${prize ? `<div style="margin-top:14px;"><span class="games-prize-chip">Premie: ${escHtml(prize)}</span></div>` : ''}
           </div>
           ${isTeamGame ? renderCompetitionTeamSummaryCards(game) : ''}
-          <div class="games-section-head" style="margin-top:18px;">
+          <div class="games-section-head" style="margin-top:18px;justify-content:center;text-align:center;">
             <div class="games-section-title">Leder</div>
           </div>
-          <div class="games-metric-grid">
-            <div class="games-metric-tile"${isTeamGame && leaderRow?.team ? getCompetitionTeamRowStyle(leaderRow.team, game) : ''}>
+          <div class="games-metric-grid" style="justify-content:center;">
+            <div class="games-metric-tile" style="text-align:center;max-width:320px;margin:0 auto;"${isTeamGame && leaderRow?.team ? getCompetitionTeamRowStyle(leaderRow.team, game) : ''}>
               <div class="games-summary-label">${isTeamGame ? 'Lag' : 'Spiller'}</div>
               <div class="games-metric-value">${escHtml(isTeamGame ? (leaderRow?.team || 'Ingen ennå') : (leaderRow?.display_name || 'Ingen ennå'))}</div>
               <div class="games-card-meta">${leaderRow ? `${leaderRow.score} poeng` : 'Ingen aktivitet ennå'}</div>
             </div>
           </div>
-          <div class="games-section-head" style="margin-top:18px;">
+          <div class="games-section-head" style="margin-top:18px;justify-content:center;text-align:center;">
             <div class="games-section-title">Leaderboard</div>
             ${game.metric_type === 'points' ? `<div class="games-muted-text">${pointWeights.pointsPerSale} poeng per abo · ${pointWeights.pointsPerOver6} poeng per 6-minuttere</div>` : ''}
           </div>
-          <div class="games-standings-table">
+          <div class="games-standings-table" style="max-width:720px;margin:0 auto;">
             ${standings.length ? standings.map((row, index) => `
               <div class="games-standing-row${isTeamGame ? ' team-colored' : ''}"${isTeamGame ? getCompetitionTeamRowStyle(row.team, game) : ''}>
                 <div class="games-standing-rank">#${index + 1}</div>
