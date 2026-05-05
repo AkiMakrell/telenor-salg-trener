@@ -6525,6 +6525,13 @@
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     }
 
+    .games-shortcut-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
     .games-team-builder-card {
       display: grid;
       gap: 10px;
@@ -8890,7 +8897,7 @@
   const COMPETITION_METRIC_OPTIONS = [
     { id: 'sales', title: 'Abo', description: 'Teller abo i perioden.' },
     { id: 'over6', title: 'Salg', description: 'Teller registrerte 6-minutter i perioden.' },
-    { id: 'points', title: 'Abo og Salg', description: 'Kombinerer abo og 6-minutter i en samlet score.' }
+    { id: 'points', title: 'Abo og 6-minuttere', description: 'Kombinerer abo og 6-minutter i en samlet score.' }
   ];
 
   const APP_META_LAST_IMPORT_USER = 'telenorSalgTrainer:lastImportedUserId';
@@ -9215,6 +9222,8 @@
       name: String(overrides.name || ''),
       prize: String(overrides.prize || ''),
       metricType: String(overrides.metricType || defaultMetric.id),
+      pointsPerSale: Math.max(1, Math.floor(Number(overrides.pointsPerSale) || LEADERBOARD_POINTS_PER_SALE)),
+      pointsPerOver6: Math.max(1, Math.floor(Number(overrides.pointsPerOver6) || LEADERBOARD_POINTS_PER_OVER6)),
       objectiveMode: String(overrides.objectiveMode || 'most') === 'target' ? 'target' : 'most',
       targetValue: overrides.targetValue ? String(overrides.targetValue) : '',
       startDateValue: overrides.startDateValue || getDateInputValue(startDate),
@@ -14004,6 +14013,20 @@
     return getCompetitionMetricConfig(metricType).title;
   }
 
+  function getCompetitionPointWeights(source = null) {
+    const pointsPerSale = Math.max(1, Math.floor(Number(
+      source?.pointsPerSale
+      ?? source?.rules_json?.pointsPerSale
+      ?? LEADERBOARD_POINTS_PER_SALE
+    ) || LEADERBOARD_POINTS_PER_SALE));
+    const pointsPerOver6 = Math.max(1, Math.floor(Number(
+      source?.pointsPerOver6
+      ?? source?.rules_json?.pointsPerOver6
+      ?? LEADERBOARD_POINTS_PER_OVER6
+    ) || LEADERBOARD_POINTS_PER_OVER6));
+    return { pointsPerSale, pointsPerOver6 };
+  }
+
   function getCompetitionObjectiveMode(game) {
     const mode = String(game?.rules_json?.objectiveMode || '');
     if (mode === 'target' || game?.game_type === 'target-hit') return 'target';
@@ -14019,10 +14042,12 @@
     return `Mest ${metricLabel}`;
   }
 
-  function getCompetitionMetricValueFromEntry(entry, metricType) {
+  function getCompetitionMetricValueFromEntry(entry, metricType, source = null) {
     if (metricType === 'sales') return Math.max(0, Number(entry.sales_count) || 0);
     if (metricType === 'over6') return Math.max(0, Number(entry.over6_count) || 0);
-    return Math.max(0, Number(entry.points) || 0);
+    const { pointsPerSale, pointsPerOver6 } = getCompetitionPointWeights(source);
+    return (Math.max(0, Number(entry.sales_count) || 0) * pointsPerSale)
+      + (Math.max(0, Number(entry.over6_count) || 0) * pointsPerOver6);
   }
 
   function getCompetitionMode(game) {
@@ -14207,12 +14232,12 @@
     const standings = participantIds.map(userId => {
       const profile = getPublicProfileByUserId(userId);
       const entries = getCompetitionWindowEntries(game, userId).sort((a, b) => String(a.occurred_at).localeCompare(String(b.occurred_at)));
-      const currentScore = entries.reduce((sum, entry) => sum + getCompetitionMetricValueFromEntry(entry, metricType), 0);
+      const currentScore = entries.reduce((sum, entry) => sum + getCompetitionMetricValueFromEntry(entry, metricType, game), 0);
       const totalSales = entries.reduce((sum, entry) => sum + entry.sales_count, 0);
       const totalOver6 = entries.reduce((sum, entry) => sum + entry.over6_count, 0);
       const totalPoints = entries.reduce((sum, entry) => sum + entry.points, 0);
       const baselineScore = game.game_type === 'beat-baseline'
-        ? getCompetitionBaselineEntries(game, userId).reduce((sum, entry) => sum + getCompetitionMetricValueFromEntry(entry, metricType), 0)
+        ? getCompetitionBaselineEntries(game, userId).reduce((sum, entry) => sum + getCompetitionMetricValueFromEntry(entry, metricType, game), 0)
         : 0;
       let score = currentScore;
       let progressLabel = `${currentScore} ${getCompetitionMetricLabel(metricType).toLowerCase()}`;
@@ -14224,7 +14249,7 @@
       } else if (game.game_type === 'target-hit' && targetValue > 0) {
         let running = 0;
         entries.forEach(entry => {
-          running += getCompetitionMetricValueFromEntry(entry, metricType);
+          running += getCompetitionMetricValueFromEntry(entry, metricType, game);
           if (!reachedAt && running >= targetValue) reachedAt = entry.occurred_at;
         });
         score = currentScore;
@@ -14324,6 +14349,17 @@
     renderCompetitionCreatePage();
   }
 
+  function updateCompetitionTeamName(teamId, value) {
+    const currentDraft = competitionDraft || createCompetitionDraft({ mode: 'team' });
+    const teamConfigs = buildCompetitionDraftTeamConfigs(currentDraft.teamCount, currentDraft.teamConfigs).map(team => (
+      team.id === teamId
+        ? { ...team, name: String(value || '').trim() || team.name }
+        : team
+    ));
+    competitionDraft = { ...currentDraft, mode: 'team', teamConfigs };
+    renderCompetitionCreatePage();
+  }
+
   function toggleCompetitionParticipant(userId) {
     const currentDraft = competitionDraft || createCompetitionDraft();
     const participantIds = new Set(currentDraft.participantIds || []);
@@ -14352,6 +14388,44 @@
     renderCompetitionCreatePage();
   }
 
+  function applyCompetitionTimePreset(presetId) {
+    const currentDraft = competitionDraft || createCompetitionDraft();
+    const now = new Date();
+    let start = new Date(now);
+    let end = new Date(addDays(now, 1));
+    end.setHours(16, 0, 0, 0);
+
+    if (presetId === 'next-hour') {
+      start = new Date(now);
+      end = new Date(now.getTime() + (60 * 60 * 1000));
+    } else if (presetId === 'today-shift') {
+      start = new Date(now);
+      start.setHours(Math.max(now.getHours(), 9), 0, 0, 0);
+      end = new Date(now);
+      end.setHours(16, 0, 0, 0);
+      if (end <= start) end = new Date(start.getTime() + (2 * 60 * 60 * 1000));
+    } else if (presetId === 'tomorrow-shift') {
+      start = addDays(now, 1);
+      start.setHours(9, 0, 0, 0);
+      end = addDays(now, 1);
+      end.setHours(16, 0, 0, 0);
+    } else if (presetId === 'week-run') {
+      start = new Date(now);
+      start.setHours(now.getHours(), now.getMinutes(), 0, 0);
+      end = addDays(now, 7);
+      end.setHours(16, 0, 0, 0);
+    }
+
+    competitionDraft = {
+      ...currentDraft,
+      startDateValue: getDateInputValue(start),
+      startTimeValue: getTimeInputValue(start),
+      endDateValue: getDateInputValue(end),
+      endTimeValue: getTimeInputValue(end)
+    };
+    renderCompetitionCreatePage();
+  }
+
   function setCompetitionFilter(filterId) {
     activeCompetitionFilter = ['active', 'scheduled', 'completed'].includes(filterId) ? filterId : 'active';
     renderLedertavlerSpillPage();
@@ -14370,6 +14444,8 @@
     const competitionMode = draft.mode === 'team' ? 'team' : 'ffa';
     const metricType = String(draft.metricType || COMPETITION_METRIC_OPTIONS[0].id);
     const objectiveMode = draft.objectiveMode === 'target' ? 'target' : 'most';
+    const pointsPerSale = Math.max(1, Math.floor(Number(draft.pointsPerSale) || LEADERBOARD_POINTS_PER_SALE));
+    const pointsPerOver6 = Math.max(1, Math.floor(Number(draft.pointsPerOver6) || LEADERBOARD_POINTS_PER_OVER6));
     const teamConfigs = competitionMode === 'team'
       ? buildCompetitionDraftTeamConfigs(draft.teamCount, draft.teamConfigs).map(team => ({
         ...team,
@@ -14439,6 +14515,8 @@
         prize: String(draft.prize || '').trim(),
         competitionMode,
         objectiveMode,
+        pointsPerSale,
+        pointsPerOver6,
         selectedTeams,
         teamColors,
         teamConfigs
@@ -14462,9 +14540,9 @@
         .insert(participantRows);
       if (participantError) throw participantError;
       competitionDraft = null;
-      selectedCompetitionId = competitionId;
+      selectedCompetitionId = '';
       await loadLeaderboardRows({ silentLoading: true });
-      switchTab('ledertavler-spill');
+      activateTab('ledertavler-spill', 'ledertavler-spill');
     } catch (error) {
       setCompetitionState('error', error?.message || 'Kunne ikke opprette konkurransen.');
     }
@@ -14557,7 +14635,10 @@
                 ${teamConfigs.map((team, index) => `
                   <div class="games-team-builder-card"${getCompetitionTeamRowStyle(team.name, { teamConfigs })}>
                     <div class="games-section-head" style="margin-bottom:12px;">
-                      <div class="games-section-title">${escHtml(team.name)}</div>
+                      <div class="games-field" style="flex:1;min-width:180px;">
+                        <label>Navn på laget</label>
+                        <input type="text" value="${escAttr(team.name)}" onchange="updateCompetitionTeamName('${team.id}', this.value)">
+                      </div>
                       <span class="games-team-pill"${getCompetitionTeamToneStyle(team.name, { teamConfigs })}>${team.memberIds.length} ${team.memberIds.length === 1 ? 'spiller' : 'spillere'}</span>
                     </div>
                     <div class="games-choice-grid">
@@ -14605,6 +14686,18 @@
                 </button>
               `).join('')}
             </div>
+            ${draft.metricType === 'points' ? `
+              <div class="games-form-grid" style="margin-top:14px;">
+                <div class="games-field">
+                  <label>Hvor mange poeng for Abo?</label>
+                  <input type="number" min="1" value="${escAttr(draft.pointsPerSale)}" onchange="updateCompetitionDraftField('pointsPerSale', this.value)">
+                </div>
+                <div class="games-field">
+                  <label>Hvor mange poeng for 6-minuttere?</label>
+                  <input type="number" min="1" value="${escAttr(draft.pointsPerOver6)}" onchange="updateCompetitionDraftField('pointsPerOver6', this.value)">
+                </div>
+              </div>
+            ` : ''}
           </div>
 
           <div class="games-question-card">
@@ -14653,6 +14746,12 @@
                 <div class="games-question-title">Start og sluttid?</div>
                 <div class="games-question-text">Bestem når konkurransen starter og når den skal være over.</div>
               </div>
+            </div>
+            <div class="games-shortcut-row">
+              <button class="backup-btn" type="button" onclick="applyCompetitionTimePreset('next-hour')">Neste time</button>
+              <button class="backup-btn" type="button" onclick="applyCompetitionTimePreset('today-shift')">I dag 09-16</button>
+              <button class="backup-btn" type="button" onclick="applyCompetitionTimePreset('tomorrow-shift')">I morgen 09-16</button>
+              <button class="backup-btn" type="button" onclick="applyCompetitionTimePreset('week-run')">Neste 7 dager</button>
             </div>
             <div class="games-form-grid">
               <div class="games-field">
@@ -14779,6 +14878,7 @@
     const currentParticipant = participants.find(item => item.user_id === String(currentUser?.id || ''));
     const status = getCompetitionStatus(game);
     const prize = String(game.rules_json?.prize || '').trim();
+    const pointWeights = getCompetitionPointWeights(game);
     return `
       <div class="games-competition-detail">
         <div class="games-detail-top">
@@ -14790,6 +14890,7 @@
         </div>
         ${game.description ? `<div class="games-muted-text" style="margin-top:10px;">${escHtml(game.description)}</div>` : ''}
         ${prize ? `<div style="margin-top:12px;"><span class="games-prize-chip">Premie: ${escHtml(prize)}</span></div>` : ''}
+        ${game.metric_type === 'points' ? `<div class="games-muted-text" style="margin-top:10px;">${pointWeights.pointsPerSale} poeng per abo · ${pointWeights.pointsPerOver6} poeng per 6-minuttere</div>` : ''}
         ${isTeamGame && selectedTeams.length ? `<div class="games-team-pill-row" style="margin-top:12px;">${selectedTeams.map(team => `<span class="games-team-pill"${getCompetitionTeamToneStyle(team, game)}>${escHtml(team)}</span>`).join('')}</div>` : ''}
         <div class="games-participant-list" style="margin-top:14px;">
           ${participants.map(item => {
