@@ -9240,10 +9240,8 @@
       pointsPerOver6: Math.max(1, Math.floor(Number(overrides.pointsPerOver6) || LEADERBOARD_POINTS_PER_OVER6)),
       objectiveMode: String(overrides.objectiveMode || 'most') === 'target' ? 'target' : 'most',
       targetValue: overrides.targetValue ? String(overrides.targetValue) : '',
-      startDateValue: overrides.startDateValue || getDateInputValue(startDate),
-      startTimeValue: overrides.startTimeValue || getTimeInputValue(startDate),
-      endDateValue: overrides.endDateValue || getDateInputValue(endDate),
-      endTimeValue: Object.prototype.hasOwnProperty.call(overrides, 'endTimeValue') ? String(overrides.endTimeValue || '') : '',
+      startAtValue: overrides.startAtValue || getDateTimeLocalInputValue(startDate),
+      endAtValue: Object.prototype.hasOwnProperty.call(overrides, 'endAtValue') ? String(overrides.endAtValue || '') : '',
       participantIds: [...new Set(participantIds.concat(String(currentUser?.id || '')).filter(Boolean))],
       teamCount,
       teamConfigs: buildCompetitionDraftTeamConfigs(teamCount, overrides.teamConfigs)
@@ -10371,13 +10369,10 @@
           }
           throw error;
         }),
-        loadCompetitionData().catch(error => {
-          if (isLeaderboardSchemaMismatch(error)) {
-            competitionGames = [];
-            competitionParticipants = [];
-            return { games: [], participants: [] };
-          }
-          throw error;
+        loadCompetitionData().catch(() => {
+          competitionGames = [];
+          competitionParticipants = [];
+          return { games: [], participants: [] };
         })
       ]);
       const freshRows = buildLeaderboardRowsFromPublicActivity();
@@ -11275,10 +11270,20 @@
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
   }
 
+  function getDateTimeLocalInputValue(date = new Date()) {
+    return `${getDateInputValue(date)}T${getTimeInputValue(date)}`;
+  }
+
   function parseDateTimeInput(dateValue, timeValue = '12:00') {
     if (!dateValue) return null;
     const normalizedTime = /^\d{2}:\d{2}$/.test(String(timeValue || '')) ? timeValue : '12:00';
     const parsed = new Date(`${dateValue}T${normalizedTime}:00`);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  function parseDateTimeLocalInput(value = '') {
+    if (!value) return null;
+    const parsed = new Date(String(value));
     return Number.isNaN(parsed.getTime()) ? null : parsed;
   }
 
@@ -14432,10 +14437,8 @@
 
     competitionDraft = {
       ...currentDraft,
-      startDateValue: getDateInputValue(start),
-      startTimeValue: getTimeInputValue(start),
-      endDateValue: getDateInputValue(end),
-      endTimeValue: getTimeInputValue(end)
+      startAtValue: getDateTimeLocalInputValue(start),
+      endAtValue: getDateTimeLocalInputValue(end)
     };
     renderCompetitionCreatePage();
   }
@@ -14453,16 +14456,16 @@
   async function saveCompetitionGame() {
     if (!supabaseClient || !currentUser) return;
     const draft = competitionDraft || createCompetitionDraft();
-    if (!draft.startDateValue || !draft.startTimeValue) {
-      setCompetitionState('error', 'Velg både startdato og starttid.');
+    if (!draft.startAtValue) {
+      setCompetitionState('error', 'Velg start for konkurransen.');
       return;
     }
-    if (!draft.endDateValue || !draft.endTimeValue) {
-      setCompetitionState('error', 'Velg både sluttdato og sluttid.');
+    if (!draft.endAtValue) {
+      setCompetitionState('error', 'Velg slutt for konkurransen.');
       return;
     }
-    const startsAt = parseDateTimeInput(draft.startDateValue, draft.startTimeValue);
-    const endsAt = parseDateTimeInput(draft.endDateValue, draft.endTimeValue);
+    const startsAt = parseDateTimeLocalInput(draft.startAtValue);
+    const endsAt = parseDateTimeLocalInput(draft.endAtValue);
     const competitionMode = draft.mode === 'team' ? 'team' : 'ffa';
     const metricType = String(draft.metricType || COMPETITION_METRIC_OPTIONS[0].id);
     const objectiveMode = draft.objectiveMode === 'target' ? 'target' : 'most';
@@ -14561,11 +14564,33 @@
         .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
         .insert(participantRows);
       if (participantError) throw participantError;
+      const normalizedGame = normalizeCompetitionGame({
+        ...gameRow,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+      const normalizedParticipants = participantRows.map(row => normalizeCompetitionParticipant({
+        ...row,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })).filter(Boolean);
+      if (normalizedGame) {
+        competitionGames = [normalizedGame, ...competitionGames.filter(game => game.competition_id !== normalizedGame.competition_id)];
+      }
+      if (normalizedParticipants.length) {
+        const participantKeys = new Set(normalizedParticipants.map(row => `${row.competition_id}:${row.user_id}`));
+        competitionParticipants = [
+          ...normalizedParticipants,
+          ...competitionParticipants.filter(row => !participantKeys.has(`${row.competition_id}:${row.user_id}`))
+        ];
+      }
       competitionDraft = null;
       selectedCompetitionId = competitionId;
       activeCompetitionFilter = getCompetitionStatus(gameRow);
       activateTab('ledertavler-spill', 'ledertavler-spill');
-      await loadLeaderboardRows({ silentLoading: true });
+      loadLeaderboardRows({ silentLoading: true }).catch(error => {
+        setCompetitionState('error', error?.message || 'Kunne ikke oppdatere spill etter opprettelse.');
+      });
     } catch (error) {
       setCompetitionState('error', error?.message || 'Kunne ikke opprette konkurransen.');
     }
@@ -14767,7 +14792,7 @@
               <span class="games-question-number">6</span>
               <div>
                 <div class="games-question-title">Start og sluttid?</div>
-                <div class="games-question-text">Velg dato først, og fyll deretter inn tidspunkt. Starttid er ferdig satt til akkurat nå.</div>
+                <div class="games-question-text">Bruk en enkel dato- og tidsvelger. Start er ferdig satt til akkurat nå, mens slutt er tom til du velger den.</div>
               </div>
             </div>
             <div class="games-shortcut-row">
@@ -14780,23 +14805,15 @@
               <div class="games-time-card">
                 <div class="games-section-title">Start</div>
                 <div class="games-field">
-                  <label>Dato</label>
-                  <input type="date" value="${escAttr(draft.startDateValue)}" onchange="updateCompetitionDraftField('startDateValue', this.value)">
-                </div>
-                <div class="games-field">
-                  <label>Tid</label>
-                  <input type="time" value="${escAttr(draft.startTimeValue)}" onchange="updateCompetitionDraftField('startTimeValue', this.value)">
+                  <label>Dato og tid</label>
+                  <input type="datetime-local" value="${escAttr(draft.startAtValue)}" onchange="updateCompetitionDraftField('startAtValue', this.value)">
                 </div>
               </div>
               <div class="games-time-card">
                 <div class="games-section-title">Slutt</div>
                 <div class="games-field">
-                  <label>Dato</label>
-                  <input type="date" value="${escAttr(draft.endDateValue)}" onchange="updateCompetitionDraftField('endDateValue', this.value)">
-                </div>
-                <div class="games-field">
-                  <label>Tid</label>
-                  <input type="time" value="${escAttr(draft.endTimeValue)}" onchange="updateCompetitionDraftField('endTimeValue', this.value)">
+                  <label>Dato og tid</label>
+                  <input type="datetime-local" value="${escAttr(draft.endAtValue)}" onchange="updateCompetitionDraftField('endAtValue', this.value)">
                 </div>
               </div>
             </div>

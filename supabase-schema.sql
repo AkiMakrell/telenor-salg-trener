@@ -392,24 +392,44 @@ alter table public.competition_participants enable row level security;
 
 grant select, insert, update, delete on public.competition_participants to authenticated;
 
+create or replace function public.is_competition_creator(target_competition_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.competition_games g
+    where g.competition_id = target_competition_id
+      and g.creator_user_id = auth.uid()
+  );
+$$;
+
+create or replace function public.user_can_access_competition(target_competition_id uuid)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select
+    public.is_competition_creator(target_competition_id)
+    or exists (
+      select 1
+      from public.competition_participants p
+      where p.competition_id = target_competition_id
+        and p.user_id = auth.uid()
+    );
+$$;
+
 drop policy if exists "Visible users can read competition participants" on public.competition_participants;
 create policy "Visible users can read competition participants"
 on public.competition_participants
 for select
 using (
   auth.uid() = user_id
-  or exists (
-    select 1
-    from public.competition_games g
-    where g.competition_id = competition_id
-      and g.creator_user_id = auth.uid()
-  )
-  or exists (
-    select 1
-    from public.competition_participants self
-    where self.competition_id = competition_id
-      and self.user_id = auth.uid()
-  )
+  or auth.uid() = invited_by_user_id
+  or public.user_can_access_competition(competition_id)
 );
 
 drop policy if exists "Creators can insert competition participants" on public.competition_participants;
@@ -418,12 +438,7 @@ on public.competition_participants
 for insert
 with check (
   auth.uid() = invited_by_user_id
-  and exists (
-    select 1
-    from public.competition_games g
-    where g.competition_id = competition_id
-      and g.creator_user_id = auth.uid()
-  )
+  and public.is_competition_creator(competition_id)
 );
 
 drop policy if exists "Participants and creators can update competition participants" on public.competition_participants;
@@ -432,21 +447,11 @@ on public.competition_participants
 for update
 using (
   auth.uid() = user_id
-  or exists (
-    select 1
-    from public.competition_games g
-    where g.competition_id = competition_id
-      and g.creator_user_id = auth.uid()
-  )
+  or public.is_competition_creator(competition_id)
 )
 with check (
   auth.uid() = user_id
-  or exists (
-    select 1
-    from public.competition_games g
-    where g.competition_id = competition_id
-      and g.creator_user_id = auth.uid()
-  )
+  or public.is_competition_creator(competition_id)
 );
 
 drop policy if exists "Participants and creators can delete competition participants" on public.competition_participants;
@@ -455,12 +460,7 @@ on public.competition_participants
 for delete
 using (
   auth.uid() = user_id
-  or exists (
-    select 1
-    from public.competition_games g
-    where g.competition_id = competition_id
-      and g.creator_user_id = auth.uid()
-  )
+  or public.is_competition_creator(competition_id)
 );
 
 drop policy if exists "Visible users can read competition games" on public.competition_games;
@@ -468,13 +468,7 @@ create policy "Visible users can read competition games"
 on public.competition_games
 for select
 using (
-  auth.uid() = creator_user_id
-  or exists (
-    select 1
-    from public.competition_participants p
-    where p.competition_id = competition_id
-      and p.user_id = auth.uid()
-  )
+  public.user_can_access_competition(competition_id)
 );
 
 drop policy if exists "Creators can insert competition games" on public.competition_games;
