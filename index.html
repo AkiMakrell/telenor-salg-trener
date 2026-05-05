@@ -14826,18 +14826,11 @@
       return;
     }
     competitionDraft = competitionDraft?.isOpen ? competitionDraft : createCompetitionDraft();
-    const isTeamMode = competitionDraft.mode === 'team';
     container.innerHTML = `
       <div class="games-create-page-shell">
         <div class="games-hero">
           <div>
             <div class="games-hero-title">Opprett konkurranse</div>
-            <div class="games-hero-text">Svar på seks korte spørsmål og sett opp konkurransen akkurat slik du vil ha den.</div>
-          </div>
-          <div class="games-hype-row">
-            <span class="games-hype-pill">${isTeamMode ? 'Lag fordelt på sekunder' : 'Inviter riktige folk'}</span>
-            <span class="games-hype-pill">Tydelige spørsmål</span>
-            <span class="games-hype-pill">${isTeamMode ? 'Lagfarger i stillingen' : 'Rask oppstart'}</span>
           </div>
         </div>
         ${renderCompetitionCreateCard()}
