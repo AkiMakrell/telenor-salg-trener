@@ -14566,6 +14566,17 @@
     renderCompetitionCreatePage();
   }
 
+  function openCompetitionDatePicker(fieldPrefix) {
+    const input = document.getElementById(`competition-${fieldPrefix}-date-input`);
+    if (!input) return;
+    if (typeof input.showPicker === 'function') {
+      input.showPicker();
+      return;
+    }
+    input.focus();
+    input.click();
+  }
+
   function setCompetitionFilter(filterId) {
     activeCompetitionFilter = ['active', 'scheduled', 'completed'].includes(filterId) ? filterId : 'active';
     renderLedertavlerSpillPage();
@@ -14961,7 +14972,14 @@
                 <div class="games-section-title">Start</div>
                 <div class="games-field">
                   <label>Dato</label>
-                  <input type="date" value="${escAttr(draft.startDateValue)}" oninput="updateCompetitionDraftField('startDateValue', this.value, false)">
+                  <div style="display:flex;gap:8px;align-items:center;">
+                    <input id="competition-start-date-input" type="date" value="${escAttr(draft.startDateValue)}" oninput="updateCompetitionDraftField('startDateValue', this.value, false)">
+                    <button class="backup-btn" type="button" style="white-space:nowrap;" onclick="openCompetitionDatePicker('start')">&#128197; Kalender</button>
+                  </div>
+                </div>
+                <div class="games-field" style="margin-top:10px;">
+                  <label>Tid</label>
+                  <input type="time" step="900" value="${escAttr(draft.startTimeValue)}" oninput="updateCompetitionDraftField('startTimeValue', this.value, false)">
                 </div>
                 <div class="games-shortcut-row" style="margin-top:10px;">
                   ${['Nå', '09:00', '12:00', '16:00'].map(option => {
@@ -14969,25 +14987,24 @@
                     return `<button class="backup-btn" type="button" onclick="applyCompetitionQuickTime('start', '${timeValue}')">${option}</button>`;
                   }).join('')}
                 </div>
-                <div class="games-field" style="margin-top:10px;">
-                  <label>Tid</label>
-                  <input type="time" step="900" value="${escAttr(draft.startTimeValue)}" oninput="updateCompetitionDraftField('startTimeValue', this.value, false)">
-                </div>
               </div>
               <div class="games-time-card">
                 <div class="games-section-title">Slutt</div>
                 <div class="games-field">
                   <label>Dato</label>
-                  <input type="date" value="${escAttr(draft.endDateValue)}" oninput="updateCompetitionDraftField('endDateValue', this.value, false)">
+                  <div style="display:flex;gap:8px;align-items:center;">
+                    <input id="competition-end-date-input" type="date" value="${escAttr(draft.endDateValue)}" oninput="updateCompetitionDraftField('endDateValue', this.value, false)">
+                    <button class="backup-btn" type="button" style="white-space:nowrap;" onclick="openCompetitionDatePicker('end')">&#128197; Kalender</button>
+                  </div>
+                </div>
+                <div class="games-field" style="margin-top:10px;">
+                  <label>Tid</label>
+                  <input type="time" step="900" value="${escAttr(draft.endTimeValue)}" oninput="updateCompetitionDraftField('endTimeValue', this.value, false)">
                 </div>
                 <div class="games-shortcut-row" style="margin-top:10px;">
                   ${['09:00', '12:00', '16:00', '18:00'].map(option => `
                     <button class="backup-btn" type="button" onclick="applyCompetitionQuickTime('end', '${option}')">${option}</button>
                   `).join('')}
-                </div>
-                <div class="games-field" style="margin-top:10px;">
-                  <label>Tid</label>
-                  <input type="time" step="900" value="${escAttr(draft.endTimeValue)}" oninput="updateCompetitionDraftField('endTimeValue', this.value, false)">
                 </div>
               </div>
             </div>
