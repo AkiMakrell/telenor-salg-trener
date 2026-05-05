@@ -14980,10 +14980,13 @@
   function renderCompetitionTeamSummaryCards(game) {
     const teamStandings = buildCompetitionTeamStandings(game);
     if (!teamStandings.length) return '';
+    const hasClearLeader = teamStandings.length > 1
+      ? Number(teamStandings[0]?.score || 0) > Number(teamStandings[1]?.score || 0)
+      : Number(teamStandings[0]?.score || 0) > 0;
     return `
       <div class="games-metric-grid" style="margin-top:18px;grid-template-columns:repeat(2, minmax(0, 1fr));max-width:720px;margin-left:auto;margin-right:auto;">
         ${teamStandings.slice(0, 2).map((team, index) => `
-          <div class="games-metric-tile" style="text-align:center;${index === 0 ? 'box-shadow:0 0 0 1px rgba(251,191,36,0.45), 0 0 24px rgba(251,191,36,0.24);' : ''}"${getCompetitionTeamRowStyle(team.team, game)}>
+          <div class="games-metric-tile" style="text-align:center;${index === 0 && hasClearLeader ? 'box-shadow:0 0 0 1px rgba(251,191,36,0.45), 0 0 24px rgba(251,191,36,0.24);' : ''}"${getCompetitionTeamRowStyle(team.team, game)}>
             <div class="games-summary-label">${escHtml(team.team)}</div>
             <div class="games-metric-value">${team.score}</div>
             <div class="games-card-meta">poeng</div>
