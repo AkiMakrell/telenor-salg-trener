@@ -14225,6 +14225,26 @@
     return `${startsAt.toLocaleString('no-NO', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} - ${endsAt.toLocaleString('no-NO', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}`;
   }
 
+  function formatCompetitionActiveTimeRange(game) {
+    const startsAt = new Date(game.starts_at);
+    const endsAt = new Date(game.ends_at);
+    if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) return 'Ugyldig tidsrom';
+    const sameDay = startsAt.getFullYear() === endsAt.getFullYear()
+      && startsAt.getMonth() === endsAt.getMonth()
+      && startsAt.getDate() === endsAt.getDate();
+    const formatDate = date => date.toLocaleDateString('no-NO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+    const formatTime = date => date.toLocaleTimeString('no-NO', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    if (sameDay) return `${formatDate(startsAt)}, ${formatTime(startsAt)} - ${formatTime(endsAt)}`;
+    return `${formatDate(startsAt)}, ${formatTime(startsAt)} - ${formatDate(endsAt)}, ${formatTime(endsAt)}`;
+  }
+
   function getCompetitionTimeLeft(game, reference = new Date()) {
     const now = new Date(reference);
     const startsAt = new Date(game.starts_at);
@@ -14900,6 +14920,22 @@
     `;
   }
 
+  function renderCompetitionTeamSummaryCards(game) {
+    const teamStandings = buildCompetitionTeamStandings(game);
+    if (!teamStandings.length) return '';
+    return `
+      <div class="games-metric-grid" style="margin-top:16px;">
+        ${teamStandings.map(team => `
+          <div class="games-metric-tile" style="text-align:left;"${getCompetitionTeamRowStyle(team.team, game)}>
+            <div class="games-summary-label">${escHtml(team.team)}</div>
+            <div class="games-metric-value">${team.score}</div>
+            <div class="games-card-meta">${team.playerCount} ${team.playerCount === 1 ? 'spiller' : 'spillere'} · ${team.totalSales} abo · ${team.totalOver6} stk 6-min</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
   function renderCompetitionGameCard(game) {
     const isTeamGame = isTeamCompetitionGame(game);
     const standings = buildCompetitionStandings(game);
@@ -14954,6 +14990,49 @@
     const status = getCompetitionStatus(game);
     const prize = String(game.rules_json?.prize || '').trim();
     const pointWeights = getCompetitionPointWeights(game);
+    const teamStandings = isTeamGame ? buildCompetitionTeamStandings(game) : [];
+    const leaderRow = (isTeamGame ? teamStandings[0] : standings[0]) || null;
+    if (status === 'active') {
+      return `
+        <div class="games-competition-detail">
+          <div style="text-align:center;">
+            <div class="games-detail-title" style="font-size:32px;">${escHtml(game.name)}</div>
+            <div class="games-detail-meta" style="justify-content:center;margin-top:6px;">${escHtml(formatCompetitionActiveTimeRange(game))}</div>
+            ${prize ? `<div style="margin-top:14px;"><span class="games-prize-chip">Premie: ${escHtml(prize)}</span></div>` : ''}
+          </div>
+          ${isTeamGame ? renderCompetitionTeamSummaryCards(game) : ''}
+          <div class="games-section-head" style="margin-top:18px;">
+            <div class="games-section-title">Leder</div>
+          </div>
+          <div class="games-metric-grid">
+            <div class="games-metric-tile"${isTeamGame && leaderRow?.team ? getCompetitionTeamRowStyle(leaderRow.team, game) : ''}>
+              <div class="games-summary-label">${isTeamGame ? 'Lag' : 'Spiller'}</div>
+              <div class="games-metric-value">${escHtml(isTeamGame ? (leaderRow?.team || 'Ingen ennå') : (leaderRow?.display_name || 'Ingen ennå'))}</div>
+              <div class="games-card-meta">${leaderRow ? `${leaderRow.score} poeng` : 'Ingen aktivitet ennå'}</div>
+            </div>
+          </div>
+          <div class="games-section-head" style="margin-top:18px;">
+            <div class="games-section-title">Leaderboard</div>
+            ${game.metric_type === 'points' ? `<div class="games-muted-text">${pointWeights.pointsPerSale} poeng per abo · ${pointWeights.pointsPerOver6} poeng per 6-minuttere</div>` : ''}
+          </div>
+          <div class="games-standings-table">
+            ${standings.length ? standings.map((row, index) => `
+              <div class="games-standing-row${isTeamGame ? ' team-colored' : ''}"${isTeamGame ? getCompetitionTeamRowStyle(row.team, game) : ''}>
+                <div class="games-standing-rank">#${index + 1}</div>
+                <div>
+                  <div class="games-standing-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
+                  <div class="games-standing-team-meta">
+                    ${isTeamGame && row.team ? `<span class="games-team-pill"${getCompetitionTeamToneStyle(row.team, game)}>${escHtml(row.team)}</span>` : ''}
+                    <div class="games-card-meta">${escHtml(row.progressLabel)}</div>
+                  </div>
+                </div>
+                <div class="games-standing-score">${row.score}</div>
+              </div>
+            `).join('') : '<div class="games-empty-note">Ingen aktivitet registrert i denne konkurransen ennå.</div>'}
+          </div>
+        </div>
+      `;
+    }
     return `
       <div class="games-competition-detail">
         <div class="games-detail-top">
