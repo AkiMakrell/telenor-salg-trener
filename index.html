@@ -8945,6 +8945,7 @@
   let activeCompetitionFilter = 'active';
   let selectedCompetitionId = '';
   let competitionDraft = null;
+  let expandedCompetitionRulesId = '';
 
   localStorage.setItem = function(k, v) {
     _origSetItem(k, v);
@@ -14489,6 +14490,12 @@
     renderLedertavlerSpillPage();
   }
 
+  function toggleCompetitionRulesDetails(competitionId = '') {
+    const nextId = String(competitionId || '');
+    expandedCompetitionRulesId = expandedCompetitionRulesId === nextId ? '' : nextId;
+    renderLedertavlerSpillPage();
+  }
+
   async function deleteCompetitionGame(competitionId) {
     if (!supabaseClient || !currentUser || !competitionId) return;
     const game = competitionGames.find(item => item.competition_id === String(competitionId));
@@ -14993,11 +15000,28 @@
     const teamStandings = isTeamGame ? buildCompetitionTeamStandings(game) : [];
     const leaderRow = (isTeamGame ? teamStandings[0] : standings[0]) || null;
     if (status === 'active') {
+      const isRulesOpen = expandedCompetitionRulesId === game.competition_id;
       return `
         <div class="games-competition-detail">
-          ${canDeleteCompetitionGame(game) ? `
-            <div class="games-card-actions" style="justify-content:flex-end;margin-bottom:8px;">
+          <div class="games-card-actions" style="justify-content:space-between;margin-bottom:8px;">
+            <button class="backup-btn" type="button" onclick="toggleCompetitionRulesDetails('${game.competition_id}')">Regler og detaljer</button>
+            ${canDeleteCompetitionGame(game) ? `
               <button class="backup-btn" type="button" style="padding:8px 12px;font-size:12px;color:#b91c1c;border-color:rgba(185,28,28,0.22);" onclick="deleteCompetitionGame('${game.competition_id}')">Fjern</button>
+            ` : '<span></span>'}
+          </div>
+          ${isRulesOpen ? `
+            <div class="games-metric-tile" style="max-width:720px;margin:0 auto 14px;">
+              <div class="games-section-title" style="margin-bottom:10px;">Regler og detaljer</div>
+              <div class="games-card-meta">${escHtml(isTeamGame ? 'Lagspill' : 'Alle mot alle')} · ${escHtml(getCompetitionObjectiveLabel(game))} · ${escHtml(getCompetitionMetricLabel(game.metric_type))}</div>
+              <div class="games-card-meta" style="margin-top:6px;">${escHtml(formatCompetitionTimeRange(game))}</div>
+              ${prize ? `<div class="games-card-meta" style="margin-top:6px;">Premie: ${escHtml(prize)}</div>` : ''}
+              ${isTeamGame && selectedTeams.length ? `<div class="games-team-pill-row" style="margin-top:12px;">${selectedTeams.map(team => `<span class="games-team-pill"${getCompetitionTeamToneStyle(team, game)}>${escHtml(team)}</span>`).join('')}</div>` : ''}
+              <div class="games-participant-list" style="margin-top:12px;">${participants.map(item => {
+                const profile = getPublicProfileByUserId(item.user_id);
+                const name = profile?.display_name || 'Ukjent bruker';
+                const teamName = isTeamGame ? getCompetitionAssignedTeamName(game, item.user_id) : String(profile?.team || '').trim();
+                return `<span class="games-participant-pill"${isTeamGame ? getCompetitionTeamToneStyle(teamName, game, { backgroundAlpha: 0.1, borderAlpha: 0.28 }) : ''}>${escHtml(name)}${teamName ? ` · ${escHtml(teamName)}` : ''}</span>`;
+              }).join('')}</div>
             </div>
           ` : ''}
           <div style="text-align:center;">
