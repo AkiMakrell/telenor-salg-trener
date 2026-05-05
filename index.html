@@ -6363,6 +6363,43 @@
       grid-column: 1 / -1;
     }
 
+    .games-choice-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+    }
+
+    .games-choice-card {
+      display: grid;
+      gap: 6px;
+      text-align: left;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(71, 85, 105, 0.75);
+      background: rgba(10, 16, 30, 0.82);
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .games-choice-card:hover,
+    .games-choice-card.active {
+      border-color: rgba(96, 165, 250, 0.7);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.2);
+    }
+
+    .games-choice-title {
+      font-size: 0.95rem;
+      font-weight: 800;
+    }
+
+    .games-choice-text {
+      font-size: 0.84rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
     .games-field {
       display: grid;
       gap: 6px;
@@ -6412,6 +6449,29 @@
       height: 16px;
     }
 
+    .games-checkbox-card-static {
+      justify-content: center;
+      font-weight: 700;
+    }
+
+    .games-team-pill-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .games-team-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      border: 1px solid rgba(71, 85, 105, 0.72);
+      background: rgba(10, 16, 30, 0.82);
+      font-size: 0.83rem;
+      font-weight: 800;
+    }
+
     .games-standings-table {
       display: grid;
       gap: 10px;
@@ -6428,6 +6488,11 @@
       background: rgba(10, 16, 30, 0.88);
     }
 
+    .games-standing-row.team-colored {
+      border-left: 4px solid var(--games-team-color, rgba(96, 165, 250, 0.6));
+      padding-left: 10px;
+    }
+
     .games-standing-rank {
       font-size: 1rem;
       font-weight: 900;
@@ -6441,6 +6506,13 @@
     .games-standing-score {
       text-align: right;
       font-weight: 900;
+    }
+
+    .games-standing-team-meta {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
     }
 
     .games-empty-note {
@@ -8751,6 +8823,7 @@
     { id: 'points-race', title: 'Poengkamp', description: '300 poeng per abo og 100 per 6-min.', metricType: 'points', metricLocked: true },
     { id: 'target-hit', title: 'Forst til malet', description: 'Forst til valgt mal vinner.', metricType: 'sales', metricLocked: false, requiresTarget: true }
   ];
+  const COMPETITION_TEAM_COLORS = ['#38bdf8', '#f97316', '#a78bfa', '#22c55e', '#f43f5e', '#facc15'];
 
   const APP_META_LAST_IMPORT_USER = 'telenorSalgTrainer:lastImportedUserId';
   const APP_META_DEVICE_BACKUP_PREFIX = 'telenorSalgTrainer:deviceBackup:';
@@ -8877,6 +8950,40 @@
     return '';
   }
 
+  function normalizeTeamKey(team) {
+    return String(team || '').trim().toLowerCase();
+  }
+
+  function getCompetitionAvailableTeams() {
+    const counts = new Map();
+    publicProfileRows.forEach(profile => {
+      const team = String(profile?.team || '').trim();
+      if (!team) return;
+      counts.set(team, (counts.get(team) || 0) + 1);
+    });
+    const currentTeam = String(getUserTeam(currentUser) || '').trim();
+    if (currentTeam && !counts.has(currentTeam)) counts.set(currentTeam, 1);
+    return [...counts.entries()]
+      .map(([team, memberCount], index) => ({
+        id: team,
+        team,
+        memberCount,
+        color: COMPETITION_TEAM_COLORS[index % COMPETITION_TEAM_COLORS.length]
+      }))
+      .sort((a, b) => a.team.localeCompare(b.team, 'no-NO'));
+  }
+
+  function getDefaultCompetitionDraftTeamIds() {
+    const teams = getCompetitionAvailableTeams();
+    if (!teams.length) return [];
+    const ownTeam = String(getUserTeam(currentUser) || '').trim();
+    const ownTeamMatch = teams.find(item => normalizeTeamKey(item.team) === normalizeTeamKey(ownTeam));
+    const ordered = ownTeamMatch
+      ? [ownTeamMatch, ...teams.filter(item => item.team !== ownTeamMatch.team)]
+      : teams;
+    return ordered.slice(0, Math.min(2, ordered.length)).map(item => item.team);
+  }
+
   function setSettingsTeamStatus(message, tone = 'info') {
     if (!message) {
       clearElementMessage('settings-team-status');
@@ -8967,8 +9074,10 @@
       ? overrides.endsAt
       : addDays(now, 7);
     const defaultConfig = COMPETITION_GAME_CONFIG[0];
+    const defaultMode = String(overrides.mode || 'solo') === 'team' ? 'team' : 'solo';
     return {
       isOpen: overrides.isOpen === false ? false : true,
+      mode: defaultMode,
       name: String(overrides.name || ''),
       description: String(overrides.description || ''),
       prize: String(overrides.prize || ''),
@@ -8979,6 +9088,9 @@
       startTimeValue: overrides.startTimeValue || getTimeInputValue(startDate),
       endDateValue: overrides.endDateValue || getDateInputValue(endDate),
       endTimeValue: overrides.endTimeValue || getTimeInputValue(endDate),
+      teamIds: Array.isArray(overrides.teamIds)
+        ? [...new Set(overrides.teamIds.map(value => String(value || '').trim()).filter(Boolean))]
+        : getDefaultCompetitionDraftTeamIds(),
       participantIds: Array.isArray(overrides.participantIds)
         ? [...new Set(overrides.participantIds.map(value => String(value || '')).filter(Boolean))]
         : [String(currentUser?.id || '')].filter(Boolean)
@@ -13766,6 +13878,65 @@
     return Math.max(0, Number(entry.points) || 0);
   }
 
+  function getCompetitionMode(game) {
+    return String(game?.rules_json?.competitionMode || 'solo') === 'team' ? 'team' : 'solo';
+  }
+
+  function isTeamCompetitionGame(game) {
+    return getCompetitionMode(game) === 'team';
+  }
+
+  function getCompetitionSelectedTeams(game) {
+    const teams = Array.isArray(game?.rules_json?.selectedTeams)
+      ? game.rules_json.selectedTeams.map(team => String(team || '').trim()).filter(Boolean)
+      : [];
+    return [...new Set(teams)];
+  }
+
+  function buildCompetitionTeamColorMap(source) {
+    const selectedTeams = source?.teamIds || getCompetitionSelectedTeams(source);
+    const rawColors = source?.teamColors || source?.rules_json?.teamColors || {};
+    const availableTeams = getCompetitionAvailableTeams();
+    const fallbackColors = Object.fromEntries(availableTeams.map(item => [normalizeTeamKey(item.team), item.color]));
+    const entries = Array.isArray(selectedTeams) ? selectedTeams : [];
+    return Object.fromEntries(entries.map((team, index) => {
+      const key = normalizeTeamKey(team);
+      return [key, rawColors[key] || rawColors[team] || fallbackColors[key] || COMPETITION_TEAM_COLORS[index % COMPETITION_TEAM_COLORS.length]];
+    }));
+  }
+
+  function getCompetitionTeamColor(team, source) {
+    const key = normalizeTeamKey(team);
+    if (!key) return '';
+    return buildCompetitionTeamColorMap(source)[key] || '';
+  }
+
+  function hexToRgba(hex, alpha = 1) {
+    const normalized = String(hex || '').trim().replace('#', '');
+    const full = normalized.length === 3
+      ? normalized.split('').map(char => char + char).join('')
+      : normalized;
+    if (!/^[0-9a-fA-F]{6}$/.test(full)) return `rgba(148, 163, 184, ${alpha})`;
+    const red = parseInt(full.slice(0, 2), 16);
+    const green = parseInt(full.slice(2, 4), 16);
+    const blue = parseInt(full.slice(4, 6), 16);
+    return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+  }
+
+  function getCompetitionTeamToneStyle(team, source, options = {}) {
+    const color = getCompetitionTeamColor(team, source);
+    if (!color) return '';
+    const backgroundAlpha = Number(options.backgroundAlpha ?? 0.14);
+    const borderAlpha = Number(options.borderAlpha ?? 0.36);
+    return ` style="color:${escAttr(color)};border-color:${escAttr(hexToRgba(color, borderAlpha))};background:${escAttr(hexToRgba(color, backgroundAlpha))};"`;
+  }
+
+  function getCompetitionTeamRowStyle(team, source) {
+    const color = getCompetitionTeamColor(team, source);
+    if (!color) return '';
+    return ` style="--games-team-color:${escAttr(color)};"`;
+  }
+
   function getPublicProfileByUserId(userId) {
     return publicProfileRows.find(row => row.user_id === userId) || null;
   }
@@ -13793,6 +13964,11 @@
 
   function getCompetitionParticipantsForGame(competitionId) {
     return competitionParticipants.filter(item => item.competition_id === competitionId);
+  }
+
+  function getPublicProfilesForTeams(teamIds = []) {
+    const teamKeySet = new Set((Array.isArray(teamIds) ? teamIds : []).map(normalizeTeamKey).filter(Boolean));
+    return publicProfileRows.filter(profile => teamKeySet.has(normalizeTeamKey(profile.team)));
   }
 
   function getCompetitionParticipantIds(game) {
@@ -13885,6 +14061,7 @@
         user_id: userId,
         display_name: profile?.display_name || (userId === String(currentUser?.id || '') ? getUserDisplayName(currentUser) : 'Ukjent bruker'),
         team: profile?.team || '',
+        teamColor: getCompetitionTeamColor(profile?.team || '', game),
         score,
         totalSales,
         totalOver6,
@@ -13910,6 +14087,39 @@
     return standings;
   }
 
+  function buildCompetitionTeamStandings(game) {
+    if (!isTeamCompetitionGame(game)) return [];
+    const playerStandings = buildCompetitionStandings(game);
+    const groups = new Map();
+    playerStandings.forEach(player => {
+      const team = String(player.team || '').trim();
+      if (!team) return;
+      if (!groups.has(team)) {
+        groups.set(team, {
+          team,
+          teamColor: getCompetitionTeamColor(team, game),
+          score: 0,
+          totalSales: 0,
+          totalOver6: 0,
+          totalPoints: 0,
+          playerCount: 0
+        });
+      }
+      const current = groups.get(team);
+      current.score += player.score;
+      current.totalSales += player.totalSales;
+      current.totalOver6 += player.totalOver6;
+      current.totalPoints += player.totalPoints;
+      current.playerCount += 1;
+    });
+    return [...groups.values()].sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      if (b.totalSales !== a.totalSales) return b.totalSales - a.totalSales;
+      if (b.totalOver6 !== a.totalOver6) return b.totalOver6 - a.totalOver6;
+      return a.team.localeCompare(b.team, 'no-NO');
+    });
+  }
+
   function openCompetitionCreator() {
     competitionDraft = competitionDraft?.isOpen ? competitionDraft : createCompetitionDraft();
     switchTab('competition-create');
@@ -13928,6 +14138,15 @@
       if (config?.metricType) nextDraft.metricType = config.metricType;
       if (!config?.requiresTarget) nextDraft.targetValue = '';
     }
+    if (key === 'mode') {
+      nextDraft.mode = value === 'team' ? 'team' : 'solo';
+      if (nextDraft.mode === 'team' && !(nextDraft.teamIds || []).length) {
+        nextDraft.teamIds = getDefaultCompetitionDraftTeamIds();
+      }
+      if (nextDraft.mode === 'solo') {
+        nextDraft.participantIds = [...new Set((nextDraft.participantIds || []).concat(String(currentUser?.id || '')).filter(Boolean))];
+      }
+    }
     competitionDraft = nextDraft;
     renderCompetitionCreatePage();
   }
@@ -13939,6 +14158,15 @@
     else participantIds.add(userId);
     participantIds.add(String(currentUser?.id || ''));
     competitionDraft = { ...currentDraft, participantIds: [...participantIds].filter(Boolean) };
+    renderCompetitionCreatePage();
+  }
+
+  function toggleCompetitionTeam(teamId) {
+    const currentDraft = competitionDraft || createCompetitionDraft({ mode: 'team' });
+    const teamIds = new Set(currentDraft.teamIds || []);
+    if (teamIds.has(teamId)) teamIds.delete(teamId);
+    else teamIds.add(teamId);
+    competitionDraft = { ...currentDraft, mode: 'team', teamIds: [...teamIds].filter(Boolean) };
     renderCompetitionCreatePage();
   }
 
@@ -13958,10 +14186,20 @@
     const config = getCompetitionGameConfig(draft.gameType);
     const startsAt = parseDateTimeInput(draft.startDateValue, draft.startTimeValue);
     const endsAt = parseDateTimeInput(draft.endDateValue, draft.endTimeValue);
-    const participantIds = [...new Set((draft.participantIds || []).concat(String(currentUser.id)).filter(Boolean))];
+    const competitionMode = draft.mode === 'team' ? 'team' : 'solo';
+    const selectedTeams = competitionMode === 'team'
+      ? [...new Set((draft.teamIds || []).map(team => String(team || '').trim()).filter(Boolean))]
+      : [];
+    const selectedProfiles = competitionMode === 'team'
+      ? getPublicProfilesForTeams(selectedTeams)
+      : [];
+    const participantIds = competitionMode === 'team'
+      ? [...new Set(selectedProfiles.map(profile => String(profile.user_id || '')).filter(Boolean))]
+      : [...new Set((draft.participantIds || []).concat(String(currentUser.id)).filter(Boolean))];
     const name = String(draft.name || '').trim();
     const metricType = config.metricLocked ? config.metricType : draft.metricType;
     const targetValue = config.requiresTarget ? Math.max(1, Math.floor(Number(draft.targetValue) || 0)) : null;
+    const teamColors = buildCompetitionTeamColorMap({ teamIds: selectedTeams });
 
     if (!name) {
       setCompetitionState('error', 'Gi konkurransen et navn.');
@@ -13971,8 +14209,16 @@
       setCompetitionState('error', 'Velg et gyldig start- og sluttidspunkt.');
       return;
     }
+    if (competitionMode === 'team' && selectedTeams.length < 2) {
+      setCompetitionState('error', 'Velg minst to lag i Lagspill.');
+      return;
+    }
     if (!participantIds.length) {
-      setCompetitionState('error', 'Velg minst en deltaker.');
+      setCompetitionState('error', competitionMode === 'team' ? 'Valgte lag ma ha minst en synlig spiller.' : 'Velg minst en deltaker.');
+      return;
+    }
+    if (competitionMode === 'team' && participantIds.length < 2) {
+      setCompetitionState('error', 'Valgte lag ma ha minst to synlige spillere totalt.');
       return;
     }
     if (config.requiresTarget && !targetValue) {
@@ -13996,15 +14242,18 @@
       rules_json: {
         metricType,
         templateTitle: config.title,
-        prize: String(draft.prize || '').trim()
+        prize: String(draft.prize || '').trim(),
+        competitionMode,
+        selectedTeams,
+        teamColors
       }
     };
     const participantRows = participantIds.map(userId => ({
       competition_id: competitionId,
       user_id: userId,
       invited_by_user_id: currentUser.id,
-      invite_status: userId === currentUser.id ? 'accepted' : 'invited',
-      joined_at: userId === currentUser.id ? new Date().toISOString() : null
+      invite_status: competitionMode === 'team' || userId === currentUser.id ? 'accepted' : 'invited',
+      joined_at: competitionMode === 'team' || userId === currentUser.id ? new Date().toISOString() : null
     }));
 
     try {
@@ -14049,6 +14298,10 @@
     if (!competitionDraft?.isOpen) return '';
     const draft = competitionDraft;
     const config = getCompetitionGameConfig(draft.gameType);
+    const isTeamMode = draft.mode === 'team';
+    const availableTeams = getCompetitionAvailableTeams();
+    const selectedTeamProfiles = getPublicProfilesForTeams(draft.teamIds)
+      .sort((a, b) => a.display_name.localeCompare(b.display_name, 'no-NO'));
     const participantCards = publicProfileRows
       .filter(row => row.user_id !== String(currentUser?.id || ''))
       .sort((a, b) => a.display_name.localeCompare(b.display_name, 'no-NO'))
@@ -14058,6 +14311,15 @@
           <span>${escHtml(profile.display_name)}${profile.team ? ` · ${escHtml(profile.team)}` : ''}</span>
         </label>
       `).join('');
+    const teamCards = availableTeams.map(team => `
+      <button class="games-choice-card games-team-select-card${draft.teamIds.includes(team.team) ? ' active' : ''}" type="button" onclick="toggleCompetitionTeam('${escAttr(team.team)}')"${getCompetitionTeamToneStyle(team.team, { teamIds: availableTeams.map(item => item.team), teamColors: Object.fromEntries(availableTeams.map(item => [normalizeTeamKey(item.team), item.color])) }, { backgroundAlpha: draft.teamIds.includes(team.team) ? 0.22 : 0.1, borderAlpha: draft.teamIds.includes(team.team) ? 0.7 : 0.34 })}>
+        <span class="games-choice-title">${escHtml(team.team)}</span>
+        <span class="games-choice-text">${team.memberCount} ${team.memberCount === 1 ? 'spiller' : 'spillere'} synlige</span>
+      </button>
+    `).join('');
+    const selectedTeamsLabel = draft.teamIds.length
+      ? draft.teamIds.map(team => `<span class="games-team-pill"${getCompetitionTeamToneStyle(team, { teamIds: draft.teamIds })}>${escHtml(team)}</span>`).join('')
+      : '';
 
     return `
       <div class="games-create-card">
@@ -14067,9 +14329,22 @@
         </div>
         ${competitionErrorMessage ? `<div class="stats-empty-card" style="margin-bottom:16px;">${escHtml(competitionErrorMessage)}</div>` : ''}
         <div class="games-form-grid">
+          <div class="games-field full">
+            <label>Format</label>
+            <div class="games-choice-grid">
+              <button class="games-choice-card${!isTeamMode ? ' active' : ''}" type="button" onclick="updateCompetitionDraftField('mode', 'solo')">
+                <span class="games-choice-title">Individuell konkurranse</span>
+                <span class="games-choice-text">Inviter enkeltspillere og la alle kjempe for seg selv.</span>
+              </button>
+              <button class="games-choice-card${isTeamMode ? ' active' : ''}" type="button" onclick="updateCompetitionDraftField('mode', 'team')">
+                <span class="games-choice-title">Lagspill</span>
+                <span class="games-choice-text">Velg to eller flere lag, sa bygges spill og spillerliste automatisk.</span>
+              </button>
+            </div>
+          </div>
           <div class="games-field">
             <label>Navn</label>
-            <input type="text" value="${escAttr(draft.name)}" onchange="updateCompetitionDraftField('name', this.value)" placeholder="F.eks. Tirsdagssprint">
+            <input type="text" value="${escAttr(draft.name)}" onchange="updateCompetitionDraftField('name', this.value)" placeholder="${isTeamMode ? 'F.eks. Agrol vs Nysalg' : 'F.eks. Tirsdagssprint'}">
           </div>
           <div class="games-field">
             <label>Spilltype</label>
@@ -14111,18 +14386,39 @@
             <label>Premie</label>
             <input type="text" value="${escAttr(draft.prize)}" onchange="updateCompetitionDraftField('prize', this.value)" placeholder="F.eks. kaffe, lunch, gavekort eller skryterett">
           </div>
-          <div class="games-field full">
-            <label>Deltakere</label>
-            <div class="games-checkbox-grid">
-              <label class="games-checkbox-card">
-                <input type="checkbox" checked disabled>
-                <span>${escHtml(getUserDisplayName(currentUser))} · deg</span>
-              </label>
-              ${participantCards || '<div class="games-empty-note">Ingen andre brukere er synlige ennå. Be teamet logge inn minst en gang sa dukker de opp her.</div>'}
+          ${isTeamMode ? `
+            <div class="games-field full">
+              <label>Lag som skal spille</label>
+              <div class="games-choice-grid">
+                ${teamCards || '<div class="games-empty-note">Ingen lag er synlige ennå. Be minst to lag logge inn i appen sa de dukker opp her.</div>'}
+              </div>
+              <div class="games-muted-text" style="margin-top:10px;">Velg minst to lag. Alle synlige spillere pa de valgte lagene legges inn automatisk.</div>
+              ${selectedTeamsLabel ? `<div class="games-team-pill-row" style="margin-top:12px;">${selectedTeamsLabel}</div>` : ''}
             </div>
-          </div>
+            <div class="games-field full">
+              <label>Spillere som blir med automatisk</label>
+              <div class="games-checkbox-grid">
+                ${selectedTeamProfiles.length ? selectedTeamProfiles.map(profile => `
+                  <div class="games-checkbox-card games-checkbox-card-static"${getCompetitionTeamToneStyle(profile.team, { teamIds: draft.teamIds })}>
+                    <span>${escHtml(profile.display_name)}${profile.team ? ` · ${escHtml(profile.team)}` : ''}</span>
+                  </div>
+                `).join('') : '<div class="games-empty-note">Velg lag for a se hvilke spillere som blir med i Lagspillet.</div>'}
+              </div>
+            </div>
+          ` : `
+            <div class="games-field full">
+              <label>Deltakere</label>
+              <div class="games-checkbox-grid">
+                <label class="games-checkbox-card">
+                  <input type="checkbox" checked disabled>
+                  <span>${escHtml(getUserDisplayName(currentUser))} · deg</span>
+                </label>
+                ${participantCards || '<div class="games-empty-note">Ingen andre brukere er synlige ennå. Be teamet logge inn minst en gang sa dukker de opp her.</div>'}
+              </div>
+            </div>
+          `}
         </div>
-        <div class="games-muted-text" style="margin-top:12px;">${escHtml(config.description)}</div>
+        <div class="games-muted-text" style="margin-top:12px;">${escHtml(config.description)}${isTeamMode ? ' Lagscoren bygges automatisk fra summen til spillerne pa hvert lag.' : ''}</div>
         <div class="games-form-actions" style="margin-top:16px;">
           <button class="save-btn" type="button" onclick="saveCompetitionGame()">Opprett spill</button>
           <button class="backup-btn" type="button" onclick="switchTab('ledertavler-spill')">Avbryt</button>
@@ -14139,17 +14435,18 @@
       return;
     }
     competitionDraft = competitionDraft?.isOpen ? competitionDraft : createCompetitionDraft();
+    const isTeamMode = competitionDraft.mode === 'team';
     container.innerHTML = `
       <div class="games-create-page-shell">
         <div class="games-hero">
           <div>
             <div class="games-hero-title">Opprett konkurranse</div>
-            <div class="games-hero-text">Sett opp premien, inviter riktige folk og gi teamet noe konkret a jage.</div>
+            <div class="games-hero-text">${isTeamMode ? 'Velg lagene, se spillerne bli lagt inn automatisk og start en tydelig teamduell.' : 'Sett opp premien, inviter riktige folk og gi teamet noe konkret a jage.'}</div>
           </div>
           <div class="games-hype-row">
-            <span class="games-hype-pill">Tydelig mal</span>
+            <span class="games-hype-pill">${isTeamMode ? 'Velg lag pa sekunder' : 'Tydelig mal'}</span>
             <span class="games-hype-pill">Synlig premie</span>
-            <span class="games-hype-pill">Rask oppstart</span>
+            <span class="games-hype-pill">${isTeamMode ? 'Lagfarger i stillingen' : 'Rask oppstart'}</span>
           </div>
         </div>
         ${renderCompetitionCreateCard()}
@@ -14157,12 +14454,34 @@
     `;
   }
 
+  function renderCompetitionTeamStandings(game) {
+    const teamStandings = buildCompetitionTeamStandings(game);
+    if (!teamStandings.length) return '<div class="games-empty-note">Ingen lagscore registrert ennå.</div>';
+    return `
+      <div class="games-standings-table">
+        ${teamStandings.map((row, index) => `
+          <div class="games-standing-row team-colored"${getCompetitionTeamRowStyle(row.team, game)}>
+            <div class="games-standing-rank">#${index + 1}</div>
+            <div>
+              <div class="games-standing-name">${escHtml(row.team)}</div>
+              <div class="games-card-meta">${row.playerCount} ${row.playerCount === 1 ? 'spiller' : 'spillere'} · ${row.totalSales} abo · ${row.totalOver6} stk 6-min</div>
+            </div>
+            <div class="games-standing-score">${row.score}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
   function renderCompetitionGameCard(game) {
+    const isTeamGame = isTeamCompetitionGame(game);
     const standings = buildCompetitionStandings(game);
-    const topRow = standings[0] || null;
+    const teamStandings = isTeamGame ? buildCompetitionTeamStandings(game) : [];
+    const topRow = (isTeamGame ? teamStandings[0] : standings[0]) || null;
     const participantCount = getCompetitionParticipantIds(game).length;
     const status = getCompetitionStatus(game);
     const prize = String(game.rules_json?.prize || '').trim();
+    const selectedTeams = getCompetitionSelectedTeams(game);
     return `
       <div class="games-competition-card">
         <div class="games-card-top">
@@ -14172,12 +14491,13 @@
           </div>
           <span class="games-badge ${status}">${getCompetitionStatusLabel(status)}</span>
         </div>
-        <div class="games-card-meta">${escHtml(getCompetitionGameConfig(game.game_type).title)} · ${participantCount} deltakere · ${escHtml(getCompetitionTimeLeft(game))}</div>
+        <div class="games-card-meta">${escHtml(isTeamGame ? 'Lagspill' : getCompetitionGameConfig(game.game_type).title)} · ${participantCount} deltakere · ${escHtml(getCompetitionTimeLeft(game))}</div>
+        ${isTeamGame && selectedTeams.length ? `<div class="games-team-pill-row">${selectedTeams.map(team => `<span class="games-team-pill"${getCompetitionTeamToneStyle(team, game)}>${escHtml(team)}</span>`).join('')}</div>` : ''}
         ${prize ? `<div><span class="games-prize-chip">Premie: ${escHtml(prize)}</span></div>` : ''}
         <div class="games-metric-grid">
           <div class="games-metric-tile">
             <div class="games-summary-label">Leder</div>
-            <div class="games-metric-value">${escHtml(topRow?.display_name || 'Ingen ennå')}</div>
+            <div class="games-metric-value">${escHtml(isTeamGame ? (topRow?.team || 'Ingen ennå') : (topRow?.display_name || 'Ingen ennå'))}</div>
           </div>
           <div class="games-metric-tile">
             <div class="games-summary-label">Score</div>
@@ -14185,7 +14505,7 @@
           </div>
           <div class="games-metric-tile">
             <div class="games-summary-label">Type</div>
-            <div class="games-metric-value">${escHtml(getCompetitionMetricLabel(game.metric_type))}</div>
+            <div class="games-metric-value">${escHtml(isTeamGame ? `${getCompetitionMetricLabel(game.metric_type)} · lag` : getCompetitionMetricLabel(game.metric_type))}</div>
           </div>
         </div>
         <div class="games-card-actions">
@@ -14199,6 +14519,8 @@
     if (!game) return '';
     const participants = getCompetitionParticipantsForGame(game);
     const standings = buildCompetitionStandings(game);
+    const isTeamGame = isTeamCompetitionGame(game);
+    const selectedTeams = getCompetitionSelectedTeams(game);
     const currentParticipant = participants.find(item => item.user_id === String(currentUser?.id || ''));
     const status = getCompetitionStatus(game);
     const prize = String(game.rules_json?.prize || '').trim();
@@ -14207,18 +14529,19 @@
         <div class="games-detail-top">
           <div>
             <div class="games-detail-title">${escHtml(game.name)}</div>
-            <div class="games-detail-meta">${escHtml(getCompetitionGameConfig(game.game_type).title)} · ${escHtml(formatCompetitionTimeRange(game))}</div>
+            <div class="games-detail-meta">${escHtml(isTeamGame ? 'Lagspill' : getCompetitionGameConfig(game.game_type).title)} · ${escHtml(formatCompetitionTimeRange(game))}</div>
           </div>
           <span class="games-badge ${status}">${getCompetitionStatusLabel(status)}</span>
         </div>
         ${game.description ? `<div class="games-muted-text" style="margin-top:10px;">${escHtml(game.description)}</div>` : ''}
         ${prize ? `<div style="margin-top:12px;"><span class="games-prize-chip">Premie: ${escHtml(prize)}</span></div>` : ''}
+        ${isTeamGame && selectedTeams.length ? `<div class="games-team-pill-row" style="margin-top:12px;">${selectedTeams.map(team => `<span class="games-team-pill"${getCompetitionTeamToneStyle(team, game)}>${escHtml(team)}</span>`).join('')}</div>` : ''}
         <div class="games-participant-list" style="margin-top:14px;">
           ${participants.map(item => {
             const profile = getPublicProfileByUserId(item.user_id);
             const name = profile?.display_name || 'Ukjent bruker';
             const statusLabel = item.invite_status === 'accepted' ? 'med' : item.invite_status === 'declined' ? 'avslo' : 'invitert';
-            return `<span class="games-participant-pill">${escHtml(name)} · ${statusLabel}</span>`;
+            return `<span class="games-participant-pill"${isTeamGame ? getCompetitionTeamToneStyle(profile?.team, game, { backgroundAlpha: 0.1, borderAlpha: 0.28 }) : ''}>${escHtml(name)}${profile?.team ? ` · ${escHtml(profile.team)}` : ''} · ${statusLabel}</span>`;
           }).join('')}
         </div>
         ${currentParticipant && currentParticipant.invite_status === 'invited' ? `
@@ -14227,17 +14550,27 @@
             <button class="backup-btn" type="button" onclick="updateCompetitionInviteStatus('${game.competition_id}', 'declined')">Avsla</button>
           </div>
         ` : ''}
+        ${isTeamGame ? `
+          <div class="games-section-head" style="margin-top:18px;">
+            <div class="games-section-title">Lagstilling</div>
+            <div class="games-muted-text">${escHtml(getCompetitionMetricLabel(game.metric_type))}</div>
+          </div>
+          ${renderCompetitionTeamStandings(game)}
+        ` : ''}
         <div class="games-section-head" style="margin-top:18px;">
           <div class="games-section-title">Stilling</div>
-          <div class="games-muted-text">${escHtml(getCompetitionMetricLabel(game.metric_type))}</div>
+          <div class="games-muted-text">${escHtml(isTeamGame ? 'Spillerleaderboard' : getCompetitionMetricLabel(game.metric_type))}</div>
         </div>
         <div class="games-standings-table">
           ${standings.length ? standings.map((row, index) => `
-            <div class="games-standing-row">
+            <div class="games-standing-row${isTeamGame ? ' team-colored' : ''}"${isTeamGame ? getCompetitionTeamRowStyle(row.team, game) : ''}>
               <div class="games-standing-rank">#${index + 1}</div>
               <div>
                 <div class="games-standing-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
-                <div class="games-card-meta">${escHtml(row.progressLabel)}</div>
+                <div class="games-standing-team-meta">
+                  ${isTeamGame && row.team ? `<span class="games-team-pill"${getCompetitionTeamToneStyle(row.team, game)}>${escHtml(row.team)}</span>` : ''}
+                  <div class="games-card-meta">${escHtml(row.progressLabel)}</div>
+                </div>
               </div>
               <div class="games-standing-score">${row.score}</div>
             </div>
