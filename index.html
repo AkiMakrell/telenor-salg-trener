@@ -14347,7 +14347,7 @@
     switchTab('ledertavler-spill');
   }
 
-  function updateCompetitionDraftField(key, value) {
+  function updateCompetitionDraftField(key, value, shouldRender = true) {
     const currentDraft = competitionDraft || createCompetitionDraft();
     const nextDraft = { ...currentDraft, [key]: value };
     if (key === 'mode') {
@@ -14364,10 +14364,10 @@
     }
     nextDraft.teamConfigs = buildCompetitionDraftTeamConfigs(nextDraft.teamCount, nextDraft.teamConfigs || currentDraft.teamConfigs);
     competitionDraft = nextDraft;
-    renderCompetitionCreatePage();
+    if (shouldRender) renderCompetitionCreatePage();
   }
 
-  function updateCompetitionTeamName(teamId, value) {
+  function updateCompetitionTeamName(teamId, value, shouldRender = true) {
     const currentDraft = competitionDraft || createCompetitionDraft({ mode: 'team' });
     const teamConfigs = buildCompetitionDraftTeamConfigs(currentDraft.teamCount, currentDraft.teamConfigs).map(team => (
       team.id === teamId
@@ -14375,7 +14375,7 @@
         : team
     ));
     competitionDraft = { ...currentDraft, mode: 'team', teamConfigs };
-    renderCompetitionCreatePage();
+    if (shouldRender) renderCompetitionCreatePage();
   }
 
   function toggleCompetitionParticipant(userId) {
@@ -14646,7 +14646,7 @@
               </div>
             </div>
             <div class="games-field">
-              <input type="text" value="${escAttr(draft.name)}" onchange="updateCompetitionDraftField('name', this.value)" placeholder="${isTeamMode ? 'F.eks. Lag 1 mot Lag 2' : 'F.eks. Fredagsduellen'}">
+              <input type="text" value="${escAttr(draft.name)}" oninput="updateCompetitionDraftField('name', this.value, false)" placeholder="${isTeamMode ? 'F.eks. Lag 1 mot Lag 2' : 'F.eks. Fredagsduellen'}">
             </div>
           </div>
 
@@ -14680,7 +14680,7 @@
                     <div class="games-section-head" style="margin-bottom:12px;">
                       <div class="games-field" style="flex:1;min-width:180px;">
                         <label>Navn på laget</label>
-                        <input type="text" value="${escAttr(team.name)}" onchange="updateCompetitionTeamName('${team.id}', this.value)">
+                        <input type="text" value="${escAttr(team.name)}" oninput="updateCompetitionTeamName('${team.id}', this.value, false)">
                       </div>
                       <span class="games-team-pill"${getCompetitionTeamToneStyle(team.name, { teamConfigs })}>${team.memberIds.length} ${team.memberIds.length === 1 ? 'spiller' : 'spillere'}</span>
                     </div>
@@ -14732,11 +14732,11 @@
               <div class="games-form-grid" style="margin-top:14px;">
                 <div class="games-field">
                   <label>Hvor mange poeng for Abo?</label>
-                  <input type="number" min="1" value="${escAttr(draft.pointsPerSale)}" onchange="updateCompetitionDraftField('pointsPerSale', this.value)">
+                  <input type="number" min="1" value="${escAttr(draft.pointsPerSale)}" oninput="updateCompetitionDraftField('pointsPerSale', this.value, false)">
                 </div>
                 <div class="games-field">
                   <label>Hvor mange poeng for 6-minuttere?</label>
-                  <input type="number" min="1" value="${escAttr(draft.pointsPerOver6)}" onchange="updateCompetitionDraftField('pointsPerOver6', this.value)">
+                  <input type="number" min="1" value="${escAttr(draft.pointsPerOver6)}" oninput="updateCompetitionDraftField('pointsPerOver6', this.value, false)">
                 </div>
               </div>
             ` : ''}
@@ -14762,7 +14762,7 @@
             ${draft.objectiveMode === 'target' ? `
               <div class="games-field" style="margin-top:14px;">
                 <label>Hva er x?</label>
-                <input type="number" min="1" value="${escAttr(draft.targetValue)}" onchange="updateCompetitionDraftField('targetValue', this.value)" placeholder="Skriv inn måltallet">
+                <input type="number" min="1" value="${escAttr(draft.targetValue)}" oninput="updateCompetitionDraftField('targetValue', this.value, false)" placeholder="Skriv inn måltallet">
               </div>
             ` : ''}
           </div>
@@ -14775,7 +14775,7 @@
               </div>
             </div>
             <div class="games-field">
-              <input type="text" value="${escAttr(draft.prize)}" onchange="updateCompetitionDraftField('prize', this.value)" placeholder="F.eks. kaffe, lunch, gavekort eller skryterett">
+              <input type="text" value="${escAttr(draft.prize)}" oninput="updateCompetitionDraftField('prize', this.value, false)" placeholder="F.eks. kaffe, lunch, gavekort eller skryterett">
             </div>
           </div>
 
@@ -14797,14 +14797,14 @@
                 <div class="games-section-title">Start</div>
                 <div class="games-field">
                   <label>Dato og tid</label>
-                  <input type="datetime-local" value="${escAttr(draft.startAtValue)}" onchange="updateCompetitionDraftField('startAtValue', this.value)">
+                  <input type="datetime-local" value="${escAttr(draft.startAtValue)}" oninput="updateCompetitionDraftField('startAtValue', this.value, false)">
                 </div>
               </div>
               <div class="games-time-card">
                 <div class="games-section-title">Slutt</div>
                 <div class="games-field">
                   <label>Dato og tid</label>
-                  <input type="datetime-local" value="${escAttr(draft.endAtValue)}" onchange="updateCompetitionDraftField('endAtValue', this.value)">
+                  <input type="datetime-local" value="${escAttr(draft.endAtValue)}" oninput="updateCompetitionDraftField('endAtValue', this.value, false)">
                 </div>
               </div>
             </div>
