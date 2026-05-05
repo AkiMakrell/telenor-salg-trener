@@ -8472,7 +8472,7 @@
   <div class="tabs">
     <button class="tab-btn active" data-tab="hjem" onclick="switchTab('hjem', this)">Dashboard</button>
     <button class="tab-btn" data-tab="stats" onclick="openStatsPage('overview', this)">Stats</button>
-    <button class="tab-btn" data-tab="ledertavler-spill" onclick="switchTab('ledertavler-spill', this)">Ledertavler/Spill</button>
+    <button class="tab-btn" data-tab="ledertavler-spill" onclick="switchTab('ledertavler-spill', this)">Spill</button>
     <div id="top-bar-tools" class="top-bar-tools">
       <button
         id="top-bar-tools-button"
@@ -15092,50 +15092,17 @@
       container.innerHTML = '';
       return;
     }
-    const activePeriod = LEADERBOARD_PERIOD_CONFIG.find(period => period.id === activeLeaderboardPeriod) || LEADERBOARD_PERIOD_CONFIG[0];
     const activeGames = getCompetitionVisibleGames('active');
     const archiveGames = getCompetitionUpcomingAndCompletedGames();
-    const ownRow = leaderboardRows.find(row => row.user_id === String(currentUser?.id || '')) || null;
-    const ownRank = ownRow ? getLeaderboardRank(activePeriod.id, ownRow.user_id) : null;
-    const ownPoints = ownRow ? getLeaderboardPeriodValue(ownRow, activePeriod.id, 'points') : 0;
-    const leader = getSortedLeaderboardRows(activePeriod.id)[0] || null;
-    const gap = leader ? Math.max(0, getLeaderboardPeriodValue(leader, activePeriod.id, 'points') - ownPoints) : 0;
-    const latestUpdate = leaderboardRows.map(row => row.updated_at || row.latest_entry_at).filter(Boolean).sort((a, b) => String(b).localeCompare(String(a)))[0] || '';
 
     container.innerHTML = `
       <div class="games-page-shell">
         <div class="games-hero">
           <div>
-            <div class="games-hero-title">Ledertavler / Spill</div>
+            <div class="games-hero-title">Spill</div>
           </div>
           <div class="games-hero-actions">
             <button class="save-btn" type="button" onclick="openCompetitionCreator()">Ny konkurranse</button>
-          </div>
-        </div>
-
-        <div class="games-section-card">
-          <div class="games-section-head">
-            <div class="games-section-title">Ledertavle</div>
-            <div class="games-muted-text">${latestUpdate ? `Sist oppdatert ${escHtml(formatLeaderboardTimestamp(latestUpdate))}` : 'Venter pa aktivitet'}</div>
-          </div>
-          ${renderLeaderboardPeriodSwitcher(activePeriod.id)}
-          <div class="games-summary-grid" style="margin-top:14px;">
-            <div class="games-summary-tile">
-              <div class="games-summary-label">Din plass</div>
-              <div class="games-summary-value">${ownRank ? `#${ownRank}` : '-'}</div>
-            </div>
-            <div class="games-summary-tile">
-              <div class="games-summary-label">Dine poeng</div>
-              <div class="games-summary-value">${ownPoints}</div>
-            </div>
-            <div class="games-summary-tile">
-              <div class="games-summary-label">Opp til toppen</div>
-              <div class="games-summary-value">${gap}</div>
-            </div>
-          </div>
-          <div style="margin-top:16px;">
-            ${leaderboardState === 'loading' && !leaderboardRows.length ? '<div class="stats-empty-card">Laster leaderboard...</div>' : renderLeaderboardPeriodList(activePeriod)}
-            ${leaderboardState === 'error' ? `<div class="stats-empty-card" style="margin-top:14px;">${escHtml(leaderboardErrorMessage || 'Leaderboard er midlertidig utilgjengelig.')}</div>` : ''}
           </div>
         </div>
 
