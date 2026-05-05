@@ -6532,6 +6532,20 @@
       margin-bottom: 14px;
     }
 
+    .games-time-stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .games-time-card {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(71, 85, 105, 0.72);
+      background: rgba(10, 16, 30, 0.78);
+    }
+
     .games-team-builder-card {
       display: grid;
       gap: 10px;
@@ -9229,7 +9243,7 @@
       startDateValue: overrides.startDateValue || getDateInputValue(startDate),
       startTimeValue: overrides.startTimeValue || getTimeInputValue(startDate),
       endDateValue: overrides.endDateValue || getDateInputValue(endDate),
-      endTimeValue: overrides.endTimeValue || getTimeInputValue(endDate),
+      endTimeValue: Object.prototype.hasOwnProperty.call(overrides, 'endTimeValue') ? String(overrides.endTimeValue || '') : '',
       participantIds: [...new Set(participantIds.concat(String(currentUser?.id || '')).filter(Boolean))],
       teamCount,
       teamConfigs: buildCompetitionDraftTeamConfigs(teamCount, overrides.teamConfigs)
@@ -14439,6 +14453,14 @@
   async function saveCompetitionGame() {
     if (!supabaseClient || !currentUser) return;
     const draft = competitionDraft || createCompetitionDraft();
+    if (!draft.startDateValue || !draft.startTimeValue) {
+      setCompetitionState('error', 'Velg både startdato og starttid.');
+      return;
+    }
+    if (!draft.endDateValue || !draft.endTimeValue) {
+      setCompetitionState('error', 'Velg både sluttdato og sluttid.');
+      return;
+    }
     const startsAt = parseDateTimeInput(draft.startDateValue, draft.startTimeValue);
     const endsAt = parseDateTimeInput(draft.endDateValue, draft.endTimeValue);
     const competitionMode = draft.mode === 'team' ? 'team' : 'ffa';
@@ -14540,9 +14562,10 @@
         .insert(participantRows);
       if (participantError) throw participantError;
       competitionDraft = null;
-      selectedCompetitionId = '';
-      await loadLeaderboardRows({ silentLoading: true });
+      selectedCompetitionId = competitionId;
+      activeCompetitionFilter = getCompetitionStatus(gameRow);
       activateTab('ledertavler-spill', 'ledertavler-spill');
+      await loadLeaderboardRows({ silentLoading: true });
     } catch (error) {
       setCompetitionState('error', error?.message || 'Kunne ikke opprette konkurransen.');
     }
@@ -14744,7 +14767,7 @@
               <span class="games-question-number">6</span>
               <div>
                 <div class="games-question-title">Start og sluttid?</div>
-                <div class="games-question-text">Bestem når konkurransen starter og når den skal være over.</div>
+                <div class="games-question-text">Velg dato først, og fyll deretter inn tidspunkt. Starttid er ferdig satt til akkurat nå.</div>
               </div>
             </div>
             <div class="games-shortcut-row">
@@ -14753,22 +14776,28 @@
               <button class="backup-btn" type="button" onclick="applyCompetitionTimePreset('tomorrow-shift')">I morgen 09-16</button>
               <button class="backup-btn" type="button" onclick="applyCompetitionTimePreset('week-run')">Neste 7 dager</button>
             </div>
-            <div class="games-form-grid">
-              <div class="games-field">
-                <label>Startdato</label>
-                <input type="date" value="${escAttr(draft.startDateValue)}" onchange="updateCompetitionDraftField('startDateValue', this.value)">
+            <div class="games-time-stack">
+              <div class="games-time-card">
+                <div class="games-section-title">Start</div>
+                <div class="games-field">
+                  <label>Dato</label>
+                  <input type="date" value="${escAttr(draft.startDateValue)}" onchange="updateCompetitionDraftField('startDateValue', this.value)">
+                </div>
+                <div class="games-field">
+                  <label>Tid</label>
+                  <input type="time" value="${escAttr(draft.startTimeValue)}" onchange="updateCompetitionDraftField('startTimeValue', this.value)">
+                </div>
               </div>
-              <div class="games-field">
-                <label>Starttid</label>
-                <input type="time" value="${escAttr(draft.startTimeValue)}" onchange="updateCompetitionDraftField('startTimeValue', this.value)">
-              </div>
-              <div class="games-field">
-                <label>Sluttdato</label>
-                <input type="date" value="${escAttr(draft.endDateValue)}" onchange="updateCompetitionDraftField('endDateValue', this.value)">
-              </div>
-              <div class="games-field">
-                <label>Sluttid</label>
-                <input type="time" value="${escAttr(draft.endTimeValue)}" onchange="updateCompetitionDraftField('endTimeValue', this.value)">
+              <div class="games-time-card">
+                <div class="games-section-title">Slutt</div>
+                <div class="games-field">
+                  <label>Dato</label>
+                  <input type="date" value="${escAttr(draft.endDateValue)}" onchange="updateCompetitionDraftField('endDateValue', this.value)">
+                </div>
+                <div class="games-field">
+                  <label>Tid</label>
+                  <input type="time" value="${escAttr(draft.endTimeValue)}" onchange="updateCompetitionDraftField('endTimeValue', this.value)">
+                </div>
               </div>
             </div>
           </div>
@@ -14952,6 +14981,8 @@
     const leader = getSortedLeaderboardRows(activePeriod.id)[0] || null;
     const gap = leader ? Math.max(0, getLeaderboardPeriodValue(leader, activePeriod.id, 'points') - ownPoints) : 0;
     const visibleGames = getCompetitionVisibleGames(activeCompetitionFilter);
+    const activeGames = getCompetitionVisibleGames('active');
+    const featuredActiveGame = competitionGames.find(game => game.competition_id === selectedCompetitionId && getCompetitionStatus(game) === 'active') || activeGames[0] || null;
     const latestUpdate = leaderboardRows.map(row => row.updated_at || row.latest_entry_at).filter(Boolean).sort((a, b) => String(b).localeCompare(String(a)))[0] || '';
 
     container.innerHTML = `
@@ -14995,6 +15026,14 @@
             ${leaderboardState === 'loading' && !leaderboardRows.length ? '<div class="stats-empty-card">Laster leaderboard...</div>' : renderLeaderboardPeriodList(activePeriod)}
             ${leaderboardState === 'error' ? `<div class="stats-empty-card" style="margin-top:14px;">${escHtml(leaderboardErrorMessage || 'Leaderboard er midlertidig utilgjengelig.')}</div>` : ''}
           </div>
+        </div>
+
+        <div class="games-section-card">
+          <div class="games-section-head">
+            <div class="games-section-title">Aktivt spill nå</div>
+            <div class="games-muted-text">${featuredActiveGame ? 'Dette er spillet som er i gang akkurat nå.' : 'Ingen aktive spill akkurat nå.'}</div>
+          </div>
+          ${featuredActiveGame ? renderCompetitionGameCard(featuredActiveGame) : '<div class="games-empty-note">Så snart et spill er aktivt, dukker det opp her.</div>'}
         </div>
 
         <div class="games-section-grid">
