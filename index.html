@@ -15005,15 +15005,12 @@
             <div class="games-detail-meta" style="justify-content:center;margin-top:6px;">${escHtml(formatCompetitionActiveTimeRange(game))}</div>
             ${prize ? `<div style="margin-top:14px;"><span class="games-prize-chip">Premie: ${escHtml(prize)}</span></div>` : ''}
           </div>
-          <div class="games-section-head" style="margin-top:18px;justify-content:center;text-align:center;">
+          <div class="games-metric-tile" style="text-align:center;max-width:360px;margin:18px auto 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;"${isTeamGame && leaderRow?.team ? getCompetitionTeamRowStyle(leaderRow.team, game) : ''}>
             <div class="games-section-title">Leder</div>
-          </div>
-          <div style="max-width:320px;margin:0 auto;">
-            <div class="games-metric-tile" style="text-align:center;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;"${isTeamGame && leaderRow?.team ? getCompetitionTeamRowStyle(leaderRow.team, game) : ''}>
-              <div class="games-summary-label">${isTeamGame ? 'Lag' : 'Spiller'}</div>
-              <div class="games-metric-value">${escHtml(isTeamGame ? (leaderRow?.team || 'Ingen ennå') : (leaderRow?.display_name || 'Ingen ennå'))}</div>
-              <div class="games-card-meta">${leaderRow ? `${leaderRow.score} poeng` : 'Ingen aktivitet ennå'}</div>
-            </div>
+            <div class="games-summary-label">${isTeamGame ? 'Lag' : 'Spiller'}</div>
+            ${isTeamGame && leaderRow?.team ? `<span class="games-team-pill"${getCompetitionTeamToneStyle(leaderRow.team, game, { backgroundAlpha: 0.24, borderAlpha: 0.7 })}>${escHtml(leaderRow.team)}</span>` : ''}
+            <div class="games-metric-value">${escHtml(isTeamGame ? (leaderRow?.team || 'Ingen ennå') : (leaderRow?.display_name || 'Ingen ennå'))}</div>
+            <div class="games-card-meta">${leaderRow ? `${leaderRow.score} poeng` : 'Ingen aktivitet ennå'}</div>
           </div>
           <div class="games-section-head" style="margin-top:18px;justify-content:center;text-align:center;">
             <div class="games-section-title">Leaderboard</div>
