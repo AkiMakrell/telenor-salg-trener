@@ -15154,7 +15154,7 @@
         <div class="games-section-grid">
           <div class="games-section-card">
             <div class="games-section-head">
-              <div class="games-section-title">Aktive</div>
+              <div class="games-section-title">Aktive spill</div>
             </div>
             ${competitionState === 'error' ? `<div class="stats-empty-card">${escHtml(competitionErrorMessage || 'Kunne ikke laste spill.')}</div>` : ''}
             ${activeGames.length ? activeGames.map(renderCompetitionDetailCard).join('') : '<div class="games-empty-note">Ingen aktive spill akkurat nå.</div>'}
