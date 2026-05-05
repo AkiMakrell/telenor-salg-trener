@@ -6599,6 +6599,54 @@
       flex-wrap: wrap;
     }
 
+    .games-standing-stat-cards {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .games-standing-stat-card {
+      min-width: 68px;
+      padding: 6px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.78);
+      text-align: center;
+    }
+
+    .games-standing-stat-card.abo {
+      background: rgba(251, 191, 36, 0.14);
+      border-color: rgba(251, 191, 36, 0.35);
+    }
+
+    .games-standing-stat-card.over6 {
+      background: rgba(34, 197, 94, 0.14);
+      border-color: rgba(34, 197, 94, 0.35);
+    }
+
+    .games-standing-stat-label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .games-standing-stat-card.abo .games-standing-stat-label,
+    .games-standing-stat-card.abo .games-standing-stat-value {
+      color: #fbbf24;
+    }
+
+    .games-standing-stat-card.over6 .games-standing-stat-label,
+    .games-standing-stat-card.over6 .games-standing-stat-value {
+      color: #4ade80;
+    }
+
+    .games-standing-stat-value {
+      display: block;
+      margin-top: 2px;
+      font-weight: 900;
+    }
+
     .games-empty-note {
       padding: 16px;
       border-radius: 16px;
@@ -14988,6 +15036,21 @@
     `;
   }
 
+  function renderCompetitionStandingStatCards(row) {
+    return `
+      <div class="games-standing-stat-cards">
+        <div class="games-standing-stat-card abo">
+          <span class="games-standing-stat-label">Abo</span>
+          <span class="games-standing-stat-value">${Number(row?.totalSales || 0)}</span>
+        </div>
+        <div class="games-standing-stat-card over6">
+          <span class="games-standing-stat-label">6-minuttere</span>
+          <span class="games-standing-stat-value">${Number(row?.totalOver6 || 0)}</span>
+        </div>
+      </div>
+    `;
+  }
+
   function renderCompetitionDetailCard(game) {
     if (!game) return '';
     const participants = getCompetitionParticipantsForGame(game);
@@ -15049,7 +15112,7 @@
                   <div class="games-standing-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
                   <div class="games-standing-team-meta">
                     ${isTeamGame && row.team ? `<span class="games-team-pill"${getCompetitionTeamToneStyle(row.team, game)}>${escHtml(row.team)}</span>` : ''}
-                    <div class="games-card-meta">${escHtml(row.progressLabel)}</div>
+                    ${renderCompetitionStandingStatCards(row)}
                   </div>
                 </div>
                 <div class="games-standing-score">${row.score}</div>
@@ -15099,7 +15162,7 @@
                 <div class="games-standing-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
                 <div class="games-standing-team-meta">
                   ${isTeamGame && row.team ? `<span class="games-team-pill"${getCompetitionTeamToneStyle(row.team, game)}>${escHtml(row.team)}</span>` : ''}
-                  <div class="games-card-meta">${escHtml(row.progressLabel)}</div>
+                  ${renderCompetitionStandingStatCards(row)}
                 </div>
               </div>
               <div class="games-standing-score">${row.score}</div>
