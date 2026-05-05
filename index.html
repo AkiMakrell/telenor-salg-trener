@@ -14201,6 +14201,23 @@
       .sort((a, b) => String(a.starts_at).localeCompare(String(b.starts_at)));
   }
 
+  function getCompetitionUpcomingAndCompletedGames() {
+    return competitionGames
+      .filter(game => ['scheduled', 'completed'].includes(getCompetitionStatus(game)))
+      .sort((a, b) => {
+        const statusOrder = { scheduled: 0, completed: 1 };
+        const statusCompare = (statusOrder[getCompetitionStatus(a)] ?? 99) - (statusOrder[getCompetitionStatus(b)] ?? 99);
+        if (statusCompare !== 0) return statusCompare;
+        return getCompetitionStatus(a) === 'completed'
+          ? String(b.starts_at).localeCompare(String(a.starts_at))
+          : String(a.starts_at).localeCompare(String(b.starts_at));
+      });
+  }
+
+  function canDeleteCompetitionGame(game) {
+    return String(game?.creator_user_id || '') === String(currentUser?.id || '');
+  }
+
   function formatCompetitionTimeRange(game) {
     const startsAt = new Date(game.starts_at);
     const endsAt = new Date(game.ends_at);
@@ -14450,6 +14467,32 @@
   function selectCompetition(competitionId = '') {
     selectedCompetitionId = String(competitionId || '');
     renderLedertavlerSpillPage();
+  }
+
+  async function deleteCompetitionGame(competitionId) {
+    if (!supabaseClient || !currentUser || !competitionId) return;
+    const game = competitionGames.find(item => item.competition_id === String(competitionId));
+    if (!game || !canDeleteCompetitionGame(game)) return;
+    if (!confirm(`Fjerne konkurransen "${game.name}"?`)) return;
+    setCompetitionState('loading');
+    try {
+      const { error } = await supabaseClient
+        .from(SUPABASE_COMPETITION_GAMES_TABLE)
+        .delete()
+        .eq('competition_id', game.competition_id);
+      if (error) throw error;
+      competitionGames = competitionGames.filter(item => item.competition_id !== game.competition_id);
+      competitionParticipants = competitionParticipants.filter(item => item.competition_id !== game.competition_id);
+      if (selectedCompetitionId === game.competition_id) {
+        selectedCompetitionId = getCompetitionVisibleGames('active')[0]?.competition_id
+          || getCompetitionUpcomingAndCompletedGames()[0]?.competition_id
+          || '';
+      }
+      setCompetitionState('ready');
+      renderLedertavlerSpillPage();
+    } catch (error) {
+      setCompetitionState('error', error?.message || 'Kunne ikke fjerne konkurransen.');
+    }
   }
 
   async function saveCompetitionGame() {
@@ -14866,6 +14909,7 @@
     const status = getCompetitionStatus(game);
     const prize = String(game.rules_json?.prize || '').trim();
     const selectedTeams = getCompetitionSelectedTeams(game);
+    const canDelete = canDeleteCompetitionGame(game);
     return `
       <div class="games-competition-card">
         <div class="games-card-top">
@@ -14894,6 +14938,7 @@
         </div>
         <div class="games-card-actions">
           <button class="backup-btn" type="button" onclick="selectCompetition('${game.competition_id}')">Apne spill</button>
+          ${canDelete ? `<button class="backup-btn" type="button" style="padding:8px 12px;font-size:12px;color:#b91c1c;border-color:rgba(185,28,28,0.22);" onclick="deleteCompetitionGame('${game.competition_id}')">Fjern</button>` : ''}
         </div>
       </div>
     `;
@@ -14975,15 +15020,14 @@
       return;
     }
     const activePeriod = LEADERBOARD_PERIOD_CONFIG.find(period => period.id === activeLeaderboardPeriod) || LEADERBOARD_PERIOD_CONFIG[0];
-    const selectedGame = competitionGames.find(game => game.competition_id === selectedCompetitionId) || getCompetitionVisibleGames(activeCompetitionFilter)[0] || null;
+    const activeGames = getCompetitionVisibleGames('active');
+    const archiveGames = getCompetitionUpcomingAndCompletedGames();
+    const selectedGame = competitionGames.find(game => game.competition_id === selectedCompetitionId) || activeGames[0] || archiveGames[0] || null;
     const ownRow = leaderboardRows.find(row => row.user_id === String(currentUser?.id || '')) || null;
     const ownRank = ownRow ? getLeaderboardRank(activePeriod.id, ownRow.user_id) : null;
     const ownPoints = ownRow ? getLeaderboardPeriodValue(ownRow, activePeriod.id, 'points') : 0;
     const leader = getSortedLeaderboardRows(activePeriod.id)[0] || null;
     const gap = leader ? Math.max(0, getLeaderboardPeriodValue(leader, activePeriod.id, 'points') - ownPoints) : 0;
-    const visibleGames = getCompetitionVisibleGames(activeCompetitionFilter);
-    const activeGames = getCompetitionVisibleGames('active');
-    const featuredActiveGame = competitionGames.find(game => game.competition_id === selectedCompetitionId && getCompetitionStatus(game) === 'active') || activeGames[0] || null;
     const latestUpdate = leaderboardRows.map(row => row.updated_at || row.latest_entry_at).filter(Boolean).sort((a, b) => String(b).localeCompare(String(a)))[0] || '';
 
     container.innerHTML = `
@@ -15023,36 +15067,32 @@
           </div>
         </div>
 
-        <div class="games-section-card">
-          <div class="games-section-head">
-            <div class="games-section-title">Aktivt spill nå</div>
-            <div class="games-muted-text">${featuredActiveGame ? 'Dette er spillet som er i gang akkurat nå.' : 'Ingen aktive spill akkurat nå.'}</div>
-          </div>
-          ${featuredActiveGame ? renderCompetitionGameCard(featuredActiveGame) : '<div class="games-empty-note">Så snart et spill er aktivt, dukker det opp her.</div>'}
-        </div>
-
         <div class="games-section-grid">
           <div class="games-section-card">
             <div class="games-section-head">
-              <div class="games-section-title">${getCompetitionFilterLabel(activeCompetitionFilter)}</div>
-              <div class="games-filter-row">
-                ${['active', 'scheduled', 'completed'].map(filterId => `
-                  <button class="backup-btn${activeCompetitionFilter === filterId ? ' active' : ''}" type="button" onclick="setCompetitionFilter('${filterId}')">${getCompetitionFilterLabel(filterId)}</button>
-                `).join('')}
-              </div>
+              <div class="games-section-title">Aktive</div>
             </div>
             ${competitionState === 'error' ? `<div class="stats-empty-card">${escHtml(competitionErrorMessage || 'Kunne ikke laste spill.')}</div>` : ''}
             <div class="games-competition-grid">
-              ${visibleGames.length ? visibleGames.map(renderCompetitionGameCard).join('') : '<div class="games-empty-note">Ingen spill i denne kategorien ennå.</div>'}
+              ${activeGames.length ? activeGames.map(renderCompetitionGameCard).join('') : '<div class="games-empty-note">Ingen aktive spill akkurat nå.</div>'}
             </div>
           </div>
 
           <div class="games-section-card">
             <div class="games-section-head">
-              <div class="games-section-title">Spilldetaljer</div>
+              <div class="games-section-title">Ferdig/kommende</div>
             </div>
-            ${selectedGame ? renderCompetitionDetailCard(selectedGame) : '<div class="games-empty-note">Velg en konkurranse for a se stilling, regler og deltakere.</div>'}
+            <div class="games-competition-grid">
+              ${archiveGames.length ? archiveGames.map(renderCompetitionGameCard).join('') : '<div class="games-empty-note">Ingen ferdige eller kommende spill ennå.</div>'}
+            </div>
           </div>
+        </div>
+
+        <div class="games-section-card">
+          <div class="games-section-head">
+            <div class="games-section-title">Spilldetaljer</div>
+          </div>
+          ${selectedGame ? renderCompetitionDetailCard(selectedGame) : '<div class="games-empty-note">Velg en konkurranse for a se stilling, regler og deltakere.</div>'}
         </div>
       </div>
     `;
