@@ -15109,7 +15109,6 @@
                 <div>
                   <div class="games-standing-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
                   <div class="games-standing-team-meta">
-                    ${isTeamGame && row.team ? `<span class="games-team-pill"${getCompetitionTeamToneStyle(row.team, game)}>${escHtml(row.team)}</span>` : ''}
                     ${renderCompetitionStandingStatCards(row)}
                   </div>
                 </div>
@@ -15159,7 +15158,6 @@
               <div>
                 <div class="games-standing-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
                 <div class="games-standing-team-meta">
-                  ${isTeamGame && row.team ? `<span class="games-team-pill"${getCompetitionTeamToneStyle(row.team, game)}>${escHtml(row.team)}</span>` : ''}
                   ${renderCompetitionStandingStatCards(row)}
                 </div>
               </div>
