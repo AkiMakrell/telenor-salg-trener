@@ -9270,17 +9270,24 @@
 
   function createCompetitionDraft(overrides = {}) {
     const now = new Date();
+    const fallbackStartDate = parseDateTimeLocalInput(overrides.startAtValue || '');
+    const fallbackEndDate = parseDateTimeLocalInput(overrides.endAtValue || '');
     const startDate = overrides.startsAt instanceof Date && !Number.isNaN(overrides.startsAt.getTime())
       ? overrides.startsAt
+      : fallbackStartDate instanceof Date && !Number.isNaN(fallbackStartDate.getTime())
+        ? fallbackStartDate
       : now;
     const endDate = overrides.endsAt instanceof Date && !Number.isNaN(overrides.endsAt.getTime())
       ? overrides.endsAt
+      : fallbackEndDate instanceof Date && !Number.isNaN(fallbackEndDate.getTime())
+        ? fallbackEndDate
       : addDays(now, 7);
     const defaultMetric = COMPETITION_METRIC_OPTIONS[0];
     const participantIds = Array.isArray(overrides.participantIds)
       ? [...new Set(overrides.participantIds.map(value => String(value || '')).filter(Boolean))]
       : getCompetitionDefaultParticipantIds();
     const teamCount = Math.min(6, Math.max(2, Math.floor(Number(overrides.teamCount) || 2)));
+    const roundedStart = roundDateToNearestMinutes(startDate, 15);
     return {
       isOpen: overrides.isOpen === false ? false : true,
       mode: String(overrides.mode || 'ffa') === 'team' ? 'team' : 'ffa',
@@ -9291,8 +9298,10 @@
       pointsPerOver6: Math.max(1, Math.floor(Number(overrides.pointsPerOver6) || LEADERBOARD_POINTS_PER_OVER6)),
       objectiveMode: String(overrides.objectiveMode || 'most') === 'target' ? 'target' : 'most',
       targetValue: overrides.targetValue ? String(overrides.targetValue) : '',
-      startAtValue: overrides.startAtValue || getDateTimeLocalInputValue(startDate),
-      endAtValue: Object.prototype.hasOwnProperty.call(overrides, 'endAtValue') ? String(overrides.endAtValue || '') : '',
+      startDateValue: String(overrides.startDateValue || getDateInputValue(roundedStart)),
+      startTimeValue: String(overrides.startTimeValue || getTimeInputValue(roundedStart)),
+      endDateValue: Object.prototype.hasOwnProperty.call(overrides, 'endDateValue') ? String(overrides.endDateValue || '') : '',
+      endTimeValue: Object.prototype.hasOwnProperty.call(overrides, 'endTimeValue') ? String(overrides.endTimeValue || '') : '',
       participantIds: [...new Set(participantIds.concat(String(currentUser?.id || '')).filter(Boolean))],
       teamCount,
       teamConfigs: buildCompetitionDraftTeamConfigs(teamCount, overrides.teamConfigs)
@@ -11318,6 +11327,20 @@
 
   function getTimeInputValue(date = new Date()) {
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  }
+
+  function normalizeTimeInputValue(value = '') {
+    const normalized = String(value || '').trim();
+    return /^\d{2}:\d{2}$/.test(normalized) ? normalized : '';
+  }
+
+  function roundDateToNearestMinutes(date = new Date(), stepMinutes = 15) {
+    const rounded = new Date(date);
+    const safeStep = Math.max(1, Number(stepMinutes) || 15);
+    rounded.setSeconds(0, 0);
+    const minutes = rounded.getMinutes();
+    rounded.setMinutes(Math.round(minutes / safeStep) * safeStep, 0, 0);
+    return rounded;
   }
 
   function getDateTimeLocalInputValue(date = new Date()) {
@@ -14524,8 +14547,21 @@
 
     competitionDraft = {
       ...currentDraft,
-      startAtValue: getDateTimeLocalInputValue(start),
-      endAtValue: getDateTimeLocalInputValue(end)
+      startDateValue: getDateInputValue(start),
+      startTimeValue: getTimeInputValue(start),
+      endDateValue: getDateInputValue(end),
+      endTimeValue: getTimeInputValue(end)
+    };
+    renderCompetitionCreatePage();
+  }
+
+  function applyCompetitionQuickTime(fieldPrefix, timeValue) {
+    const currentDraft = competitionDraft || createCompetitionDraft();
+    const normalizedTime = normalizeTimeInputValue(timeValue);
+    if (!normalizedTime) return;
+    competitionDraft = {
+      ...currentDraft,
+      [`${fieldPrefix}TimeValue`]: normalizedTime
     };
     renderCompetitionCreatePage();
   }
@@ -14575,16 +14611,24 @@
   async function saveCompetitionGame() {
     if (!supabaseClient || !currentUser) return;
     const draft = competitionDraft || createCompetitionDraft();
-    if (!draft.startAtValue) {
+    if (!draft.startDateValue) {
+      setCompetitionState('error', 'Velg startdato for konkurransen.');
+      return;
+    }
+    if (!draft.startTimeValue) {
       setCompetitionState('error', 'Velg start for konkurransen.');
       return;
     }
-    if (!draft.endAtValue) {
+    if (!draft.endDateValue) {
+      setCompetitionState('error', 'Velg sluttdato for konkurransen.');
+      return;
+    }
+    if (!draft.endTimeValue) {
       setCompetitionState('error', 'Velg slutt for konkurransen.');
       return;
     }
-    const startsAt = parseDateTimeLocalInput(draft.startAtValue);
-    const endsAt = parseDateTimeLocalInput(draft.endAtValue);
+    const startsAt = parseDateTimeInput(draft.startDateValue, draft.startTimeValue);
+    const endsAt = parseDateTimeInput(draft.endDateValue, draft.endTimeValue);
     const competitionMode = draft.mode === 'team' ? 'team' : 'ffa';
     const metricType = String(draft.metricType || COMPETITION_METRIC_OPTIONS[0].id);
     const objectiveMode = draft.objectiveMode === 'target' ? 'target' : 'most';
@@ -14916,15 +14960,34 @@
               <div class="games-time-card">
                 <div class="games-section-title">Start</div>
                 <div class="games-field">
-                  <label>Dato og tid</label>
-                  <input type="datetime-local" value="${escAttr(draft.startAtValue)}" oninput="updateCompetitionDraftField('startAtValue', this.value, false)">
+                  <label>Dato</label>
+                  <input type="date" value="${escAttr(draft.startDateValue)}" oninput="updateCompetitionDraftField('startDateValue', this.value, false)">
+                </div>
+                <div class="games-shortcut-row" style="margin-top:10px;">
+                  ${['Nå', '09:00', '12:00', '16:00'].map(option => {
+                    const timeValue = option === 'Nå' ? getTimeInputValue(roundDateToNearestMinutes(new Date(), 15)) : option;
+                    return `<button class="backup-btn" type="button" onclick="applyCompetitionQuickTime('start', '${timeValue}')">${option}</button>`;
+                  }).join('')}
+                </div>
+                <div class="games-field" style="margin-top:10px;">
+                  <label>Tid</label>
+                  <input type="time" step="900" value="${escAttr(draft.startTimeValue)}" oninput="updateCompetitionDraftField('startTimeValue', this.value, false)">
                 </div>
               </div>
               <div class="games-time-card">
                 <div class="games-section-title">Slutt</div>
                 <div class="games-field">
-                  <label>Dato og tid</label>
-                  <input type="datetime-local" value="${escAttr(draft.endAtValue)}" oninput="updateCompetitionDraftField('endAtValue', this.value, false)">
+                  <label>Dato</label>
+                  <input type="date" value="${escAttr(draft.endDateValue)}" oninput="updateCompetitionDraftField('endDateValue', this.value, false)">
+                </div>
+                <div class="games-shortcut-row" style="margin-top:10px;">
+                  ${['09:00', '12:00', '16:00', '18:00'].map(option => `
+                    <button class="backup-btn" type="button" onclick="applyCompetitionQuickTime('end', '${option}')">${option}</button>
+                  `).join('')}
+                </div>
+                <div class="games-field" style="margin-top:10px;">
+                  <label>Tid</label>
+                  <input type="time" step="900" value="${escAttr(draft.endTimeValue)}" oninput="updateCompetitionDraftField('endTimeValue', this.value, false)">
                 </div>
               </div>
             </div>
