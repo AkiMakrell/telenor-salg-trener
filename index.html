@@ -14577,6 +14577,17 @@
     input.click();
   }
 
+  function setCompetitionDateValue(fieldPrefix, value) {
+    const normalizedPrefix = String(fieldPrefix || '').trim();
+    if (!normalizedPrefix) return;
+    const normalizedValue = String(value || '').trim();
+    competitionDraft = {
+      ...(competitionDraft || createCompetitionDraft()),
+      [`${normalizedPrefix}DateValue`]: normalizedValue
+    };
+    renderCompetitionCreatePage();
+  }
+
   function formatCompetitionDateButtonLabel(value = '') {
     if (!value) return 'Velg dato';
     const parsed = new Date(`${value}T12:00:00`);
@@ -14984,7 +14995,7 @@
                 <div class="games-field">
                   <label>Dato</label>
                   <div>
-                    <input id="competition-start-date-input" type="date" value="${escAttr(draft.startDateValue)}" oninput="updateCompetitionDraftField('startDateValue', this.value, false)" style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;">
+                    <input id="competition-start-date-input" type="date" value="${escAttr(draft.startDateValue)}" onchange="setCompetitionDateValue('start', this.value)" style="position:fixed;left:-9999px;top:auto;width:1px;height:1px;opacity:0;">
                     <button class="backup-btn" type="button" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="openCompetitionDatePicker('start')">&#128197; ${escHtml(formatCompetitionDateButtonLabel(draft.startDateValue))}</button>
                   </div>
                 </div>
@@ -15004,7 +15015,7 @@
                 <div class="games-field">
                   <label>Dato</label>
                   <div>
-                    <input id="competition-end-date-input" type="date" value="${escAttr(draft.endDateValue)}" oninput="updateCompetitionDraftField('endDateValue', this.value, false)" style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;">
+                    <input id="competition-end-date-input" type="date" value="${escAttr(draft.endDateValue)}" onchange="setCompetitionDateValue('end', this.value)" style="position:fixed;left:-9999px;top:auto;width:1px;height:1px;opacity:0;">
                     <button class="backup-btn" type="button" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="openCompetitionDatePicker('end')">&#128197; ${escHtml(formatCompetitionDateButtonLabel(draft.endDateValue))}</button>
                   </div>
                 </div>
