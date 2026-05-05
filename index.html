@@ -10369,11 +10369,10 @@
           }
           throw error;
         }),
-        loadCompetitionData().catch(() => {
-          competitionGames = [];
-          competitionParticipants = [];
-          return { games: [], participants: [] };
-        })
+        loadCompetitionData().catch(() => ({
+          games: competitionGames,
+          participants: competitionParticipants
+        }))
       ]);
       const freshRows = buildLeaderboardRowsFromPublicActivity();
       const freshUserIds = new Set(freshRows.map(row => row.user_id));
@@ -14586,11 +14585,9 @@
       }
       competitionDraft = null;
       selectedCompetitionId = competitionId;
-      activeCompetitionFilter = getCompetitionStatus(gameRow);
-      activateTab('ledertavler-spill', 'ledertavler-spill');
-      loadLeaderboardRows({ silentLoading: true }).catch(error => {
-        setCompetitionState('error', error?.message || 'Kunne ikke oppdatere spill etter opprettelse.');
-      });
+      activeCompetitionFilter = getCompetitionStatus(normalizedGame || gameRow);
+      setCompetitionState('ready');
+      switchTab('ledertavler-spill');
     } catch (error) {
       setCompetitionState('error', error?.message || 'Kunne ikke opprette konkurransen.');
     }
