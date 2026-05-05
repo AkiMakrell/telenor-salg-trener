@@ -14613,8 +14613,8 @@
       competition_id: competitionId,
       user_id: userId,
       invited_by_user_id: currentUser.id,
-      invite_status: userId === currentUser.id ? 'accepted' : 'invited',
-      joined_at: userId === currentUser.id ? new Date().toISOString() : null
+      invite_status: 'accepted',
+      joined_at: new Date().toISOString()
     }));
 
     try {
@@ -14987,7 +14987,6 @@
     const standings = buildCompetitionStandings(game);
     const isTeamGame = isTeamCompetitionGame(game);
     const selectedTeams = getCompetitionSelectedTeams(game);
-    const currentParticipant = participants.find(item => item.user_id === String(currentUser?.id || ''));
     const status = getCompetitionStatus(game);
     const prize = String(game.rules_json?.prize || '').trim();
     const pointWeights = getCompetitionPointWeights(game);
@@ -15056,17 +15055,10 @@
           ${participants.map(item => {
             const profile = getPublicProfileByUserId(item.user_id);
             const name = profile?.display_name || 'Ukjent bruker';
-            const statusLabel = item.invite_status === 'accepted' ? 'med' : item.invite_status === 'declined' ? 'avslo' : 'invitert';
             const teamName = isTeamGame ? getCompetitionAssignedTeamName(game, item.user_id) : String(profile?.team || '').trim();
-            return `<span class="games-participant-pill"${isTeamGame ? getCompetitionTeamToneStyle(teamName, game, { backgroundAlpha: 0.1, borderAlpha: 0.28 }) : ''}>${escHtml(name)}${teamName ? ` · ${escHtml(teamName)}` : ''} · ${statusLabel}</span>`;
+            return `<span class="games-participant-pill"${isTeamGame ? getCompetitionTeamToneStyle(teamName, game, { backgroundAlpha: 0.1, borderAlpha: 0.28 }) : ''}>${escHtml(name)}${teamName ? ` · ${escHtml(teamName)}` : ''}</span>`;
           }).join('')}
         </div>
-        ${currentParticipant && currentParticipant.invite_status === 'invited' ? `
-          <div class="games-detail-actions" style="margin-top:14px;">
-            <button class="save-btn" type="button" onclick="updateCompetitionInviteStatus('${game.competition_id}', 'accepted')">Bli med</button>
-            <button class="backup-btn" type="button" onclick="updateCompetitionInviteStatus('${game.competition_id}', 'declined')">Avsla</button>
-          </div>
-        ` : ''}
         ${isTeamGame ? `
           <div class="games-section-head" style="margin-top:18px;">
             <div class="games-section-title">Lagstilling</div>
