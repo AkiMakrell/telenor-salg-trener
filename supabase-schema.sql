@@ -394,32 +394,52 @@ grant select, insert, update, delete on public.competition_participants to authe
 
 create or replace function public.is_competition_creator(target_competition_id uuid)
 returns boolean
-language sql
+language plpgsql
+stable
 security definer
 set search_path = public
+set row_security = off
 as $$
-  select exists (
+begin
+  return exists (
     select 1
     from public.competition_games g
     where g.competition_id = target_competition_id
       and g.creator_user_id = auth.uid()
   );
+end;
+$$;
+
+create or replace function public.is_competition_participant(target_competition_id uuid)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = public
+set row_security = off
+as $$
+begin
+  return exists (
+    select 1
+    from public.competition_participants p
+    where p.competition_id = target_competition_id
+      and p.user_id = auth.uid()
+  );
+end;
 $$;
 
 create or replace function public.user_can_access_competition(target_competition_id uuid)
 returns boolean
-language sql
+language plpgsql
+stable
 security definer
 set search_path = public
+set row_security = off
 as $$
-  select
-    public.is_competition_creator(target_competition_id)
-    or exists (
-      select 1
-      from public.competition_participants p
-      where p.competition_id = target_competition_id
-        and p.user_id = auth.uid()
-    );
+begin
+  return public.is_competition_creator(target_competition_id)
+    or public.is_competition_participant(target_competition_id);
+end;
 $$;
 
 drop policy if exists "Visible users can read competition participants" on public.competition_participants;
@@ -429,7 +449,8 @@ for select
 using (
   auth.uid() = user_id
   or auth.uid() = invited_by_user_id
-  or public.user_can_access_competition(competition_id)
+  or public.is_competition_creator(competition_id)
+  or public.is_competition_participant(competition_id)
 );
 
 drop policy if exists "Creators can insert competition participants" on public.competition_participants;
