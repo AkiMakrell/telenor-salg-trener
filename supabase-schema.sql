@@ -229,6 +229,56 @@ on public.user_public_profiles
 for delete
 using (auth.uid() = user_id);
 
+create or replace function public.sync_public_profile_from_auth_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  metadata jsonb := coalesce(new.raw_user_meta_data, '{}'::jsonb);
+  next_display_name text := nullif(trim(coalesce(
+    metadata ->> 'display_name',
+    metadata ->> 'full_name',
+    metadata ->> 'name',
+    split_part(new.email, '@', 1)
+  )), '');
+  next_team text := nullif(trim(coalesce(metadata ->> 'team', '')), '');
+begin
+  insert into public.user_public_profiles (user_id, display_name, team)
+  values (new.id, coalesce(next_display_name, 'Bruker'), next_team)
+  on conflict (user_id) do update
+    set display_name = excluded.display_name,
+        team = excluded.team;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists sync_public_profile_from_auth_user on auth.users;
+create trigger sync_public_profile_from_auth_user
+after insert or update of email, raw_user_meta_data on auth.users
+for each row
+execute function public.sync_public_profile_from_auth_user();
+
+insert into public.user_public_profiles (user_id, display_name, team)
+select
+  u.id,
+  coalesce(
+    nullif(trim(coalesce(
+      u.raw_user_meta_data ->> 'display_name',
+      u.raw_user_meta_data ->> 'full_name',
+      u.raw_user_meta_data ->> 'name',
+      split_part(u.email, '@', 1)
+    )), ''),
+    'Bruker'
+  ) as display_name,
+  nullif(trim(coalesce(u.raw_user_meta_data ->> 'team', '')), '') as team
+from auth.users u
+on conflict (user_id) do update
+  set display_name = excluded.display_name,
+      team = excluded.team;
+
 create table if not exists public.user_public_activity_entries (
   entry_id text not null primary key,
   user_id uuid not null references auth.users (id) on delete cascade,
