@@ -8653,7 +8653,7 @@
           <span>Pris kalkulator</span>
         </button>
         <button class="more-tab-btn" data-tab="ov" type="button" onclick="switchTab('ov', this); closeTopBarTools();">
-          <span>OV</span>
+          <span>OV/BedTotal</span>
         </button>
         <button class="more-tab-btn" data-tab="samtalerating" type="button" onclick="switchTab('samtalerating', this); closeTopBarTools();">
           <span>Samtalerating</span>
@@ -14194,7 +14194,7 @@
       { tab: 'innvendinger', title: 'Innvendinger' },
       { tab: 'notater', title: 'Notater' },
       { tab: 'priser', title: 'Pris kalkulator' },
-      { tab: 'ov', title: 'OV' },
+      { tab: 'ov', title: 'OV/BedTotal' },
       { tab: 'samtalerating', title: 'Samtalerating' },
       { tab: 'samtaleflyt', title: 'Flyt' }
     ];
@@ -14353,7 +14353,7 @@
 
   function formatCompetitionPointWeights(source = null) {
     const { pointsPerSale, pointsPerOver6, pointsPerOv, pointsPerAddon } = getCompetitionPointWeights(source);
-    return `${pointsPerSale} poeng per abo · ${pointsPerOver6} poeng per 6-minuttere · ${pointsPerOv} poeng per OV · ${pointsPerAddon} poeng per tilleggstjeneste`;
+    return `${pointsPerSale} poeng per abo · ${pointsPerOver6} poeng per 6-minuttere · ${pointsPerOv} poeng per OV/BedTotal · ${pointsPerAddon} poeng per tilleggstjeneste`;
   }
 
   function getCompetitionObjectiveMode(game) {
@@ -15255,7 +15255,7 @@
                   <input type="number" min="1" value="${escAttr(draft.pointsPerOver6)}" oninput="updateCompetitionDraftField('pointsPerOver6', this.value, false)">
                 </div>
                 <div class="games-field">
-                  <label>Hvor mange poeng for OV?</label>
+                  <label>Hvor mange poeng for OV/BedTotal?</label>
                   <input type="number" min="0" value="${escAttr(draft.pointsPerOv)}" oninput="updateCompetitionDraftField('pointsPerOv', this.value, false)">
                 </div>
                 <div class="games-field">
@@ -16422,12 +16422,12 @@
     if (backButton) backButton.style.display = currentStepIndex > 0 ? '' : 'none';
 
     if (draft.step === 'sale-type') {
-      title.textContent = 'PORT eller OV?';
-      text.textContent = 'Velg om dette salget skal registreres som vanlig abo eller OV.';
+      title.textContent = 'PORT eller OV/BedTotal?';
+      text.textContent = 'Velg om dette salget skal registreres som vanlig abo eller OV/BedTotal.';
       body.innerHTML = `
         <div class="abo-count-choice-grid">
           <button type="button" class="backup-btn abo-count-choice-btn${draft.saleCategory === 'port' ? ' active' : ''}" onclick="setSalePromptCategory('port')">PORT</button>
-          <button type="button" class="backup-btn abo-count-choice-btn${draft.saleCategory === 'ov' ? ' active' : ''}" onclick="setSalePromptCategory('ov')">OV</button>
+          <button type="button" class="backup-btn abo-count-choice-btn${draft.saleCategory === 'ov' ? ' active' : ''}" onclick="setSalePromptCategory('ov')">OV/BedTotal</button>
         </div>
       `;
       confirmButton.textContent = 'Neste';
@@ -16437,7 +16437,7 @@
     if (draft.step === 'sales-count') {
       title.textContent = 'Hvor mange abo?';
       text.textContent = draft.saleCategory === 'ov'
-        ? 'Skriv inn hvor mange OV-abo registreringen gjelder.'
+        ? 'Skriv inn hvor mange OV/BedTotal-abo registreringen gjelder.'
         : 'Skriv inn hvor mange PORT-abo registreringen gjelder.';
       body.innerHTML = `<input id="abo-count-input" class="abo-count-modal-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${escAttr(draft.salesCount)}" />`;
       confirmButton.textContent = 'Neste';
