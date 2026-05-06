@@ -8664,6 +8664,20 @@
   </div>
 </div>
 
+<div id="competition-viewer-overlay" class="recovery-overlay" aria-hidden="true" onclick="if (event.target === this) closeCompetitionViewerModal()">
+  <div class="recovery-modal" role="dialog" aria-modal="true" aria-labelledby="competition-viewer-title">
+    <div class="recovery-modal-head">
+      <div>
+        <div id="competition-viewer-title" class="recovery-modal-title">Legg til seere</div>
+        <div class="recovery-modal-text">Velg kollegaer som skal kunne se konkurransen og leaderboardet uten a vaere med i selve konkurransen.</div>
+      </div>
+      <button type="button" class="backup-btn" style="margin-top:0;" onclick="closeCompetitionViewerModal()">Lukk</button>
+    </div>
+    <div id="competition-viewer-status" class="auth-message auth-message-info" style="display:none;"></div>
+    <div id="competition-viewer-body" class="recovery-modal-body"></div>
+  </div>
+</div>
+
 <div id="auth-card" class="auth-card">
   <div class="auth-card-title">Logg inn for din egen data</div>
   <div class="auth-card-text">
@@ -9193,6 +9207,8 @@
   let competitionDraft = null;
   let expandedCompetitionRulesId = '';
   let competitionActionMenuId = '';
+  let competitionViewerModalGameId = '';
+  let competitionViewerSelectionIds = [];
 
   localStorage.setItem = function(k, v) {
     _origSetItem(k, v);
@@ -10434,6 +10450,7 @@
       competition_id: competitionId,
       user_id: userId,
       invited_by_user_id: String(row.invited_by_user_id || '').trim(),
+      participant_role: String(row.participant_role || 'participant').trim() || 'participant',
       invite_status: String(row.invite_status || 'invited').trim(),
       joined_at: row.joined_at ? String(row.joined_at) : '',
       updated_at: row.updated_at ? String(row.updated_at) : '',
@@ -10702,14 +10719,19 @@
   }
 
   async function loadCompetitionData() {
-    const [gamesResponse, participantsResponse] = await Promise.all([
+    let [gamesResponse, participantsResponse] = await Promise.all([
       supabaseClient
         .from(SUPABASE_COMPETITION_GAMES_TABLE)
         .select('competition_id, creator_user_id, name, description, game_type, metric_type, target_value, starts_at, ends_at, status, rules_json, created_at, updated_at'),
       supabaseClient
         .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
-        .select('competition_id, user_id, invited_by_user_id, invite_status, joined_at, created_at, updated_at')
+        .select('competition_id, user_id, invited_by_user_id, participant_role, invite_status, joined_at, created_at, updated_at')
     ]);
+    if (participantsResponse.error && isLeaderboardSchemaMismatch(participantsResponse.error)) {
+      participantsResponse = await supabaseClient
+        .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
+        .select('competition_id, user_id, invited_by_user_id, invite_status, joined_at, created_at, updated_at');
+    }
     if (gamesResponse.error) throw gamesResponse.error;
     if (participantsResponse.error) throw participantsResponse.error;
     competitionGames = (gamesResponse.data || []).map(normalizeCompetitionGame).filter(Boolean);
@@ -11207,6 +11229,7 @@
       closeTopBarSettings();
       closeTopBarTools();
       closeCompetitionActionMenu();
+      closeCompetitionViewerModal();
     }
   });
 
@@ -14618,14 +14641,23 @@
     return competitionParticipants.filter(item => item.competition_id === competitionId);
   }
 
+  function getCompetitionViewerRowsForGame(competitionId) {
+    return getCompetitionParticipantsForGame(competitionId)
+      .filter(item => item.participant_role === 'viewer' && item.invite_status !== 'declined');
+  }
+
+  function getCompetitionMemberRowsForGame(competitionId) {
+    return getCompetitionParticipantsForGame(competitionId)
+      .filter(item => item.participant_role !== 'viewer' && item.invite_status !== 'declined');
+  }
+
   function getPublicProfilesForTeams(teamIds = []) {
     const teamKeySet = new Set((Array.isArray(teamIds) ? teamIds : []).map(normalizeTeamKey).filter(Boolean));
     return publicProfileRows.filter(profile => teamKeySet.has(normalizeTeamKey(profile.team)));
   }
 
   function getCompetitionParticipantIds(game) {
-    return getCompetitionParticipantsForGame(game.competition_id)
-      .filter(item => item.invite_status !== 'declined')
+    return getCompetitionMemberRowsForGame(game.competition_id)
       .map(item => item.user_id);
   }
 
@@ -14818,6 +14850,138 @@
     competitionDraft = null;
     competitionActionMenuId = '';
     switchTab('ledertavler-spill');
+  }
+
+  function getCompetitionViewerSelectableUsers(game) {
+    const memberIdSet = new Set(getCompetitionParticipantIds(game));
+    const viewerIdSet = new Set(getCompetitionViewerRowsForGame(game.competition_id).map(row => row.user_id));
+    const creatorId = String(game?.creator_user_id || '');
+    return getCompetitionSelectableUsers()
+      .filter(profile => profile.user_id !== creatorId && !memberIdSet.has(profile.user_id))
+      .map(profile => ({
+        ...profile,
+        isSelected: viewerIdSet.has(profile.user_id)
+      }));
+  }
+
+  function renderCompetitionViewerModal() {
+    const overlay = document.getElementById('competition-viewer-overlay');
+    const body = document.getElementById('competition-viewer-body');
+    const status = document.getElementById('competition-viewer-status');
+    if (!overlay || !body || !status) return;
+    const game = competitionGames.find(item => item.competition_id === competitionViewerModalGameId);
+    if (!game) {
+      body.innerHTML = '';
+      status.style.display = 'none';
+      return;
+    }
+    const selectableUsers = getCompetitionViewerSelectableUsers(game);
+    const selectedIds = new Set(competitionViewerSelectionIds);
+    const existingViewers = getCompetitionViewerRowsForGame(game.competition_id)
+      .map(row => getPublicProfileByUserId(row.user_id)?.display_name || (row.user_id === String(currentUser?.id || '') ? getUserDisplayName(currentUser) : 'Ukjent bruker'));
+    status.style.display = 'none';
+    status.textContent = '';
+    body.innerHTML = `
+      <div class="games-section-title" style="margin-bottom:8px;">${escHtml(game.name)}</div>
+      <div class="games-muted-text" style="margin-bottom:14px;">Seere kan åpne spillet og følge leaderboardet, men de teller ikke som deltakere og kommer ikke inn i leaderboardet.</div>
+      ${existingViewers.length ? `<div class="games-card-meta" style="margin-bottom:14px;">Nåværende seere: ${escHtml(existingViewers.join(', '))}</div>` : ''}
+      <div class="games-checkbox-grid">
+        ${selectableUsers.length ? selectableUsers.map(profile => `
+          <label class="games-checkbox-card">
+            <input type="checkbox" ${selectedIds.has(profile.user_id) ? 'checked' : ''} onchange="toggleCompetitionViewerSelection('${profile.user_id}')">
+            <span>${escHtml(profile.display_name)}${profile.team ? ` · ${escHtml(profile.team)}` : ''}</span>
+          </label>
+        `).join('') : '<div class="games-empty-note">Ingen flere synlige brukere kan legges til som seere akkurat nå.</div>'}
+      </div>
+      <div class="games-form-actions" style="margin-top:16px;">
+        <button class="save-btn" type="button" onclick="saveCompetitionViewers()">Lagre seere</button>
+        <button class="backup-btn" type="button" onclick="closeCompetitionViewerModal()">Avbryt</button>
+      </div>
+    `;
+  }
+
+  function openCompetitionViewerModal(competitionId = '') {
+    const game = competitionGames.find(item => item.competition_id === String(competitionId || ''));
+    if (!game || !canDeleteCompetitionGame(game)) return;
+    competitionViewerModalGameId = game.competition_id;
+    competitionViewerSelectionIds = getCompetitionViewerRowsForGame(game.competition_id).map(row => row.user_id);
+    competitionActionMenuId = '';
+    const overlay = document.getElementById('competition-viewer-overlay');
+    if (overlay) {
+      overlay.classList.add('visible');
+      overlay.setAttribute('aria-hidden', 'false');
+    }
+    renderCompetitionViewerModal();
+  }
+
+  function closeCompetitionViewerModal() {
+    const overlay = document.getElementById('competition-viewer-overlay');
+    if (overlay) {
+      overlay.classList.remove('visible');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+    competitionViewerModalGameId = '';
+    competitionViewerSelectionIds = [];
+  }
+
+  function toggleCompetitionViewerSelection(userId) {
+    const selected = new Set(competitionViewerSelectionIds);
+    if (selected.has(userId)) selected.delete(userId);
+    else selected.add(userId);
+    competitionViewerSelectionIds = [...selected];
+    renderCompetitionViewerModal();
+  }
+
+  async function saveCompetitionViewers() {
+    if (!supabaseClient || !currentUser || !competitionViewerModalGameId) return;
+    const game = competitionGames.find(item => item.competition_id === competitionViewerModalGameId);
+    if (!game || !canDeleteCompetitionGame(game)) return;
+    const viewerIds = [...new Set(competitionViewerSelectionIds.map(userId => String(userId || '').trim()).filter(Boolean))];
+    const existingViewerIds = getCompetitionViewerRowsForGame(game.competition_id).map(row => row.user_id);
+    const removedViewerIds = existingViewerIds.filter(userId => !viewerIds.includes(userId));
+    const viewerRows = viewerIds.map(userId => ({
+      competition_id: game.competition_id,
+      user_id: userId,
+      invited_by_user_id: currentUser.id,
+      participant_role: 'viewer',
+      invite_status: 'accepted',
+      joined_at: new Date().toISOString()
+    }));
+    setCompetitionState('loading');
+    try {
+      if (viewerRows.length) {
+        let { error: upsertError } = await supabaseClient
+          .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
+          .upsert(viewerRows, { onConflict: 'competition_id,user_id' });
+        if (upsertError && isLeaderboardSchemaMismatch(upsertError)) {
+          throw new Error('Seere trenger nyeste Supabase-schema. Kjoer nyeste supabase-schema.sql i SQL Editor.');
+        }
+        if (upsertError) throw upsertError;
+      }
+      if (removedViewerIds.length) {
+        const { error: deleteError } = await supabaseClient
+          .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
+          .delete()
+          .eq('competition_id', game.competition_id)
+          .in('user_id', removedViewerIds);
+        if (deleteError) throw deleteError;
+      }
+      const nowIso = new Date().toISOString();
+      const normalizedViewers = viewerRows.map(row => normalizeCompetitionParticipant({
+        ...row,
+        created_at: nowIso,
+        updated_at: nowIso
+      })).filter(Boolean);
+      competitionParticipants = [
+        ...competitionParticipants.filter(row => row.competition_id !== game.competition_id || row.participant_role !== 'viewer'),
+        ...normalizedViewers
+      ];
+      setCompetitionState('ready');
+      closeCompetitionViewerModal();
+      if (isTabActive('ledertavler-spill')) renderLedertavlerSpillPage();
+    } catch (error) {
+      setCompetitionState('error', error?.message || 'Kunne ikke lagre seere for konkurransen.');
+    }
   }
 
   function toggleCompetitionActionMenu(competitionId = '') {
@@ -15163,6 +15327,7 @@
       competition_id: competitionId,
       user_id: userId,
       invited_by_user_id: currentUser.id,
+      participant_role: 'participant',
       invite_status: 'accepted',
       joined_at: new Date().toISOString()
     }));
@@ -15178,7 +15343,25 @@
         const { error: participantUpsertError } = await supabaseClient
           .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
           .upsert(participantRows, { onConflict: 'competition_id,user_id' });
-        if (participantUpsertError) throw participantUpsertError;
+        let saveParticipantError = participantUpsertError;
+        if (saveParticipantError && isLeaderboardSchemaMismatch(saveParticipantError)) {
+          ({ error: saveParticipantError } = await supabaseClient
+            .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
+            .upsert(participantRows.map(({
+              competition_id,
+              user_id,
+              invited_by_user_id,
+              invite_status,
+              joined_at
+            }) => ({
+              competition_id,
+              user_id,
+              invited_by_user_id,
+              invite_status,
+              joined_at
+            })), { onConflict: 'competition_id,user_id' }));
+        }
+        if (saveParticipantError) throw saveParticipantError;
         if (removedParticipantIds.length) {
           const { error: deleteParticipantsError } = await supabaseClient
             .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
@@ -15195,7 +15378,25 @@
         const { error: participantError } = await supabaseClient
           .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
           .insert(participantRows);
-        if (participantError) throw participantError;
+        let saveParticipantError = participantError;
+        if (saveParticipantError && isLeaderboardSchemaMismatch(saveParticipantError)) {
+          ({ error: saveParticipantError } = await supabaseClient
+            .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
+            .insert(participantRows.map(({
+              competition_id,
+              user_id,
+              invited_by_user_id,
+              invite_status,
+              joined_at
+            }) => ({
+              competition_id,
+              user_id,
+              invited_by_user_id,
+              invite_status,
+              joined_at
+            }))));
+        }
+        if (saveParticipantError) throw saveParticipantError;
       }
       const normalizedGame = normalizeCompetitionGame({
         competition_id: competitionId,
@@ -15212,10 +15413,9 @@
       if (normalizedGame) {
         competitionGames = [normalizedGame, ...competitionGames.filter(game => game.competition_id !== normalizedGame.competition_id)];
       }
-      const participantKeys = new Set(normalizedParticipants.map(row => `${row.competition_id}:${row.user_id}`));
       competitionParticipants = [
         ...normalizedParticipants,
-        ...competitionParticipants.filter(row => row.competition_id !== competitionId && !participantKeys.has(`${row.competition_id}:${row.user_id}`))
+        ...competitionParticipants.filter(row => row.competition_id !== competitionId || row.participant_role === 'viewer')
       ];
       competitionDraft = null;
       competitionActionMenuId = '';
@@ -15663,7 +15863,8 @@
     if (!game) return '';
     const showActions = options.showActions !== false;
     const canManage = canDeleteCompetitionGame(game);
-    const participants = getCompetitionParticipantsForGame(game);
+    const participants = getCompetitionMemberRowsForGame(game.competition_id);
+    const viewerRows = getCompetitionViewerRowsForGame(game.competition_id);
     const standings = buildCompetitionStandings(game);
     const isTeamGame = isTeamCompetitionGame(game);
     const selectedTeams = getCompetitionSelectedTeams(game);
@@ -15690,6 +15891,7 @@
                     onclick="toggleCompetitionActionMenu('${game.competition_id}')"
                   >&#9776;</button>
                   <div class="games-action-menu${isMenuOpen ? ' open' : ''}">
+                    <button class="backup-btn" type="button" onclick="openCompetitionViewerModal('${game.competition_id}')">Legg til seere</button>
                     <button class="backup-btn" type="button" onclick="toggleCompetitionRulesDetails('${game.competition_id}')">Regler og detaljer</button>
                     <button class="backup-btn" type="button" onclick="openCompetitionEdit('${game.competition_id}')">Rediger spill</button>
                     <button class="backup-btn" type="button" style="color:#b91c1c;border-color:rgba(185,28,28,0.22);" onclick="deleteCompetitionGame('${game.competition_id}')">Fjern</button>
@@ -15704,6 +15906,7 @@
               <div class="games-card-meta">${escHtml(isTeamGame ? 'Lagspill' : 'Alle mot alle')} · ${escHtml(getCompetitionObjectiveLabel(game))} · ${escHtml(getCompetitionMetricLabel(game.metric_type))}</div>
               <div class="games-card-meta" style="margin-top:6px;">${escHtml(formatCompetitionTimeRange(game))}</div>
               ${prize ? `<div class="games-card-meta" style="margin-top:6px;">PREMIE: ${escHtml(prize)}</div>` : ''}
+              ${viewerRows.length ? `<div class="games-card-meta" style="margin-top:6px;">Seere: ${viewerRows.length}</div>` : ''}
               ${isTeamGame && selectedTeams.length ? `<div class="games-team-pill-row" style="margin-top:12px;">${selectedTeams.map(team => `<span class="games-team-pill"${getCompetitionTeamToneStyle(team, game)}>${escHtml(team)}</span>`).join('')}</div>` : ''}
               <div class="games-participant-list" style="margin-top:12px;">${participants.map(item => {
                 const profile = getPublicProfileByUserId(item.user_id);

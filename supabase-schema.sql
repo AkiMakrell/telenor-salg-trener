@@ -377,12 +377,16 @@ create table if not exists public.competition_participants (
   competition_id uuid not null references public.competition_games (competition_id) on delete cascade,
   user_id uuid not null references auth.users (id) on delete cascade,
   invited_by_user_id uuid not null references auth.users (id) on delete cascade,
+  participant_role text not null default 'participant' check (participant_role in ('participant', 'viewer')),
   invite_status text not null default 'invited' check (invite_status in ('invited', 'accepted', 'declined')),
   joined_at timestamptz,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now()),
   primary key (competition_id, user_id)
 );
+
+alter table public.competition_participants
+  add column if not exists participant_role text not null default 'participant' check (participant_role in ('participant', 'viewer'));
 
 create index if not exists competition_participants_user_idx
   on public.competition_participants (user_id, created_at desc);
