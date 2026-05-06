@@ -18219,6 +18219,7 @@
 
   function queueCelebrationsForEntryChange(previousEntry, nextEntry) {
     if (!nextEntry) return;
+    if (nextEntry.quickEntry) return;
     const previousSales = getEntrySalesCount(previousEntry);
     const nextSales = getEntrySalesCount(nextEntry);
     if (nextEntry.salg === 'ja' && nextSales > previousSales) {
