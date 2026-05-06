@@ -6350,6 +6350,121 @@
       flex-wrap: wrap;
     }
 
+    .games-time-progress {
+      width: min(100%, 420px);
+      margin: 10px auto 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .games-time-progress-chip {
+      justify-self: center;
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(96, 165, 250, 0.24);
+      background: rgba(15, 23, 42, 0.72);
+      color: #dbeafe;
+      font-size: 0.76rem;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+
+    .games-time-progress-chip.is-upcoming {
+      border-color: rgba(59, 130, 246, 0.26);
+      color: #bfdbfe;
+    }
+
+    .games-time-progress-chip.is-urgent {
+      border-color: rgba(250, 204, 21, 0.34);
+      color: #fde68a;
+      box-shadow: 0 0 18px rgba(250, 204, 21, 0.14), inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    .games-time-progress-chip.is-complete {
+      border-color: rgba(34, 197, 94, 0.3);
+      color: #bbf7d0;
+    }
+
+    .games-time-progress-track {
+      position: relative;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(51, 65, 85, 0.82);
+      overflow: visible;
+      box-shadow: inset 0 1px 2px rgba(2, 6, 23, 0.42);
+    }
+
+    .games-time-progress-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #38bdf8 0%, #8b5cf6 58%, #facc15 100%);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.26), 0 0 28px rgba(139, 92, 246, 0.14);
+    }
+
+    .games-time-progress-fill.is-urgent {
+      box-shadow: 0 0 18px rgba(250, 204, 21, 0.28), 0 0 32px rgba(249, 115, 22, 0.18);
+    }
+
+    .games-time-progress-fill.is-complete {
+      background: linear-gradient(90deg, #22c55e 0%, #4ade80 100%);
+      box-shadow: 0 0 18px rgba(34, 197, 94, 0.22);
+    }
+
+    .games-time-progress-marker {
+      position: absolute;
+      top: 50%;
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 2px solid rgba(148, 163, 184, 0.8);
+      background: #0f172a;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.72);
+    }
+
+    .games-time-progress-marker.start {
+      left: 0;
+      border-color: rgba(56, 189, 248, 0.82);
+    }
+
+    .games-time-progress-marker.end {
+      left: 100%;
+      border-color: rgba(244, 114, 182, 0.84);
+    }
+
+    .games-time-progress-labels {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .games-time-progress-label {
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+      color: #cbd5e1;
+      font-size: 0.72rem;
+      line-height: 1.2;
+    }
+
+    .games-time-progress-label.end {
+      text-align: right;
+    }
+
+    .games-time-progress-label strong {
+      color: #f8fafc;
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
     .games-metric-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -14721,6 +14836,101 @@
     return `${hoursLeft} t igjen`;
   }
 
+  function formatCompetitionCompactBoundary(date) {
+    const value = new Date(date);
+    if (Number.isNaN(value.getTime())) return '--';
+    return value.toLocaleString('no-NO', {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  function getCompetitionTimeProgress(game, reference = new Date()) {
+    const now = new Date(reference);
+    const startsAt = new Date(game?.starts_at);
+    const endsAt = new Date(game?.ends_at);
+    if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) {
+      return {
+        progressPercent: 0,
+        statusLabel: 'Ukjent',
+        startLabel: '--',
+        endLabel: '--',
+        isUpcoming: false,
+        isUrgent: false,
+        isComplete: false
+      };
+    }
+    const totalDuration = Math.max(endsAt.getTime() - startsAt.getTime(), 1);
+    const elapsed = now.getTime() - startsAt.getTime();
+    const rawPercent = (elapsed / totalDuration) * 100;
+    const progressPercent = Math.max(0, Math.min(100, rawPercent));
+    const remainingMs = endsAt.getTime() - now.getTime();
+    const isUpcoming = now < startsAt;
+    const isComplete = now >= endsAt;
+    const isUrgent = !isUpcoming && !isComplete && progressPercent >= 80;
+    let statusLabel = 'Pågår';
+    if (isUpcoming) {
+      const hoursUntilStart = Math.ceil((startsAt.getTime() - now.getTime()) / (60 * 60 * 1000));
+      statusLabel = hoursUntilStart >= 24
+        ? `Starter om ${Math.ceil(hoursUntilStart / 24)} dager`
+        : `Starter om ${Math.max(1, hoursUntilStart)} t`;
+    } else if (isComplete) {
+      statusLabel = 'Ferdig';
+    } else {
+      const hoursLeft = Math.ceil(remainingMs / (60 * 60 * 1000));
+      statusLabel = hoursLeft >= 24
+        ? `${Math.ceil(hoursLeft / 24)} dager igjen`
+        : `${Math.max(1, hoursLeft)} t igjen`;
+    }
+    return {
+      progressPercent,
+      statusLabel,
+      startLabel: formatCompetitionCompactBoundary(startsAt),
+      endLabel: formatCompetitionCompactBoundary(endsAt),
+      isUpcoming,
+      isUrgent,
+      isComplete
+    };
+  }
+
+  function renderCompetitionTimeProgress(game) {
+    const timeProgress = getCompetitionTimeProgress(game);
+    const chipClasses = [
+      'games-time-progress-chip',
+      timeProgress.isUpcoming ? 'is-upcoming' : '',
+      timeProgress.isUrgent ? 'is-urgent' : '',
+      timeProgress.isComplete ? 'is-complete' : ''
+    ].filter(Boolean).join(' ');
+    const fillClasses = [
+      'games-time-progress-fill',
+      timeProgress.isUrgent ? 'is-urgent' : '',
+      timeProgress.isComplete ? 'is-complete' : ''
+    ].filter(Boolean).join(' ');
+    const fillWidth = Math.round(timeProgress.progressPercent * 10) / 10;
+    return `
+      <div class="games-time-progress" title="${escAttr(formatCompetitionActiveTimeRange(game))}">
+        <div class="${chipClasses}">${escHtml(timeProgress.statusLabel)}</div>
+        <div class="games-time-progress-track" aria-hidden="true">
+          <div class="${fillClasses}" style="width:${fillWidth}%;"></div>
+          <span class="games-time-progress-marker start"></span>
+          <span class="games-time-progress-marker end"></span>
+        </div>
+        <div class="games-time-progress-labels">
+          <div class="games-time-progress-label start">
+            <strong>Start</strong>
+            <span>${escHtml(timeProgress.startLabel)}</span>
+          </div>
+          <div class="games-time-progress-label end">
+            <strong>Slutt</strong>
+            <span>${escHtml(timeProgress.endLabel)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   function getCompetitionWindowEntries(game, userId = '') {
     const startsAt = new Date(game.starts_at);
     const endsAt = new Date(game.ends_at);
@@ -15916,7 +16126,7 @@
           ` : ''}
           <div style="text-align:center;">
             <div class="games-detail-title" style="font-size:40px;line-height:1.06;">${escHtml(game.name)}</div>
-            <div class="games-detail-meta" style="justify-content:center;margin-top:6px;font-size:0.8rem;">${escHtml(formatCompetitionActiveTimeRange(game))}</div>
+            ${renderCompetitionTimeProgress(game)}
             ${prize ? `<div style="margin-top:14px;"><span class="games-prize-chip">PREMIE: ${escHtml(prize)}</span></div>` : ''}
           </div>
           ${isTeamGame ? renderCompetitionTeamSummaryCards(game) : ''}
