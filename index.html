@@ -15260,8 +15260,8 @@
             </div>
           ` : ''}
           <div style="text-align:center;">
-            <div class="games-detail-title" style="font-size:32px;">${escHtml(game.name)}</div>
-            <div class="games-detail-meta" style="justify-content:center;margin-top:6px;">${escHtml(formatCompetitionActiveTimeRange(game))}</div>
+            <div class="games-detail-title" style="font-size:40px;line-height:1.06;">${escHtml(game.name)}</div>
+            <div class="games-detail-meta" style="justify-content:center;margin-top:6px;font-size:0.8rem;">${escHtml(formatCompetitionActiveTimeRange(game))}</div>
             ${prize ? `<div style="margin-top:14px;"><span class="games-prize-chip">Premie: ${escHtml(prize)}</span></div>` : ''}
           </div>
           ${isTeamGame ? renderCompetitionTeamSummaryCards(game) : ''}
