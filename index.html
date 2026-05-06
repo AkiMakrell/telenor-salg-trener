@@ -15095,6 +15095,68 @@
     `;
   }
 
+  function getCompetitionWinnerLabel(game) {
+    const isTeamGame = isTeamCompetitionGame(game);
+    const standings = isTeamGame ? buildCompetitionTeamStandings(game) : buildCompetitionStandings(game);
+    if (!standings.length) return 'Ingen ennå';
+    const topScore = Number(standings[0]?.score || 0);
+    const winners = standings.filter(entry => Number(entry?.score || 0) === topScore);
+    if (!winners.length) return 'Ingen ennå';
+    return winners.map(entry => escHtml(isTeamGame ? entry.team : entry.display_name)).join(' / ');
+  }
+
+  function renderCompletedCompetitionGameCard(game) {
+    const isTeamGame = isTeamCompetitionGame(game);
+    const teamStandings = isTeamGame ? buildCompetitionTeamStandings(game) : [];
+    const playerStandings = isTeamGame ? [] : buildCompetitionStandings(game);
+    const scoreEntries = isTeamGame
+      ? teamStandings.map(team => ({
+          label: team.team,
+          score: team.score,
+          toneStyle: getCompetitionTeamToneStyle(team.team, game)
+        }))
+      : playerStandings.slice(0, 4).map(player => ({
+          label: player.display_name,
+          score: player.score,
+          toneStyle: ''
+        }));
+    const prize = String(game.rules_json?.prize || '').trim();
+    const canDelete = canDeleteCompetitionGame(game);
+    return `
+      <div class="games-competition-card">
+        <div class="games-card-top">
+          <div>
+            <div class="games-card-title">${escHtml(game.name)}</div>
+            <div class="games-card-meta">${escHtml(formatCompetitionTimeRange(game))}</div>
+          </div>
+          <span class="games-badge completed">Ferdig</span>
+        </div>
+        <div class="games-card-meta">${escHtml(isTeamGame ? 'Lagspill' : 'Alle mot alle')} · ${escHtml(getCompetitionObjectiveLabel(game))}</div>
+        ${scoreEntries.length ? `
+          <div class="games-metric-grid" style="margin-top:14px;">
+            ${scoreEntries.map(entry => `
+              <div class="games-metric-tile"${entry.toneStyle ? entry.toneStyle.replace(' style=', ' style=') : ''}>
+                <div class="games-summary-label">${escHtml(entry.label)}</div>
+                <div class="games-metric-value">${Number(entry.score || 0)}</div>
+                <div class="games-card-meta">poeng</div>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+        ${prize ? `<div style="margin-top:14px;"><span class="games-prize-chip">Premie: ${escHtml(prize)}</span></div>` : ''}
+        <div class="games-metric-tile" style="margin-top:14px;">
+          <div class="games-summary-label">Vinner</div>
+          <div class="games-metric-value">${getCompetitionWinnerLabel(game)}</div>
+        </div>
+        ${canDelete ? `
+          <div class="games-card-actions">
+            <button class="backup-btn" type="button" style="padding:8px 12px;font-size:12px;color:#b91c1c;border-color:rgba(185,28,28,0.22);" onclick="deleteCompetitionGame('${game.competition_id}')">Fjern</button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
   function renderCompetitionGameCard(game) {
     const isTeamGame = isTeamCompetitionGame(game);
     const standings = buildCompetitionStandings(game);
@@ -15105,6 +15167,7 @@
     const prize = String(game.rules_json?.prize || '').trim();
     const selectedTeams = getCompetitionSelectedTeams(game);
     const canDelete = canDeleteCompetitionGame(game);
+    if (status === 'completed') return renderCompletedCompetitionGameCard(game);
     return `
       <div class="games-competition-card">
         <div class="games-card-top">
