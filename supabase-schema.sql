@@ -286,10 +286,18 @@ create table if not exists public.user_public_activity_entries (
   intro_success_count integer not null default 0 check (intro_success_count >= 0),
   over6_count integer not null default 0 check (over6_count >= 0),
   sales_count integer not null default 0 check (sales_count >= 0),
+  port_sales_count integer not null default 0 check (port_sales_count >= 0),
+  ov_sales_count integer not null default 0 check (ov_sales_count >= 0),
+  addon_count integer not null default 0 check (addon_count >= 0),
   points integer not null default 0 check (points >= 0),
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
 );
+
+alter table public.user_public_activity_entries
+  add column if not exists port_sales_count integer not null default 0 check (port_sales_count >= 0),
+  add column if not exists ov_sales_count integer not null default 0 check (ov_sales_count >= 0),
+  add column if not exists addon_count integer not null default 0 check (addon_count >= 0);
 
 create index if not exists user_public_activity_entries_user_occurred_idx
   on public.user_public_activity_entries (user_id, occurred_at desc);

@@ -7575,6 +7575,45 @@
       box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
     }
 
+    .abo-count-modal-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.12);
+      color: #bae6fd;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .abo-count-modal-body {
+      display: grid;
+      gap: 12px;
+    }
+
+    .abo-count-choice-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .abo-count-choice-btn {
+      margin-top: 0;
+      min-height: 56px;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .abo-count-choice-btn.active {
+      border-color: rgba(56, 189, 248, 0.5);
+      background: rgba(56, 189, 248, 0.14);
+      color: #e0f2fe;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.08);
+    }
+
     .abo-count-modal-error {
       min-height: 20px;
       margin-top: 10px;
@@ -8469,13 +8508,17 @@
 
 <div id="abo-count-overlay" class="abo-count-overlay" aria-hidden="true">
   <div class="abo-count-modal" role="dialog" aria-modal="true" aria-labelledby="abo-count-title">
+    <div id="abo-count-step" class="abo-count-modal-step" hidden></div>
     <div id="abo-count-title" class="abo-count-modal-title">Hvor mange abo?</div>
     <div class="abo-count-modal-text">Fyll inn hvor mange abonnement salget gjaldt før registreringen lagres.</div>
-    <input id="abo-count-input" class="abo-count-modal-input" type="text" inputmode="numeric" pattern="[0-9]*" value="1" />
+    <div id="abo-count-body" class="abo-count-modal-body">
+      <input id="abo-count-input" class="abo-count-modal-input" type="text" inputmode="numeric" pattern="[0-9]*" value="1" />
+    </div>
     <div id="abo-count-error" class="abo-count-modal-error"></div>
     <div class="abo-count-modal-actions">
+      <button id="abo-count-back-btn" type="button" class="backup-btn" style="margin-top:0;display:none;" onclick="goBackAboCountPrompt()">Tilbake</button>
       <button type="button" class="backup-btn" style="margin-top:0;" onclick="cancelAboCountPrompt()">Avbryt</button>
-      <button type="button" class="save-btn" style="margin-top:0;" onclick="confirmAboCountPrompt()">Lagre</button>
+      <button id="abo-count-confirm-btn" type="button" class="save-btn" style="margin-top:0;" onclick="confirmAboCountPrompt()">Lagre</button>
     </div>
   </div>
 </div>
@@ -9028,6 +9071,8 @@
   let leaderboardErrorMessage = '';
   let leaderboardMovementByPeriod = {};
   let aboCountPromptResolver = null;
+  let aboCountPromptMode = 'count';
+  let salePromptDraft = null;
   let recoverySnapshots = [];
   let recoveryEventRows = [];
   let publicProfileRows = [];
@@ -9342,6 +9387,12 @@
       metricType: String(overrides.metricType || defaultMetric.id),
       pointsPerSale: Math.max(1, Math.floor(Number(overrides.pointsPerSale) || LEADERBOARD_POINTS_PER_SALE)),
       pointsPerOver6: Math.max(1, Math.floor(Number(overrides.pointsPerOver6) || LEADERBOARD_POINTS_PER_OVER6)),
+      pointsPerOv: Math.max(0, Math.floor(Number(
+        overrides.pointsPerOv
+        ?? overrides.pointsPerSale
+        ?? LEADERBOARD_POINTS_PER_SALE
+      ) || LEADERBOARD_POINTS_PER_SALE)),
+      pointsPerAddon: Math.max(0, Math.floor(Number(overrides.pointsPerAddon) || 0)),
       objectiveMode: String(overrides.objectiveMode || 'most') === 'target' ? 'target' : 'most',
       targetValue: overrides.targetValue ? String(overrides.targetValue) : '',
       startDateValue: String(overrides.startDateValue || getDateInputValue(roundedStart)),
@@ -9394,7 +9445,7 @@
   function isLeaderboardSchemaMismatch(error) {
     const message = String(error?.message || error || '');
     return /schema cache|relation .* does not exist|column .* does not exist/i.test(message)
-      && /(user_public_activity_entries|user_public_profiles|competition_games|competition_participants|day_over6|day_sales|day_points|week_over6|week_sales|week_points|month_over6|month_sales|month_points)/i.test(message);
+      && /(user_public_activity_entries|user_public_profiles|competition_games|competition_participants|day_over6|day_sales|day_points|week_over6|week_sales|week_points|month_over6|month_sales|month_points|port_sales_count|ov_sales_count|addon_count)/i.test(message);
   }
 
   function isMissingLeaderboardTeamColumn(error) {
@@ -9487,6 +9538,79 @@
     return data;
   }
 
+  function normalizeWholeNumber(value, fallback = 0, minimum = 0) {
+    const normalized = Math.floor(Number(value));
+    if (!Number.isFinite(normalized)) return Math.max(minimum, fallback);
+    return Math.max(minimum, normalized);
+  }
+
+  function createSalePromptDraft(overrides = {}) {
+    const saleCategory = String(overrides.saleCategory || overrides.saleType || 'port').trim().toLowerCase() === 'ov'
+      ? 'ov'
+      : 'port';
+    const salesCount = normalizeWholeNumber(overrides.salesCount, 1, 1);
+    const addonCount = normalizeWholeNumber(overrides.addonCount, 0, 0);
+    const hasAddons = Object.prototype.hasOwnProperty.call(overrides, 'hasAddons')
+      ? (overrides.hasAddons === true || overrides.hasAddons === 'ja' || addonCount > 0)
+      : addonCount > 0;
+    return {
+      step: String(overrides.step || 'sale-type'),
+      saleCategory,
+      salesCount,
+      hasAddons,
+      addonCount: hasAddons ? Math.max(1, addonCount || 1) : 0
+    };
+  }
+
+  function buildNormalizedSaleEntryData(options = {}) {
+    const rawPortSalesCount = normalizeWholeNumber(
+      options.portSalesCount ?? options.port_sales_count,
+      0,
+      0
+    );
+    const rawOvSalesCount = normalizeWholeNumber(
+      options.ovSalesCount ?? options.ov_sales_count,
+      0,
+      0
+    );
+    const explicitSalesCount = normalizeWholeNumber(options.salesCount ?? options.sales_count, 0, 0);
+    const hasSale = options.salg === 'ja' || rawPortSalesCount > 0 || rawOvSalesCount > 0 || explicitSalesCount > 0;
+    if (!hasSale) {
+      return {
+        salesCount: 0,
+        saleCategory: 'port',
+        portSalesCount: 0,
+        ovSalesCount: 0,
+        addonCount: 0
+      };
+    }
+
+    const saleCategory = String(options.saleCategory || options.saleType || '').trim().toLowerCase() === 'ov'
+      ? 'ov'
+      : 'port';
+    const derivedSalesCount = rawPortSalesCount + rawOvSalesCount;
+    const salesCount = Math.max(1, derivedSalesCount || explicitSalesCount || 1);
+    const portSalesCount = derivedSalesCount
+      ? rawPortSalesCount
+      : saleCategory === 'ov' ? 0 : salesCount;
+    const ovSalesCount = derivedSalesCount
+      ? rawOvSalesCount
+      : saleCategory === 'ov' ? salesCount : 0;
+    const addonCount = normalizeWholeNumber(options.addonCount ?? options.addon_count, 0, 0);
+
+    return {
+      salesCount: portSalesCount + ovSalesCount,
+      saleCategory: ovSalesCount > 0 && portSalesCount === 0 ? 'ov' : 'port',
+      portSalesCount,
+      ovSalesCount,
+      addonCount
+    };
+  }
+
+  function getEntrySaleDetails(entry) {
+    return buildNormalizedSaleEntryData(entry || {});
+  }
+
   function normalizeIntroHistoryEntries(entries = []) {
     let changed = false;
     const history = (Array.isArray(entries) ? entries : [])
@@ -9497,10 +9621,33 @@
           normalized.id = createIntroHistoryEntryId();
           changed = true;
         }
-        const normalizedSalesCount = getEntrySalesCount(normalized);
-        if (Number(normalized.salesCount || 0) !== normalizedSalesCount) {
-          normalized.salesCount = normalizedSalesCount;
+        const normalizedSaleDetails = getEntrySaleDetails(normalized);
+        if (Number(normalized.salesCount || 0) !== normalizedSaleDetails.salesCount) {
+          normalized.salesCount = normalizedSaleDetails.salesCount;
           changed = true;
+        }
+        const hasStructuredSaleFields =
+          Object.prototype.hasOwnProperty.call(normalized, 'saleCategory')
+          || Object.prototype.hasOwnProperty.call(normalized, 'portSalesCount')
+          || Object.prototype.hasOwnProperty.call(normalized, 'ovSalesCount')
+          || Object.prototype.hasOwnProperty.call(normalized, 'addonCount');
+        if (hasStructuredSaleFields) {
+          if (String(normalized.saleCategory || '') !== normalizedSaleDetails.saleCategory) {
+            normalized.saleCategory = normalizedSaleDetails.saleCategory;
+            changed = true;
+          }
+          if (Number(normalized.portSalesCount || 0) !== normalizedSaleDetails.portSalesCount) {
+            normalized.portSalesCount = normalizedSaleDetails.portSalesCount;
+            changed = true;
+          }
+          if (Number(normalized.ovSalesCount || 0) !== normalizedSaleDetails.ovSalesCount) {
+            normalized.ovSalesCount = normalizedSaleDetails.ovSalesCount;
+            changed = true;
+          }
+          if (Number(normalized.addonCount || 0) !== normalizedSaleDetails.addonCount) {
+            normalized.addonCount = normalizedSaleDetails.addonCount;
+            changed = true;
+          }
         }
         return normalized;
       })
@@ -10134,13 +10281,17 @@
     const userId = String(row.user_id || '').trim();
     const entryId = String(row.entry_id || '').trim();
     if (!userId || !entryId) return null;
+    const saleDetails = buildNormalizedSaleEntryData(row);
     return {
       entry_id: entryId,
       user_id: userId,
       occurred_at: String(row.occurred_at || ''),
       intro_success_count: Math.max(0, Number(row.intro_success_count) || 0),
       over6_count: Math.max(0, Number(row.over6_count) || 0),
-      sales_count: Math.max(0, Number(row.sales_count) || 0),
+      sales_count: saleDetails.salesCount,
+      port_sales_count: saleDetails.portSalesCount,
+      ov_sales_count: saleDetails.ovSalesCount,
+      addon_count: saleDetails.addonCount,
       points: Math.max(0, Number(row.points) || 0),
       updated_at: row.updated_at ? String(row.updated_at) : ''
     };
@@ -10430,7 +10581,7 @@
   async function loadPublicActivityEntries() {
     const { data, error } = await supabaseClient
       .from(SUPABASE_PUBLIC_ACTIVITY_TABLE)
-      .select('entry_id, user_id, occurred_at, intro_success_count, over6_count, sales_count, points, updated_at');
+      .select('entry_id, user_id, occurred_at, intro_success_count, over6_count, sales_count, port_sales_count, ov_sales_count, addon_count, points, updated_at');
     if (error) throw error;
     publicActivityRows = (data || []).map(normalizePublicActivityRow).filter(Boolean);
     return publicActivityRows;
@@ -10566,6 +10717,7 @@
     return history
       .map(entry => {
         if (!entry?.id) return null;
+        const saleDetails = getEntrySaleDetails(entry);
         const salesCount = getEntrySalesCount(entry);
         const over6Count = entry.over5min === 'ja' ? 1 : 0;
         const introSuccessCount = isIntroSuccessEntry(entry) ? 1 : 0;
@@ -10576,6 +10728,9 @@
           intro_success_count: introSuccessCount,
           over6_count: over6Count,
           sales_count: salesCount,
+          port_sales_count: saleDetails.portSalesCount,
+          ov_sales_count: saleDetails.ovSalesCount,
+          addon_count: saleDetails.addonCount,
           points: getLeaderboardPoints(salesCount, over6Count)
         };
       })
@@ -11433,10 +11588,7 @@
       : new Date();
     const currentSession = getCurrentCallSession(entryDate);
     const isOpptak = options.opptak === 'nei' ? 'nei' : 'ja';
-    const hasSale = options.salg === 'ja';
-    const salesCount = hasSale
-      ? Math.max(1, Math.floor(Number(options.salesCount) || 1))
-      : 0;
+    const saleDetails = buildNormalizedSaleEntryData(options);
     return {
       id: options.id || createIntroHistoryEntryId(),
       type: isOpptak === 'ja' ? 'introSuccess' : 'introAttempt',
@@ -11444,8 +11596,12 @@
       text: intro?.text || String(options.text || '').trim(),
       opptak: isOpptak,
       over5min: options.over5min === 'ja' ? 'ja' : 'nei',
-      salg: hasSale ? 'ja' : 'nei',
-      salesCount,
+      salg: options.salg === 'ja' ? 'ja' : 'nei',
+      salesCount: saleDetails.salesCount,
+      saleCategory: saleDetails.saleCategory,
+      portSalesCount: saleDetails.portSalesCount,
+      ovSalesCount: saleDetails.ovSalesCount,
+      addonCount: saleDetails.addonCount,
       isoDate: entryDate.toISOString(),
       tid: formatHistoryTimestamp(entryDate),
       sessionId: currentSession ? currentSession.id : null,
@@ -11611,8 +11767,7 @@
   }
 
   function getEntrySalesCount(entry) {
-    if (!entry || entry.salg !== 'ja') return 0;
-    return Math.max(1, Math.floor(Number(entry.salesCount) || 1));
+    return getEntrySaleDetails(entry).salesCount;
   }
 
   function getSuccessStats(entries) {
@@ -14167,7 +14322,22 @@
       ?? source?.rules_json?.pointsPerOver6
       ?? LEADERBOARD_POINTS_PER_OVER6
     ) || LEADERBOARD_POINTS_PER_OVER6));
-    return { pointsPerSale, pointsPerOver6 };
+    const pointsPerOv = Math.max(0, Math.floor(Number(
+      source?.pointsPerOv
+      ?? source?.rules_json?.pointsPerOv
+      ?? pointsPerSale
+    ) || 0));
+    const pointsPerAddon = Math.max(0, Math.floor(Number(
+      source?.pointsPerAddon
+      ?? source?.rules_json?.pointsPerAddon
+      ?? 0
+    ) || 0));
+    return { pointsPerSale, pointsPerOver6, pointsPerOv, pointsPerAddon };
+  }
+
+  function formatCompetitionPointWeights(source = null) {
+    const { pointsPerSale, pointsPerOver6, pointsPerOv, pointsPerAddon } = getCompetitionPointWeights(source);
+    return `${pointsPerSale} poeng per abo · ${pointsPerOver6} poeng per 6-minuttere · ${pointsPerOv} poeng per OV · ${pointsPerAddon} poeng per tilleggstjeneste`;
   }
 
   function getCompetitionObjectiveMode(game) {
@@ -14188,9 +14358,12 @@
   function getCompetitionMetricValueFromEntry(entry, metricType, source = null) {
     if (metricType === 'sales') return Math.max(0, Number(entry.sales_count) || 0);
     if (metricType === 'over6') return Math.max(0, Number(entry.over6_count) || 0);
-    const { pointsPerSale, pointsPerOver6 } = getCompetitionPointWeights(source);
-    return (Math.max(0, Number(entry.sales_count) || 0) * pointsPerSale)
-      + (Math.max(0, Number(entry.over6_count) || 0) * pointsPerOver6);
+    const { pointsPerSale, pointsPerOver6, pointsPerOv, pointsPerAddon } = getCompetitionPointWeights(source);
+    const saleDetails = buildNormalizedSaleEntryData(entry);
+    return (saleDetails.portSalesCount * pointsPerSale)
+      + (saleDetails.ovSalesCount * pointsPerOv)
+      + (Math.max(0, Number(entry.over6_count) || 0) * pointsPerOver6)
+      + (saleDetails.addonCount * pointsPerAddon);
   }
 
   function getCompetitionMode(game) {
@@ -14539,6 +14712,8 @@
       metricType: game.metric_type,
       pointsPerSale: getCompetitionPointWeights(game).pointsPerSale,
       pointsPerOver6: getCompetitionPointWeights(game).pointsPerOver6,
+      pointsPerOv: getCompetitionPointWeights(game).pointsPerOv,
+      pointsPerAddon: getCompetitionPointWeights(game).pointsPerAddon,
       objectiveMode: getCompetitionObjectiveMode(game),
       targetValue: game.target_value ? String(game.target_value) : '',
       startDateValue: getDateInputValue(Number.isNaN(startsAt.getTime()) ? new Date() : startsAt),
@@ -14759,6 +14934,10 @@
     const objectiveMode = draft.objectiveMode === 'target' ? 'target' : 'most';
     const pointsPerSale = Math.max(1, Math.floor(Number(draft.pointsPerSale) || LEADERBOARD_POINTS_PER_SALE));
     const pointsPerOver6 = Math.max(1, Math.floor(Number(draft.pointsPerOver6) || LEADERBOARD_POINTS_PER_OVER6));
+    const pointsPerOv = Math.max(0, Math.floor(Number(
+      draft.pointsPerOv ?? pointsPerSale
+    ) || 0));
+    const pointsPerAddon = Math.max(0, Math.floor(Number(draft.pointsPerAddon) || 0));
     const teamConfigs = competitionMode === 'team'
       ? buildCompetitionDraftTeamConfigs(draft.teamCount, draft.teamConfigs).map(team => ({
         ...team,
@@ -14837,6 +15016,8 @@
         objectiveMode,
         pointsPerSale,
         pointsPerOver6,
+        pointsPerOv,
+        pointsPerAddon,
         selectedTeams,
         teamColors,
         teamConfigs
@@ -15056,6 +15237,14 @@
                 <div class="games-field">
                   <label>Hvor mange poeng for 6-minuttere?</label>
                   <input type="number" min="1" value="${escAttr(draft.pointsPerOver6)}" oninput="updateCompetitionDraftField('pointsPerOver6', this.value, false)">
+                </div>
+                <div class="games-field">
+                  <label>Hvor mange poeng for OV?</label>
+                  <input type="number" min="0" value="${escAttr(draft.pointsPerOv)}" oninput="updateCompetitionDraftField('pointsPerOv', this.value, false)">
+                </div>
+                <div class="games-field">
+                  <label>Hvor mange poeng for tilleggstjenester?</label>
+                  <input type="number" min="0" value="${escAttr(draft.pointsPerAddon)}" oninput="updateCompetitionDraftField('pointsPerAddon', this.value, false)">
                 </div>
               </div>
             ` : ''}
@@ -15406,7 +15595,7 @@
           ${isTeamGame ? renderCompetitionTeamSummaryCards(game) : ''}
           <div class="games-section-head" style="margin-top:18px;justify-content:center;text-align:center;">
             <div class="games-section-title">Leaderboard</div>
-            ${game.metric_type === 'points' ? `<div class="games-muted-text">${pointWeights.pointsPerSale} poeng per abo · ${pointWeights.pointsPerOver6} poeng per 6-minuttere</div>` : ''}
+            ${game.metric_type === 'points' ? `<div class="games-muted-text">${escHtml(formatCompetitionPointWeights(game))}</div>` : ''}
           </div>
           <div class="games-standings-table" style="max-width:720px;margin:0 auto;">
             ${standings.length ? standings.map((row, index) => `
@@ -15436,7 +15625,7 @@
         </div>
         ${game.description ? `<div class="games-muted-text" style="margin-top:10px;">${escHtml(game.description)}</div>` : ''}
         ${prize ? `<div style="margin-top:12px;"><span class="games-prize-chip">PREMIE: ${escHtml(prize)}</span></div>` : ''}
-        ${game.metric_type === 'points' ? `<div class="games-muted-text" style="margin-top:10px;">${pointWeights.pointsPerSale} poeng per abo · ${pointWeights.pointsPerOver6} poeng per 6-minuttere</div>` : ''}
+        ${game.metric_type === 'points' ? `<div class="games-muted-text" style="margin-top:10px;">${escHtml(formatCompetitionPointWeights(game))}</div>` : ''}
         ${isTeamGame && selectedTeams.length ? `<div class="games-team-pill-row" style="margin-top:12px;">${selectedTeams.map(team => `<span class="games-team-pill"${getCompetitionTeamToneStyle(team, game)}>${escHtml(team)}</span>`).join('')}</div>` : ''}
         <div class="games-participant-list" style="margin-top:14px;">
           ${participants.map(item => {
@@ -16176,6 +16365,95 @@
     registerIntroSuccessById(intro.id);
   }
 
+  function renderAboCountPrompt() {
+    const title = document.getElementById('abo-count-title');
+    const text = document.querySelector('#abo-count-overlay .abo-count-modal-text');
+    const body = document.getElementById('abo-count-body');
+    const step = document.getElementById('abo-count-step');
+    const backButton = document.getElementById('abo-count-back-btn');
+    const confirmButton = document.getElementById('abo-count-confirm-btn');
+    const error = document.getElementById('abo-count-error');
+    if (!title || !text || !body || !confirmButton) return;
+    if (error) error.textContent = '';
+
+    if (aboCountPromptMode !== 'sale-details') {
+      if (step) step.hidden = true;
+      if (backButton) backButton.style.display = 'none';
+      title.textContent = 'Hvor mange abo?';
+      text.textContent = 'Fyll inn hvor mange abonnement salget gjaldt før registreringen lagres.';
+      body.innerHTML = '<input id="abo-count-input" class="abo-count-modal-input" type="text" inputmode="numeric" pattern="[0-9]*" value="1" />';
+      const input = document.getElementById('abo-count-input');
+      if (input) input.value = '1';
+      confirmButton.textContent = 'Lagre';
+      requestAnimationFrame(() => {
+        input?.focus();
+        input?.select();
+      });
+      return;
+    }
+
+    const draft = salePromptDraft || createSalePromptDraft();
+    const stepOrder = ['sale-type', 'sales-count', 'has-addons', 'addon-count'];
+    const visibleSteps = draft.hasAddons ? stepOrder : stepOrder.filter(item => item !== 'addon-count');
+    const currentStepIndex = Math.max(0, visibleSteps.indexOf(draft.step));
+    if (step) {
+      step.hidden = false;
+      step.textContent = `Spørsmål ${currentStepIndex + 1} av ${visibleSteps.length}`;
+    }
+    if (backButton) backButton.style.display = currentStepIndex > 0 ? '' : 'none';
+
+    if (draft.step === 'sale-type') {
+      title.textContent = 'PORT eller OV?';
+      text.textContent = 'Velg om dette salget skal registreres som vanlig abo eller OV.';
+      body.innerHTML = `
+        <div class="abo-count-choice-grid">
+          <button type="button" class="backup-btn abo-count-choice-btn${draft.saleCategory === 'port' ? ' active' : ''}" onclick="setSalePromptCategory('port')">PORT</button>
+          <button type="button" class="backup-btn abo-count-choice-btn${draft.saleCategory === 'ov' ? ' active' : ''}" onclick="setSalePromptCategory('ov')">OV</button>
+        </div>
+      `;
+      confirmButton.textContent = 'Neste';
+      return;
+    }
+
+    if (draft.step === 'sales-count') {
+      title.textContent = 'Hvor mange abo?';
+      text.textContent = draft.saleCategory === 'ov'
+        ? 'Skriv inn hvor mange OV-abo registreringen gjelder.'
+        : 'Skriv inn hvor mange PORT-abo registreringen gjelder.';
+      body.innerHTML = `<input id="abo-count-input" class="abo-count-modal-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${escAttr(draft.salesCount)}" />`;
+      confirmButton.textContent = 'Neste';
+      const input = document.getElementById('abo-count-input');
+      requestAnimationFrame(() => {
+        input?.focus();
+        input?.select();
+      });
+      return;
+    }
+
+    if (draft.step === 'has-addons') {
+      title.textContent = 'Tilleggstjenester?';
+      text.textContent = 'Velg om salget også inneholder tilleggstjenester.';
+      body.innerHTML = `
+        <div class="abo-count-choice-grid">
+          <button type="button" class="backup-btn abo-count-choice-btn${draft.hasAddons ? ' active' : ''}" onclick="setSalePromptHasAddons(true)">Ja</button>
+          <button type="button" class="backup-btn abo-count-choice-btn${!draft.hasAddons ? ' active' : ''}" onclick="setSalePromptHasAddons(false)">Nei</button>
+        </div>
+      `;
+      confirmButton.textContent = draft.hasAddons ? 'Neste' : 'Lagre';
+      return;
+    }
+
+    title.textContent = 'Hvor mange tilleggstjenester?';
+    text.textContent = 'Skriv inn hvor mange tilleggstjenester som skal registreres sammen med salget.';
+    body.innerHTML = `<input id="abo-count-addon-input" class="abo-count-modal-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${escAttr(draft.addonCount || 1)}" />`;
+    confirmButton.textContent = 'Lagre';
+    const input = document.getElementById('abo-count-addon-input');
+    requestAnimationFrame(() => {
+      input?.focus();
+      input?.select();
+    });
+  }
+
   function closeAboCountPrompt(result = null) {
     const overlay = document.getElementById('abo-count-overlay');
     const error = document.getElementById('abo-count-error');
@@ -16186,6 +16464,8 @@
     if (error) error.textContent = '';
     const resolver = aboCountPromptResolver;
     aboCountPromptResolver = null;
+    aboCountPromptMode = 'count';
+    salePromptDraft = null;
     if (resolver) resolver(result);
   }
 
@@ -16193,9 +16473,91 @@
     closeAboCountPrompt(null);
   }
 
+  function goBackAboCountPrompt() {
+    if (aboCountPromptMode !== 'sale-details') return;
+    const draft = salePromptDraft || createSalePromptDraft();
+    if (draft.step === 'sales-count') {
+      salePromptDraft = { ...draft, step: 'sale-type' };
+    } else if (draft.step === 'has-addons') {
+      salePromptDraft = { ...draft, step: 'sales-count' };
+    } else if (draft.step === 'addon-count') {
+      salePromptDraft = { ...draft, step: 'has-addons' };
+    }
+    renderAboCountPrompt();
+  }
+
+  function setSalePromptCategory(category) {
+    salePromptDraft = {
+      ...(salePromptDraft || createSalePromptDraft()),
+      saleCategory: String(category || '').trim().toLowerCase() === 'ov' ? 'ov' : 'port'
+    };
+    renderAboCountPrompt();
+  }
+
+  function setSalePromptHasAddons(hasAddons) {
+    salePromptDraft = {
+      ...(salePromptDraft || createSalePromptDraft()),
+      hasAddons: Boolean(hasAddons),
+      addonCount: hasAddons ? Math.max(1, normalizeWholeNumber(salePromptDraft?.addonCount, 1, 1)) : 0
+    };
+    renderAboCountPrompt();
+  }
+
   function confirmAboCountPrompt() {
-    const input = document.getElementById('abo-count-input');
     const error = document.getElementById('abo-count-error');
+    if (aboCountPromptMode !== 'sale-details') {
+      const input = document.getElementById('abo-count-input');
+      const trimmed = String(input?.value || '').trim();
+      const value = Math.floor(Number(trimmed));
+      if (!trimmed || !Number.isFinite(value) || value < 1) {
+        if (error) error.textContent = 'Skriv inn et heltall på 1 eller mer.';
+        input?.focus();
+        input?.select();
+        return;
+      }
+      closeAboCountPrompt(value);
+      return;
+    }
+
+    const draft = salePromptDraft || createSalePromptDraft();
+    if (draft.step === 'sale-type') {
+      salePromptDraft = { ...draft, step: 'sales-count' };
+      renderAboCountPrompt();
+      return;
+    }
+
+    if (draft.step === 'sales-count') {
+      const input = document.getElementById('abo-count-input');
+      const trimmed = String(input?.value || '').trim();
+      const value = Math.floor(Number(trimmed));
+      if (!trimmed || !Number.isFinite(value) || value < 1) {
+        if (error) error.textContent = 'Skriv inn et heltall på 1 eller mer.';
+        input?.focus();
+        input?.select();
+        return;
+      }
+      salePromptDraft = { ...draft, salesCount: value, step: 'has-addons' };
+      renderAboCountPrompt();
+      return;
+    }
+
+    if (draft.step === 'has-addons') {
+      if (!draft.hasAddons) {
+        closeAboCountPrompt({
+          salesCount: draft.salesCount,
+          saleCategory: draft.saleCategory,
+          portSalesCount: draft.saleCategory === 'ov' ? 0 : draft.salesCount,
+          ovSalesCount: draft.saleCategory === 'ov' ? draft.salesCount : 0,
+          addonCount: 0
+        });
+        return;
+      }
+      salePromptDraft = { ...draft, step: 'addon-count' };
+      renderAboCountPrompt();
+      return;
+    }
+
+    const input = document.getElementById('abo-count-addon-input');
     const trimmed = String(input?.value || '').trim();
     const value = Math.floor(Number(trimmed));
     if (!trimmed || !Number.isFinite(value) || value < 1) {
@@ -16204,44 +16566,49 @@
       input?.select();
       return;
     }
-    closeAboCountPrompt(value);
+    closeAboCountPrompt({
+      salesCount: draft.salesCount,
+      saleCategory: draft.saleCategory,
+      portSalesCount: draft.saleCategory === 'ov' ? 0 : draft.salesCount,
+      ovSalesCount: draft.saleCategory === 'ov' ? draft.salesCount : 0,
+      addonCount: value
+    });
   }
 
-  function requestSaleCount(defaultValue = 1) {
+  function requestSaleDetails(defaults = {}) {
     return new Promise(resolve => {
       aboCountPromptResolver = resolve;
+      aboCountPromptMode = 'sale-details';
+      salePromptDraft = createSalePromptDraft(defaults);
       const overlay = document.getElementById('abo-count-overlay');
-      const input = document.getElementById('abo-count-input');
-      const error = document.getElementById('abo-count-error');
-      if (error) error.textContent = '';
-      if (input) input.value = String(Math.max(1, Math.floor(Number(defaultValue) || 1)));
       if (overlay) {
         overlay.classList.add('visible');
         overlay.setAttribute('aria-hidden', 'false');
       }
-      requestAnimationFrame(() => {
-        input?.focus();
-        input?.select();
-      });
+      renderAboCountPrompt();
     });
   }
 
   async function registerIntroSuccess() {
     const intro = resolveIntroForRegistration();
     if (!intro) return;
-    const salesCount = selectedSalg === 'ja' ? await requestSaleCount() : 0;
-    if (selectedSalg === 'ja' && salesCount === null) return;
+    const saleDetails = selectedSalg === 'ja' ? await requestSaleDetails() : null;
+    if (selectedSalg === 'ja' && !saleDetails) return;
 
     const previousHistory = cloneIntroHistory();
     const history = cloneIntroHistory(previousHistory);
     const nextEntry = buildOpptakEntry(intro, {
       over5min: selectedOver5min === 'ja' ? 'ja' : 'nei',
       salg: selectedSalg === 'ja' ? 'ja' : 'nei',
-      salesCount,
+      salesCount: saleDetails?.salesCount || 0,
+      saleCategory: saleDetails?.saleCategory || 'port',
+      portSalesCount: saleDetails?.portSalesCount || 0,
+      ovSalesCount: saleDetails?.ovSalesCount || 0,
+      addonCount: saleDetails?.addonCount || 0,
     });
     history.unshift(nextEntry);
     const actionLabel = selectedSalg === 'ja'
-      ? `Registrerte opptak med ${salesCount} abo`
+      ? `Registrerte opptak med ${saleDetails.salesCount} abo${saleDetails.addonCount ? ` og ${saleDetails.addonCount} tilleggstjenester` : ''}`
       : selectedOver5min === 'ja'
         ? 'Registrerte opptak med 6-minutter'
         : 'Registrerte opptak';
@@ -16380,13 +16747,18 @@
 
     const history = getIntroHistory();
     const existingEntry = editId ? history.find(entry => entry.id === editId) : null;
+    const existingSaleDetails = getEntrySaleDetails(existingEntry);
     const nextEntry = buildIntroHistoryEntry(intro, {
       id: editId || undefined,
       date: entryDate,
       opptak,
       over5min,
       salg,
-      salesCount: salg === 'ja' ? getEntrySalesCount(existingEntry) || 1 : 0
+      salesCount: salg === 'ja' ? existingSaleDetails.salesCount || 1 : 0,
+      saleCategory: existingSaleDetails.saleCategory,
+      portSalesCount: existingSaleDetails.portSalesCount,
+      ovSalesCount: existingSaleDetails.ovSalesCount,
+      addonCount: existingSaleDetails.addonCount
     });
     if (editId) {
       const index = history.findIndex(entry => entry.id === editId);
@@ -18450,7 +18822,7 @@
     }
     if (event.key === 'Enter') {
       const active = document.activeElement;
-      if (active?.id === 'abo-count-input') {
+      if (active?.id === 'abo-count-input' || active?.id === 'abo-count-addon-input') {
         event.preventDefault();
         confirmAboCountPrompt();
       }
@@ -18508,20 +18880,24 @@
 
   // ---- Eksport / Import ----
   async function quickRegister(type) {
-    const salesCount = type === 'salg' ? await requestSaleCount() : 0;
-    if (type === 'salg' && salesCount === null) return;
+    const saleDetails = type === 'salg' ? await requestSaleDetails() : null;
+    if (type === 'salg' && !saleDetails) return;
     const previousHistory = cloneIntroHistory();
     const history = cloneIntroHistory(previousHistory);
     const nextEntry = buildIntroHistoryEntry(null, {
       opptak: 'nei',
       over5min: type === 'over5min' ? 'ja' : 'nei',
       salg: type === 'salg' ? 'ja' : 'nei',
-      salesCount,
+      salesCount: saleDetails?.salesCount || 0,
+      saleCategory: saleDetails?.saleCategory || 'port',
+      portSalesCount: saleDetails?.portSalesCount || 0,
+      ovSalesCount: saleDetails?.ovSalesCount || 0,
+      addonCount: saleDetails?.addonCount || 0,
       quickEntry: true
     });
     history.unshift(nextEntry);
     const actionLabel = type === 'salg'
-      ? `Registrerte ${salesCount} abo`
+      ? `Registrerte ${saleDetails.salesCount} abo${saleDetails.addonCount ? ` og ${saleDetails.addonCount} tilleggstjenester` : ''}`
       : 'Registrerte 6-minutter';
     commitIntroHistory(history, {
       undoState: buildRegistrationUndoState(actionLabel, previousHistory)
