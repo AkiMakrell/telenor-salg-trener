@@ -9474,8 +9474,24 @@
       .replace(/[._-]+/g, ' ')
       .replace(/\s+/g, ' ')
       .trim();
-    if (!normalized) return 'Profil';
-    return normalized.replace(/\b\w/g, char => char.toUpperCase());
+    return formatDisplayNameValue(normalized) || 'Profil';
+  }
+
+  function formatDisplayNameValue(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    const normalized = raw
+      .replace(/[._-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!normalized) return '';
+    const shouldTitleCase = /[._-]/.test(raw) || raw === raw.toLowerCase();
+    if (!shouldTitleCase) return normalized;
+    return normalized
+      .split(' ')
+      .filter(Boolean)
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .join(' ');
   }
 
   function getUserDisplayName(user) {
@@ -9485,7 +9501,7 @@
       user?.user_metadata?.name
     ];
     const name = candidates.find(value => String(value || '').trim());
-    return name ? String(name).trim() : formatAuthEmailFallback(user?.email || '');
+    return name ? (formatDisplayNameValue(name) || String(name).trim()) : formatAuthEmailFallback(user?.email || '');
   }
 
   function getUserTeam(user) {
@@ -10620,7 +10636,7 @@
     const fallbackOwnTeam = userId && userId === String(currentUser?.id || '') ? getUserTeam(currentUser) : '';
     return {
       user_id: userId,
-      display_name: String(row.display_name || '').trim() || 'Ukjent bruker',
+      display_name: formatDisplayNameValue(row.display_name) || String(row.display_name || '').trim() || 'Ukjent bruker',
       team: String(row.team || '').trim() || fallbackOwnTeam,
       total_intro_successes: Math.max(0, Number(row.total_intro_successes) || 0),
       total_over6: Math.max(0, Number(row.total_over6) || 0),
@@ -10645,7 +10661,7 @@
     if (!userId) return null;
     return {
       user_id: userId,
-      display_name: String(row.display_name || '').trim() || 'Ukjent bruker',
+      display_name: formatDisplayNameValue(row.display_name) || String(row.display_name || '').trim() || 'Ukjent bruker',
       team: String(row.team || '').trim(),
       avatar_url: normalizeAvatarUrl(row.avatar_url),
       updated_at: row.updated_at ? String(row.updated_at) : '',
