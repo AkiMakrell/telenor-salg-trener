@@ -6289,6 +6289,70 @@
       gap: 12px;
     }
 
+    .games-active-layout,
+    .games-active-top,
+    .games-active-board {
+      display: grid;
+      gap: 16px;
+    }
+
+    .games-active-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .games-active-header-main {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .games-active-title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .games-active-toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .games-context-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .games-context-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(71, 85, 105, 0.7);
+      background: rgba(10, 16, 30, 0.82);
+      color: var(--muted);
+      font-size: 0.77rem;
+      font-weight: 700;
+    }
+
+    .games-active-rules-card {
+      display: grid;
+      gap: 10px;
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(51, 65, 85, 0.75);
+      background: rgba(10, 16, 30, 0.82);
+    }
+
     .games-card-title,
     .games-detail-title {
       font-size: 1.02rem;
@@ -6561,6 +6625,19 @@
       gap: 10px;
     }
 
+    .games-standing-head {
+      display: grid;
+      grid-template-columns: 54px minmax(0, 1fr) 108px;
+      gap: 12px;
+      align-items: center;
+      padding: 0 14px;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
     .games-standing-row {
       display: grid;
       grid-template-columns: 54px minmax(0, 1fr) auto;
@@ -6587,9 +6664,28 @@
       font-weight: 800;
     }
 
+    .games-standing-main {
+      min-width: 0;
+    }
+
     .games-standing-score {
+      display: grid;
+      justify-items: end;
+      gap: 4px;
       text-align: right;
+    }
+
+    .games-standing-score-label {
+      color: var(--muted);
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .games-standing-score-value {
       font-weight: 900;
+      font-size: 1.12rem;
     }
 
     .games-standing-team-meta {
@@ -6666,8 +6762,23 @@
     @media (max-width: 720px) {
       .games-form-grid,
       .games-metric-grid,
+      .games-standing-head,
       .games-standing-row {
         grid-template-columns: 1fr;
+      }
+
+      .games-standing-head {
+        display: none;
+      }
+
+      .games-standing-score {
+        justify-items: start;
+        text-align: left;
+      }
+
+      .games-active-toolbar {
+        width: 100%;
+        justify-content: flex-start;
       }
     }
 
@@ -15222,61 +15333,85 @@
     if (!game) return '';
     const participants = getCompetitionParticipantsForGame(game);
     const standings = buildCompetitionStandings(game);
+    const participantCount = getCompetitionParticipantIds(game).length;
     const isTeamGame = isTeamCompetitionGame(game);
     const selectedTeams = getCompetitionSelectedTeams(game);
     const status = getCompetitionStatus(game);
     const prize = String(game.rules_json?.prize || '').trim();
     const pointWeights = getCompetitionPointWeights(game);
-    const teamStandings = isTeamGame ? buildCompetitionTeamStandings(game) : [];
-    const leaderRow = (isTeamGame ? teamStandings[0] : standings[0]) || null;
     if (status === 'active') {
       const isRulesOpen = expandedCompetitionRulesId === game.competition_id;
       return `
         <div class="games-competition-detail">
-          <div class="games-card-actions" style="justify-content:space-between;margin-bottom:8px;">
-            <button class="backup-btn" type="button" onclick="toggleCompetitionRulesDetails('${game.competition_id}')">Regler og detaljer</button>
-            ${canDeleteCompetitionGame(game) ? `
-              <button class="backup-btn" type="button" style="padding:8px 12px;font-size:12px;color:#b91c1c;border-color:rgba(185,28,28,0.22);" onclick="deleteCompetitionGame('${game.competition_id}')">Fjern</button>
-            ` : '<span></span>'}
-          </div>
-          ${isRulesOpen ? `
-            <div class="games-metric-tile" style="max-width:720px;margin:0 auto 14px;">
-              <div class="games-section-title" style="margin-bottom:10px;">Regler og detaljer</div>
-              <div class="games-card-meta">${escHtml(isTeamGame ? 'Lagspill' : 'Alle mot alle')} · ${escHtml(getCompetitionObjectiveLabel(game))} · ${escHtml(getCompetitionMetricLabel(game.metric_type))}</div>
-              <div class="games-card-meta" style="margin-top:6px;">${escHtml(formatCompetitionTimeRange(game))}</div>
-              ${prize ? `<div class="games-card-meta" style="margin-top:6px;">Premie: ${escHtml(prize)}</div>` : ''}
-              ${isTeamGame && selectedTeams.length ? `<div class="games-team-pill-row" style="margin-top:12px;">${selectedTeams.map(team => `<span class="games-team-pill"${getCompetitionTeamToneStyle(team, game)}>${escHtml(team)}</span>`).join('')}</div>` : ''}
-              <div class="games-participant-list" style="margin-top:12px;">${participants.map(item => {
-                const profile = getPublicProfileByUserId(item.user_id);
-                const name = profile?.display_name || 'Ukjent bruker';
-                const teamName = isTeamGame ? getCompetitionAssignedTeamName(game, item.user_id) : String(profile?.team || '').trim();
-                return `<span class="games-participant-pill"${isTeamGame ? getCompetitionTeamToneStyle(teamName, game, { backgroundAlpha: 0.1, borderAlpha: 0.28 }) : ''}>${escHtml(name)}${teamName ? ` · ${escHtml(teamName)}` : ''}</span>`;
-              }).join('')}</div>
-            </div>
-          ` : ''}
-          <div style="text-align:center;">
-            <div class="games-detail-title" style="font-size:32px;">${escHtml(game.name)}</div>
-            <div class="games-detail-meta" style="justify-content:center;margin-top:6px;">${escHtml(formatCompetitionActiveTimeRange(game))}</div>
-            ${prize ? `<div style="margin-top:14px;"><span class="games-prize-chip">Premie: ${escHtml(prize)}</span></div>` : ''}
-          </div>
-          ${isTeamGame ? renderCompetitionTeamSummaryCards(game) : ''}
-          <div class="games-section-head" style="margin-top:18px;justify-content:center;text-align:center;">
-            <div class="games-section-title">Leaderboard</div>
-            ${game.metric_type === 'points' ? `<div class="games-muted-text">${pointWeights.pointsPerSale} poeng per abo · ${pointWeights.pointsPerOver6} poeng per 6-minuttere</div>` : ''}
-          </div>
-          <div class="games-standings-table" style="max-width:720px;margin:0 auto;">
-            ${standings.length ? standings.map((row, index) => `
-              <div class="games-standing-row${isTeamGame ? ' team-colored' : ''}"${isTeamGame ? getCompetitionTeamRowStyle(row.team, game) : ''}>
-                <div class="games-standing-rank">#${index + 1}</div>
-                <div>
-                  <div class="games-standing-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
-                  <div class="games-standing-team-meta">
-                    ${renderCompetitionStandingStatCards(row)}
+          <div class="games-active-layout">
+            <div class="games-active-top">
+              <div class="games-active-header">
+                <div class="games-active-header-main">
+                  <div class="games-active-title-row">
+                    <div class="games-detail-title">${escHtml(game.name)}</div>
+                    <span class="games-badge active">Aktiv</span>
                   </div>
+                  <div class="games-detail-meta">${escHtml(formatCompetitionActiveTimeRange(game))}</div>
                 </div>
-                <div class="games-standing-score">${row.score}</div>
+                <div class="games-active-toolbar">
+                  <button class="backup-btn" type="button" onclick="toggleCompetitionRulesDetails('${game.competition_id}')">Regler og detaljer</button>
+                  ${canDeleteCompetitionGame(game) ? `
+                    <button class="backup-btn" type="button" style="padding:8px 12px;font-size:12px;color:#b91c1c;border-color:rgba(185,28,28,0.22);" onclick="deleteCompetitionGame('${game.competition_id}')">Fjern</button>
+                  ` : ''}
+                </div>
               </div>
-            `).join('') : '<div class="games-empty-note">Ingen aktivitet registrert i denne konkurransen ennå.</div>'}
+              <div class="games-context-row">
+                <span class="games-context-chip">${escHtml(isTeamGame ? 'Lagspill' : 'Alle mot alle')}</span>
+                <span class="games-context-chip">${escHtml(getCompetitionObjectiveLabel(game))}</span>
+                <span class="games-context-chip">${participantCount} deltakere</span>
+                <span class="games-context-chip">${escHtml(getCompetitionTimeLeft(game))}</span>
+                ${prize ? `<span class="games-prize-chip">Premie: ${escHtml(prize)}</span>` : ''}
+              </div>
+              ${isRulesOpen ? `
+                <div class="games-active-rules-card">
+                  <div class="games-section-title">Regler og detaljer</div>
+                  <div class="games-card-meta">${escHtml(isTeamGame ? 'Lagspill' : 'Alle mot alle')} · ${escHtml(getCompetitionObjectiveLabel(game))} · ${escHtml(getCompetitionMetricLabel(game.metric_type))}</div>
+                  <div class="games-card-meta">${escHtml(formatCompetitionTimeRange(game))}</div>
+                  ${prize ? `<div class="games-card-meta">Premie: ${escHtml(prize)}</div>` : ''}
+                  ${isTeamGame && selectedTeams.length ? `<div class="games-team-pill-row">${selectedTeams.map(team => `<span class="games-team-pill"${getCompetitionTeamToneStyle(team, game)}>${escHtml(team)}</span>`).join('')}</div>` : ''}
+                  <div class="games-participant-list">${participants.map(item => {
+                    const profile = getPublicProfileByUserId(item.user_id);
+                    const name = profile?.display_name || 'Ukjent bruker';
+                    const teamName = isTeamGame ? getCompetitionAssignedTeamName(game, item.user_id) : String(profile?.team || '').trim();
+                    return `<span class="games-participant-pill"${isTeamGame ? getCompetitionTeamToneStyle(teamName, game, { backgroundAlpha: 0.1, borderAlpha: 0.28 }) : ''}>${escHtml(name)}${teamName ? ` · ${escHtml(teamName)}` : ''}</span>`;
+                  }).join('')}</div>
+                </div>
+              ` : ''}
+              ${isTeamGame ? renderCompetitionTeamSummaryCards(game) : ''}
+            </div>
+            <div class="games-active-board">
+              <div class="games-section-head" style="margin-bottom:0;">
+                <div class="games-section-title">Leaderboard</div>
+                ${game.metric_type === 'points' ? `<div class="games-muted-text">${pointWeights.pointsPerSale} poeng per abo · ${pointWeights.pointsPerOver6} poeng per 6-minuttere</div>` : ''}
+              </div>
+              <div class="games-standings-table">
+                <div class="games-standing-head">
+                  <div>Plass</div>
+                  <div>Spiller</div>
+                  <div style="text-align:right;">Score</div>
+                </div>
+                ${standings.length ? standings.map((row, index) => `
+                  <div class="games-standing-row${isTeamGame ? ' team-colored' : ''}"${isTeamGame ? getCompetitionTeamRowStyle(row.team, game) : ''}>
+                    <div class="games-standing-rank">#${index + 1}</div>
+                    <div class="games-standing-main">
+                      <div class="games-standing-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
+                      <div class="games-standing-team-meta">
+                        ${renderCompetitionStandingStatCards(row)}
+                      </div>
+                    </div>
+                    <div class="games-standing-score">
+                      <div class="games-standing-score-label">${escHtml(getCompetitionMetricLabel(game.metric_type))}</div>
+                      <div class="games-standing-score-value">${row.score}</div>
+                    </div>
+                  </div>
+                `).join('') : '<div class="games-empty-note">Ingen aktivitet registrert i denne konkurransen ennå.</div>'}
+              </div>
+            </div>
           </div>
         </div>
       `;
