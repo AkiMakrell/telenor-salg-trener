@@ -6216,7 +6216,6 @@
     .games-action-menu-wrap {
       position: relative;
       display: inline-flex;
-      margin-left: auto;
     }
 
     .games-action-menu-trigger {
@@ -6230,7 +6229,7 @@
     .games-action-menu {
       position: absolute;
       top: calc(100% + 8px);
-      right: 0;
+      left: 0;
       min-width: 180px;
       padding: 10px;
       border-radius: 14px;
@@ -15364,8 +15363,7 @@
       return `
         <div class="games-competition-detail">
           ${showActions ? `
-            <div class="games-card-actions" style="justify-content:space-between;margin-bottom:8px;">
-              ${canManage ? '<span></span>' : `<button class="backup-btn" type="button" onclick="toggleCompetitionRulesDetails('${game.competition_id}')">Regler og detaljer</button>`}
+            <div class="games-card-actions" style="justify-content:flex-start;margin-bottom:8px;">
               ${canManage ? `
                 <div class="games-action-menu-wrap" onclick="event.stopPropagation()">
                   <button
@@ -15382,7 +15380,7 @@
                     <button class="backup-btn" type="button" style="color:#b91c1c;border-color:rgba(185,28,28,0.22);" onclick="deleteCompetitionGame('${game.competition_id}')">Fjern</button>
                   </div>
                 </div>
-              ` : '<span></span>'}
+              ` : `<button class="backup-btn" type="button" onclick="toggleCompetitionRulesDetails('${game.competition_id}')">Regler og detaljer</button>`}
             </div>
           ` : ''}
           ${showActions && isRulesOpen ? `
