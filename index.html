@@ -15416,7 +15416,7 @@
     return `
       <div class="games-metric-grid" style="margin-top:18px;grid-template-columns:repeat(2, minmax(0, 1fr));max-width:720px;margin-left:auto;margin-right:auto;">
         ${teamStandings.slice(0, 2).map((team, index) => `
-          <div class="games-metric-tile" style="text-align:center;${index === 0 && hasClearLeader ? 'box-shadow:0 0 0 1px rgba(251,191,36,0.45), 0 0 24px rgba(251,191,36,0.24);' : ''}"${getCompetitionTeamRowStyle(team.team, game)}>
+          <div class="games-metric-tile" style="text-align:center;${index === 0 && hasClearLeader ? 'box-shadow:0 0 0 1px rgba(251,191,36,0.45), 0 0 24px rgba(251,191,36,0.24);' : ''}${getCompetitionTeamColor(team.team, game) ? `--games-team-color:${escAttr(getCompetitionTeamColor(team.team, game))};` : ''}">
             <div class="games-team-scorecard-head">
               <span class="games-team-color-sticker" aria-hidden="true"></span>
               <div class="games-summary-label">${escHtml(team.team)}</div>
