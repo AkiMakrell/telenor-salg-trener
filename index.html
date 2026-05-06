@@ -6921,6 +6921,13 @@
       font-weight: 800;
     }
 
+    .games-standing-name-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     .games-standing-score {
       text-align: right;
       font-weight: 900;
@@ -6938,7 +6945,6 @@
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      margin-left: 4px;
     }
 
     .games-standing-stat-card {
@@ -16442,8 +16448,8 @@
               <div class="games-standing-row${isTeamGame ? ' team-colored' : ''}"${isTeamGame ? getCompetitionTeamRowStyle(row.team, game) : ''}>
                 <div class="games-standing-rank">#${index + 1}</div>
                 <div>
-                  <div class="games-standing-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
-                  <div class="games-standing-team-meta">
+                  <div class="games-standing-name-row">
+                    <div class="games-standing-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
                     ${renderCompetitionStandingStatCards(row)}
                   </div>
                 </div>
