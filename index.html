@@ -6292,6 +6292,36 @@
       letter-spacing: -0.02em;
     }
 
+    .games-inline-link-row {
+      display: flex;
+      justify-content: center;
+      margin-top: 18px;
+    }
+
+    .games-inline-link {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: #93c5fd;
+      font-size: 0.82rem;
+      font-weight: 700;
+      line-height: 1.2;
+      text-decoration: underline;
+      text-underline-offset: 0.18em;
+      cursor: pointer;
+      transition: opacity 0.18s ease, color 0.18s ease;
+    }
+
+    .games-inline-link:hover {
+      color: #dbeafe;
+    }
+
+    .games-inline-link-card {
+      max-width: 720px;
+      margin: 10px auto 0;
+      text-align: center;
+    }
+
     .games-summary-tile {
       padding: 16px;
       border-radius: 16px;
@@ -9321,6 +9351,7 @@
   let selectedCompetitionId = '';
   let competitionDraft = null;
   let expandedCompetitionRulesId = '';
+  let expandedCompetitionPointWeightsId = '';
   let competitionActionMenuId = '';
   let competitionViewerModalGameId = '';
   let competitionViewerSelectionIds = [];
@@ -15389,6 +15420,12 @@
     renderLedertavlerSpillPage();
   }
 
+  function toggleCompetitionPointWeights(competitionId = '') {
+    const nextId = String(competitionId || '');
+    expandedCompetitionPointWeightsId = expandedCompetitionPointWeightsId === nextId ? '' : nextId;
+    renderLedertavlerSpillPage();
+  }
+
   async function deleteCompetitionGame(competitionId) {
     if (!supabaseClient || !currentUser || !competitionId) return;
     const game = competitionGames.find(item => item.competition_id === String(competitionId));
@@ -16078,11 +16115,11 @@
     const selectedTeams = getCompetitionSelectedTeams(game);
     const status = getCompetitionStatus(game);
     const prize = String(game.rules_json?.prize || '').trim();
-    const pointWeights = getCompetitionPointWeights(game);
     const teamStandings = isTeamGame ? buildCompetitionTeamStandings(game) : [];
     const leaderRow = (isTeamGame ? teamStandings[0] : standings[0]) || null;
     if (status === 'active') {
       const isRulesOpen = expandedCompetitionRulesId === game.competition_id;
+      const isPointBreakdownOpen = expandedCompetitionPointWeightsId === game.competition_id;
       const isMenuOpen = competitionActionMenuId === game.competition_id;
       return `
         <div class="games-competition-detail">
@@ -16130,11 +16167,17 @@
             ${prize ? `<div style="margin-top:14px;"><span class="games-prize-chip">PREMIE: ${escHtml(prize)}</span></div>` : ''}
           </div>
           ${isTeamGame ? renderCompetitionTeamSummaryCards(game) : ''}
-          <div class="games-section-head" style="margin-top:18px;justify-content:center;text-align:center;">
-            <div class="games-section-title">Leaderboard</div>
-            ${game.metric_type === 'points' ? `<div class="games-muted-text">${escHtml(formatCompetitionPointWeights(game))}</div>` : ''}
-          </div>
-          <div class="games-standings-table" style="max-width:720px;margin:0 auto;">
+          ${showActions && game.metric_type === 'points' ? `
+            <div class="games-inline-link-row">
+              <button class="games-inline-link" type="button" onclick="toggleCompetitionPointWeights('${game.competition_id}')">${isPointBreakdownOpen ? 'Skjul poengfordeling' : 'Poengfordeling'}</button>
+            </div>
+            ${isPointBreakdownOpen ? `
+              <div class="games-metric-tile games-inline-link-card">
+                <div class="games-card-meta">${escHtml(formatCompetitionPointWeights(game))}</div>
+              </div>
+            ` : ''}
+          ` : ''}
+          <div class="games-standings-table" style="max-width:720px;margin:18px auto 0;">
             ${standings.length ? standings.map((row, index) => `
               <div class="games-standing-row${isTeamGame ? ' team-colored' : ''}"${isTeamGame ? getCompetitionTeamRowStyle(row.team, game) : ''}>
                 <div class="games-standing-rank">#${index + 1}</div>
