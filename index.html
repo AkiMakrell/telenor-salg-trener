@@ -15223,8 +15223,9 @@
     `;
   }
 
-  function renderCompetitionDetailCard(game) {
+  function renderCompetitionDetailCard(game, options = {}) {
     if (!game) return '';
+    const showActions = options.showActions !== false;
     const participants = getCompetitionParticipantsForGame(game);
     const standings = buildCompetitionStandings(game);
     const isTeamGame = isTeamCompetitionGame(game);
@@ -15238,13 +15239,15 @@
       const isRulesOpen = expandedCompetitionRulesId === game.competition_id;
       return `
         <div class="games-competition-detail">
-          <div class="games-card-actions" style="justify-content:space-between;margin-bottom:8px;">
-            <button class="backup-btn" type="button" onclick="toggleCompetitionRulesDetails('${game.competition_id}')">Regler og detaljer</button>
-            ${canDeleteCompetitionGame(game) ? `
-              <button class="backup-btn" type="button" style="padding:8px 12px;font-size:12px;color:#b91c1c;border-color:rgba(185,28,28,0.22);" onclick="deleteCompetitionGame('${game.competition_id}')">Fjern</button>
-            ` : '<span></span>'}
-          </div>
-          ${isRulesOpen ? `
+          ${showActions ? `
+            <div class="games-card-actions" style="justify-content:space-between;margin-bottom:8px;">
+              <button class="backup-btn" type="button" onclick="toggleCompetitionRulesDetails('${game.competition_id}')">Regler og detaljer</button>
+              ${canDeleteCompetitionGame(game) ? `
+                <button class="backup-btn" type="button" style="padding:8px 12px;font-size:12px;color:#b91c1c;border-color:rgba(185,28,28,0.22);" onclick="deleteCompetitionGame('${game.competition_id}')">Fjern</button>
+              ` : '<span></span>'}
+            </div>
+          ` : ''}
+          ${showActions && isRulesOpen ? `
             <div class="games-metric-tile" style="max-width:720px;margin:0 auto 14px;">
               <div class="games-section-title" style="margin-bottom:10px;">Regler og detaljer</div>
               <div class="games-card-meta">${escHtml(isTeamGame ? 'Lagspill' : 'Alle mot alle')} · ${escHtml(getCompetitionObjectiveLabel(game))} · ${escHtml(getCompetitionMetricLabel(game.metric_type))}</div>
@@ -15345,7 +15348,7 @@
           <div class="games-section-title">Aktive spill</div>
         </div>
         ${competitionState === 'error' ? `<div class="stats-empty-card">${escHtml(competitionErrorMessage || 'Kunne ikke laste spill.')}</div>` : ''}
-        ${activeGames.map(renderCompetitionDetailCard).join('')}
+        ${activeGames.map(game => renderCompetitionDetailCard(game, { showActions: false })).join('')}
       </div>
     `;
   }
