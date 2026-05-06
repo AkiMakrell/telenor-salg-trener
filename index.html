@@ -6413,6 +6413,82 @@
       font-weight: 700;
     }
 
+    .games-archive-card {
+      gap: 14px;
+    }
+
+    .games-archive-title {
+      font-size: 1.2rem;
+      font-weight: 900;
+      letter-spacing: -0.025em;
+      color: var(--text);
+    }
+
+    .games-archive-date {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+
+    .games-archive-score-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .games-archive-score-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(51, 65, 85, 0.68);
+      background: rgba(10, 16, 30, 0.7);
+    }
+
+    .games-archive-score-name {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .games-archive-score-value {
+      font-size: 0.95rem;
+      font-weight: 900;
+      color: #e2e8f0;
+      white-space: nowrap;
+    }
+
+    .games-archive-highlight-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .games-archive-highlight {
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      background: linear-gradient(180deg, rgba(120, 53, 15, 0.22), rgba(10, 16, 30, 0.92));
+      box-shadow: 0 0 22px rgba(245, 158, 11, 0.14);
+    }
+
+    .games-archive-highlight-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+      color: #fcd34d;
+    }
+
+    .games-archive-highlight-value {
+      margin-top: 6px;
+      font-size: 1rem;
+      font-weight: 900;
+      color: #fef3c7;
+      text-shadow: 0 0 18px rgba(245, 158, 11, 0.2);
+    }
+
     .games-form-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -15468,100 +15544,87 @@
     return winners.map(entry => escHtml(isTeamGame ? entry.team : entry.display_name)).join(' / ');
   }
 
-  function renderCompletedCompetitionGameCard(game) {
+  function renderArchiveCompetitionScoreRows(game) {
     const isTeamGame = isTeamCompetitionGame(game);
-    const teamStandings = isTeamGame ? buildCompetitionTeamStandings(game) : [];
-    const playerStandings = isTeamGame ? [] : buildCompetitionStandings(game);
-    const scoreEntries = isTeamGame
-      ? teamStandings.map(team => ({
-          label: team.team,
-          score: team.score,
-          toneStyle: getCompetitionTeamToneStyle(team.team, game)
-        }))
-      : playerStandings.slice(0, 4).map(player => ({
-          label: player.display_name,
-          score: player.score,
-          toneStyle: ''
-        }));
-    const prize = String(game.rules_json?.prize || '').trim();
-    const canDelete = canDeleteCompetitionGame(game);
+    const standings = isTeamGame ? buildCompetitionTeamStandings(game) : buildCompetitionStandings(game);
+    if (!standings.length) {
+      const fallbackNames = isTeamGame
+        ? getCompetitionSelectedTeams(game)
+        : getCompetitionParticipantIds(game).map(userId => getPublicProfileByUserId(userId)?.display_name || (userId === String(currentUser?.id || '') ? getUserDisplayName(currentUser) : 'Ukjent bruker'));
+      if (!fallbackNames.length) return '<div class="games-empty-note">Ingen deltakere ennå.</div>';
+      return `
+        <div class="games-archive-score-list">
+          ${fallbackNames.map(name => `
+            <div class="games-archive-score-row">
+              <div class="games-archive-score-name">${escHtml(name)}</div>
+              <div class="games-archive-score-value">0 poeng</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
     return `
-      <div class="games-competition-card">
+      <div class="games-archive-score-list">
+        ${standings.map(entry => `
+          <div class="games-archive-score-row"${isTeamGame ? getCompetitionTeamRowStyle(entry.team, game) : ''}>
+            <div class="games-archive-score-name">${escHtml(isTeamGame ? entry.team : entry.display_name)}</div>
+            <div class="games-archive-score-value">${Number(entry.score || 0)} poeng</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function renderCompletedCompetitionGameCard(game) {
+    const prize = String(game.rules_json?.prize || '').trim();
+    return `
+      <div class="games-competition-card games-archive-card">
         <div class="games-card-top">
           <div>
-            <div class="games-card-title">${escHtml(game.name)}</div>
-            <div class="games-card-meta">${escHtml(formatCompetitionTimeRange(game))}</div>
+            <div class="games-archive-title">${escHtml(game.name)}</div>
+            <div class="games-archive-date">${escHtml(formatCompetitionTimeRange(game))}</div>
           </div>
           <span class="games-badge completed">Ferdig</span>
         </div>
-        <div class="games-card-meta">${escHtml(isTeamGame ? 'Lagspill' : 'Alle mot alle')} · ${escHtml(getCompetitionObjectiveLabel(game))}</div>
-        ${scoreEntries.length ? `
-          <div class="games-metric-grid" style="margin-top:14px;">
-            ${scoreEntries.map(entry => `
-              <div class="games-metric-tile"${entry.toneStyle ? entry.toneStyle.replace(' style=', ' style=') : ''}>
-                <div class="games-summary-label">${escHtml(entry.label)}</div>
-                <div class="games-metric-value">${Number(entry.score || 0)}</div>
-                <div class="games-card-meta">poeng</div>
-              </div>
-            `).join('')}
+        ${renderArchiveCompetitionScoreRows(game)}
+        <div class="games-archive-highlight-grid">
+          <div class="games-archive-highlight">
+            <div class="games-archive-highlight-label">Premie</div>
+            <div class="games-archive-highlight-value">${escHtml(prize || 'Ikke satt')}</div>
           </div>
-        ` : ''}
-        ${prize ? `<div style="margin-top:14px;"><span class="games-prize-chip">PREMIE: ${escHtml(prize)}</span></div>` : ''}
-        <div class="games-metric-tile" style="margin-top:14px;">
-          <div class="games-summary-label">Vinner</div>
-          <div class="games-metric-value">${getCompetitionWinnerLabel(game)}</div>
+          <div class="games-archive-highlight">
+            <div class="games-archive-highlight-label">Vinner</div>
+            <div class="games-archive-highlight-value">${getCompetitionWinnerLabel(game)}</div>
+          </div>
         </div>
-        ${canDelete ? `
-          <div class="games-card-actions">
-            <button class="backup-btn" type="button" style="padding:8px 12px;font-size:12px;color:#b91c1c;border-color:rgba(185,28,28,0.22);" onclick="deleteCompetitionGame('${game.competition_id}')">Fjern</button>
-          </div>
-        ` : ''}
       </div>
     `;
   }
 
   function renderCompetitionGameCard(game) {
-    const isTeamGame = isTeamCompetitionGame(game);
-    const standings = buildCompetitionStandings(game);
-    const teamStandings = isTeamGame ? buildCompetitionTeamStandings(game) : [];
-    const topRow = (isTeamGame ? teamStandings[0] : standings[0]) || null;
-    const participantCount = getCompetitionParticipantIds(game).length;
     const status = getCompetitionStatus(game);
     const prize = String(game.rules_json?.prize || '').trim();
-    const selectedTeams = getCompetitionSelectedTeams(game);
-    const canDelete = canDeleteCompetitionGame(game);
     if (status === 'completed') return renderCompletedCompetitionGameCard(game);
     return `
-      <div class="games-competition-card">
+      <div class="games-competition-card games-archive-card">
         <div class="games-card-top">
           <div>
-            <div class="games-card-title">${escHtml(game.name)}</div>
-            <div class="games-card-meta">${escHtml(formatCompetitionTimeRange(game))}</div>
+            <div class="games-archive-title">${escHtml(game.name)}</div>
+            <div class="games-archive-date">${escHtml(formatCompetitionTimeRange(game))}</div>
           </div>
           <span class="games-badge ${status}">${getCompetitionStatusLabel(status)}</span>
         </div>
-        <div class="games-card-meta">${escHtml(isTeamGame ? 'Lagspill' : 'Alle mot alle')} · ${escHtml(getCompetitionObjectiveLabel(game))} · ${participantCount} deltakere · ${escHtml(getCompetitionTimeLeft(game))}</div>
-        ${isTeamGame && selectedTeams.length ? `<div class="games-team-pill-row">${selectedTeams.map(team => `<span class="games-team-pill"${getCompetitionTeamToneStyle(team, game)}>${escHtml(team)}</span>`).join('')}</div>` : ''}
-        ${prize ? `<div><span class="games-prize-chip">PREMIE: ${escHtml(prize)}</span></div>` : ''}
-        <div class="games-metric-grid">
-          <div class="games-metric-tile">
-            <div class="games-summary-label">Leder</div>
-            <div class="games-metric-value">${escHtml(isTeamGame ? (topRow?.team || 'Ingen ennå') : (topRow?.display_name || 'Ingen ennå'))}</div>
+        ${renderArchiveCompetitionScoreRows(game)}
+        <div class="games-archive-highlight-grid">
+          <div class="games-archive-highlight">
+            <div class="games-archive-highlight-label">Premie</div>
+            <div class="games-archive-highlight-value">${escHtml(prize || 'Ikke satt')}</div>
           </div>
-          <div class="games-metric-tile">
-            <div class="games-summary-label">Score</div>
-            <div class="games-metric-value">${topRow ? topRow.score : 0}</div>
-          </div>
-          <div class="games-metric-tile">
-            <div class="games-summary-label">Type</div>
-            <div class="games-metric-value">${escHtml(isTeamGame ? `${getCompetitionMetricLabel(game.metric_type)} · lag` : getCompetitionMetricLabel(game.metric_type))}</div>
+          <div class="games-archive-highlight">
+            <div class="games-archive-highlight-label">Vinner</div>
+            <div class="games-archive-highlight-value">${getCompetitionWinnerLabel(game)}</div>
           </div>
         </div>
-        ${canDelete ? `
-          <div class="games-card-actions">
-            <button class="backup-btn" type="button" style="padding:8px 12px;font-size:12px;color:#b91c1c;border-color:rgba(185,28,28,0.22);" onclick="deleteCompetitionGame('${game.competition_id}')">Fjern</button>
-          </div>
-        ` : ''}
       </div>
     `;
   }
