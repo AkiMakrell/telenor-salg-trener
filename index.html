@@ -8941,9 +8941,6 @@
         <button class="more-tab-btn" data-tab="priser" type="button" onclick="switchTab('priser', this); closeTopBarTools();">
           <span>Pris kalkulator</span>
         </button>
-        <button class="more-tab-btn" data-tab="ov" type="button" onclick="switchTab('ov', this); closeTopBarTools();">
-          <span>OV/BedTotal</span>
-        </button>
         <button class="more-tab-btn" data-tab="samtalerating" type="button" onclick="switchTab('samtalerating', this); closeTopBarTools();">
           <span>Samtalerating</span>
         </button>
@@ -9178,10 +9175,6 @@
 
 <div id="tab-samtalerating" class="tab-content">
   <div id="samtalerating-page" class="samtalerating-page"></div>
-</div>
-
-<div id="tab-ov" class="tab-content">
-  <div id="ov-page" class="ov-page"></div>
 </div>
 
 <div id="tab-priser" class="tab-content">
@@ -11906,7 +11899,7 @@
     document.getElementById('tab-' + name).classList.add('active');
     const button = triggerButton || document.querySelector(`.tab-btn[data-tab="${activeButtonName}"], .more-tab-btn[data-tab="${activeButtonName}"]`);
     if (button) button.classList.add('active');
-    if (['intro', 'innvendinger', 'notater', 'priser', 'ov', 'samtalerating', 'samtaleflyt'].includes(name)) {
+    if (['intro', 'innvendinger', 'notater', 'priser', 'samtalerating', 'samtaleflyt'].includes(name)) {
       document.getElementById('top-bar-tools-button')?.classList.add('active');
     }
     closeTopBarTools();
@@ -11920,7 +11913,6 @@
     if (name === 'samtaleflyt') renderSamtaleflyt();
     if (name === 'notater') renderConversationNotes();
     if (name === 'samtalerating') renderSamtaleRating();
-    if (name === 'ov') renderOvPage();
     if (name === 'ledertavler-spill') renderLedertavlerSpillPage();
     if (name === 'competition-create') renderCompetitionCreatePage();
     if (name === 'stats') renderStatsPage();
@@ -14741,7 +14733,6 @@
       { tab: 'innvendinger', title: 'Innvendinger' },
       { tab: 'notater', title: 'Notater' },
       { tab: 'priser', title: 'Pris kalkulator' },
-      { tab: 'ov', title: 'OV/BedTotal' },
       { tab: 'samtalerating', title: 'Samtalerating' },
       { tab: 'samtaleflyt', title: 'Flyt' }
     ];
