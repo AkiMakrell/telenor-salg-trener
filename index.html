@@ -10595,9 +10595,16 @@
   }
 
   async function loadPublicActivityEntries() {
-    const { data, error } = await supabaseClient
+    let data = [];
+    let error = null;
+    ({ data, error } = await supabaseClient
       .from(SUPABASE_PUBLIC_ACTIVITY_TABLE)
-      .select('entry_id, user_id, occurred_at, intro_success_count, over6_count, sales_count, port_sales_count, ov_sales_count, addon_count, points, updated_at');
+      .select('entry_id, user_id, occurred_at, intro_success_count, over6_count, sales_count, port_sales_count, ov_sales_count, addon_count, points, updated_at'));
+    if (error && isLeaderboardSchemaMismatch(error)) {
+      ({ data, error } = await supabaseClient
+        .from(SUPABASE_PUBLIC_ACTIVITY_TABLE)
+        .select('entry_id, user_id, occurred_at, intro_success_count, over6_count, sales_count, points, updated_at'));
+    }
     if (error) throw error;
     publicActivityRows = (data || []).map(normalizePublicActivityRow).filter(Boolean);
     return publicActivityRows;
@@ -10777,9 +10784,31 @@
     }
 
     if (nextRows.length) {
-      const { error: upsertError } = await supabaseClient
+      let { error: upsertError } = await supabaseClient
         .from(SUPABASE_PUBLIC_ACTIVITY_TABLE)
         .upsert(nextRows, { onConflict: 'entry_id' });
+      if (upsertError && isLeaderboardSchemaMismatch(upsertError)) {
+        const legacyRows = nextRows.map(({
+          entry_id,
+          user_id,
+          occurred_at,
+          intro_success_count,
+          over6_count,
+          sales_count,
+          points
+        }) => ({
+          entry_id,
+          user_id,
+          occurred_at,
+          intro_success_count,
+          over6_count,
+          sales_count,
+          points
+        }));
+        ({ error: upsertError } = await supabaseClient
+          .from(SUPABASE_PUBLIC_ACTIVITY_TABLE)
+          .upsert(legacyRows, { onConflict: 'entry_id' }));
+      }
       if (upsertError) throw upsertError;
     }
   }
