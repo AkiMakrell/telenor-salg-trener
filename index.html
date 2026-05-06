@@ -6473,6 +6473,21 @@
       box-shadow: 0 0 22px rgba(245, 158, 11, 0.14);
     }
 
+    .games-archive-highlight.prize {
+      border-color: rgba(245, 158, 11, 0.18);
+      background: linear-gradient(180deg, rgba(120, 53, 15, 0.12), rgba(10, 16, 30, 0.9));
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.08);
+    }
+
+    .games-archive-highlight.prize .games-archive-highlight-label {
+      color: #fbbf24;
+    }
+
+    .games-archive-highlight.prize .games-archive-highlight-value {
+      color: #fde68a;
+      text-shadow: none;
+    }
+
     .games-archive-highlight-label {
       font-size: 0.72rem;
       text-transform: uppercase;
@@ -15588,7 +15603,7 @@
         </div>
         ${renderArchiveCompetitionScoreRows(game)}
         <div class="games-archive-highlight-grid">
-          <div class="games-archive-highlight">
+          <div class="games-archive-highlight prize">
             <div class="games-archive-highlight-label">Premie</div>
             <div class="games-archive-highlight-value">${escHtml(prize || 'Ikke satt')}</div>
           </div>
@@ -15616,7 +15631,7 @@
         </div>
         ${renderArchiveCompetitionScoreRows(game)}
         <div class="games-archive-highlight-grid">
-          <div class="games-archive-highlight">
+          <div class="games-archive-highlight prize">
             <div class="games-archive-highlight-label">Premie</div>
             <div class="games-archive-highlight-value">${escHtml(prize || 'Ikke satt')}</div>
           </div>
