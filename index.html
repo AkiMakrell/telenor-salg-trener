@@ -127,6 +127,10 @@
       font-weight: 800;
       letter-spacing: 0.02em;
       flex: 0 0 auto;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      overflow: hidden;
     }
 
     .settings-trigger-profile {
@@ -274,12 +278,46 @@
       font-weight: 800;
       letter-spacing: 0.03em;
       flex: 0 0 auto;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      overflow: hidden;
+    }
+
+    .settings-trigger-avatar.has-image,
+    .settings-user-avatar.has-image {
+      color: transparent;
+      text-indent: -999px;
     }
 
     .settings-user-note {
       font-size: 0.8rem;
       line-height: 1.45;
       color: var(--muted);
+    }
+
+    .settings-avatar-card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(17, 24, 39, 0.72);
+    }
+
+    .settings-avatar-actions {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+    }
+
+    .settings-avatar-status {
+      margin: 0;
+    }
+
+    .settings-avatar-input {
+      display: none;
     }
 
     .settings-status-row {
@@ -8943,6 +8981,16 @@
             </div>
           </div>
           <div class="settings-user-note">Din konto har sitt eget datasett. Andre brukere ser bare sitt eget innhold.</div>
+          <div class="settings-avatar-card">
+            <span class="settings-status-label">Profilbilde</span>
+            <div class="settings-user-note">Last opp et bilde av deg selv. Hvis du ikke har et bilde, brukes initialene dine automatisk.</div>
+            <div class="settings-avatar-actions">
+              <button id="settings-avatar-upload" class="backup-btn" type="button" onclick="openProfileAvatarPicker()">Last opp profilbilde</button>
+              <button id="settings-avatar-remove" class="backup-btn" type="button" onclick="removeCurrentUserAvatar()">Fjern profilbilde</button>
+              <input id="settings-avatar-input" class="settings-avatar-input" type="file" accept="image/png,image/jpeg,image/webp,image/gif" onchange="handleProfileAvatarFileChange(event)">
+            </div>
+            <div id="settings-avatar-status" class="auth-message auth-message-info settings-avatar-status"></div>
+          </div>
           <div class="settings-team-card">
             <span class="settings-status-label">Team</span>
             <div class="settings-team-toggle" role="group" aria-label="Velg team">
@@ -9265,6 +9313,8 @@
   const SUPABASE_PUBLIC_ACTIVITY_TABLE = 'user_public_activity_entries';
   const SUPABASE_COMPETITION_GAMES_TABLE = 'competition_games';
   const SUPABASE_COMPETITION_PARTICIPANTS_TABLE = 'competition_participants';
+  const SUPABASE_PROFILE_AVATAR_BUCKET = 'profile-avatars';
+  const PROFILE_AVATAR_MAX_BYTES = 3 * 1024 * 1024;
   const INTRO_LEADERBOARD_DATA_VERSION = '2';
   const INTRO_LEADERBOARD_DATA_VERSION_KEY = 'introLeaderboardDataVersion';
   const STORAGE_KEYS = [
@@ -9355,6 +9405,7 @@
   let competitionActionMenuId = '';
   let competitionViewerModalGameId = '';
   let competitionViewerSelectionIds = [];
+  let profileAvatarSaving = false;
 
   localStorage.setItem = function(k, v) {
     _origSetItem(k, v);
@@ -9491,6 +9542,14 @@
     setElementMessage('settings-team-status', message, tone);
   }
 
+  function setSettingsAvatarStatus(message, tone = 'info') {
+    if (!message) {
+      clearElementMessage('settings-avatar-status');
+      return;
+    }
+    setElementMessage('settings-avatar-status', message, tone);
+  }
+
   function updateSettingsTeamControls(user = currentUser, isSaving = false) {
     const team = String(getUserTeam(user) || '').trim().toLowerCase();
     const agrolButton = document.getElementById('settings-team-agrol');
@@ -9507,6 +9566,37 @@
     }
   }
 
+  function normalizeAvatarUrl(value) {
+    const url = String(value || '').trim();
+    return /^https?:\/\//i.test(url) ? url : '';
+  }
+
+  function getCurrentUserAvatarUrl(user = currentUser) {
+    const ownUserId = String(user?.id || '').trim();
+    const profileAvatarUrl = ownUserId
+      ? publicProfileRows.find(profile => profile.user_id === ownUserId)?.avatar_url
+      : '';
+    return normalizeAvatarUrl(profileAvatarUrl || user?.app_avatar_url || user?.user_metadata?.avatar_url);
+  }
+
+  function applyAvatarToElement(element, name, avatarUrl = '') {
+    if (!element) return;
+    const initials = getUserInitials(name);
+    element.textContent = initials;
+    element.classList.toggle('has-image', Boolean(avatarUrl));
+    element.style.backgroundImage = avatarUrl ? `url("${String(avatarUrl).replace(/"/g, '%22')}")` : '';
+  }
+
+  function updateSettingsAvatarControls(user = currentUser, isSaving = profileAvatarSaving) {
+    const uploadButton = document.getElementById('settings-avatar-upload');
+    const removeButton = document.getElementById('settings-avatar-remove');
+    const input = document.getElementById('settings-avatar-input');
+    const hasAvatar = Boolean(getCurrentUserAvatarUrl(user));
+    if (uploadButton) uploadButton.disabled = isSaving;
+    if (removeButton) removeButton.disabled = isSaving || !hasAvatar;
+    if (input) input.disabled = isSaving;
+  }
+
   function getUserInitials(name) {
     const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
     if (!parts.length) return '?';
@@ -9514,10 +9604,19 @@
     return (parts[0][0] + parts[1][0]).toUpperCase();
   }
 
+  function upsertLocalPublicProfileRow(row) {
+    const normalized = normalizePublicProfileRow(row);
+    if (!normalized) return;
+    publicProfileRows = [
+      normalized,
+      ...publicProfileRows.filter(profile => profile.user_id !== normalized.user_id)
+    ];
+  }
+
   function updateUserBar(user) {
     const displayName = getUserDisplayName(user);
     const team = getUserTeam(user);
-    const initials = getUserInitials(displayName);
+    const avatarUrl = getCurrentUserAvatarUrl(user);
     const button = document.getElementById('top-bar-settings-button');
     const triggerNameEl = document.getElementById('settings-trigger-name');
     const triggerAvatarEl = document.getElementById('settings-trigger-avatar');
@@ -9526,11 +9625,12 @@
     const avatarEl = document.getElementById('settings-user-avatar');
     if (button) button.setAttribute('aria-label', `Åpne profil for ${displayName}`);
     if (triggerNameEl) triggerNameEl.textContent = displayName;
-    if (triggerAvatarEl) triggerAvatarEl.textContent = initials;
+    applyAvatarToElement(triggerAvatarEl, displayName, avatarUrl);
     if (nameEl) nameEl.textContent = displayName;
     if (emailEl) emailEl.textContent = [user?.email || '', team].filter(Boolean).join(' · ') || 'Innlogget bruker';
-    if (avatarEl) avatarEl.textContent = initials;
+    applyAvatarToElement(avatarEl, displayName, avatarUrl);
     updateSettingsTeamControls(user);
+    updateSettingsAvatarControls(user);
   }
 
   function setLeaderboardState(state, errorMessage = '') {
@@ -9715,6 +9815,12 @@
     const message = String(error?.message || error || '');
     return /schema cache|relation .* does not exist|column .* does not exist/i.test(message)
       && /(user_public_activity_entries|user_public_profiles|competition_games|competition_participants|day_over6|day_sales|day_points|week_over6|week_sales|week_points|month_over6|month_sales|month_points|port_sales_count|ov_sales_count|addon_count)/i.test(message);
+  }
+
+  function isProfileAvatarSchemaMismatch(error) {
+    const message = String(error?.message || error || '');
+    return /(schema cache|relation .* does not exist|column .* does not exist|bucket.*not found|storage)/i.test(message)
+      && /(avatar_url|profile-avatars|storage\.objects|storage\.buckets|user_public_profiles)/i.test(message);
   }
 
   function isMissingLeaderboardTeamColumn(error) {
@@ -10541,6 +10647,7 @@
       user_id: userId,
       display_name: String(row.display_name || '').trim() || 'Ukjent bruker',
       team: String(row.team || '').trim(),
+      avatar_url: normalizeAvatarUrl(row.avatar_url),
       updated_at: row.updated_at ? String(row.updated_at) : '',
     };
   }
@@ -10832,7 +10939,12 @@
     let error = null;
     ({ data, error } = await supabaseClient
       .from(SUPABASE_PUBLIC_PROFILES_TABLE)
-      .select('user_id, display_name, team, updated_at'));
+      .select('user_id, display_name, team, avatar_url, updated_at'));
+    if (error && isProfileAvatarSchemaMismatch(error)) {
+      ({ data, error } = await supabaseClient
+        .from(SUPABASE_PUBLIC_PROFILES_TABLE)
+        .select('user_id, display_name, team, updated_at'));
+    }
     if (error && !isLeaderboardSchemaMismatch(error)) throw error;
     const profileRows = (data || []).map(normalizePublicProfileRow).filter(Boolean);
     let fallbackProfiles = [];
@@ -10841,9 +10953,20 @@
         user_id: row.user_id,
         display_name: row.display_name,
         team: row.team,
+        avatar_url: '',
         updated_at: row.updated_at || row.latest_entry_at || ''
       }));
     } catch (_error) {}
+    const ownUserId = String(currentUser?.id || '').trim();
+    if (ownUserId && !profileRows.some(profile => profile.user_id === ownUserId) && !fallbackProfiles.some(profile => profile.user_id === ownUserId)) {
+      fallbackProfiles.push({
+        user_id: ownUserId,
+        display_name: getUserDisplayName(currentUser),
+        team: getUserTeam(currentUser),
+        avatar_url: getCurrentUserAvatarUrl(currentUser),
+        updated_at: ''
+      });
+    }
     publicProfileRows = [...new Map([...fallbackProfiles, ...profileRows].map(row => [row.user_id, row])).values()];
     return publicProfileRows;
   }
@@ -11474,6 +11597,8 @@
       clearCompetitionState();
       updateSettingsTeamControls(null, false);
       setSettingsTeamStatus('');
+      setSettingsAvatarStatus('');
+      updateSettingsAvatarControls(null, false);
       setAppVisible(false);
       setSyncStatus('signedout');
       return;
@@ -11481,6 +11606,7 @@
 
     currentUser = session.user;
     setSettingsTeamStatus('');
+    setSettingsAvatarStatus('');
     setAuthStatus('Laster kontoen din...', 'info');
 
     try {
@@ -11494,6 +11620,8 @@
       clearCompetitionState();
       updateSettingsTeamControls(null, false);
       setSettingsTeamStatus('');
+      setSettingsAvatarStatus('');
+      updateSettingsAvatarControls(null, false);
       setAppVisible(false);
       setSyncStatus('error');
       setAuthStatus(error.message || 'Kunne ikke laste brukerdata.', 'error');
@@ -11617,6 +11745,121 @@
       setSettingsTeamStatus(`Team ble lagret, men leaderboard kunne ikke oppdateres: ${syncError.message || 'ukjent feil'}`, 'warning');
     } finally {
       updateSettingsTeamControls(currentUser, false);
+    }
+  }
+
+  function getProfileAvatarObjectPath(userId = currentUser?.id) {
+    const normalizedUserId = String(userId || '').trim();
+    return normalizedUserId ? `${normalizedUserId}/avatar` : '';
+  }
+
+  async function persistCurrentUserAvatarUrl(avatarUrl) {
+    if (!supabaseClient || !currentUser) return;
+    const payload = {
+      user_id: currentUser.id,
+      display_name: getUserDisplayName(currentUser),
+      team: getUserTeam(currentUser),
+      avatar_url: avatarUrl || null
+    };
+    const { error } = await supabaseClient
+      .from(SUPABASE_PUBLIC_PROFILES_TABLE)
+      .upsert(payload, { onConflict: 'user_id' });
+    if (error) {
+      if (isProfileAvatarSchemaMismatch(error)) {
+        throw new Error('Profilbilder trenger nyeste Supabase-schema. Kjor nyeste supabase-schema.sql i SQL Editor.');
+      }
+      throw error;
+    }
+    upsertLocalPublicProfileRow({
+      ...payload,
+      updated_at: new Date().toISOString()
+    });
+    currentUser = { ...currentUser, app_avatar_url: avatarUrl || '' };
+    updateUserBar(currentUser);
+  }
+
+  function openProfileAvatarPicker() {
+    if (profileAvatarSaving) return;
+    document.getElementById('settings-avatar-input')?.click();
+  }
+
+  async function handleProfileAvatarFileChange(event) {
+    if (!supabaseClient || !currentUser) return;
+    const input = event?.target;
+    const file = input?.files?.[0];
+    if (!file) return;
+    if (!String(file.type || '').startsWith('image/')) {
+      setSettingsAvatarStatus('Velg en bildefil for profilbildet.', 'warning');
+      input.value = '';
+      return;
+    }
+    if (file.size > PROFILE_AVATAR_MAX_BYTES) {
+      setSettingsAvatarStatus('Bildet ma vare 3 MB eller mindre.', 'warning');
+      input.value = '';
+      return;
+    }
+
+    profileAvatarSaving = true;
+    updateSettingsAvatarControls(currentUser, true);
+    setSettingsAvatarStatus('Laster opp profilbilde...', 'info');
+
+    try {
+      const objectPath = getProfileAvatarObjectPath(currentUser.id);
+      const { error: uploadError } = await supabaseClient.storage
+        .from(SUPABASE_PROFILE_AVATAR_BUCKET)
+        .upload(objectPath, file, {
+          upsert: true,
+          contentType: file.type
+        });
+      if (uploadError) {
+        if (isProfileAvatarSchemaMismatch(uploadError)) {
+          throw new Error('Profilbilder trenger nyeste Supabase-schema. Kjor nyeste supabase-schema.sql i SQL Editor.');
+        }
+        throw uploadError;
+      }
+
+      const { data: publicUrlData } = supabaseClient.storage
+        .from(SUPABASE_PROFILE_AVATAR_BUCKET)
+        .getPublicUrl(objectPath);
+      const avatarUrl = normalizeAvatarUrl(publicUrlData?.publicUrl);
+      if (!avatarUrl) throw new Error('Kunne ikke lage URL for profilbildet.');
+
+      await persistCurrentUserAvatarUrl(`${avatarUrl}?v=${Date.now()}`);
+      renderAll();
+      setSettingsAvatarStatus('Profilbildet ble oppdatert.', 'success');
+    } catch (error) {
+      setSettingsAvatarStatus(error?.message || 'Kunne ikke laste opp profilbildet.', 'error');
+    } finally {
+      profileAvatarSaving = false;
+      updateSettingsAvatarControls(currentUser, false);
+      if (input) input.value = '';
+    }
+  }
+
+  async function removeCurrentUserAvatar() {
+    if (!supabaseClient || !currentUser || profileAvatarSaving) return;
+    profileAvatarSaving = true;
+    updateSettingsAvatarControls(currentUser, true);
+    setSettingsAvatarStatus('Fjerner profilbildet...', 'info');
+    try {
+      const objectPath = getProfileAvatarObjectPath(currentUser.id);
+      const { error: removeStorageError } = await supabaseClient.storage
+        .from(SUPABASE_PROFILE_AVATAR_BUCKET)
+        .remove([objectPath]);
+      if (removeStorageError && !/not found/i.test(String(removeStorageError?.message || ''))) {
+        if (isProfileAvatarSchemaMismatch(removeStorageError)) {
+          throw new Error('Profilbilder trenger nyeste Supabase-schema. Kjor nyeste supabase-schema.sql i SQL Editor.');
+        }
+        throw removeStorageError;
+      }
+      await persistCurrentUserAvatarUrl('');
+      renderAll();
+      setSettingsAvatarStatus('Profilbildet ble fjernet.', 'success');
+    } catch (error) {
+      setSettingsAvatarStatus(error?.message || 'Kunne ikke fjerne profilbildet.', 'error');
+    } finally {
+      profileAvatarSaving = false;
+      updateSettingsAvatarControls(currentUser, false);
     }
   }
 

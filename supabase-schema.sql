@@ -189,10 +189,14 @@ create table if not exists public.user_public_profiles (
   user_id uuid not null references auth.users (id) on delete cascade,
   display_name text not null,
   team text,
+  avatar_url text,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now()),
   primary key (user_id)
 );
+
+alter table public.user_public_profiles
+  add column if not exists avatar_url text;
 
 drop trigger if exists user_public_profiles_set_updated_at on public.user_public_profiles;
 create trigger user_public_profiles_set_updated_at
@@ -278,6 +282,59 @@ from auth.users u
 on conflict (user_id) do update
   set display_name = excluded.display_name,
       team = excluded.team;
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'profile-avatars',
+  'profile-avatars',
+  true,
+  3145728,
+  array['image/png', 'image/jpeg', 'image/webp', 'image/gif']
+)
+on conflict (id) do update
+  set public = excluded.public,
+      file_size_limit = excluded.file_size_limit,
+      allowed_mime_types = excluded.allowed_mime_types;
+
+drop policy if exists "Avatar images are readable" on storage.objects;
+create policy "Avatar images are readable"
+on storage.objects
+for select
+using (bucket_id = 'profile-avatars');
+
+drop policy if exists "Users can upload own avatar images" on storage.objects;
+create policy "Users can upload own avatar images"
+on storage.objects
+for insert
+to authenticated
+with check (
+  bucket_id = 'profile-avatars'
+  and auth.uid()::text = (storage.foldername(name))[1]
+);
+
+drop policy if exists "Users can update own avatar images" on storage.objects;
+create policy "Users can update own avatar images"
+on storage.objects
+for update
+to authenticated
+using (
+  bucket_id = 'profile-avatars'
+  and auth.uid()::text = (storage.foldername(name))[1]
+)
+with check (
+  bucket_id = 'profile-avatars'
+  and auth.uid()::text = (storage.foldername(name))[1]
+);
+
+drop policy if exists "Users can delete own avatar images" on storage.objects;
+create policy "Users can delete own avatar images"
+on storage.objects
+for delete
+to authenticated
+using (
+  bucket_id = 'profile-avatars'
+  and auth.uid()::text = (storage.foldername(name))[1]
+);
 
 create table if not exists public.user_public_activity_entries (
   entry_id text not null primary key,
