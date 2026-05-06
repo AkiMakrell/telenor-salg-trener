@@ -15148,7 +15148,7 @@
             `).join('')}
           </div>
         ` : ''}
-        ${prize ? `<div style="margin-top:14px;"><span class="games-prize-chip">Premie: ${escHtml(prize)}</span></div>` : ''}
+        ${prize ? `<div style="margin-top:14px;"><span class="games-prize-chip">PREMIE: ${escHtml(prize)}</span></div>` : ''}
         <div class="games-metric-tile" style="margin-top:14px;">
           <div class="games-summary-label">Vinner</div>
           <div class="games-metric-value">${getCompetitionWinnerLabel(game)}</div>
@@ -15184,7 +15184,7 @@
         </div>
         <div class="games-card-meta">${escHtml(isTeamGame ? 'Lagspill' : 'Alle mot alle')} · ${escHtml(getCompetitionObjectiveLabel(game))} · ${participantCount} deltakere · ${escHtml(getCompetitionTimeLeft(game))}</div>
         ${isTeamGame && selectedTeams.length ? `<div class="games-team-pill-row">${selectedTeams.map(team => `<span class="games-team-pill"${getCompetitionTeamToneStyle(team, game)}>${escHtml(team)}</span>`).join('')}</div>` : ''}
-        ${prize ? `<div><span class="games-prize-chip">Premie: ${escHtml(prize)}</span></div>` : ''}
+        ${prize ? `<div><span class="games-prize-chip">PREMIE: ${escHtml(prize)}</span></div>` : ''}
         <div class="games-metric-grid">
           <div class="games-metric-tile">
             <div class="games-summary-label">Leder</div>
@@ -15252,7 +15252,7 @@
               <div class="games-section-title" style="margin-bottom:10px;">Regler og detaljer</div>
               <div class="games-card-meta">${escHtml(isTeamGame ? 'Lagspill' : 'Alle mot alle')} · ${escHtml(getCompetitionObjectiveLabel(game))} · ${escHtml(getCompetitionMetricLabel(game.metric_type))}</div>
               <div class="games-card-meta" style="margin-top:6px;">${escHtml(formatCompetitionTimeRange(game))}</div>
-              ${prize ? `<div class="games-card-meta" style="margin-top:6px;">Premie: ${escHtml(prize)}</div>` : ''}
+              ${prize ? `<div class="games-card-meta" style="margin-top:6px;">PREMIE: ${escHtml(prize)}</div>` : ''}
               ${isTeamGame && selectedTeams.length ? `<div class="games-team-pill-row" style="margin-top:12px;">${selectedTeams.map(team => `<span class="games-team-pill"${getCompetitionTeamToneStyle(team, game)}>${escHtml(team)}</span>`).join('')}</div>` : ''}
               <div class="games-participant-list" style="margin-top:12px;">${participants.map(item => {
                 const profile = getPublicProfileByUserId(item.user_id);
@@ -15265,7 +15265,7 @@
           <div style="text-align:center;">
             <div class="games-detail-title" style="font-size:40px;line-height:1.06;">${escHtml(game.name)}</div>
             <div class="games-detail-meta" style="justify-content:center;margin-top:6px;font-size:0.8rem;">${escHtml(formatCompetitionActiveTimeRange(game))}</div>
-            ${prize ? `<div style="margin-top:14px;"><span class="games-prize-chip">Premie: ${escHtml(prize)}</span></div>` : ''}
+            ${prize ? `<div style="margin-top:14px;"><span class="games-prize-chip">PREMIE: ${escHtml(prize)}</span></div>` : ''}
           </div>
           ${isTeamGame ? renderCompetitionTeamSummaryCards(game) : ''}
           <div class="games-section-head" style="margin-top:18px;justify-content:center;text-align:center;">
@@ -15299,7 +15299,7 @@
           <span class="games-badge ${status}">${getCompetitionStatusLabel(status)}</span>
         </div>
         ${game.description ? `<div class="games-muted-text" style="margin-top:10px;">${escHtml(game.description)}</div>` : ''}
-        ${prize ? `<div style="margin-top:12px;"><span class="games-prize-chip">Premie: ${escHtml(prize)}</span></div>` : ''}
+        ${prize ? `<div style="margin-top:12px;"><span class="games-prize-chip">PREMIE: ${escHtml(prize)}</span></div>` : ''}
         ${game.metric_type === 'points' ? `<div class="games-muted-text" style="margin-top:10px;">${pointWeights.pointsPerSale} poeng per abo · ${pointWeights.pointsPerOver6} poeng per 6-minuttere</div>` : ''}
         ${isTeamGame && selectedTeams.length ? `<div class="games-team-pill-row" style="margin-top:12px;">${selectedTeams.map(team => `<span class="games-team-pill"${getCompetitionTeamToneStyle(team, game)}>${escHtml(team)}</span>`).join('')}</div>` : ''}
         <div class="games-participant-list" style="margin-top:14px;">
