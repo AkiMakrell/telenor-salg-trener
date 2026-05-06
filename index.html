@@ -13787,6 +13787,7 @@
 
   function renderDashboardQuickRegisterCard(dag, uke) {
     const showOpptakShortcut = isDashboardOpptakShortcutEnabled();
+    const activeGamesSection = renderDashboardActiveGamesSection();
     return `
       <div class="dashboard-card dashboard-card-strong dashboard-card-interactive" role="button" tabindex="0" onclick="switchTab('intro')" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); switchTab('intro'); }">
         <div class="dashboard-card-heading">
@@ -13805,6 +13806,7 @@
             </button>
           ` : ''}
         </div>
+        ${activeGamesSection}
         <div class="quick-undo-row dashboard-quick-undo">
           <button class="quick-undo-link" data-intro-history-undo type="button" onclick="event.stopPropagation(); undoLastIntroHistoryAction()">Angre siste</button>
         </div>
@@ -15262,6 +15264,20 @@
             </div>
           `).join('') : '<div class="games-empty-note">Ingen aktivitet registrert i denne konkurransen ennå.</div>'}
         </div>
+      </div>
+    `;
+  }
+
+  function renderDashboardActiveGamesSection() {
+    const activeGames = getCompetitionVisibleGames('active');
+    if (!activeGames.length) return '';
+    return `
+      <div class="dashboard-active-games" onclick="event.stopPropagation()">
+        <div class="games-section-head" style="margin-top:18px;">
+          <div class="games-section-title">Aktive spill</div>
+        </div>
+        ${competitionState === 'error' ? `<div class="stats-empty-card">${escHtml(competitionErrorMessage || 'Kunne ikke laste spill.')}</div>` : ''}
+        ${activeGames.map(renderCompetitionDetailCard).join('')}
       </div>
     `;
   }
