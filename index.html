@@ -6213,6 +6213,46 @@
       font-weight: 700;
     }
 
+    .games-action-menu-wrap {
+      position: relative;
+      display: inline-flex;
+      margin-left: auto;
+    }
+
+    .games-action-menu-trigger {
+      min-width: 42px;
+      min-height: 42px;
+      padding: 8px 12px;
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    .games-action-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      min-width: 180px;
+      padding: 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(51, 65, 85, 0.92);
+      background: rgba(8, 15, 30, 0.98);
+      box-shadow: 0 18px 36px rgba(2, 6, 23, 0.36);
+      display: none;
+      z-index: 25;
+    }
+
+    .games-action-menu.open {
+      display: grid;
+      gap: 8px;
+    }
+
+    .games-action-menu button {
+      width: 100%;
+      margin-top: 0;
+      justify-content: flex-start;
+      text-align: left;
+    }
+
     .games-summary-grid,
     .games-competition-grid,
     .games-section-grid,
@@ -9001,6 +9041,7 @@
   let selectedCompetitionId = '';
   let competitionDraft = null;
   let expandedCompetitionRulesId = '';
+  let competitionActionMenuId = '';
 
   localStorage.setItem = function(k, v) {
     _origSetItem(k, v);
@@ -9295,6 +9336,7 @@
     const roundedStart = roundDateToNearestMinutes(startDate, 15);
     return {
       isOpen: overrides.isOpen === false ? false : true,
+      editCompetitionId: String(overrides.editCompetitionId || ''),
       mode: String(overrides.mode || 'ffa') === 'team' ? 'team' : 'ffa',
       name: String(overrides.name || ''),
       prize: String(overrides.prize || ''),
@@ -10866,12 +10908,15 @@
     if (settings && !settings.contains(event.target)) closeTopBarSettings();
     const tools = document.getElementById('top-bar-tools');
     if (tools && !tools.contains(event.target)) closeTopBarTools();
+    const competitionMenu = event.target?.closest?.('.games-action-menu-wrap');
+    if (!competitionMenu) closeCompetitionActionMenu();
   });
 
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') {
       closeTopBarSettings();
       closeTopBarTools();
+      closeCompetitionActionMenu();
     }
   });
 
@@ -14456,13 +14501,57 @@
   }
 
   function openCompetitionCreator() {
-    competitionDraft = competitionDraft?.isOpen ? competitionDraft : createCompetitionDraft();
+    competitionDraft = createCompetitionDraft();
+    competitionActionMenuId = '';
     switchTab('competition-create');
   }
 
   function closeCompetitionCreator() {
     competitionDraft = null;
+    competitionActionMenuId = '';
     switchTab('ledertavler-spill');
+  }
+
+  function toggleCompetitionActionMenu(competitionId = '') {
+    const nextId = String(competitionId || '');
+    competitionActionMenuId = competitionActionMenuId === nextId ? '' : nextId;
+    renderLedertavlerSpillPage();
+  }
+
+  function closeCompetitionActionMenu() {
+    if (!competitionActionMenuId) return;
+    competitionActionMenuId = '';
+    if (isTabActive('ledertavler-spill')) renderLedertavlerSpillPage();
+  }
+
+  function openCompetitionEdit(competitionId = '') {
+    const game = competitionGames.find(item => item.competition_id === String(competitionId || ''));
+    if (!game || !canDeleteCompetitionGame(game)) return;
+    const startsAt = new Date(game.starts_at);
+    const endsAt = new Date(game.ends_at);
+    const teamConfigs = getCompetitionTeamConfigs(game);
+    const participantIds = getCompetitionParticipantIds(game);
+    competitionDraft = createCompetitionDraft({
+      isOpen: true,
+      editCompetitionId: game.competition_id,
+      mode: getCompetitionMode(game),
+      name: game.name,
+      prize: String(game.rules_json?.prize || ''),
+      metricType: game.metric_type,
+      pointsPerSale: getCompetitionPointWeights(game).pointsPerSale,
+      pointsPerOver6: getCompetitionPointWeights(game).pointsPerOver6,
+      objectiveMode: getCompetitionObjectiveMode(game),
+      targetValue: game.target_value ? String(game.target_value) : '',
+      startDateValue: getDateInputValue(Number.isNaN(startsAt.getTime()) ? new Date() : startsAt),
+      startTimeValue: getTimeInputValue(Number.isNaN(startsAt.getTime()) ? new Date() : startsAt),
+      endDateValue: getDateInputValue(Number.isNaN(endsAt.getTime()) ? addDays(new Date(), 7) : endsAt),
+      endTimeValue: getTimeInputValue(Number.isNaN(endsAt.getTime()) ? addDays(new Date(), 7) : endsAt),
+      participantIds,
+      teamCount: Math.max(2, teamConfigs.length || 2),
+      teamConfigs
+    });
+    competitionActionMenuId = '';
+    switchTab('competition-create');
   }
 
   function updateCompetitionDraftField(key, value, shouldRender = true) {
@@ -14614,6 +14703,7 @@
   function toggleCompetitionRulesDetails(competitionId = '') {
     const nextId = String(competitionId || '');
     expandedCompetitionRulesId = expandedCompetitionRulesId === nextId ? '' : nextId;
+    competitionActionMenuId = '';
     renderLedertavlerSpillPage();
   }
 
@@ -14622,6 +14712,7 @@
     const game = competitionGames.find(item => item.competition_id === String(competitionId));
     if (!game || !canDeleteCompetitionGame(game)) return;
     if (!confirm(`Fjerne konkurransen "${game.name}"?`)) return;
+    competitionActionMenuId = '';
     setCompetitionState('loading');
     try {
       const { error } = await supabaseClient
@@ -14680,8 +14771,14 @@
       : [...new Set((draft.participantIds || []).concat(String(currentUser.id)).filter(Boolean))];
     const name = String(draft.name || '').trim();
     const targetValue = objectiveMode === 'target' ? Math.max(1, Math.floor(Number(draft.targetValue) || 0)) : null;
+    const editingCompetitionId = String(draft.editCompetitionId || '');
+    const isEditing = Boolean(editingCompetitionId);
     const teamColors = Object.fromEntries(teamConfigs.map((team, index) => [normalizeTeamKey(team.name), team.color || COMPETITION_TEAM_COLORS[index % COMPETITION_TEAM_COLORS.length]]));
     const selectedTeams = teamConfigs.map(team => team.name);
+    const existingParticipantIds = isEditing ? getCompetitionParticipantIds({ competition_id: editingCompetitionId }) : [];
+    const removedParticipantIds = isEditing
+      ? existingParticipantIds.filter(userId => !participantIds.includes(userId))
+      : [];
     const gameType = objectiveMode === 'target'
       ? 'target-hit'
       : metricType === 'sales'
@@ -14720,9 +14817,9 @@
     }
 
     setCompetitionState('loading');
-    const competitionId = createClientUuid();
+    const competitionId = isEditing ? editingCompetitionId : createClientUuid();
+    const nowIso = new Date().toISOString();
     const gameRow = {
-      competition_id: competitionId,
       creator_user_id: currentUser.id,
       name,
       description: '',
@@ -14732,6 +14829,7 @@
       starts_at: startsAt.toISOString(),
       ends_at: endsAt.toISOString(),
       status: getCompetitionStatus({ starts_at: startsAt.toISOString(), ends_at: endsAt.toISOString() }),
+      updated_at: nowIso,
       rules_json: {
         metricType,
         templateTitle: getCompetitionMetricLabel(metricType),
@@ -14754,41 +14852,63 @@
     }));
 
     try {
-      const { error: gameError } = await supabaseClient
-        .from(SUPABASE_COMPETITION_GAMES_TABLE)
-        .insert([gameRow]);
-      if (gameError) throw gameError;
-      const { error: participantError } = await supabaseClient
-        .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
-        .insert(participantRows);
-      if (participantError) throw participantError;
+      if (isEditing) {
+        const { error: gameError } = await supabaseClient
+          .from(SUPABASE_COMPETITION_GAMES_TABLE)
+          .update(gameRow)
+          .eq('competition_id', competitionId)
+          .eq('creator_user_id', currentUser.id);
+        if (gameError) throw gameError;
+        const { error: participantUpsertError } = await supabaseClient
+          .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
+          .upsert(participantRows, { onConflict: 'competition_id,user_id' });
+        if (participantUpsertError) throw participantUpsertError;
+        if (removedParticipantIds.length) {
+          const { error: deleteParticipantsError } = await supabaseClient
+            .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
+            .delete()
+            .eq('competition_id', competitionId)
+            .in('user_id', removedParticipantIds);
+          if (deleteParticipantsError) throw deleteParticipantsError;
+        }
+      } else {
+        const { error: gameError } = await supabaseClient
+          .from(SUPABASE_COMPETITION_GAMES_TABLE)
+          .insert([{ competition_id: competitionId, ...gameRow, created_at: nowIso }]);
+        if (gameError) throw gameError;
+        const { error: participantError } = await supabaseClient
+          .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
+          .insert(participantRows);
+        if (participantError) throw participantError;
+      }
       const normalizedGame = normalizeCompetitionGame({
+        competition_id: competitionId,
         ...gameRow,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        created_at: isEditing
+          ? (competitionGames.find(game => game.competition_id === competitionId)?.created_at || nowIso)
+          : nowIso
       });
       const normalizedParticipants = participantRows.map(row => normalizeCompetitionParticipant({
         ...row,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        created_at: nowIso,
+        updated_at: nowIso
       })).filter(Boolean);
       if (normalizedGame) {
         competitionGames = [normalizedGame, ...competitionGames.filter(game => game.competition_id !== normalizedGame.competition_id)];
       }
-      if (normalizedParticipants.length) {
-        const participantKeys = new Set(normalizedParticipants.map(row => `${row.competition_id}:${row.user_id}`));
-        competitionParticipants = [
-          ...normalizedParticipants,
-          ...competitionParticipants.filter(row => !participantKeys.has(`${row.competition_id}:${row.user_id}`))
-        ];
-      }
+      const participantKeys = new Set(normalizedParticipants.map(row => `${row.competition_id}:${row.user_id}`));
+      competitionParticipants = [
+        ...normalizedParticipants,
+        ...competitionParticipants.filter(row => row.competition_id !== competitionId && !participantKeys.has(`${row.competition_id}:${row.user_id}`))
+      ];
       competitionDraft = null;
+      competitionActionMenuId = '';
       selectedCompetitionId = competitionId;
       activeCompetitionFilter = getCompetitionStatus(normalizedGame || gameRow);
       setCompetitionState('ready');
       switchTab('ledertavler-spill');
     } catch (error) {
-      setCompetitionState('error', error?.message || 'Kunne ikke opprette konkurransen.');
+      setCompetitionState('error', error?.message || (isEditing ? 'Kunne ikke oppdatere konkurransen.' : 'Kunne ikke opprette konkurransen.'));
     }
   }
 
@@ -14815,6 +14935,7 @@
   function renderCompetitionCreateCard() {
     if (!competitionDraft?.isOpen) return '';
     const draft = competitionDraft;
+    const isEditing = Boolean(String(draft.editCompetitionId || ''));
     const isTeamMode = draft.mode === 'team';
     const selectableUsers = getCompetitionSelectableUsers();
     const teamConfigs = buildCompetitionDraftTeamConfigs(draft.teamCount, draft.teamConfigs);
@@ -14832,8 +14953,8 @@
     return `
       <div class="games-create-card">
         <div class="games-section-head">
-          <div class="games-section-title">Opprett nytt spill</div>
-          <button class="backup-btn" type="button" onclick="switchTab('ledertavler-spill')">Tilbake</button>
+          <div class="games-section-title">${isEditing ? 'Rediger spill' : 'Opprett nytt spill'}</div>
+          <button class="backup-btn" type="button" onclick="closeCompetitionCreator()">Tilbake</button>
         </div>
         ${competitionErrorMessage ? `<div class="stats-empty-card" style="margin-bottom:16px;">${escHtml(competitionErrorMessage)}</div>` : ''}
         <div class="games-question-list">
@@ -15035,8 +15156,8 @@
           </div>
         </div>
         <div class="games-form-actions" style="margin-top:16px;">
-          <button class="save-btn" type="button" onclick="saveCompetitionGame()">Opprett spill</button>
-          <button class="backup-btn" type="button" onclick="switchTab('ledertavler-spill')">Avbryt</button>
+          <button class="save-btn" type="button" onclick="saveCompetitionGame()">${isEditing ? 'Lagre endringer' : 'Opprett spill'}</button>
+          <button class="backup-btn" type="button" onclick="closeCompetitionCreator()">Avbryt</button>
         </div>
       </div>
     `;
@@ -15050,11 +15171,12 @@
       return;
     }
     competitionDraft = competitionDraft?.isOpen ? competitionDraft : createCompetitionDraft();
+    const isEditing = Boolean(String(competitionDraft?.editCompetitionId || ''));
     container.innerHTML = `
       <div class="games-create-page-shell">
         <div class="games-hero">
           <div>
-            <div class="games-hero-title">Opprett konkurranse</div>
+            <div class="games-hero-title">${isEditing ? 'Rediger spill' : 'Opprett konkurranse'}</div>
           </div>
         </div>
         ${renderCompetitionCreateCard()}
@@ -15226,6 +15348,7 @@
   function renderCompetitionDetailCard(game, options = {}) {
     if (!game) return '';
     const showActions = options.showActions !== false;
+    const canManage = canDeleteCompetitionGame(game);
     const participants = getCompetitionParticipantsForGame(game);
     const standings = buildCompetitionStandings(game);
     const isTeamGame = isTeamCompetitionGame(game);
@@ -15237,13 +15360,28 @@
     const leaderRow = (isTeamGame ? teamStandings[0] : standings[0]) || null;
     if (status === 'active') {
       const isRulesOpen = expandedCompetitionRulesId === game.competition_id;
+      const isMenuOpen = competitionActionMenuId === game.competition_id;
       return `
         <div class="games-competition-detail">
           ${showActions ? `
             <div class="games-card-actions" style="justify-content:space-between;margin-bottom:8px;">
-              <button class="backup-btn" type="button" onclick="toggleCompetitionRulesDetails('${game.competition_id}')">Regler og detaljer</button>
-              ${canDeleteCompetitionGame(game) ? `
-                <button class="backup-btn" type="button" style="padding:8px 12px;font-size:12px;color:#b91c1c;border-color:rgba(185,28,28,0.22);" onclick="deleteCompetitionGame('${game.competition_id}')">Fjern</button>
+              ${canManage ? '<span></span>' : `<button class="backup-btn" type="button" onclick="toggleCompetitionRulesDetails('${game.competition_id}')">Regler og detaljer</button>`}
+              ${canManage ? `
+                <div class="games-action-menu-wrap" onclick="event.stopPropagation()">
+                  <button
+                    id="competition-actions-${game.competition_id}"
+                    class="backup-btn games-action-menu-trigger"
+                    type="button"
+                    aria-expanded="${isMenuOpen ? 'true' : 'false'}"
+                    aria-label="Åpne spillmeny"
+                    onclick="toggleCompetitionActionMenu('${game.competition_id}')"
+                  >&#9776;</button>
+                  <div class="games-action-menu${isMenuOpen ? ' open' : ''}">
+                    <button class="backup-btn" type="button" onclick="toggleCompetitionRulesDetails('${game.competition_id}')">Regler og detaljer</button>
+                    <button class="backup-btn" type="button" onclick="openCompetitionEdit('${game.competition_id}')">Rediger spill</button>
+                    <button class="backup-btn" type="button" style="color:#b91c1c;border-color:rgba(185,28,28,0.22);" onclick="deleteCompetitionGame('${game.competition_id}')">Fjern</button>
+                  </div>
+                </div>
               ` : '<span></span>'}
             </div>
           ` : ''}
