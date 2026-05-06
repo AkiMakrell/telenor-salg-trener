@@ -14150,7 +14150,6 @@
 
   function renderDashboardQuickRegisterCard(dag, uke) {
     const showOpptakShortcut = isDashboardOpptakShortcutEnabled();
-    const activeGamesSection = renderDashboardActiveGamesSection();
     return `
       <div class="dashboard-card dashboard-card-strong dashboard-card-interactive" role="button" tabindex="0" onclick="switchTab('intro')" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); switchTab('intro'); }">
         <div class="dashboard-card-heading">
@@ -14172,7 +14171,6 @@
         <div class="quick-undo-row dashboard-quick-undo">
           <button class="quick-undo-link" data-intro-history-undo type="button" onclick="event.stopPropagation(); undoLastIntroHistoryAction()">Angre siste</button>
         </div>
-        ${activeGamesSection}
       </div>
     `;
   }
@@ -15993,13 +15991,13 @@
     `;
   }
 
-  function renderDashboardActiveGamesSection() {
+  function renderDashboardActiveGamesCard() {
     const activeGames = getCompetitionVisibleGames('active');
     if (!activeGames.length) return '';
     return `
-      <div class="dashboard-active-games" onclick="event.stopPropagation()">
-        <div class="games-section-head" style="margin-top:18px;">
-          <div class="games-section-title">Aktive spill</div>
+      <div class="dashboard-card dashboard-active-games" onclick="event.stopPropagation()">
+        <div class="dashboard-card-heading">
+          <div class="dashboard-card-title">Aktive spill</div>
         </div>
         ${competitionState === 'error' ? `<div class="stats-empty-card">${escHtml(competitionErrorMessage || 'Kunne ikke laste spill.')}</div>` : ''}
         ${activeGames.map(game => renderCompetitionDetailCard(game, { showActions: false })).join('')}
@@ -16242,6 +16240,7 @@
         <div class="dashboard-home-grid">
           <div class="dashboard-stack">
             ${renderDashboardQuickRegisterCard(dag, uke)}
+            ${renderDashboardActiveGamesCard()}
             ${renderDashboardTodayCard(dag, todaySessionCount)}
             ${renderDashboardWeekCard(uke, weekData, stackedChartMax)}
           </div>
