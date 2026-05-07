@@ -6218,7 +6218,6 @@
       align-self: start;
     }
 
-    .games-create-progress-card,
     .games-create-summary-card {
       padding: 18px;
       border-radius: 18px;
@@ -6881,71 +6880,6 @@
       line-height: 1.45;
     }
 
-    .games-create-progress-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-bottom: 12px;
-    }
-
-    .games-create-progress-bar {
-      height: 8px;
-      border-radius: 999px;
-      background: rgba(51, 65, 85, 0.82);
-      overflow: hidden;
-      margin-bottom: 14px;
-    }
-
-    .games-create-progress-fill {
-      height: 100%;
-      width: 0;
-      border-radius: inherit;
-      background: linear-gradient(90deg, #38bdf8 0%, #8b5cf6 60%, #22c55e 100%);
-      box-shadow: 0 0 16px rgba(56, 189, 248, 0.18);
-    }
-
-    .games-create-progress-list {
-      display: grid;
-      gap: 8px;
-    }
-
-    .games-create-progress-item {
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.82rem;
-    }
-
-    .games-create-progress-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      background: rgba(100, 116, 139, 0.7);
-      box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.4);
-    }
-
-    .games-create-progress-item.active .games-create-progress-dot {
-      background: #60a5fa;
-    }
-
-    .games-create-progress-item.complete .games-create-progress-dot {
-      background: #22c55e;
-    }
-
-    .games-create-progress-item-label {
-      color: #e2e8f0;
-      font-weight: 700;
-    }
-
-    .games-create-progress-item-meta {
-      color: var(--muted);
-      font-size: 0.76rem;
-      text-align: right;
-    }
-
     .games-create-summary-list {
       display: grid;
       gap: 10px;
@@ -7516,14 +7450,6 @@
         text-align: left;
       }
 
-      .games-create-progress-item {
-        grid-template-columns: auto 1fr;
-      }
-
-      .games-create-progress-item-meta {
-        grid-column: 2;
-        text-align: left;
-      }
     }
 
     .personal-record-platform {
@@ -16327,34 +16253,6 @@
     }));
   }
 
-  function renderCompetitionCreateProgressCard(stepItems) {
-    const completedCount = stepItems.filter(item => item.complete).length;
-    const progressPercent = Math.round((completedCount / Math.max(stepItems.length, 1)) * 100);
-    return `
-      <div class="games-create-progress-card">
-        <div class="games-create-progress-head">
-          <div>
-            <div class="games-section-title">Bygg spillet steg for steg</div>
-            <div class="games-muted-text">Ta de store valgene først, så fyller du inn detaljene underveis.</div>
-          </div>
-          <span class="games-badge">${completedCount}/${stepItems.length} ferdig</span>
-        </div>
-        <div class="games-create-progress-bar" aria-hidden="true">
-          <div class="games-create-progress-fill" style="width:${progressPercent}%;"></div>
-        </div>
-        <div class="games-create-progress-list">
-          ${stepItems.map(item => `
-            <div class="games-create-progress-item ${item.state}">
-              <span class="games-create-progress-dot" aria-hidden="true"></span>
-              <span class="games-create-progress-item-label">${item.number}. ${escHtml(item.title)}</span>
-              <span class="games-create-progress-item-meta">${escHtml(item.meta)}</span>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
-  }
-
   function renderCompetitionCreateSummaryCard(draft, options = {}) {
     const isTeamMode = Boolean(options.isTeamMode);
     const teamConfigs = Array.isArray(options.teamConfigs) ? options.teamConfigs : [];
@@ -16452,7 +16350,6 @@
               <button class="backup-btn" type="button" onclick="closeCompetitionCreator()">Tilbake</button>
             </div>
             ${competitionErrorMessage ? `<div class="stats-empty-card">${escHtml(competitionErrorMessage)}</div>` : ''}
-            ${renderCompetitionCreateProgressCard(stepItems)}
             <div class="games-question-list">
               <div class="games-question-card${getQuestionCardClass(1)}">
                 <div class="games-question-head">
