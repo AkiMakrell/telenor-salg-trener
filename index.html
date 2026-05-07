@@ -19766,6 +19766,14 @@
     commitIntroHistory(history, {
       undoState: buildRegistrationUndoState(actionLabel, previousHistory)
     });
+    if (type === 'salg') {
+      enqueueCelebration('salg', { salesCount: saleDetails?.salesCount || 1 });
+      return;
+    }
+    if (type === 'over5min') {
+      enqueueCelebration('over5min');
+      return;
+    }
     queueCelebrationsForEntryChange(null, nextEntry);
   }
 
