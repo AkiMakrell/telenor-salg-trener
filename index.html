@@ -6635,6 +6635,13 @@
       color: var(--text);
     }
 
+    .games-archive-score-meta {
+      margin-top: 4px;
+      font-size: 0.74rem;
+      line-height: 1.35;
+      color: #94a3b8;
+    }
+
     .games-archive-score-value {
       font-size: 0.95rem;
       font-weight: 900;
@@ -14975,6 +14982,16 @@
     return '';
   }
 
+  function getCompetitionTeamMemberNames(game, teamName) {
+    const targetTeam = String(teamName || '').trim();
+    if (!targetTeam) return [];
+    return getCompetitionParticipantIds(game)
+      .filter(userId => getCompetitionAssignedTeamName(game, userId) === targetTeam)
+      .map(userId => getPublicProfileByUserId(userId)?.display_name || (userId === String(currentUser?.id || '') ? getUserDisplayName(currentUser) : 'Ukjent bruker'))
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, 'no-NO'));
+  }
+
   function getCompetitionTeamColor(team, source) {
     const key = normalizeTeamKey(team);
     if (!key) return '';
@@ -16259,15 +16276,21 @@
     const isTeamGame = isTeamCompetitionGame(game);
     const standings = isTeamGame ? buildCompetitionTeamStandings(game) : buildCompetitionStandings(game);
     if (!standings.length) {
-      const fallbackNames = isTeamGame
-        ? getCompetitionSelectedTeams(game)
+      const fallbackEntries = isTeamGame
+        ? getCompetitionSelectedTeams(game).map(team => ({
+          name: team,
+          members: getCompetitionTeamMemberNames(game, team)
+        }))
         : getCompetitionParticipantIds(game).map(userId => getPublicProfileByUserId(userId)?.display_name || (userId === String(currentUser?.id || '') ? getUserDisplayName(currentUser) : 'Ukjent bruker'));
-      if (!fallbackNames.length) return '<div class="games-empty-note">Ingen deltakere ennå.</div>';
+      if (!fallbackEntries.length) return '<div class="games-empty-note">Ingen deltakere ennå.</div>';
       return `
         <div class="games-archive-score-list">
-          ${fallbackNames.map(name => `
+          ${fallbackEntries.map(entry => `
             <div class="games-archive-score-row">
-              <div class="games-archive-score-name">${escHtml(name)}</div>
+              <div>
+                <div class="games-archive-score-name">${escHtml(isTeamGame ? entry.name : entry)}</div>
+                ${isTeamGame && entry.members?.length ? `<div class="games-archive-score-meta">${escHtml(entry.members.join(', '))}</div>` : ''}
+              </div>
               <div class="games-archive-score-value">0 poeng</div>
             </div>
           `).join('')}
@@ -16278,7 +16301,13 @@
       <div class="games-archive-score-list">
         ${standings.map(entry => `
           <div class="games-archive-score-row"${isTeamGame ? getCompetitionTeamRowStyle(entry.team, game) : ''}>
-            <div class="games-archive-score-name">${escHtml(isTeamGame ? entry.team : entry.display_name)}</div>
+            <div>
+              <div class="games-archive-score-name">${escHtml(isTeamGame ? entry.team : entry.display_name)}</div>
+              ${isTeamGame ? (() => {
+                const members = getCompetitionTeamMemberNames(game, entry.team);
+                return members.length ? `<div class="games-archive-score-meta">${escHtml(members.join(', '))}</div>` : '';
+              })() : ''}
+            </div>
             <div class="games-archive-score-value">${Number(entry.score || 0)} poeng</div>
           </div>
         `).join('')}
