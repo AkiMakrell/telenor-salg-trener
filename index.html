@@ -6924,6 +6924,20 @@
       color: var(--muted);
     }
 
+    .games-standing-rank-stack {
+      display: grid;
+      gap: 6px;
+      align-content: center;
+      justify-items: start;
+    }
+
+    .games-standing-rank-stack .rank-movement {
+      min-width: 30px;
+      height: 24px;
+      padding: 0 6px;
+      font-size: 0.7rem;
+    }
+
     .games-standing-name {
       font-weight: 800;
     }
@@ -9371,6 +9385,7 @@
   const APP_META_LAST_IMPORT_USER = 'telenorSalgTrainer:lastImportedUserId';
   const APP_META_DEVICE_BACKUP_PREFIX = 'telenorSalgTrainer:deviceBackup:';
   const LEADERBOARD_RANK_SNAPSHOT_PREFIX = 'telenorSalgTrainer:leaderboardRankSnapshot:';
+  const COMPETITION_RANK_SNAPSHOT_PREFIX = 'telenorSalgTrainer:competitionRankSnapshot:';
   const _origSetItem    = localStorage.setItem.bind(localStorage);
   const _origRemoveItem = localStorage.removeItem.bind(localStorage);
   const _origGetItem    = localStorage.getItem.bind(localStorage);
@@ -9387,6 +9402,7 @@
   let leaderboardState = 'idle';
   let leaderboardErrorMessage = '';
   let leaderboardMovementByPeriod = {};
+  let competitionMovementByGame = {};
   let aboCountPromptResolver = null;
   let aboCountPromptMode = 'count';
   let salePromptDraft = null;
@@ -9675,6 +9691,7 @@
     publicActivityRows = [];
     competitionGames = [];
     competitionParticipants = [];
+    competitionMovementByGame = {};
     competitionErrorMessage = '';
     selectedCompetitionId = '';
     competitionDraft = null;
@@ -9795,6 +9812,10 @@
     return userId ? `${LEADERBOARD_RANK_SNAPSHOT_PREFIX}${userId}` : '';
   }
 
+  function getCompetitionSnapshotStorageKey(userId = currentUser?.id) {
+    return userId ? `${COMPETITION_RANK_SNAPSHOT_PREFIX}${userId}` : '';
+  }
+
   function createEmptyLeaderboardPeriodMap() {
     return LEADERBOARD_PERIOD_CONFIG.reduce((acc, period) => {
       acc[period.id] = {};
@@ -9824,6 +9845,34 @@
 
   function saveLeaderboardRankSnapshot(snapshot, userId = currentUser?.id) {
     const key = getLeaderboardSnapshotStorageKey(userId);
+    if (!key) return;
+    _origSetItem(key, JSON.stringify(snapshot));
+  }
+
+  function readCompetitionRankSnapshot(userId = currentUser?.id) {
+    const key = getCompetitionSnapshotStorageKey(userId);
+    if (!key) return {};
+    try {
+      const parsed = JSON.parse(_origGetItem(key) || '{}');
+      if (!parsed || typeof parsed !== 'object') return {};
+      return Object.entries(parsed).reduce((acc, [competitionId, entries]) => {
+        if (!competitionId || !entries || typeof entries !== 'object') return acc;
+        acc[competitionId] = {};
+        Object.entries(entries).forEach(([entryUserId, rank]) => {
+          const normalizedRank = Number(rank);
+          if (entryUserId && Number.isFinite(normalizedRank) && normalizedRank > 0) {
+            acc[competitionId][entryUserId] = normalizedRank;
+          }
+        });
+        return acc;
+      }, {});
+    } catch {
+      return {};
+    }
+  }
+
+  function saveCompetitionRankSnapshot(snapshot, userId = currentUser?.id) {
+    const key = getCompetitionSnapshotStorageKey(userId);
     if (!key) return;
     _origSetItem(key, JSON.stringify(snapshot));
   }
@@ -11057,6 +11106,7 @@
       const freshUserIds = new Set(freshRows.map(row => row.user_id));
       const nextRows = mergeCurrentUserLocalLeaderboardRow([...freshRows, ...legacyRows.filter(row => !freshUserIds.has(row.user_id))]);
       updateLeaderboardMovementState(nextRows);
+      updateCompetitionMovementState(competitionGames);
       leaderboardRows = nextRows;
       setLeaderboardState('ready');
       setCompetitionState('ready');
@@ -15314,6 +15364,54 @@
     return standings;
   }
 
+  function buildCompetitionRankSnapshot(games = competitionGames) {
+    return (Array.isArray(games) ? games : []).reduce((snapshot, game) => {
+      const competitionId = String(game?.competition_id || '').trim();
+      if (!competitionId || getCompetitionStatus(game) !== 'active') return snapshot;
+      snapshot[competitionId] = {};
+      buildCompetitionStandings(game).forEach((row, index) => {
+        if (row?.user_id) snapshot[competitionId][row.user_id] = index + 1;
+      });
+      return snapshot;
+    }, {});
+  }
+
+  function updateCompetitionMovementState(games = competitionGames) {
+    const previousSnapshot = readCompetitionRankSnapshot();
+    const nextSnapshot = buildCompetitionRankSnapshot(games);
+    const nextMovement = {};
+    Object.entries(nextSnapshot).forEach(([competitionId, entries]) => {
+      nextMovement[competitionId] = {};
+      Object.entries(entries).forEach(([userId, currentRank]) => {
+        const previousRank = Number(previousSnapshot?.[competitionId]?.[userId]);
+        nextMovement[competitionId][userId] = Number.isFinite(previousRank) ? previousRank - currentRank : 0;
+      });
+    });
+    competitionMovementByGame = nextMovement;
+    saveCompetitionRankSnapshot(nextSnapshot);
+  }
+
+  function getCompetitionMovementDelta(competitionId, userId) {
+    const delta = Number(competitionMovementByGame?.[competitionId]?.[userId]);
+    return Number.isFinite(delta) ? delta : 0;
+  }
+
+  function renderCompetitionMovementIndicator(competitionId, userId) {
+    const delta = getCompetitionMovementDelta(competitionId, userId);
+    if (delta > 0) return `<span class="rank-movement up" title="Opp ${delta} plass${delta === 1 ? '' : 'er'}">↑${delta}</span>`;
+    if (delta < 0) return `<span class="rank-movement down" title="Ned ${Math.abs(delta)} plass${Math.abs(delta) === 1 ? '' : 'er'}">↓${Math.abs(delta)}</span>`;
+    return '<span class="rank-movement steady" title="Uendret">-</span>';
+  }
+
+  function renderCompetitionStandingRank(rank, competitionId, userId) {
+    return `
+      <div class="games-standing-rank-stack">
+        <div class="games-standing-rank">#${rank}</div>
+        ${competitionId && userId ? renderCompetitionMovementIndicator(competitionId, userId) : ''}
+      </div>
+    `;
+  }
+
   function buildCompetitionTeamStandings(game) {
     if (!isTeamCompetitionGame(game)) return [];
     const playerStandings = buildCompetitionStandings(game);
@@ -16462,7 +16560,7 @@
           <div class="games-standings-table" style="max-width:720px;margin:18px auto 0;">
             ${standings.length ? standings.map((row, index) => `
               <div class="games-standing-row${isTeamGame ? ' team-colored' : ''}"${isTeamGame ? getCompetitionTeamRowStyle(row.team, game) : ''}>
-                <div class="games-standing-rank">#${index + 1}</div>
+                ${renderCompetitionStandingRank(index + 1, game.competition_id, row.user_id)}
                 <div>
                   <div class="games-standing-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
                   <div class="games-standing-team-meta">
