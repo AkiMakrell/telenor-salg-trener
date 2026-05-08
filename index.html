@@ -16753,6 +16753,7 @@
   function renderCompetitionGameCard(game) {
     const status = getCompetitionStatus(game);
     const prize = String(game.rules_json?.prize || '').trim();
+    const canManage = canDeleteCompetitionGame(game);
     if (status === 'completed') return renderCompletedCompetitionGameCard(game);
     return `
       <div class="games-competition-card games-archive-card">
@@ -16763,6 +16764,11 @@
           </div>
           <span class="games-badge ${status}">${getCompetitionStatusLabel(status)}</span>
         </div>
+        ${status === 'scheduled' && canManage ? `
+          <div class="games-card-actions">
+            <button class="backup-btn" type="button" onclick="openCompetitionEdit('${game.competition_id}')">Rediger spill</button>
+          </div>
+        ` : ''}
         ${renderArchiveCompetitionScoreRows(game)}
         <div class="games-archive-highlight-grid">
           <div class="games-archive-highlight prize">
