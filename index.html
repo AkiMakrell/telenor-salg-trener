@@ -10049,6 +10049,7 @@
       isOpen: overrides.isOpen === false ? false : true,
       editCompetitionId: String(overrides.editCompetitionId || ''),
       mode: String(overrides.mode || 'ffa') === 'team' ? 'team' : 'ffa',
+      teamScoreMode: String(overrides.teamScoreMode || 'total') === 'average' ? 'average' : 'total',
       name: String(overrides.name || ''),
       prize: String(overrides.prize || ''),
       metricType: String(overrides.metricType || defaultMetric.id),
@@ -15245,6 +15246,23 @@
     return String(game?.rules_json?.competitionMode || 'ffa') === 'team' ? 'team' : 'ffa';
   }
 
+  function getCompetitionTeamScoreMode(source = null) {
+    return String((source?.teamScoreMode ?? source?.rules_json?.teamScoreMode) || 'total') === 'average' ? 'average' : 'total';
+  }
+
+  function getCompetitionTeamScoreModeLabel(source = null) {
+    return getCompetitionTeamScoreMode(source) === 'average' ? 'Snitt per spiller' : 'Totalscore';
+  }
+
+  function formatCompetitionScoreValue(value) {
+    const normalizedValue = Number(value) || 0;
+    const maximumFractionDigits = Number.isInteger(normalizedValue) ? 0 : 2;
+    return normalizedValue.toLocaleString('no-NO', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits
+    });
+  }
+
   function isTeamCompetitionGame(game) {
     return getCompetitionMode(game) === 'team';
   }
@@ -15679,6 +15697,7 @@
   function buildCompetitionTeamStandings(game) {
     if (!isTeamCompetitionGame(game)) return [];
     const playerStandings = buildCompetitionStandings(game);
+    const teamScoreMode = getCompetitionTeamScoreMode(game);
     const groups = new Map();
     playerStandings.forEach(player => {
       const team = String(player.team || '').trim();
@@ -15688,6 +15707,8 @@
           team,
           teamColor: getCompetitionTeamColor(team, game),
           score: 0,
+          totalScore: 0,
+          averageScore: 0,
           totalSales: 0,
           totalOver6: 0,
           totalPoints: 0,
@@ -15695,14 +15716,21 @@
         });
       }
       const current = groups.get(team);
-      current.score += player.score;
+      current.totalScore += player.score;
       current.totalSales += player.totalSales;
       current.totalOver6 += player.totalOver6;
       current.totalPoints += player.totalPoints;
       current.playerCount += 1;
     });
-    return [...groups.values()].sort((a, b) => {
+    return [...groups.values()].map(team => ({
+      ...team,
+      averageScore: team.playerCount ? team.totalScore / team.playerCount : 0,
+      score: teamScoreMode === 'average'
+        ? (team.playerCount ? team.totalScore / team.playerCount : 0)
+        : team.totalScore
+    })).sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
+      if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
       if (b.totalSales !== a.totalSales) return b.totalSales - a.totalSales;
       if (b.totalOver6 !== a.totalOver6) return b.totalOver6 - a.totalOver6;
       return a.team.localeCompare(b.team, 'no-NO');
@@ -15878,6 +15906,7 @@
       isOpen: true,
       editCompetitionId: game.competition_id,
       mode: getCompetitionMode(game),
+      teamScoreMode: getCompetitionTeamScoreMode(game),
       name: game.name,
       prize: String(game.rules_json?.prize || ''),
       metricType: game.metric_type,
@@ -16126,6 +16155,7 @@
     const startsAt = parseDateTimeInput(draft.startDateValue, draft.startTimeValue);
     const endsAt = parseDateTimeInput(draft.endDateValue, draft.endTimeValue);
     const competitionMode = draft.mode === 'team' ? 'team' : 'ffa';
+    const teamScoreMode = draft.teamScoreMode === 'average' ? 'average' : 'total';
     const metricType = String(draft.metricType || COMPETITION_METRIC_OPTIONS[0].id);
     const objectiveMode = draft.objectiveMode === 'target' ? 'target' : 'most';
     const pointsPerSale = Math.max(1, Math.floor(Number(draft.pointsPerSale) || LEADERBOARD_POINTS_PER_SALE));
@@ -16209,6 +16239,7 @@
         templateTitle: getCompetitionMetricLabel(metricType),
         prize: String(draft.prize || '').trim(),
         competitionMode,
+        teamScoreMode,
         objectiveMode,
         pointsPerSale,
         pointsPerOver6,
@@ -16386,7 +16417,7 @@
         title: 'Oppsett',
         complete: setupReady,
         meta: isTeamMode
-          ? `${teamConfigs.length} lag${unassignedUsers.length ? ` · ${unassignedUsers.length} ikke fordelt` : ''}`
+          ? `${teamConfigs.length} lag · ${getCompetitionTeamScoreModeLabel(draft)}${unassignedUsers.length ? ` · ${unassignedUsers.length} ikke fordelt` : ''}`
           : `${participantCount} ${participantCount === 1 ? 'spiller' : 'spillere'}`
       },
       { number: 3, title: 'Spilltype', complete: metricReady, meta: getCompetitionMetricLabel(draft?.metricType) },
@@ -16417,7 +16448,9 @@
       {
         label: 'Format',
         value: isTeamMode ? 'Lagspill' : 'Alle mot alle',
-        meta: isTeamMode ? `${teamConfigs.length} lag · ${assignedCount} fordelte spillere` : `${participantCount} inviterte spillere`
+        meta: isTeamMode
+          ? `${teamConfigs.length} lag · ${assignedCount} fordelte spillere · ${getCompetitionTeamScoreModeLabel(draft)}`
+          : `${participantCount} inviterte spillere`
       },
       {
         label: 'Spilltype',
@@ -16541,6 +16574,19 @@
                       <select onchange="updateCompetitionDraftField('teamCount', this.value)">
                         ${[2, 3, 4, 5, 6].map(count => `<option value="${count}" ${Number(draft.teamCount) === count ? 'selected' : ''}>${count} lag</option>`).join('')}
                       </select>
+                    </div>
+                    <div>
+                      <div class="games-question-subhead">Hvordan skal lagene rangeres?</div>
+                      <div class="games-choice-grid" style="margin-top:10px;">
+                        <button class="games-choice-card${draft.teamScoreMode !== 'average' ? ' active' : ''}" type="button" onclick="updateCompetitionDraftField('teamScoreMode', 'total')">
+                          <span class="games-choice-title">Totalscore</span>
+                          <span class="games-choice-text">Lag med flest samlede poeng eller registreringer vinner.</span>
+                        </button>
+                        <button class="games-choice-card${draft.teamScoreMode === 'average' ? ' active' : ''}" type="button" onclick="updateCompetitionDraftField('teamScoreMode', 'average')">
+                          <span class="games-choice-title">Snitt per spiller</span>
+                          <span class="games-choice-text">Lagene sammenlignes på gjennomsnittlig score per person.</span>
+                        </button>
+                      </div>
                     </div>
                     <div class="games-team-builder-grid">
                       ${teamConfigs.map(team => `
@@ -16806,6 +16852,7 @@
   function renderCompetitionTeamStandings(game) {
     const teamStandings = buildCompetitionTeamStandings(game);
     if (!teamStandings.length) return '<div class="games-empty-note">Ingen lagscore registrert ennå.</div>';
+    const teamScoreModeLabel = getCompetitionTeamScoreModeLabel(game);
     return `
       <div class="games-standings-table">
         ${teamStandings.map((row, index) => `
@@ -16813,9 +16860,9 @@
             <div class="games-standing-rank">#${index + 1}</div>
             <div>
               <div class="games-standing-name">${escHtml(row.team)}</div>
-              <div class="games-card-meta">${row.playerCount} ${row.playerCount === 1 ? 'spiller' : 'spillere'} · ${row.totalSales} abo · ${row.totalOver6} stk 6-min</div>
+              <div class="games-card-meta">${row.playerCount} ${row.playerCount === 1 ? 'spiller' : 'spillere'} · ${teamScoreModeLabel} · ${row.totalSales} abo · ${row.totalOver6} stk 6-min</div>
             </div>
-            <div class="games-standing-score">${row.score}</div>
+            <div class="games-standing-score">${formatCompetitionScoreValue(row.score)}</div>
           </div>
         `).join('')}
       </div>
@@ -16825,6 +16872,7 @@
   function renderCompetitionTeamSummaryCards(game) {
     const teamStandings = buildCompetitionTeamStandings(game);
     if (!teamStandings.length) return '';
+    const teamScoreModeLabel = getCompetitionTeamScoreModeLabel(game);
     const hasClearLeader = teamStandings.length > 1
       ? Number(teamStandings[0]?.score || 0) > Number(teamStandings[1]?.score || 0)
       : Number(teamStandings[0]?.score || 0) > 0;
@@ -16836,8 +16884,8 @@
               <span class="games-team-color-sticker" aria-hidden="true"></span>
               <div class="games-summary-label">${escHtml(team.team)}</div>
             </div>
-            <div class="games-metric-value">${team.score}</div>
-            <div class="games-card-meta">poeng</div>
+            <div class="games-metric-value">${formatCompetitionScoreValue(team.score)}</div>
+            <div class="games-card-meta">${escHtml(teamScoreModeLabel)}</div>
           </div>
         `).join('')}
       </div>
@@ -16887,10 +16935,11 @@
               <div class="games-archive-score-name">${escHtml(isTeamGame ? entry.team : entry.display_name)}</div>
               ${isTeamGame ? (() => {
                 const members = getCompetitionTeamMemberNames(game, entry.team);
-                return members.length ? `<div class="games-archive-score-meta">${escHtml(members.join(', '))}</div>` : '';
+                const teamScoreModeLabel = getCompetitionTeamScoreModeLabel(game);
+                return `<div class="games-archive-score-meta">${escHtml([teamScoreModeLabel, ...members].join(' · '))}</div>`;
               })() : ''}
             </div>
-            <div class="games-archive-score-value">${Number(entry.score || 0)} poeng</div>
+            <div class="games-archive-score-value">${formatCompetitionScoreValue(entry.score)} poeng</div>
           </div>
         `).join('')}
       </div>
@@ -17018,7 +17067,7 @@
           ${showActions && isRulesOpen ? `
             <div class="games-metric-tile" style="max-width:720px;margin:0 auto 14px;">
               <div class="games-section-title" style="margin-bottom:10px;">Regler og detaljer</div>
-              <div class="games-card-meta">${escHtml(isTeamGame ? 'Lagspill' : 'Alle mot alle')} · ${escHtml(getCompetitionObjectiveLabel(game))} · ${escHtml(getCompetitionMetricLabel(game.metric_type))}</div>
+              <div class="games-card-meta">${escHtml(isTeamGame ? 'Lagspill' : 'Alle mot alle')} · ${escHtml(getCompetitionObjectiveLabel(game))} · ${escHtml(getCompetitionMetricLabel(game.metric_type))}${isTeamGame ? ` · ${escHtml(getCompetitionTeamScoreModeLabel(game))}` : ''}</div>
               <div class="games-card-meta" style="margin-top:6px;">${escHtml(formatCompetitionTimeRange(game))}</div>
               ${prize ? `<div class="games-card-meta" style="margin-top:6px;">PREMIE: ${escHtml(prize)}</div>` : ''}
               ${viewerRows.length ? `<div class="games-card-meta" style="margin-top:6px;">Seere: ${viewerRows.length}</div>` : ''}
@@ -17057,7 +17106,7 @@
                     ${renderCompetitionStandingStatCards(row)}
                   </div>
                 </div>
-                <div class="games-standing-score">${row.score}</div>
+                <div class="games-standing-score">${formatCompetitionScoreValue(row.score)}</div>
               </div>
             `).join('') : '<div class="games-empty-note">Ingen aktivitet registrert i denne konkurransen ennå.</div>'}
           </div>
@@ -17069,7 +17118,7 @@
         <div class="games-detail-top">
           <div>
             <div class="games-detail-title">${escHtml(game.name)}</div>
-            <div class="games-detail-meta">${escHtml(isTeamGame ? 'Lagspill' : 'Alle mot alle')} · ${escHtml(getCompetitionObjectiveLabel(game))} · ${escHtml(formatCompetitionTimeRange(game))}</div>
+            <div class="games-detail-meta">${escHtml(isTeamGame ? 'Lagspill' : 'Alle mot alle')} · ${escHtml(getCompetitionObjectiveLabel(game))}${isTeamGame ? ` · ${escHtml(getCompetitionTeamScoreModeLabel(game))}` : ''} · ${escHtml(formatCompetitionTimeRange(game))}</div>
           </div>
           <span class="games-badge ${status}">${getCompetitionStatusLabel(status)}</span>
         </div>
@@ -17088,7 +17137,7 @@
         ${isTeamGame ? `
           <div class="games-section-head" style="margin-top:18px;">
             <div class="games-section-title">Lagstilling</div>
-            <div class="games-muted-text">${escHtml(getCompetitionMetricLabel(game.metric_type))}</div>
+            <div class="games-muted-text">${escHtml(getCompetitionMetricLabel(game.metric_type))} · ${escHtml(getCompetitionTeamScoreModeLabel(game))}</div>
           </div>
           ${renderCompetitionTeamStandings(game)}
         ` : ''}
@@ -17106,7 +17155,7 @@
                   ${renderCompetitionStandingStatCards(row)}
                 </div>
               </div>
-              <div class="games-standing-score">${row.score}</div>
+                <div class="games-standing-score">${formatCompetitionScoreValue(row.score)}</div>
             </div>
           `).join('') : '<div class="games-empty-note">Ingen aktivitet registrert i denne konkurransen ennå.</div>'}
         </div>
