@@ -7028,7 +7028,7 @@
 
     .games-team-settings-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr) auto auto;
       gap: 12px;
       align-items: end;
     }
@@ -7037,6 +7037,11 @@
       display: grid;
       gap: 8px;
       justify-items: end;
+    }
+
+    .games-team-member-count {
+      display: flex;
+      align-items: flex-end;
     }
 
     .games-team-color-toggle {
@@ -7123,6 +7128,10 @@
 
       .games-team-color-control {
         justify-items: start;
+      }
+
+      .games-team-member-count {
+        justify-content: flex-start;
       }
 
       .games-team-color-palette {
@@ -16531,7 +16540,6 @@
                                 <input type="text" value="${escAttr(team.name)}" oninput="updateCompetitionTeamName('${team.id}', this.value, false)">
                               </div>
                               <div class="games-team-color-control">
-                                <label>Farge</label>
                                 <button class="games-team-color-toggle" type="button" onclick="toggleCompetitionTeamColorPicker('${team.id}')">
                                   <span class="games-team-color-toggle-sample" style="background:${escAttr(team.color || getCompetitionTeamColor(team.name, { teamConfigs }) || COMPETITION_TEAM_COLORS[0])};"></span>
                                   <span>Velg farge</span>
@@ -16553,8 +16561,10 @@
                                   </div>
                                 ` : ''}
                               </div>
+                              <div class="games-team-member-count">
+                                <span class="games-team-pill"${getCompetitionTeamToneStyle(team.name, { teamConfigs })}>${team.memberIds.length} ${team.memberIds.length === 1 ? 'spiller' : 'spillere'}</span>
+                              </div>
                             </div>
-                            <span class="games-team-pill"${getCompetitionTeamToneStyle(team.name, { teamConfigs })}>${team.memberIds.length} ${team.memberIds.length === 1 ? 'spiller' : 'spillere'}</span>
                           </div>
                           <div class="games-choice-grid">
                             ${selectableUsers.map(profile => {
