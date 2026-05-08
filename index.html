@@ -7039,6 +7039,38 @@
       justify-items: end;
     }
 
+    .games-team-color-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(71, 85, 105, 0.78);
+      background: rgba(8, 15, 30, 0.92);
+      color: #e2e8f0;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .games-team-color-toggle-sample {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.18);
+      background: var(--games-team-color, #94a3b8);
+      flex: 0 0 auto;
+    }
+
+    .games-team-color-panel {
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(51, 65, 85, 0.72);
+      background: rgba(10, 16, 30, 0.88);
+    }
+
     .games-team-color-input {
       width: 48px;
       height: 40px;
@@ -9627,6 +9659,7 @@
   let activeCompetitionFilter = 'active';
   let selectedCompetitionId = '';
   let competitionDraft = null;
+  let competitionTeamColorPickerId = '';
   let expandedCompetitionRulesId = '';
   let expandedCompetitionPointWeightsId = '';
   let competitionActionMenuId = '';
@@ -15657,12 +15690,14 @@
 
   function openCompetitionCreator() {
     competitionDraft = createCompetitionDraft();
+    competitionTeamColorPickerId = '';
     competitionActionMenuId = '';
     switchTab('competition-create');
   }
 
   function closeCompetitionCreator() {
     competitionDraft = null;
+    competitionTeamColorPickerId = '';
     competitionActionMenuId = '';
     switchTab('ledertavler-spill');
   }
@@ -15885,6 +15920,12 @@
     ));
     competitionDraft = { ...currentDraft, mode: 'team', teamConfigs };
     if (shouldRender) renderCompetitionCreatePage();
+  }
+
+  function toggleCompetitionTeamColorPicker(teamId) {
+    const nextId = String(teamId || '').trim();
+    competitionTeamColorPickerId = competitionTeamColorPickerId === nextId ? '' : nextId;
+    renderCompetitionCreatePage();
   }
 
   function toggleCompetitionParticipant(userId) {
@@ -16491,18 +16532,26 @@
                               </div>
                               <div class="games-team-color-control">
                                 <label>Farge</label>
-                                <input class="games-team-color-input" type="color" value="${escAttr(team.color || getCompetitionTeamColor(team.name, { teamConfigs }) || COMPETITION_TEAM_COLORS[0])}" onchange="updateCompetitionTeamColor('${team.id}', this.value)">
-                                <div class="games-team-color-palette">
-                                  ${COMPETITION_TEAM_COLORS.map(color => `
-                                    <button
-                                      class="games-team-color-swatch${String((team.color || '').toLowerCase()) === String(color).toLowerCase() ? ' active' : ''}"
-                                      type="button"
-                                      style="background:${escAttr(color)};"
-                                      aria-label="Velg lagfarge ${escAttr(color)}"
-                                      onclick="updateCompetitionTeamColor('${team.id}', '${color}')"
-                                    ></button>
-                                  `).join('')}
-                                </div>
+                                <button class="games-team-color-toggle" type="button" onclick="toggleCompetitionTeamColorPicker('${team.id}')">
+                                  <span class="games-team-color-toggle-sample" style="background:${escAttr(team.color || getCompetitionTeamColor(team.name, { teamConfigs }) || COMPETITION_TEAM_COLORS[0])};"></span>
+                                  <span>Velg farge</span>
+                                </button>
+                                ${competitionTeamColorPickerId === team.id ? `
+                                  <div class="games-team-color-panel">
+                                    <input class="games-team-color-input" type="color" value="${escAttr(team.color || getCompetitionTeamColor(team.name, { teamConfigs }) || COMPETITION_TEAM_COLORS[0])}" onchange="updateCompetitionTeamColor('${team.id}', this.value)">
+                                    <div class="games-team-color-palette">
+                                      ${COMPETITION_TEAM_COLORS.map(color => `
+                                        <button
+                                          class="games-team-color-swatch${String((team.color || '').toLowerCase()) === String(color).toLowerCase() ? ' active' : ''}"
+                                          type="button"
+                                          style="background:${escAttr(color)};"
+                                          aria-label="Velg lagfarge ${escAttr(color)}"
+                                          onclick="updateCompetitionTeamColor('${team.id}', '${color}')"
+                                        ></button>
+                                      `).join('')}
+                                    </div>
+                                  </div>
+                                ` : ''}
                               </div>
                             </div>
                             <span class="games-team-pill"${getCompetitionTeamToneStyle(team.name, { teamConfigs })}>${team.memberIds.length} ${team.memberIds.length === 1 ? 'spiller' : 'spillere'}</span>
