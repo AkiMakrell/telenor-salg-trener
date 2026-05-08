@@ -7034,6 +7034,7 @@
     }
 
     .games-team-color-control {
+      position: relative;
       display: grid;
       gap: 8px;
       justify-items: end;
@@ -7068,12 +7069,18 @@
     }
 
     .games-team-color-panel {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      z-index: 20;
       display: grid;
       gap: 8px;
+      min-width: 188px;
       padding: 10px;
       border-radius: 14px;
       border: 1px solid rgba(51, 65, 85, 0.72);
       background: rgba(10, 16, 30, 0.88);
+      box-shadow: 0 18px 32px rgba(2, 6, 23, 0.38);
     }
 
     .games-team-color-input {
@@ -7128,6 +7135,11 @@
 
       .games-team-color-control {
         justify-items: start;
+      }
+
+      .games-team-color-panel {
+        left: 0;
+        right: auto;
       }
 
       .games-team-member-count {
@@ -16536,7 +16548,7 @@
                           <div class="games-section-head" style="margin-bottom:12px;">
                             <div class="games-team-settings-row" style="flex:1;min-width:180px;">
                               <div class="games-field">
-                                <label>Navn på laget</label>
+                                <label>Navn</label>
                                 <input type="text" value="${escAttr(team.name)}" oninput="updateCompetitionTeamName('${team.id}', this.value, false)">
                               </div>
                               <div class="games-team-color-control">
