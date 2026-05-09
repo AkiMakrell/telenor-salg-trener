@@ -815,6 +815,7 @@ security definer
 set search_path = public
 set row_security = off
 as $$
+#variable_conflict use_column
 declare
   v_state_source_rows integer := 0;
   v_public_fallback_rows integer := 0;
@@ -854,7 +855,7 @@ begin
       timezone('utc', now())
     )
   )
-  on conflict (user_id) do update
+  on conflict on constraint user_backend_migration_state_pkey do update
     set backfill_status = 'running',
         notes_json = coalesce(public.user_backend_migration_state.notes_json, '{}'::jsonb)
           || jsonb_build_object(
