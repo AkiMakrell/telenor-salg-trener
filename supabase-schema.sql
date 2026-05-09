@@ -112,6 +112,70 @@ on public.user_app_snapshots
 for delete
 using (auth.uid() = user_id);
 
+create table if not exists public.user_backend_migration_state (
+  user_id uuid not null references auth.users (id) on delete cascade,
+  migration_scope text not null default 'stats-leaderboard-spill-v1',
+  migration_version integer not null default 1 check (migration_version > 0),
+  read_source_preference text not null default 'legacy' check (read_source_preference in ('legacy', 'hybrid', 'backend')),
+  backfill_status text not null default 'pending' check (backfill_status in ('pending', 'running', 'complete', 'failed')),
+  parity_status text not null default 'pending' check (parity_status in ('pending', 'running', 'matched', 'mismatch', 'failed')),
+  backend_ready boolean not null default false,
+  fallback_enabled boolean not null default true,
+  last_successful_step text not null default 'rollback-anchor',
+  rollback_tag text not null default 'pre-backend-migration-2026-05-09',
+  notes_json jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now()),
+  primary key (user_id)
+);
+
+alter table public.user_backend_migration_state
+  add column if not exists migration_scope text not null default 'stats-leaderboard-spill-v1',
+  add column if not exists migration_version integer not null default 1,
+  add column if not exists read_source_preference text not null default 'legacy',
+  add column if not exists backfill_status text not null default 'pending',
+  add column if not exists parity_status text not null default 'pending',
+  add column if not exists backend_ready boolean not null default false,
+  add column if not exists fallback_enabled boolean not null default true,
+  add column if not exists last_successful_step text not null default 'rollback-anchor',
+  add column if not exists rollback_tag text not null default 'pre-backend-migration-2026-05-09',
+  add column if not exists notes_json jsonb not null default '{}'::jsonb;
+
+drop trigger if exists user_backend_migration_state_set_updated_at on public.user_backend_migration_state;
+create trigger user_backend_migration_state_set_updated_at
+before update on public.user_backend_migration_state
+for each row
+execute function public.set_user_app_state_updated_at();
+
+alter table public.user_backend_migration_state enable row level security;
+
+grant select, insert, update, delete on public.user_backend_migration_state to authenticated;
+
+drop policy if exists "Users can read own backend migration state" on public.user_backend_migration_state;
+create policy "Users can read own backend migration state"
+on public.user_backend_migration_state
+for select
+using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert own backend migration state" on public.user_backend_migration_state;
+create policy "Users can insert own backend migration state"
+on public.user_backend_migration_state
+for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update own backend migration state" on public.user_backend_migration_state;
+create policy "Users can update own backend migration state"
+on public.user_backend_migration_state
+for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+drop policy if exists "Users can delete own backend migration state" on public.user_backend_migration_state;
+create policy "Users can delete own backend migration state"
+on public.user_backend_migration_state
+for delete
+using (auth.uid() = user_id);
+
 create table if not exists public.user_public_stats (
   user_id uuid not null references auth.users (id) on delete cascade,
   display_name text not null,

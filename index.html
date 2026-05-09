@@ -9639,6 +9639,7 @@
   const SUPABASE_PUBLIC_ACTIVITY_TABLE = 'user_public_activity_entries';
   const SUPABASE_COMPETITION_GAMES_TABLE = 'competition_games';
   const SUPABASE_COMPETITION_PARTICIPANTS_TABLE = 'competition_participants';
+  const SUPABASE_BACKEND_MIGRATION_TABLE = 'user_backend_migration_state';
   const SUPABASE_PROFILE_AVATAR_BUCKET = 'profile-avatars';
   const PROFILE_AVATAR_MAX_BYTES = 3 * 1024 * 1024;
   const INTRO_LEADERBOARD_DATA_VERSION = '2';
@@ -9673,8 +9674,12 @@
   const LEADERBOARD_POINTS_PER_OVER6 = 100;
   const LEADERBOARD_SCHEMA_WARNING = 'Leaderboard trenger en Supabase-oppdatering før dag/uke/måned kan vises. Kjør den nyeste supabase-schema.sql i SQL Editor.';
   const DATA_SAFETY_SCHEMA_WARNING = 'Databeskyttelse trenger en Supabase-oppdatering. Kjør den nyeste supabase-schema.sql i SQL Editor.';
+  const BACKEND_MIGRATION_SCHEMA_WARNING = 'Backend-migrering trenger en Supabase-oppdatering. Kjør den nyeste supabase-schema.sql i SQL Editor.';
   const MAX_APP_SNAPSHOTS = 20;
   const MAX_RECOVERY_SNAPSHOTS = 12;
+  const BACKEND_MIGRATION_SCOPE = 'stats-leaderboard-spill-v1';
+  const BACKEND_MIGRATION_VERSION = 1;
+  const BACKEND_MIGRATION_ROLLBACK_TAG = 'pre-backend-migration-2026-05-09';
   const LEADERBOARD_PERIOD_CONFIG = [
     { id: 'day', title: 'I dag', emptyLabel: 'Ingen registreringer i dag ennå.' },
     { id: 'week', title: 'Denne uken', emptyLabel: 'Ingen registreringer denne uken ennå.' },
@@ -9735,6 +9740,7 @@
   let competitionViewerModalGameId = '';
   let competitionViewerSelectionIds = [];
   let profileAvatarSaving = false;
+  let backendMigrationState = null;
 
   localStorage.setItem = function(k, v) {
     _origSetItem(k, v);
@@ -10203,6 +10209,12 @@
   function isMissingLeaderboardTeamColumn(error) {
     const message = String(error?.message || error || '');
     return /(schema cache|column .* does not exist|could not find the .*team.* column)/i.test(message) && /\bteam\b/i.test(message);
+  }
+
+  function isBackendMigrationSchemaMismatch(error) {
+    const message = String(error?.message || error || '');
+    return /(schema cache|relation .* does not exist|column .* does not exist)/i.test(message)
+      && /(user_backend_migration_state|migration_scope|read_source_preference|backfill_status|parity_status|backend_ready|fallback_enabled|last_successful_step|rollback_tag|notes_json)/i.test(message);
   }
 
   function getLeaderboardErrorMessage(error, fallback = 'Kunne ikke laste leaderboard.') {
@@ -10991,6 +11003,169 @@
     return state;
   }
 
+  function getDefaultBackendMigrationState(userId = currentUser?.id) {
+    return {
+      user_id: userId ? String(userId) : '',
+      migration_scope: BACKEND_MIGRATION_SCOPE,
+      migration_version: BACKEND_MIGRATION_VERSION,
+      read_source_preference: 'legacy',
+      backfill_status: 'pending',
+      parity_status: 'pending',
+      backend_ready: false,
+      fallback_enabled: true,
+      last_successful_step: 'rollback-anchor',
+      rollback_tag: BACKEND_MIGRATION_ROLLBACK_TAG,
+      notes_json: {},
+      created_at: '',
+      updated_at: ''
+    };
+  }
+
+  function normalizeBackendMigrationState(row) {
+    const defaults = getDefaultBackendMigrationState(row?.user_id || currentUser?.id);
+    if (!row || typeof row !== 'object') return defaults;
+    const readSourcePreference = ['legacy', 'hybrid', 'backend'].includes(String(row.read_source_preference || '').trim())
+      ? String(row.read_source_preference || '').trim()
+      : defaults.read_source_preference;
+    const backfillStatus = ['pending', 'running', 'complete', 'failed'].includes(String(row.backfill_status || '').trim())
+      ? String(row.backfill_status || '').trim()
+      : defaults.backfill_status;
+    const parityStatus = ['pending', 'running', 'matched', 'mismatch', 'failed'].includes(String(row.parity_status || '').trim())
+      ? String(row.parity_status || '').trim()
+      : defaults.parity_status;
+    const notes = row.notes_json && typeof row.notes_json === 'object' && !Array.isArray(row.notes_json)
+      ? row.notes_json
+      : {};
+    return {
+      ...defaults,
+      user_id: String(row.user_id || defaults.user_id || '').trim(),
+      migration_scope: String(row.migration_scope || defaults.migration_scope).trim() || defaults.migration_scope,
+      migration_version: Math.max(1, Math.floor(Number(row.migration_version) || defaults.migration_version)),
+      read_source_preference: readSourcePreference,
+      backfill_status: backfillStatus,
+      parity_status: parityStatus,
+      backend_ready: row.backend_ready === true && parityStatus === 'matched',
+      fallback_enabled: row.fallback_enabled !== false,
+      last_successful_step: String(row.last_successful_step || defaults.last_successful_step).trim() || defaults.last_successful_step,
+      rollback_tag: String(row.rollback_tag || defaults.rollback_tag).trim() || defaults.rollback_tag,
+      notes_json: notes,
+      created_at: row.created_at ? String(row.created_at) : '',
+      updated_at: row.updated_at ? String(row.updated_at) : ''
+    };
+  }
+
+  function resetBackendMigrationState(userId = '') {
+    backendMigrationState = getDefaultBackendMigrationState(userId);
+    return backendMigrationState;
+  }
+
+  function getBackendMigrationState() {
+    return normalizeBackendMigrationState(backendMigrationState || getDefaultBackendMigrationState());
+  }
+
+  function getBackendReadStrategy(surface = 'leaderboard') {
+    const allowedSurfaces = ['leaderboard', 'competition', 'stats'];
+    const normalizedSurface = allowedSurfaces.includes(surface) ? surface : 'leaderboard';
+    const state = getBackendMigrationState();
+    const surfacePreferences = state.notes_json && typeof state.notes_json.surfacePreferences === 'object' && !Array.isArray(state.notes_json.surfacePreferences)
+      ? state.notes_json.surfacePreferences
+      : {};
+    const surfacePreference = ['legacy', 'hybrid', 'backend'].includes(String(surfacePreferences[normalizedSurface] || '').trim())
+      ? String(surfacePreferences[normalizedSurface] || '').trim()
+      : '';
+    const requestedStrategy = surfacePreference || state.read_source_preference;
+    if (!state.backend_ready || state.parity_status !== 'matched') return 'legacy';
+    if (requestedStrategy === 'backend') return 'backend';
+    if (requestedStrategy === 'hybrid') return 'hybrid';
+    return 'legacy';
+  }
+
+  function shouldUseBackendReadPath(surface = 'leaderboard') {
+    return getBackendReadStrategy(surface) === 'backend';
+  }
+
+  async function initializeBackendMigrationState() {
+    if (!supabaseClient || !currentUser) return resetBackendMigrationState();
+    const defaultState = getDefaultBackendMigrationState(currentUser.id);
+    let data = null;
+    let error = null;
+    ({ data, error } = await supabaseClient
+      .from(SUPABASE_BACKEND_MIGRATION_TABLE)
+      .select('user_id, migration_scope, migration_version, read_source_preference, backfill_status, parity_status, backend_ready, fallback_enabled, last_successful_step, rollback_tag, notes_json, created_at, updated_at')
+      .eq('user_id', currentUser.id)
+      .maybeSingle());
+    if (error) {
+      if (isBackendMigrationSchemaMismatch(error)) {
+        return resetBackendMigrationState(currentUser.id);
+      }
+      throw error;
+    }
+    backendMigrationState = data ? normalizeBackendMigrationState(data) : defaultState;
+    if (!data) {
+      try {
+        const { error: upsertError } = await supabaseClient
+          .from(SUPABASE_BACKEND_MIGRATION_TABLE)
+          .upsert([{
+            user_id: backendMigrationState.user_id,
+            migration_scope: backendMigrationState.migration_scope,
+            migration_version: backendMigrationState.migration_version,
+            read_source_preference: backendMigrationState.read_source_preference,
+            backfill_status: backendMigrationState.backfill_status,
+            parity_status: backendMigrationState.parity_status,
+            backend_ready: backendMigrationState.backend_ready,
+            fallback_enabled: backendMigrationState.fallback_enabled,
+            last_successful_step: backendMigrationState.last_successful_step,
+            rollback_tag: backendMigrationState.rollback_tag,
+            notes_json: backendMigrationState.notes_json
+          }], { onConflict: 'user_id' });
+        if (upsertError) throw upsertError;
+      } catch (upsertError) {
+        if (!isBackendMigrationSchemaMismatch(upsertError)) throw upsertError;
+      }
+    }
+    return getBackendMigrationState();
+  }
+
+  async function saveBackendMigrationState(patch = {}) {
+    if (!supabaseClient || !currentUser) return getBackendMigrationState();
+    const currentState = getBackendMigrationState();
+    const patchNotes = patch.notes_json && typeof patch.notes_json === 'object' && !Array.isArray(patch.notes_json)
+      ? patch.notes_json
+      : {};
+    const nextState = normalizeBackendMigrationState({
+      ...currentState,
+      ...patch,
+      user_id: currentUser.id,
+      notes_json: {
+        ...(currentState.notes_json || {}),
+        ...patchNotes
+      }
+    });
+    const { error } = await supabaseClient
+      .from(SUPABASE_BACKEND_MIGRATION_TABLE)
+      .upsert([{
+        user_id: nextState.user_id,
+        migration_scope: nextState.migration_scope,
+        migration_version: nextState.migration_version,
+        read_source_preference: nextState.read_source_preference,
+        backfill_status: nextState.backfill_status,
+        parity_status: nextState.parity_status,
+        backend_ready: nextState.backend_ready,
+        fallback_enabled: nextState.fallback_enabled,
+        last_successful_step: nextState.last_successful_step,
+        rollback_tag: nextState.rollback_tag,
+        notes_json: nextState.notes_json
+      }], { onConflict: 'user_id' });
+    if (error) {
+      if (isBackendMigrationSchemaMismatch(error)) {
+        return currentState;
+      }
+      throw error;
+    }
+    backendMigrationState = nextState;
+    return nextState;
+  }
+
   function normalizeLeaderboardRow(row) {
     if (!row || typeof row !== 'object') return null;
     const userId = String(row.user_id || '');
@@ -11397,7 +11572,12 @@
       setCompetitionState('loading');
     }
 
+    const readStrategy = getBackendReadStrategy('leaderboard');
     try {
+      if (readStrategy === 'backend') {
+        // The canonical backend read path is introduced in a later phase.
+        // Until parity is proven and that path exists, stay on the legacy-compatible sources.
+      }
       const [legacyRows] = await Promise.all([
         loadLegacyPublicStatsRows().catch(() => []),
         loadPublicProfiles(),
@@ -11948,6 +12128,13 @@
     }
 
     try {
+      await initializeBackendMigrationState();
+    } catch (error) {
+      if (!isBackendMigrationSchemaMismatch(error)) throw error;
+      setAuthStatus(BACKEND_MIGRATION_SCHEMA_WARNING, 'warning');
+    }
+
+    try {
       await syncPublicLeaderboard({ skipReload: true });
       await loadLeaderboardRows({ silentLoading: true });
       subscribeToLeaderboardRealtime();
@@ -11970,6 +12157,7 @@
         writeDeviceBackup(currentUser.id, previousDeviceData);
       }
       currentUser = null;
+      resetBackendMigrationState();
       clearTrackedLocalData();
       clearLeaderboardState();
       clearCompetitionState();
@@ -11993,6 +12181,7 @@
       if (token !== authChangeToken) return;
       unsubscribeLeaderboardRealtime();
       currentUser = null;
+      resetBackendMigrationState();
       clearTrackedLocalData();
       clearLeaderboardState();
       clearCompetitionState();
