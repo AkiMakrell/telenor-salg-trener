@@ -10234,7 +10234,15 @@
       && /(user_stats_activity_entries|get_user_stats_snapshot|get_leaderboard_snapshot|source_entry_type|source_intro_id|source_text|local_date|week_start_date|month_start_date|session_date|session_id|session_label|leaderboard_points)/i.test(message);
   }
 
+  function isFetchNetworkError(error) {
+    const message = String(error?.message || error || '');
+    return /failed to fetch|fetch failed|networkerror|load failed/i.test(message);
+  }
+
   function getLeaderboardErrorMessage(error, fallback = 'Kunne ikke laste leaderboard.') {
+    if (isFetchNetworkError(error)) {
+      return 'Kunne ikke hente leaderboard akkurat nå. Viser trygg reservevisning og prøver igjen automatisk.';
+    }
     return isLeaderboardSchemaMismatch(error)
       ? LEADERBOARD_SCHEMA_WARNING
       : (error?.message || fallback);
@@ -11887,6 +11895,13 @@
       setCompetitionState('ready');
       return leaderboardRows;
     } catch (error) {
+      if (isFetchNetworkError(error)) {
+        const fallbackRows = mergeCurrentUserLocalLeaderboardRow(leaderboardRows);
+        leaderboardRows = fallbackRows;
+        setLeaderboardState('ready');
+        if (competitionState === 'loading') setCompetitionState('ready');
+        return leaderboardRows;
+      }
       setLeaderboardState('error', getLeaderboardErrorMessage(error, 'Kunne ikke laste leaderboard.'));
       setCompetitionState('error', error?.message || 'Kunne ikke laste spill og konkurranser.');
       throw error;
