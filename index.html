@@ -15755,6 +15755,10 @@
       ? notes.lastParitySummary
       : null;
     const mismatchCount = Math.max(0, Number(paritySummary?.mismatchCount) || 0);
+    const backfillError = String(notes.lastBackfillError || '').trim();
+    const summarizedBackfillError = backfillError
+      ? (backfillError.length > 72 ? `${backfillError.slice(0, 69)}...` : backfillError)
+      : '';
     if (leaderboardSourceMode === 'backend') {
       return {
         className: 'backend',
@@ -15783,8 +15787,10 @@
       return {
         className: 'legacy',
         label: 'Kilde: Gammel',
-        detail: 'Backfill feilet',
-        title: 'Leaderboardet bruker gammel kilde fordi kopiering av historisk data til ny backend feilet.'
+        detail: summarizedBackfillError || 'Backfill feilet',
+        title: backfillError
+          ? `Leaderboardet bruker gammel kilde fordi kopiering av historisk data til ny backend feilet: ${backfillError}`
+          : 'Leaderboardet bruker gammel kilde fordi kopiering av historisk data til ny backend feilet.'
       };
     }
     if (migrationState.parity_status === 'running') {
