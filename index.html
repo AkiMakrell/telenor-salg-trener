@@ -6108,6 +6108,39 @@
       text-transform: uppercase;
     }
 
+    .leaderboard-source-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: rgba(15, 23, 42, 0.78);
+      color: #cbd5e1;
+    }
+
+    .leaderboard-source-badge.backend {
+      background: rgba(56, 189, 248, 0.14);
+      border-color: rgba(56, 189, 248, 0.28);
+      color: #7dd3fc;
+    }
+
+    .leaderboard-source-badge.legacy {
+      background: rgba(148, 163, 184, 0.14);
+      border-color: rgba(148, 163, 184, 0.28);
+      color: #e2e8f0;
+    }
+
+    .leaderboard-source-badge.fallback {
+      background: rgba(245, 158, 11, 0.14);
+      border-color: rgba(245, 158, 11, 0.28);
+      color: #fcd34d;
+    }
+
     .leaderboard-period-switcher {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -9746,6 +9779,7 @@
   let profileAvatarSaving = false;
   let backendMigrationState = null;
   let backendBackfillPromise = null;
+  let leaderboardSourceMode = 'legacy';
 
   localStorage.setItem = function(k, v) {
     _origSetItem(k, v);
@@ -9995,10 +10029,15 @@
     refreshVisibleStatsSurface();
   }
 
+  function setLeaderboardSourceMode(mode = 'legacy') {
+    leaderboardSourceMode = ['backend', 'legacy', 'fallback'].includes(mode) ? mode : 'legacy';
+  }
+
   function clearLeaderboardState() {
     leaderboardRows = [];
     leaderboardErrorMessage = '';
     leaderboardMovementByPeriod = {};
+    setLeaderboardSourceMode('legacy');
     setLeaderboardState('idle');
   }
 
@@ -11873,6 +11912,7 @@
         try {
           const backendRows = await loadBackendLeaderboardRows();
           nextRows = mergeCurrentUserLocalLeaderboardRow(backendRows);
+          setLeaderboardSourceMode('backend');
         } catch (error) {
           if (!isBackendStatsSchemaMismatch(error)) {
             console.warn('Backend leaderboard read failed, falling back to legacy rows.', error);
@@ -11881,12 +11921,14 @@
           const freshRows = buildLeaderboardRowsFromPublicActivity();
           const freshUserIds = new Set(freshRows.map(row => row.user_id));
           nextRows = mergeCurrentUserLocalLeaderboardRow([...freshRows, ...legacyRows.filter(row => !freshUserIds.has(row.user_id))]);
+          setLeaderboardSourceMode('fallback');
         }
       } else {
         const legacyRows = await loadLegacyPublicStatsRows().catch(() => []);
         const freshRows = buildLeaderboardRowsFromPublicActivity();
         const freshUserIds = new Set(freshRows.map(row => row.user_id));
         nextRows = mergeCurrentUserLocalLeaderboardRow([...freshRows, ...legacyRows.filter(row => !freshUserIds.has(row.user_id))]);
+        setLeaderboardSourceMode('legacy');
       }
       updateLeaderboardMovementState(nextRows);
       updateCompetitionMovementState(competitionGames);
@@ -11898,6 +11940,7 @@
       if (isFetchNetworkError(error)) {
         const fallbackRows = mergeCurrentUserLocalLeaderboardRow(leaderboardRows);
         leaderboardRows = fallbackRows;
+        setLeaderboardSourceMode('fallback');
         setLeaderboardState('ready');
         if (competitionState === 'loading') setCompetitionState('ready');
         return leaderboardRows;
@@ -15688,6 +15731,33 @@
     `;
   }
 
+  function getLeaderboardSourceBadgeConfig() {
+    if (leaderboardSourceMode === 'backend') {
+      return {
+        className: 'backend',
+        label: 'Kilde: Ny',
+        title: 'Leaderboardet leses fra den nye backend-versjonen.'
+      };
+    }
+    if (leaderboardSourceMode === 'fallback') {
+      return {
+        className: 'fallback',
+        label: 'Kilde: Fallback',
+        title: 'Leaderboardet viser reservevisning fordi den nye kilden ikke svarte som forventet.'
+      };
+    }
+    return {
+      className: 'legacy',
+      label: 'Kilde: Gammel',
+      title: 'Leaderboardet leses fra den gamle, stabile kilden.'
+    };
+  }
+
+  function renderLeaderboardSourceBadge() {
+    const badge = getLeaderboardSourceBadgeConfig();
+    return `<span class="leaderboard-source-badge ${badge.className}" title="${escHtml(badge.title)}">${escHtml(badge.label)}</span>`;
+  }
+
   function renderDashboardLeaderboardCard() {
     const hasRows = leaderboardRows.length > 0;
     const allowedPeriods = LEADERBOARD_PERIOD_CONFIG.map(period => period.id);
@@ -15724,6 +15794,7 @@
       <div class="dashboard-card">
         <div class="dashboard-card-heading">
           <div class="dashboard-card-title">Leaderboard</div>
+          ${renderLeaderboardSourceBadge()}
         </div>
         ${content}
       </div>
@@ -15840,6 +15911,7 @@
           </div>
           <div class="leaderboard-live-meta">
             <span class="leaderboard-live-pill">Live</span>
+            ${renderLeaderboardSourceBadge()}
             <span>${hasRows ? `${leaderboardRows.length} brukere · sist oppdatert ${escHtml(formatLeaderboardTimestamp(latestUpdate))}` : 'Venter på de første registreringene'}</span>
           </div>
         </div>
