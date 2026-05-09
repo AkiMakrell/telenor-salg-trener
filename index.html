@@ -16490,7 +16490,6 @@
       <div class="games-create-sidebar">
         <div class="games-create-summary-card">
           <div class="games-section-title">Live oversikt</div>
-          <div class="games-muted-text" style="margin-top:4px;">Her ser du hvordan spillet leses akkurat nå mens du bygger det.</div>
           <div class="games-create-summary-list">
             ${summaryItems.map(item => `
               <div class="games-create-summary-item">
@@ -16568,18 +16567,15 @@
                 <div class="games-choice-grid">
                   <button class="games-choice-card${!isTeamMode ? ' active' : ''}" type="button" onclick="updateCompetitionDraftField('mode', 'ffa')">
                     <span class="games-choice-title">Alle mot alle</span>
-                    <span class="games-choice-text">Du velger hvem som blir invitert, og alle konkurrerer individuelt.</span>
                   </button>
                   <button class="games-choice-card${isTeamMode ? ' active' : ''}" type="button" onclick="updateCompetitionDraftField('mode', 'team')">
                     <span class="games-choice-title">Lagspill</span>
-                    <span class="games-choice-text">Velg antall lag og fordel spillere på Lag 1, Lag 2 og videre.</span>
                   </button>
                 </div>
                 ${isTeamMode ? `
                   <div class="games-question-subsection">
                     <div>
                       <div class="games-question-subhead">Lagoppsett</div>
-                      <div class="games-question-subtext">Start med å velge antall lag. Deretter kan du fordele alle spillerne under hvert lag.</div>
                     </div>
                     <div class="games-field">
                       <label>Hvor mange lag?</label>
@@ -16592,11 +16588,9 @@
                       <div class="games-choice-grid" style="margin-top:10px;">
                         <button class="games-choice-card${draft.teamScoreMode !== 'average' ? ' active' : ''}" type="button" onclick="updateCompetitionDraftField('teamScoreMode', 'total')">
                           <span class="games-choice-title">Totalscore</span>
-                          <span class="games-choice-text">Lag med flest samlede poeng eller registreringer vinner.</span>
                         </button>
                         <button class="games-choice-card${draft.teamScoreMode === 'average' ? ' active' : ''}" type="button" onclick="updateCompetitionDraftField('teamScoreMode', 'average')">
                           <span class="games-choice-title">Snitt per spiller</span>
-                          <span class="games-choice-text">Lagene sammenlignes på gjennomsnittlig score per person.</span>
                         </button>
                       </div>
                     </div>
@@ -16650,20 +16644,18 @@
                         </div>
                       `).join('')}
                     </div>
-                    <div class="games-muted-text">${unassignedUsers.length ? `Ikke fordelt ennå: ${escHtml(unassignedUsers.map(profile => profile.display_name).join(', '))}` : 'Alle valgte spillere er fordelt på lag.'}</div>
                   </div>
                 ` : `
                   <div class="games-question-subsection">
                     <div>
                       <div class="games-question-subhead">Inviter spillere</div>
-                      <div class="games-question-subtext">Velg hvem som skal være med. Du er alltid med selv automatisk.</div>
                     </div>
                     <div class="games-checkbox-grid">
                       <label class="games-checkbox-card">
                         <input type="checkbox" checked disabled>
                         <span>${escHtml(getUserDisplayName(currentUser))} · deg</span>
                       </label>
-                      ${participantCards || '<div class="games-empty-note">Ingen andre brukere er synlige ennå. Be teamet logge inn minst en gang så dukker de opp her.</div>'}
+                      ${participantCards || '<div class="games-empty-note">Ingen andre brukere er synlige ennå.</div>'}
                     </div>
                   </div>
                 `}
@@ -16681,7 +16673,6 @@
                   ${COMPETITION_METRIC_OPTIONS.map(option => `
                     <button class="games-choice-card${draft.metricType === option.id ? ' active' : ''}" type="button" onclick="updateCompetitionDraftField('metricType', '${option.id}')">
                       <span class="games-choice-title">${escHtml(option.title)}</span>
-                      <span class="games-choice-text">${escHtml(option.description)}</span>
                     </button>
                   `).join('')}
                 </div>
@@ -16689,7 +16680,6 @@
                   <div class="games-question-subsection">
                     <div>
                       <div class="games-question-subhead">Avansert poengoppsett</div>
-                      <div class="games-question-subtext">Disse verdiene brukes bare for denne typen spill. Hovedleaderboardet påvirkes ikke.</div>
                     </div>
                     <div class="games-form-grid">
                       <div class="games-field">
@@ -16724,18 +16714,15 @@
                 <div class="games-choice-grid">
                   <button class="games-choice-card${draft.objectiveMode !== 'target' ? ' active' : ''}" type="button" onclick="updateCompetitionDraftField('objectiveMode', 'most')">
                     <span class="games-choice-title">Om å gjøre å få mest</span>
-                    <span class="games-choice-text">Den med høyest score når tiden er ute vinner.</span>
                   </button>
                   <button class="games-choice-card${draft.objectiveMode === 'target' ? ' active' : ''}" type="button" onclick="updateCompetitionDraftField('objectiveMode', 'target')">
                     <span class="games-choice-title">Førstemann til x</span>
-                    <span class="games-choice-text">Spillet avgjøres idet noen treffer målet først.</span>
                   </button>
                 </div>
                 ${draft.objectiveMode === 'target' ? `
                   <div class="games-question-subsection">
                     <div>
                       <div class="games-question-subhead">Sett måltallet</div>
-                      <div class="games-question-subtext">Bruk et tydelig tall som gjør det lett å forstå når spillet er vunnet.</div>
                     </div>
                     <div class="games-field">
                       <label>Hva er x?</label>
@@ -16769,7 +16756,6 @@
                 <div class="games-question-subsection">
                   <div>
                     <div class="games-question-subhead">Hurtigvalg</div>
-                    <div class="games-question-subtext">Start med et ferdig tidsrom, og juster dato eller klokkeslett hvis du trenger det.</div>
                   </div>
                   <div class="games-shortcut-row" style="margin-bottom:0;">
                     <button class="backup-btn" type="button" onclick="applyCompetitionTimePreset('next-hour')">Neste time</button>
