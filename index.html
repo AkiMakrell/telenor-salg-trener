@@ -14921,6 +14921,32 @@
     `;
   }
 
+  function renderDashboardMonthCard(mnd, monthTitle, weekBuckets, monthChartMax) {
+    const cards = [
+      { label: '6-minuttere', value: mnd.over5, unit: 'stk', accent: 'over6' },
+      { label: 'Salg', value: mnd.salg, unit: 'abo', accent: 'sales' }
+    ];
+    return `
+      <div class="dashboard-card dashboard-card-interactive" role="button" tabindex="0" onclick="openStatsDashboardView('development')" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openStatsDashboardView('development'); }">
+        <div class="dashboard-card-heading">
+          <div class="dashboard-card-title">Denne måneden</div>
+        </div>
+        <div class="dashboard-week-chart">
+          <div class="chart-card-title">6-min & abo per uke i ${escHtml(monthTitle)}</div>
+          ${stackedBarChart(weekBuckets, monthChartMax)}
+        </div>
+        <div class="dashboard-week-summary">
+          ${cards.map(card => `
+            <div class="dashboard-progress-item">
+              <div class="dashboard-progress-label">${card.label}</div>
+              <div class="dashboard-progress-value with-unit ${card.accent}">${card.value}<span class="dashboard-progress-unit">${card.unit}</span></div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
   function renderDashboardTodayCard(dag, todaySessionCount) {
     const cards = [
       { label: 'Abo', value: dag.salg, accent: 'sales' },
@@ -17401,6 +17427,7 @@
             ${renderDashboardActiveGamesCard()}
             ${renderDashboardTodayCard(dag, todaySessionCount)}
             ${renderDashboardWeekCard(uke, weekData, stackedChartMax)}
+            ${renderDashboardMonthCard(mnd, monthTitle, weekBuckets, monthChartMax)}
           </div>
           <div class="dashboard-stack">
             ${renderDashboardLeaderboardCard()}
