@@ -25,6 +25,21 @@ as $$
   select (input_date - ((extract(isodow from input_date)::int - 1)))::date;
 $$;
 
+create or replace function public.get_stats_local_date(target_occurred_at timestamptz, target_session_date text default null)
+returns date
+language sql
+stable
+as $$
+  select coalesce(
+    case
+      when nullif(trim(target_session_date), '') ~ '^\d{4}-\d{2}-\d{2}$'
+        then nullif(trim(target_session_date), '')::date
+      else null
+    end,
+    (target_occurred_at at time zone 'Europe/Oslo')::date
+  );
+$$;
+
 create table if not exists public.user_stats_activity_entries (
   entry_id text not null primary key,
   user_id uuid not null references auth.users (id) on delete cascade,
@@ -785,6 +800,404 @@ create policy "Users can delete own public activity entries"
 on public.user_public_activity_entries
 for delete
 using (auth.uid() = user_id);
+
+create or replace function public.backfill_user_stats_activity_entries(target_user_id uuid default auth.uid())
+returns table (
+  user_id uuid,
+  state_source_rows integer,
+  public_fallback_rows integer,
+  upserted_rows integer,
+  canonical_total_rows integer,
+  backfill_status text
+)
+language plpgsql
+security definer
+set search_path = public
+set row_security = off
+as $$
+declare
+  v_state_source_rows integer := 0;
+  v_public_fallback_rows integer := 0;
+  v_upserted_rows integer := 0;
+  v_canonical_total_rows integer := 0;
+begin
+  if auth.uid() is null or auth.uid() <> target_user_id then
+    raise exception 'You can only backfill your own stats activity rows.';
+  end if;
+
+  insert into public.user_backend_migration_state (
+    user_id,
+    migration_scope,
+    migration_version,
+    read_source_preference,
+    backfill_status,
+    parity_status,
+    backend_ready,
+    fallback_enabled,
+    last_successful_step,
+    rollback_tag,
+    notes_json
+  )
+  values (
+    target_user_id,
+    'stats-leaderboard-spill-v1',
+    1,
+    'legacy',
+    'running',
+    'pending',
+    false,
+    true,
+    'canonical-model',
+    'pre-backend-migration-2026-05-09',
+    jsonb_build_object(
+      'lastBackfillStartedAt',
+      timezone('utc', now())
+    )
+  )
+  on conflict (user_id) do update
+    set backfill_status = 'running',
+        notes_json = coalesce(public.user_backend_migration_state.notes_json, '{}'::jsonb)
+          || jsonb_build_object(
+            'lastBackfillStartedAt',
+            timezone('utc', now())
+          );
+
+  with state_source as (
+    select
+      trim(entry.value ->> 'id') as entry_id,
+      entry.value as source_payload,
+      nullif(trim(entry.value ->> 'isoDate'), '')::timestamptz as occurred_at,
+      case
+        when lower(coalesce(nullif(trim(entry.value ->> 'quickEntry'), ''), 'false')) in ('true', 't', '1', 'yes', 'ja', 'on')
+          then true
+        else false
+      end as quick_entry,
+      case
+        when coalesce(nullif(trim(entry.value ->> 'portSalesCount'), ''), '') ~ '^-?\d+$'
+          then greatest(0, (entry.value ->> 'portSalesCount')::integer)
+        else 0
+      end as raw_port_sales_count,
+      case
+        when coalesce(nullif(trim(entry.value ->> 'ovSalesCount'), ''), '') ~ '^-?\d+$'
+          then greatest(0, (entry.value ->> 'ovSalesCount')::integer)
+        else 0
+      end as raw_ov_sales_count,
+      case
+        when coalesce(nullif(trim(entry.value ->> 'salesCount'), ''), '') ~ '^-?\d+$'
+          then greatest(0, (entry.value ->> 'salesCount')::integer)
+        else 0
+      end as explicit_sales_count,
+      case
+        when coalesce(nullif(trim(entry.value ->> 'addonCount'), ''), '') ~ '^-?\d+$'
+          then greatest(0, (entry.value ->> 'addonCount')::integer)
+        else 0
+      end as raw_addon_count,
+      case
+        when lower(coalesce(nullif(trim(entry.value ->> 'saleCategory'), ''), nullif(trim(entry.value ->> 'saleType'), ''), 'port')) = 'ov'
+          then 'ov'
+        else 'port'
+      end as sale_category
+    from public.user_app_state state
+    cross join lateral jsonb_array_elements(
+      case
+        when jsonb_typeof(state.state_value) = 'array' then state.state_value
+        else '[]'::jsonb
+      end
+    ) as entry(value)
+    where state.user_id = target_user_id
+      and state.state_key = 'introHistory'
+  ),
+  normalized_state_rows as (
+    select
+      src.entry_id,
+      target_user_id as user_id,
+      case
+        when nullif(trim(src.source_payload ->> 'type'), '') = 'introSuccess' then 'introSuccess'
+        when nullif(trim(src.source_payload ->> 'type'), '') = 'introAttempt' then 'introAttempt'
+        when lower(coalesce(nullif(trim(src.source_payload ->> 'opptak'), ''), 'nei')) = 'ja'
+          and not src.quick_entry then 'introSuccess'
+        else 'introAttempt'
+      end as source_entry_type,
+      nullif(trim(src.source_payload ->> 'introId'), '') as source_intro_id,
+      coalesce(nullif(trim(src.source_payload ->> 'text'), ''), '') as source_text,
+      src.occurred_at,
+      public.get_stats_local_date(src.occurred_at, src.source_payload ->> 'sessionDate') as local_date,
+      public.get_stats_week_start(public.get_stats_local_date(src.occurred_at, src.source_payload ->> 'sessionDate')) as week_start_date,
+      date_trunc(
+        'month',
+        public.get_stats_local_date(src.occurred_at, src.source_payload ->> 'sessionDate')::timestamp
+      )::date as month_start_date,
+      public.get_stats_local_date(src.occurred_at, src.source_payload ->> 'sessionDate') as session_date,
+      nullif(trim(src.source_payload ->> 'sessionId'), '') as session_id,
+      nullif(trim(src.source_payload ->> 'sessionLabel'), '') as session_label,
+      case
+        when nullif(trim(src.source_payload ->> 'type'), '') = 'introSuccess' then 1
+        when nullif(trim(src.source_payload ->> 'type'), '') = 'introAttempt' then 0
+        when lower(coalesce(nullif(trim(src.source_payload ->> 'opptak'), ''), 'nei')) = 'ja'
+          and not src.quick_entry then 1
+        else 0
+      end as intro_success_count,
+      case
+        when lower(coalesce(nullif(trim(src.source_payload ->> 'over5min'), ''), 'nei')) = 'ja' then 1
+        else 0
+      end as over6_count,
+      case
+        when (
+          lower(coalesce(nullif(trim(src.source_payload ->> 'salg'), ''), 'nei')) = 'ja'
+          or src.raw_port_sales_count > 0
+          or src.raw_ov_sales_count > 0
+          or src.explicit_sales_count > 0
+        )
+          then (
+            case
+              when (src.raw_port_sales_count + src.raw_ov_sales_count) > 0
+                then src.raw_port_sales_count + src.raw_ov_sales_count
+              else greatest(1, src.explicit_sales_count)
+            end
+          )
+        else 0
+      end as sales_count,
+      case
+        when not (
+          lower(coalesce(nullif(trim(src.source_payload ->> 'salg'), ''), 'nei')) = 'ja'
+          or src.raw_port_sales_count > 0
+          or src.raw_ov_sales_count > 0
+          or src.explicit_sales_count > 0
+        )
+          then 0
+        when (src.raw_port_sales_count + src.raw_ov_sales_count) > 0
+          then src.raw_port_sales_count
+        when src.sale_category = 'ov'
+          then 0
+        else greatest(1, src.explicit_sales_count)
+      end as port_sales_count,
+      case
+        when not (
+          lower(coalesce(nullif(trim(src.source_payload ->> 'salg'), ''), 'nei')) = 'ja'
+          or src.raw_port_sales_count > 0
+          or src.raw_ov_sales_count > 0
+          or src.explicit_sales_count > 0
+        )
+          then 0
+        when (src.raw_port_sales_count + src.raw_ov_sales_count) > 0
+          then src.raw_ov_sales_count
+        when src.sale_category = 'ov'
+          then greatest(1, src.explicit_sales_count)
+        else 0
+      end as ov_sales_count,
+      case
+        when (
+          lower(coalesce(nullif(trim(src.source_payload ->> 'salg'), ''), 'nei')) = 'ja'
+          or src.raw_port_sales_count > 0
+          or src.raw_ov_sales_count > 0
+          or src.explicit_sales_count > 0
+        )
+          then src.raw_addon_count
+        else 0
+      end as addon_count,
+      (
+        (
+          case
+            when (
+              lower(coalesce(nullif(trim(src.source_payload ->> 'salg'), ''), 'nei')) = 'ja'
+              or src.raw_port_sales_count > 0
+              or src.raw_ov_sales_count > 0
+              or src.explicit_sales_count > 0
+            )
+              then (
+                case
+                  when (src.raw_port_sales_count + src.raw_ov_sales_count) > 0
+                    then src.raw_port_sales_count + src.raw_ov_sales_count
+                  else greatest(1, src.explicit_sales_count)
+                end
+              )
+            else 0
+          end
+        ) * 300
+      )
+      + (
+        case
+          when lower(coalesce(nullif(trim(src.source_payload ->> 'over5min'), ''), 'nei')) = 'ja' then 100
+          else 0
+        end
+      ) as leaderboard_points,
+      src.quick_entry,
+      src.source_payload,
+      'user_app_state'::text as source_name
+    from state_source src
+    where src.entry_id <> ''
+      and src.occurred_at is not null
+  ),
+  public_fallback_rows as (
+    select
+      activity.entry_id,
+      activity.user_id,
+      case
+        when coalesce(activity.intro_success_count, 0) > 0 then 'introSuccess'
+        else 'introAttempt'
+      end as source_entry_type,
+      null::text as source_intro_id,
+      ''::text as source_text,
+      activity.occurred_at,
+      public.get_stats_local_date(activity.occurred_at) as local_date,
+      public.get_stats_week_start(public.get_stats_local_date(activity.occurred_at)) as week_start_date,
+      date_trunc('month', public.get_stats_local_date(activity.occurred_at)::timestamp)::date as month_start_date,
+      public.get_stats_local_date(activity.occurred_at) as session_date,
+      null::text as session_id,
+      null::text as session_label,
+      greatest(0, coalesce(activity.intro_success_count, 0))::integer as intro_success_count,
+      greatest(0, coalesce(activity.over6_count, 0))::integer as over6_count,
+      greatest(0, coalesce(activity.sales_count, 0))::integer as sales_count,
+      greatest(0, coalesce(activity.port_sales_count, 0))::integer as port_sales_count,
+      greatest(0, coalesce(activity.ov_sales_count, 0))::integer as ov_sales_count,
+      greatest(0, coalesce(activity.addon_count, 0))::integer as addon_count,
+      greatest(0, coalesce(activity.points, 0))::integer as leaderboard_points,
+      false as quick_entry,
+      jsonb_build_object(
+        'backfillSource',
+        'user_public_activity_entries',
+        'legacyRow',
+        jsonb_build_object(
+          'entry_id', activity.entry_id,
+          'occurred_at', activity.occurred_at,
+          'intro_success_count', activity.intro_success_count,
+          'over6_count', activity.over6_count,
+          'sales_count', activity.sales_count,
+          'port_sales_count', activity.port_sales_count,
+          'ov_sales_count', activity.ov_sales_count,
+          'addon_count', activity.addon_count,
+          'points', activity.points
+        )
+      ) as source_payload,
+      'user_public_activity_entries'::text as source_name
+    from public.user_public_activity_entries activity
+    where activity.user_id = target_user_id
+      and not exists (
+        select 1
+        from normalized_state_rows state_row
+        where state_row.entry_id = activity.entry_id
+      )
+  ),
+  combined_rows as (
+    select * from normalized_state_rows
+    union all
+    select * from public_fallback_rows
+  ),
+  upserted_rows as (
+    insert into public.user_stats_activity_entries (
+      entry_id,
+      user_id,
+      source_entry_type,
+      source_intro_id,
+      source_text,
+      occurred_at,
+      local_date,
+      week_start_date,
+      month_start_date,
+      session_date,
+      session_id,
+      session_label,
+      intro_success_count,
+      over6_count,
+      sales_count,
+      port_sales_count,
+      ov_sales_count,
+      addon_count,
+      leaderboard_points,
+      quick_entry,
+      source_payload
+    )
+    select
+      entry_id,
+      user_id,
+      source_entry_type,
+      source_intro_id,
+      source_text,
+      occurred_at,
+      local_date,
+      week_start_date,
+      month_start_date,
+      session_date,
+      session_id,
+      session_label,
+      intro_success_count,
+      over6_count,
+      sales_count,
+      port_sales_count,
+      ov_sales_count,
+      addon_count,
+      leaderboard_points,
+      quick_entry,
+      source_payload
+    from combined_rows
+    on conflict (entry_id) do update
+      set source_entry_type = excluded.source_entry_type,
+          source_intro_id = excluded.source_intro_id,
+          source_text = excluded.source_text,
+          occurred_at = excluded.occurred_at,
+          local_date = excluded.local_date,
+          week_start_date = excluded.week_start_date,
+          month_start_date = excluded.month_start_date,
+          session_date = excluded.session_date,
+          session_id = excluded.session_id,
+          session_label = excluded.session_label,
+          intro_success_count = excluded.intro_success_count,
+          over6_count = excluded.over6_count,
+          sales_count = excluded.sales_count,
+          port_sales_count = excluded.port_sales_count,
+          ov_sales_count = excluded.ov_sales_count,
+          addon_count = excluded.addon_count,
+          leaderboard_points = excluded.leaderboard_points,
+          quick_entry = excluded.quick_entry,
+          source_payload = excluded.source_payload
+      where public.user_stats_activity_entries.user_id = excluded.user_id
+    returning entry_id
+  )
+  select
+    coalesce((select count(*) from normalized_state_rows), 0)::integer,
+    coalesce((select count(*) from public_fallback_rows), 0)::integer,
+    coalesce((select count(*) from upserted_rows), 0)::integer,
+    coalesce((select count(*) from public.user_stats_activity_entries where public.user_stats_activity_entries.user_id = target_user_id), 0)::integer
+  into
+    v_state_source_rows,
+    v_public_fallback_rows,
+    v_upserted_rows,
+    v_canonical_total_rows;
+
+  update public.user_backend_migration_state
+  set backfill_status = 'complete',
+      last_successful_step = 'backfill-existing-data',
+      notes_json = coalesce(public.user_backend_migration_state.notes_json, '{}'::jsonb)
+        || jsonb_build_object(
+          'lastBackfillCompletedAt',
+          timezone('utc', now()),
+          'backfillSummary',
+          jsonb_build_object(
+            'stateSourceRows',
+            v_state_source_rows,
+            'publicFallbackRows',
+            v_public_fallback_rows,
+            'upsertedRows',
+            v_upserted_rows,
+            'canonicalTotalRows',
+            v_canonical_total_rows
+          )
+        )
+  where public.user_backend_migration_state.user_id = target_user_id;
+
+  return query
+  select
+    target_user_id,
+    v_state_source_rows,
+    v_public_fallback_rows,
+    v_upserted_rows,
+    v_canonical_total_rows,
+    'complete'::text;
+end;
+$$;
+
+revoke all on function public.backfill_user_stats_activity_entries(uuid) from public;
+grant execute on function public.backfill_user_stats_activity_entries(uuid) to authenticated;
 
 create table if not exists public.competition_games (
   competition_id uuid not null primary key,

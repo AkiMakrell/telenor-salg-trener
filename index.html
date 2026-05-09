@@ -9640,6 +9640,7 @@
   const SUPABASE_COMPETITION_GAMES_TABLE = 'competition_games';
   const SUPABASE_COMPETITION_PARTICIPANTS_TABLE = 'competition_participants';
   const SUPABASE_BACKEND_MIGRATION_TABLE = 'user_backend_migration_state';
+  const SUPABASE_BACKEND_BACKFILL_RPC = 'backfill_user_stats_activity_entries';
   const SUPABASE_PROFILE_AVATAR_BUCKET = 'profile-avatars';
   const PROFILE_AVATAR_MAX_BYTES = 3 * 1024 * 1024;
   const INTRO_LEADERBOARD_DATA_VERSION = '2';
@@ -9741,6 +9742,7 @@
   let competitionViewerSelectionIds = [];
   let profileAvatarSaving = false;
   let backendMigrationState = null;
+  let backendBackfillPromise = null;
 
   localStorage.setItem = function(k, v) {
     _origSetItem(k, v);
@@ -10215,6 +10217,12 @@
     const message = String(error?.message || error || '');
     return /(schema cache|relation .* does not exist|column .* does not exist)/i.test(message)
       && /(user_backend_migration_state|migration_scope|read_source_preference|backfill_status|parity_status|backend_ready|fallback_enabled|last_successful_step|rollback_tag|notes_json)/i.test(message);
+  }
+
+  function isBackendBackfillSchemaMismatch(error) {
+    const message = String(error?.message || error || '');
+    return /(schema cache|relation .* does not exist|column .* does not exist|function .* does not exist|could not find the function)/i.test(message)
+      && /(backfill_user_stats_activity_entries|user_stats_activity_entries|get_stats_local_date|get_stats_week_start|user_backend_migration_state|user_public_activity_entries)/i.test(message);
   }
 
   function getLeaderboardErrorMessage(error, fallback = 'Kunne ikke laste leaderboard.') {
@@ -11055,6 +11063,7 @@
   }
 
   function resetBackendMigrationState(userId = '') {
+    backendBackfillPromise = null;
     backendMigrationState = getDefaultBackendMigrationState(userId);
     return backendMigrationState;
   }
@@ -11164,6 +11173,54 @@
     }
     backendMigrationState = nextState;
     return nextState;
+  }
+
+  async function ensureBackendStatsBackfill() {
+    if (!supabaseClient || !currentUser) return getBackendMigrationState();
+    const currentState = getBackendMigrationState();
+    if (currentState.backfill_status === 'complete') return currentState;
+    if (backendBackfillPromise) return backendBackfillPromise;
+
+    backendBackfillPromise = (async () => {
+      const { error } = await supabaseClient.rpc(SUPABASE_BACKEND_BACKFILL_RPC, {
+        target_user_id: currentUser.id
+      });
+      if (error) {
+        if (isBackendBackfillSchemaMismatch(error) || isBackendMigrationSchemaMismatch(error)) {
+          return currentState;
+        }
+        try {
+          await saveBackendMigrationState({
+            backfill_status: 'failed',
+            notes_json: {
+              lastBackfillFailedAt: new Date().toISOString(),
+              lastBackfillError: error.message || String(error)
+            }
+          });
+        } catch (stateError) {
+          if (!isBackendMigrationSchemaMismatch(stateError)) {
+            console.warn('Could not persist backend backfill failure state.', stateError);
+          }
+        }
+        console.warn('Backend stats backfill failed.', error);
+        return getBackendMigrationState();
+      }
+
+      try {
+        await initializeBackendMigrationState();
+      } catch (stateError) {
+        if (!isBackendMigrationSchemaMismatch(stateError) && !isBackendBackfillSchemaMismatch(stateError)) {
+          throw stateError;
+        }
+      }
+      return getBackendMigrationState();
+    })();
+
+    try {
+      return await backendBackfillPromise;
+    } finally {
+      backendBackfillPromise = null;
+    }
   }
 
   function normalizeLeaderboardRow(row) {
@@ -12132,6 +12189,14 @@
     } catch (error) {
       if (!isBackendMigrationSchemaMismatch(error)) throw error;
       setAuthStatus(BACKEND_MIGRATION_SCHEMA_WARNING, 'warning');
+    }
+
+    try {
+      await ensureBackendStatsBackfill();
+    } catch (error) {
+      if (!isBackendBackfillSchemaMismatch(error) && !isBackendMigrationSchemaMismatch(error)) {
+        console.warn('Could not complete backend stats backfill.', error);
+      }
     }
 
     try {
