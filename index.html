@@ -4154,12 +4154,35 @@
       gap: 12px;
     }
 
+    .stats-sidebar.stats-sidebar-glow {
+      animation: statsSidebarGlow 2.8s ease-in-out infinite;
+    }
+
     .stats-sidebar-card {
+      position: relative;
+      overflow: hidden;
       background: rgba(8, 15, 28, 0.9);
       border: 1px solid rgba(148, 163, 184, 0.12);
       border-radius: 16px;
       padding: 14px;
       box-shadow: 0 10px 24px rgba(2, 6, 23, 0.16);
+    }
+
+    .stats-sidebar.stats-sidebar-glow .stats-sidebar-card::after {
+      content: '';
+      position: absolute;
+      inset: -14px;
+      border-radius: 22px;
+      pointer-events: none;
+      background: radial-gradient(circle at left center, rgba(56, 189, 248, 0.2), transparent 58%);
+      opacity: 0.75;
+      z-index: 0;
+    }
+
+    .stats-sidebar.stats-sidebar-glow .stats-sidebar-label,
+    .stats-sidebar.stats-sidebar-glow .stats-nav {
+      position: relative;
+      z-index: 1;
     }
 
     .stats-sidebar-label {
@@ -4210,7 +4233,16 @@
       color: var(--text);
       border-color: rgba(125, 211, 252, 0.16);
       border-left-color: #38bdf8;
-      box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.08);
+      box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.08), 0 0 18px rgba(56, 189, 248, 0.16);
+    }
+
+    @keyframes statsSidebarGlow {
+      0%, 100% {
+        filter: drop-shadow(-4px 0 12px rgba(56, 189, 248, 0.1));
+      }
+      50% {
+        filter: drop-shadow(-8px 0 22px rgba(56, 189, 248, 0.22));
+      }
     }
 
     .stats-main {
@@ -17555,7 +17587,7 @@
       `
       : `
         <div class="stats-page-shell">
-          <aside class="stats-sidebar">
+          <aside class="stats-sidebar stats-sidebar-glow">
             ${renderStatsSubviewNav(activeView)}
           </aside>
           <div class="stats-main">
