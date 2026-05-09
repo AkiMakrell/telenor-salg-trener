@@ -17,6 +17,233 @@ begin
 end;
 $$;
 
+create or replace function public.get_stats_week_start(input_date date)
+returns date
+language sql
+immutable
+as $$
+  select (input_date - ((extract(isodow from input_date)::int - 1)))::date;
+$$;
+
+create table if not exists public.user_stats_activity_entries (
+  entry_id text not null primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  source_entry_type text not null check (source_entry_type in ('introSuccess', 'introAttempt')),
+  source_intro_id text,
+  source_text text not null default '',
+  occurred_at timestamptz not null,
+  local_date date not null,
+  week_start_date date not null,
+  month_start_date date not null,
+  session_date date,
+  session_id text,
+  session_label text,
+  intro_success_count integer not null default 0 check (intro_success_count >= 0),
+  over6_count integer not null default 0 check (over6_count >= 0),
+  sales_count integer not null default 0 check (sales_count >= 0),
+  port_sales_count integer not null default 0 check (port_sales_count >= 0),
+  ov_sales_count integer not null default 0 check (ov_sales_count >= 0),
+  addon_count integer not null default 0 check (addon_count >= 0),
+  leaderboard_points integer not null default 0 check (leaderboard_points >= 0),
+  quick_entry boolean not null default false,
+  source_payload jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.user_stats_activity_entries
+  add column if not exists source_entry_type text not null default 'introAttempt',
+  add column if not exists source_intro_id text,
+  add column if not exists source_text text not null default '',
+  add column if not exists local_date date,
+  add column if not exists week_start_date date,
+  add column if not exists month_start_date date,
+  add column if not exists session_date date,
+  add column if not exists session_id text,
+  add column if not exists session_label text,
+  add column if not exists intro_success_count integer not null default 0,
+  add column if not exists over6_count integer not null default 0,
+  add column if not exists sales_count integer not null default 0,
+  add column if not exists port_sales_count integer not null default 0,
+  add column if not exists ov_sales_count integer not null default 0,
+  add column if not exists addon_count integer not null default 0,
+  add column if not exists leaderboard_points integer not null default 0,
+  add column if not exists quick_entry boolean not null default false,
+  add column if not exists source_payload jsonb not null default '{}'::jsonb;
+
+create index if not exists user_stats_activity_entries_user_occurred_idx
+  on public.user_stats_activity_entries (user_id, occurred_at desc);
+
+create index if not exists user_stats_activity_entries_user_local_date_idx
+  on public.user_stats_activity_entries (user_id, local_date desc);
+
+create index if not exists user_stats_activity_entries_user_week_start_idx
+  on public.user_stats_activity_entries (user_id, week_start_date desc);
+
+create index if not exists user_stats_activity_entries_user_month_start_idx
+  on public.user_stats_activity_entries (user_id, month_start_date desc);
+
+drop trigger if exists user_stats_activity_entries_set_updated_at on public.user_stats_activity_entries;
+create trigger user_stats_activity_entries_set_updated_at
+before update on public.user_stats_activity_entries
+for each row
+execute function public.set_user_app_state_updated_at();
+
+alter table public.user_stats_activity_entries enable row level security;
+
+grant select, insert, update, delete on public.user_stats_activity_entries to authenticated;
+
+drop policy if exists "Users can read own canonical stats activity" on public.user_stats_activity_entries;
+create policy "Users can read own canonical stats activity"
+on public.user_stats_activity_entries
+for select
+using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert own canonical stats activity" on public.user_stats_activity_entries;
+create policy "Users can insert own canonical stats activity"
+on public.user_stats_activity_entries
+for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update own canonical stats activity" on public.user_stats_activity_entries;
+create policy "Users can update own canonical stats activity"
+on public.user_stats_activity_entries
+for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+drop policy if exists "Users can delete own canonical stats activity" on public.user_stats_activity_entries;
+create policy "Users can delete own canonical stats activity"
+on public.user_stats_activity_entries
+for delete
+using (auth.uid() = user_id);
+
+create or replace function public.get_competition_team_name(target_rules_json jsonb, target_user_id uuid)
+returns text
+language sql
+stable
+as $$
+  select coalesce((
+    select nullif(trim(team.value ->> 'name'), '')
+    from jsonb_array_elements(coalesce(target_rules_json -> 'teamConfigs', '[]'::jsonb)) as team(value)
+    where exists (
+      select 1
+      from jsonb_array_elements_text(coalesce(team.value -> 'memberIds', '[]'::jsonb)) as member(user_id_text)
+      where member.user_id_text = target_user_id::text
+    )
+    limit 1
+  ), '');
+$$;
+
+create or replace function public.get_competition_team_color(target_rules_json jsonb, target_team_name text)
+returns text
+language sql
+stable
+as $$
+  select coalesce((
+    select nullif(trim(team.value ->> 'color'), '')
+    from jsonb_array_elements(coalesce(target_rules_json -> 'teamConfigs', '[]'::jsonb)) as team(value)
+    where nullif(trim(team.value ->> 'name'), '') = nullif(trim(target_team_name), '')
+    limit 1
+  ), '');
+$$;
+
+create or replace function public.get_user_stats_snapshot(target_user_id uuid default auth.uid(), reference_date date default current_date)
+returns table (
+  user_id uuid,
+  reference_date date,
+  total_intro_successes integer,
+  total_over6 integer,
+  total_sales integer,
+  total_points integer,
+  day_intro_successes integer,
+  day_over6 integer,
+  day_sales integer,
+  day_points integer,
+  week_intro_successes integer,
+  week_over6 integer,
+  week_sales integer,
+  week_points integer,
+  month_intro_successes integer,
+  month_over6 integer,
+  month_sales integer,
+  month_points integer,
+  latest_entry_at timestamptz,
+  updated_at timestamptz
+)
+language sql
+stable
+security definer
+set search_path = public
+set row_security = off
+as $$
+  with authorized_target as (
+    select target_user_id as user_id
+    where auth.uid() = target_user_id
+  ),
+  reference_values as (
+    select
+      reference_date as ref_date,
+      public.get_stats_week_start(reference_date) as ref_week_start,
+      date_trunc('month', reference_date::timestamp)::date as ref_month_start
+  ),
+  base as (
+    select *
+    from public.user_stats_activity_entries e
+    join authorized_target t on t.user_id = e.user_id
+  ),
+  aggregated as (
+    select
+      coalesce(sum(b.intro_success_count), 0)::int as total_intro_successes,
+      coalesce(sum(b.over6_count), 0)::int as total_over6,
+      coalesce(sum(b.sales_count), 0)::int as total_sales,
+      coalesce(sum(b.leaderboard_points), 0)::int as total_points,
+      coalesce(sum(case when b.local_date = rv.ref_date then b.intro_success_count else 0 end), 0)::int as day_intro_successes,
+      coalesce(sum(case when b.local_date = rv.ref_date then b.over6_count else 0 end), 0)::int as day_over6,
+      coalesce(sum(case when b.local_date = rv.ref_date then b.sales_count else 0 end), 0)::int as day_sales,
+      coalesce(sum(case when b.local_date = rv.ref_date then b.leaderboard_points else 0 end), 0)::int as day_points,
+      coalesce(sum(case when b.week_start_date = rv.ref_week_start then b.intro_success_count else 0 end), 0)::int as week_intro_successes,
+      coalesce(sum(case when b.week_start_date = rv.ref_week_start then b.over6_count else 0 end), 0)::int as week_over6,
+      coalesce(sum(case when b.week_start_date = rv.ref_week_start then b.sales_count else 0 end), 0)::int as week_sales,
+      coalesce(sum(case when b.week_start_date = rv.ref_week_start then b.leaderboard_points else 0 end), 0)::int as week_points,
+      coalesce(sum(case when b.month_start_date = rv.ref_month_start then b.intro_success_count else 0 end), 0)::int as month_intro_successes,
+      coalesce(sum(case when b.month_start_date = rv.ref_month_start then b.over6_count else 0 end), 0)::int as month_over6,
+      coalesce(sum(case when b.month_start_date = rv.ref_month_start then b.sales_count else 0 end), 0)::int as month_sales,
+      coalesce(sum(case when b.month_start_date = rv.ref_month_start then b.leaderboard_points else 0 end), 0)::int as month_points,
+      max(b.occurred_at) as latest_entry_at,
+      max(b.updated_at) as updated_at
+    from reference_values rv
+    left join base b on true
+  )
+  select
+    t.user_id,
+    rv.ref_date,
+    aggregated.total_intro_successes,
+    aggregated.total_over6,
+    aggregated.total_sales,
+    aggregated.total_points,
+    aggregated.day_intro_successes,
+    aggregated.day_over6,
+    aggregated.day_sales,
+    aggregated.day_points,
+    aggregated.week_intro_successes,
+    aggregated.week_over6,
+    aggregated.week_sales,
+    aggregated.week_points,
+    aggregated.month_intro_successes,
+    aggregated.month_over6,
+    aggregated.month_sales,
+    aggregated.month_points,
+    aggregated.latest_entry_at,
+    aggregated.updated_at
+  from authorized_target t
+  cross join reference_values rv
+  cross join aggregated;
+$$;
+
+revoke all on function public.get_user_stats_snapshot(uuid, date) from public;
+grant execute on function public.get_user_stats_snapshot(uuid, date) to authenticated;
+
 drop trigger if exists user_app_state_set_updated_at on public.user_app_state;
 create trigger user_app_state_set_updated_at
 before update on public.user_app_state
@@ -323,6 +550,104 @@ begin
 end;
 $$;
 
+create or replace function public.get_leaderboard_snapshot(reference_date date default current_date)
+returns table (
+  user_id uuid,
+  display_name text,
+  team text,
+  total_intro_successes integer,
+  total_over6 integer,
+  total_sales integer,
+  day_over6 integer,
+  day_sales integer,
+  day_points integer,
+  week_over6 integer,
+  week_sales integer,
+  week_points integer,
+  month_over6 integer,
+  month_sales integer,
+  month_points integer,
+  latest_entry_at timestamptz,
+  updated_at timestamptz
+)
+language sql
+stable
+security definer
+set search_path = public
+set row_security = off
+as $$
+  with reference_values as (
+    select
+      reference_date as ref_date,
+      public.get_stats_week_start(reference_date) as ref_week_start,
+      date_trunc('month', reference_date::timestamp)::date as ref_month_start
+  ),
+  aggregated as (
+    select
+      e.user_id,
+      coalesce(sum(e.intro_success_count), 0)::int as total_intro_successes,
+      coalesce(sum(e.over6_count), 0)::int as total_over6,
+      coalesce(sum(e.sales_count), 0)::int as total_sales,
+      coalesce(sum(case when e.local_date = rv.ref_date then e.over6_count else 0 end), 0)::int as day_over6,
+      coalesce(sum(case when e.local_date = rv.ref_date then e.sales_count else 0 end), 0)::int as day_sales,
+      coalesce(sum(case when e.local_date = rv.ref_date then e.leaderboard_points else 0 end), 0)::int as day_points,
+      coalesce(sum(case when e.week_start_date = rv.ref_week_start then e.over6_count else 0 end), 0)::int as week_over6,
+      coalesce(sum(case when e.week_start_date = rv.ref_week_start then e.sales_count else 0 end), 0)::int as week_sales,
+      coalesce(sum(case when e.week_start_date = rv.ref_week_start then e.leaderboard_points else 0 end), 0)::int as week_points,
+      coalesce(sum(case when e.month_start_date = rv.ref_month_start then e.over6_count else 0 end), 0)::int as month_over6,
+      coalesce(sum(case when e.month_start_date = rv.ref_month_start then e.sales_count else 0 end), 0)::int as month_sales,
+      coalesce(sum(case when e.month_start_date = rv.ref_month_start then e.leaderboard_points else 0 end), 0)::int as month_points,
+      max(e.occurred_at) as latest_entry_at,
+      max(e.updated_at) as updated_at
+    from public.user_stats_activity_entries e
+    cross join reference_values rv
+    group by e.user_id
+  ),
+  user_ids as (
+    select a.user_id from aggregated a
+    union
+    select p.user_id from public.user_public_profiles p
+  ),
+  rows as (
+    select
+      ids.user_id,
+      coalesce(nullif(trim(p.display_name), ''), 'Ukjent bruker') as display_name,
+      coalesce(nullif(trim(p.team), ''), '') as team,
+      coalesce(a.total_intro_successes, 0)::int as total_intro_successes,
+      coalesce(a.total_over6, 0)::int as total_over6,
+      coalesce(a.total_sales, 0)::int as total_sales,
+      coalesce(a.day_over6, 0)::int as day_over6,
+      coalesce(a.day_sales, 0)::int as day_sales,
+      coalesce(a.day_points, 0)::int as day_points,
+      coalesce(a.week_over6, 0)::int as week_over6,
+      coalesce(a.week_sales, 0)::int as week_sales,
+      coalesce(a.week_points, 0)::int as week_points,
+      coalesce(a.month_over6, 0)::int as month_over6,
+      coalesce(a.month_sales, 0)::int as month_sales,
+      coalesce(a.month_points, 0)::int as month_points,
+      a.latest_entry_at,
+      coalesce(greatest(a.updated_at, p.updated_at), a.updated_at, p.updated_at) as updated_at
+    from user_ids ids
+    left join aggregated a on a.user_id = ids.user_id
+    left join public.user_public_profiles p on p.user_id = ids.user_id
+  )
+  select *
+  from rows
+  where
+    day_sales > 0
+    or day_over6 > 0
+    or day_points > 0
+    or week_sales > 0
+    or week_over6 > 0
+    or week_points > 0
+    or month_sales > 0
+    or month_over6 > 0
+    or month_points > 0;
+$$;
+
+revoke all on function public.get_leaderboard_snapshot(date) from public;
+grant execute on function public.get_leaderboard_snapshot(date) to authenticated;
+
 drop trigger if exists sync_public_profile_from_auth_user on auth.users;
 create trigger sync_public_profile_from_auth_user
 after insert or update of email, raw_user_meta_data on auth.users
@@ -574,6 +899,238 @@ begin
     or public.is_competition_participant(target_competition_id);
 end;
 $$;
+
+create or replace function public.get_competition_player_standings(target_competition_id uuid)
+returns table (
+  user_id uuid,
+  display_name text,
+  team text,
+  team_color text,
+  score integer,
+  total_sales integer,
+  total_over6 integer,
+  total_points integer,
+  current_score integer,
+  baseline_score integer,
+  progress_label text,
+  reached_at timestamptz
+)
+language sql
+stable
+security definer
+set search_path = public
+set row_security = off
+as $$
+  with game as (
+    select
+      g.competition_id,
+      g.game_type,
+      g.metric_type,
+      g.target_value,
+      g.rules_json,
+      g.starts_at,
+      g.ends_at,
+      case
+        when coalesce(g.rules_json ->> 'competitionMode', 'ffa') = 'team' then 'team'
+        else 'ffa'
+      end as competition_mode,
+      greatest(1, coalesce(nullif(g.rules_json ->> 'pointsPerSale', '')::integer, 300)) as points_per_sale,
+      greatest(1, coalesce(nullif(g.rules_json ->> 'pointsPerOver6', '')::integer, 100)) as points_per_over6,
+      greatest(0, coalesce(
+        nullif(g.rules_json ->> 'pointsPerOv', '')::integer,
+        greatest(1, coalesce(nullif(g.rules_json ->> 'pointsPerSale', '')::integer, 300))
+      )) as points_per_ov,
+      greatest(0, coalesce(nullif(g.rules_json ->> 'pointsPerAddon', '')::integer, 0)) as points_per_addon
+    from public.competition_games g
+    where g.competition_id = target_competition_id
+      and public.user_can_access_competition(g.competition_id)
+  ),
+  participants as (
+    select p.user_id
+    from public.competition_participants p
+    join game g on g.competition_id = p.competition_id
+    where p.participant_role <> 'viewer'
+      and p.invite_status <> 'declined'
+  ),
+  scored_entries as (
+    select
+      p.user_id,
+      e.entry_id,
+      e.occurred_at,
+      coalesce(e.sales_count, 0)::int as sales_count,
+      coalesce(e.over6_count, 0)::int as over6_count,
+      coalesce(e.leaderboard_points, 0)::int as total_points,
+      case
+        when g.metric_type = 'sales' then coalesce(e.sales_count, 0)::int
+        when g.metric_type = 'over6' then coalesce(e.over6_count, 0)::int
+        else (
+          (coalesce(e.port_sales_count, 0) * g.points_per_sale)
+          + (coalesce(e.ov_sales_count, 0) * g.points_per_ov)
+          + (coalesce(e.over6_count, 0) * g.points_per_over6)
+          + (coalesce(e.addon_count, 0) * g.points_per_addon)
+        )::int
+      end as metric_value
+    from participants p
+    cross join game g
+    left join public.user_stats_activity_entries e
+      on e.user_id = p.user_id
+     and e.occurred_at >= g.starts_at
+     and e.occurred_at <= g.ends_at
+  ),
+  aggregated as (
+    select
+      p.user_id,
+      coalesce(sum(se.metric_value), 0)::int as current_score,
+      coalesce(sum(se.sales_count), 0)::int as total_sales,
+      coalesce(sum(se.over6_count), 0)::int as total_over6,
+      coalesce(sum(se.total_points), 0)::int as total_points
+    from participants p
+    left join scored_entries se on se.user_id = p.user_id
+    group by p.user_id
+  ),
+  target_hits as (
+    select distinct on (ranked.user_id)
+      ranked.user_id,
+      ranked.occurred_at as reached_at
+    from (
+      select
+        se.user_id,
+        se.entry_id,
+        se.occurred_at,
+        sum(se.metric_value) over (
+          partition by se.user_id
+          order by se.occurred_at, se.entry_id
+          rows between unbounded preceding and current row
+        ) as running_score
+      from scored_entries se
+      where se.occurred_at is not null
+    ) ranked
+    join game g on true
+    where g.game_type = 'target-hit'
+      and coalesce(g.target_value, 0) > 0
+      and ranked.running_score >= g.target_value
+    order by ranked.user_id, ranked.occurred_at, ranked.entry_id
+  )
+  select
+    p.user_id,
+    coalesce(nullif(trim(profile.display_name), ''), 'Ukjent bruker') as display_name,
+    case
+      when g.competition_mode = 'team' then public.get_competition_team_name(g.rules_json, p.user_id)
+      else coalesce(nullif(trim(profile.team), ''), '')
+    end as team,
+    case
+      when g.competition_mode = 'team'
+        then public.get_competition_team_color(g.rules_json, public.get_competition_team_name(g.rules_json, p.user_id))
+      else ''
+    end as team_color,
+    agg.current_score as score,
+    agg.total_sales,
+    agg.total_over6,
+    agg.total_points,
+    agg.current_score,
+    0::integer as baseline_score,
+    case
+      when g.game_type = 'target-hit' and coalesce(g.target_value, 0) > 0 and th.reached_at is not null
+        then 'Mal traff ' || to_char(th.reached_at at time zone 'Europe/Oslo', 'DD.MM.YYYY HH24:MI')
+      when g.game_type = 'target-hit' and coalesce(g.target_value, 0) > 0
+        then agg.current_score::text || '/' || g.target_value::text
+      else agg.current_score::text || ' ' || lower(
+        case g.metric_type
+          when 'sales' then 'Abo'
+          when 'over6' then '6-minuttere'
+          else 'Abo og 6-minuttere'
+        end
+      )
+    end as progress_label,
+    th.reached_at
+  from participants p
+  join aggregated agg on agg.user_id = p.user_id
+  join game g on true
+  left join public.user_public_profiles profile on profile.user_id = p.user_id
+  left join target_hits th on th.user_id = p.user_id
+  order by
+    case
+      when g.game_type = 'target-hit' and coalesce(g.target_value, 0) > 0 and th.reached_at is not null then 0
+      when g.game_type = 'target-hit' and coalesce(g.target_value, 0) > 0 then 1
+      else 0
+    end,
+    case when g.game_type = 'target-hit' and coalesce(g.target_value, 0) > 0 then th.reached_at end asc nulls last,
+    agg.current_score desc,
+    agg.total_sales desc,
+    agg.total_over6 desc,
+    coalesce(nullif(trim(profile.display_name), ''), 'Ukjent bruker') asc;
+$$;
+
+create or replace function public.get_competition_team_standings(target_competition_id uuid)
+returns table (
+  team text,
+  team_color text,
+  score numeric,
+  total_score integer,
+  average_score numeric,
+  total_sales integer,
+  total_over6 integer,
+  total_points integer,
+  player_count integer
+)
+language sql
+stable
+security definer
+set search_path = public
+set row_security = off
+as $$
+  with game as (
+    select
+      g.rules_json,
+      case
+        when coalesce(g.rules_json ->> 'competitionMode', 'ffa') = 'team' then true
+        else false
+      end as is_team,
+      case
+        when coalesce(g.rules_json ->> 'teamScoreMode', 'total') = 'average' then 'average'
+        else 'total'
+      end as team_score_mode
+    from public.competition_games g
+    where g.competition_id = target_competition_id
+      and public.user_can_access_competition(g.competition_id)
+  ),
+  player_rows as (
+    select *
+    from public.get_competition_player_standings(target_competition_id)
+    where coalesce(nullif(trim(team), ''), '') <> ''
+  )
+  select
+    pr.team,
+    public.get_competition_team_color(g.rules_json, pr.team) as team_color,
+    case
+      when g.team_score_mode = 'average' then round((sum(pr.score)::numeric / greatest(count(*), 1)::numeric), 2)
+      else sum(pr.score)::numeric
+    end as score,
+    sum(pr.score)::int as total_score,
+    round((sum(pr.score)::numeric / greatest(count(*), 1)::numeric), 2) as average_score,
+    sum(pr.total_sales)::int as total_sales,
+    sum(pr.total_over6)::int as total_over6,
+    sum(pr.total_points)::int as total_points,
+    count(*)::int as player_count
+  from player_rows pr
+  join game g on g.is_team
+  group by pr.team, g.rules_json, g.team_score_mode
+  order by
+    case
+      when g.team_score_mode = 'average' then round((sum(pr.score)::numeric / greatest(count(*), 1)::numeric), 2)
+      else sum(pr.score)::numeric
+    end desc,
+    sum(pr.score) desc,
+    sum(pr.total_sales) desc,
+    sum(pr.total_over6) desc,
+    pr.team asc;
+$$;
+
+revoke all on function public.get_competition_player_standings(uuid) from public;
+grant execute on function public.get_competition_player_standings(uuid) to authenticated;
+
+revoke all on function public.get_competition_team_standings(uuid) from public;
+grant execute on function public.get_competition_team_standings(uuid) to authenticated;
 
 drop policy if exists "Visible users can read competition participants" on public.competition_participants;
 create policy "Visible users can read competition participants"
