@@ -16434,43 +16434,30 @@
 
   function renderCompetitionCreateSummaryCard(draft, options = {}) {
     const isTeamMode = Boolean(options.isTeamMode);
-    const teamConfigs = Array.isArray(options.teamConfigs) ? options.teamConfigs : [];
-    const participantCount = getCompetitionDraftParticipantCount(draft);
-    const assignedCount = isTeamMode
-      ? teamConfigs.reduce((sum, team) => sum + team.memberIds.length, 0)
-      : participantCount;
     const summaryItems = [
       {
         label: 'Navn',
-        value: String(draft?.name || '').trim() || 'Ikke satt ennå',
-        meta: isTeamMode ? 'Bruk et navn som fungerer for begge lagene.' : 'Et kort navn gjør spillet lettere å kjenne igjen.'
+        value: String(draft?.name || '').trim() || 'Ikke satt ennå'
       },
       {
         label: 'Format',
-        value: isTeamMode ? 'Lagspill' : 'Alle mot alle',
-        meta: isTeamMode
-          ? `${teamConfigs.length} lag · ${assignedCount} fordelte spillere · ${getCompetitionTeamScoreModeLabel(draft)}`
-          : `${participantCount} inviterte spillere`
+        value: isTeamMode ? 'Lagspill' : 'Alle mot alle'
       },
       {
         label: 'Spilltype',
-        value: getCompetitionMetricLabel(draft?.metricType),
-        meta: draft?.metricType === 'points' ? formatCompetitionPointWeights(draft) : getCompetitionMetricConfig(draft?.metricType).description
+        value: getCompetitionMetricLabel(draft?.metricType)
       },
       {
         label: 'Mål',
-        value: draft?.objectiveMode === 'target' ? `Førstemann til ${draft?.targetValue || '?'}` : 'Om å gjøre å få mest',
-        meta: draft?.objectiveMode === 'target' ? 'Spillet stopper når noen treffer måltallet først.' : 'Den høyeste scoren ved sluttid vinner.'
+        value: draft?.objectiveMode === 'target' ? `Førstemann til ${draft?.targetValue || '?'}` : 'Om å gjøre å få mest'
       },
       {
         label: 'Premie',
-        value: String(draft?.prize || '').trim() || 'Ikke satt ennå',
-        meta: 'En tydelig premie gjør spillet morsommere å bli med på.'
+        value: String(draft?.prize || '').trim() || 'Ikke satt ennå'
       },
       {
         label: 'Tid',
-        value: formatCompetitionDraftTimeSummary(draft),
-        meta: 'Bruk presets først, og finjuster dato/tid etterpå.'
+        value: formatCompetitionDraftTimeSummary(draft)
       }
     ];
     return `
@@ -16483,7 +16470,6 @@
               <div class="games-create-summary-item">
                 <div class="games-create-summary-item-label">${escHtml(item.label)}</div>
                 <div class="games-create-summary-item-value">${escHtml(item.value)}</div>
-                <div class="games-create-summary-item-meta">${escHtml(item.meta)}</div>
               </div>
             `).join('')}
           </div>
