@@ -11321,6 +11321,10 @@
 
   async function runBackendShadowParityCheck(history = getIntroHistory(), reference = new Date()) {
     if (!supabaseClient || !currentUser) return getBackendMigrationState();
+    const currentState = getBackendMigrationState();
+    const currentSurfacePreferences = currentState.notes_json && typeof currentState.notes_json.surfacePreferences === 'object' && !Array.isArray(currentState.notes_json.surfacePreferences)
+      ? currentState.notes_json.surfacePreferences
+      : {};
     const referenceDate = makeLocalDateKey(reference);
     const expectedStats = buildExpectedBackendStatsSnapshot(history, reference);
     const expectedLeaderboard = getLeaderboardPayload(history);
@@ -11403,9 +11407,13 @@
 
     return saveBackendMigrationState({
       parity_status: mismatches.length ? 'mismatch' : 'matched',
-      backend_ready: false,
-      last_successful_step: 'dual-write-shadow',
+      backend_ready: currentState.backfill_status === 'complete' && !mismatches.length,
+      last_successful_step: mismatches.length ? 'dual-write-shadow' : 'leaderboard-read-switch',
       notes_json: {
+        surfacePreferences: {
+          ...currentSurfacePreferences,
+          leaderboard: mismatches.length ? 'legacy' : 'backend'
+        },
         lastCanonicalSyncAt: new Date().toISOString(),
         lastParityCheckedAt: new Date().toISOString(),
         lastParityReferenceDate: referenceDate,
@@ -11738,6 +11746,18 @@
     }).filter(hasVisibleLeaderboardActivity);
   }
 
+  async function loadBackendLeaderboardRows(reference = new Date()) {
+    const referenceDate = makeLocalDateKey(reference);
+    const { data, error } = await supabaseClient.rpc(SUPABASE_BACKEND_LEADERBOARD_RPC, {
+      reference_date: referenceDate
+    });
+    if (error) throw error;
+    return (Array.isArray(data) ? data : [])
+      .map(normalizeLeaderboardRow)
+      .filter(Boolean)
+      .filter(hasVisibleLeaderboardActivity);
+  }
+
   async function loadPublicProfiles() {
     let data = [];
     let error = null;
@@ -11826,12 +11846,7 @@
 
     const readStrategy = getBackendReadStrategy('leaderboard');
     try {
-      if (readStrategy === 'backend') {
-        // The canonical backend read path is introduced in a later phase.
-        // Until parity is proven and that path exists, stay on the legacy-compatible sources.
-      }
-      const [legacyRows] = await Promise.all([
-        loadLegacyPublicStatsRows().catch(() => []),
+      await Promise.all([
         loadPublicProfiles(),
         loadPublicActivityEntries().catch(error => {
           if (isLeaderboardSchemaMismatch(error)) {
@@ -11845,9 +11860,26 @@
           participants: competitionParticipants
         }))
       ]);
-      const freshRows = buildLeaderboardRowsFromPublicActivity();
-      const freshUserIds = new Set(freshRows.map(row => row.user_id));
-      const nextRows = mergeCurrentUserLocalLeaderboardRow([...freshRows, ...legacyRows.filter(row => !freshUserIds.has(row.user_id))]);
+      let nextRows = [];
+      if (readStrategy === 'backend') {
+        try {
+          const backendRows = await loadBackendLeaderboardRows();
+          nextRows = mergeCurrentUserLocalLeaderboardRow(backendRows);
+        } catch (error) {
+          if (!isBackendStatsSchemaMismatch(error)) {
+            console.warn('Backend leaderboard read failed, falling back to legacy rows.', error);
+          }
+          const legacyRows = await loadLegacyPublicStatsRows().catch(() => []);
+          const freshRows = buildLeaderboardRowsFromPublicActivity();
+          const freshUserIds = new Set(freshRows.map(row => row.user_id));
+          nextRows = mergeCurrentUserLocalLeaderboardRow([...freshRows, ...legacyRows.filter(row => !freshUserIds.has(row.user_id))]);
+        }
+      } else {
+        const legacyRows = await loadLegacyPublicStatsRows().catch(() => []);
+        const freshRows = buildLeaderboardRowsFromPublicActivity();
+        const freshUserIds = new Set(freshRows.map(row => row.user_id));
+        nextRows = mergeCurrentUserLocalLeaderboardRow([...freshRows, ...legacyRows.filter(row => !freshUserIds.has(row.user_id))]);
+      }
       updateLeaderboardMovementState(nextRows);
       updateCompetitionMovementState(competitionGames);
       leaderboardRows = nextRows;
