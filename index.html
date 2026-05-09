@@ -9987,7 +9987,7 @@
   }
 
   function getCompetitionDefaultParticipantIds() {
-    return [String(currentUser?.id || '')].filter(Boolean);
+    return [];
   }
 
   function buildCompetitionDraftTeamConfigs(teamCount = 2, existingTeams = []) {
@@ -10020,8 +10020,6 @@
       nextTeams[nextTeams.length - 1].memberIds.push(userId);
       seenMembers.add(userId);
     });
-    const ownUserId = String(currentUser?.id || '').trim();
-    if (ownUserId && !seenMembers.has(ownUserId) && nextTeams[0]) nextTeams[0].memberIds.push(ownUserId);
     return nextTeams;
   }
 
@@ -10067,7 +10065,7 @@
       startTimeValue: String(overrides.startTimeValue || getTimeInputValue(roundedStart)),
       endDateValue: Object.prototype.hasOwnProperty.call(overrides, 'endDateValue') ? String(overrides.endDateValue || '') : '',
       endTimeValue: Object.prototype.hasOwnProperty.call(overrides, 'endTimeValue') ? String(overrides.endTimeValue || '') : '',
-      participantIds: [...new Set(participantIds.concat(String(currentUser?.id || '')).filter(Boolean))],
+      participantIds: [...new Set(participantIds.filter(Boolean))],
       teamCount,
       teamConfigs: buildCompetitionDraftTeamConfigs(teamCount, overrides.teamConfigs)
     };
@@ -15959,9 +15957,6 @@
     const nextDraft = { ...currentDraft, [key]: value };
     if (key === 'mode') {
       nextDraft.mode = value === 'team' ? 'team' : 'ffa';
-      if (nextDraft.mode === 'ffa') {
-        nextDraft.participantIds = [...new Set((nextDraft.participantIds || []).concat(String(currentUser?.id || '')).filter(Boolean))];
-      }
     }
     if (key === 'teamCount') {
       nextDraft.teamCount = Math.min(6, Math.max(2, Math.floor(Number(value) || 2)));
@@ -16009,7 +16004,6 @@
     const participantIds = new Set(currentDraft.participantIds || []);
     if (participantIds.has(userId)) participantIds.delete(userId);
     else participantIds.add(userId);
-    participantIds.add(String(currentUser?.id || ''));
     competitionDraft = { ...currentDraft, participantIds: [...participantIds].filter(Boolean) };
     renderCompetitionCreatePage();
   }
@@ -16198,11 +16192,23 @@
       : [];
     const participantIds = competitionMode === 'team'
       ? [...new Set(teamConfigs.flatMap(team => team.memberIds))]
-      : [...new Set((draft.participantIds || []).concat(String(currentUser.id)).filter(Boolean))];
+      : [...new Set((draft.participantIds || []).filter(Boolean))];
     const name = String(draft.name || '').trim();
     const targetValue = objectiveMode === 'target' ? Math.max(1, Math.floor(Number(draft.targetValue) || 0)) : null;
     const editingCompetitionId = String(draft.editCompetitionId || '');
     const isEditing = Boolean(editingCompetitionId);
+    const creatorUserId = String(currentUser.id || '').trim();
+    const creatorIsParticipant = participantIds.includes(creatorUserId);
+    const creatorViewerRows = (!creatorIsParticipant && creatorUserId)
+      ? [{
+          competition_id: isEditing ? editingCompetitionId : '',
+          user_id: creatorUserId,
+          invited_by_user_id: currentUser.id,
+          participant_role: 'viewer',
+          invite_status: 'accepted',
+          joined_at: new Date().toISOString()
+        }]
+      : [];
     const teamColors = Object.fromEntries(teamConfigs.map((team, index) => [normalizeTeamKey(team.name), team.color || COMPETITION_TEAM_COLORS[index % COMPETITION_TEAM_COLORS.length]]));
     const selectedTeams = teamConfigs.map(team => team.name);
     const existingParticipantIds = isEditing ? getCompetitionParticipantIds({ competition_id: editingCompetitionId }) : [];
@@ -16284,6 +16290,10 @@
       invite_status: 'accepted',
       joined_at: new Date().toISOString()
     }));
+    const viewerRows = creatorViewerRows.map(row => ({
+      ...row,
+      competition_id: competitionId
+    }));
 
     try {
       if (isEditing) {
@@ -16323,6 +16333,20 @@
             .in('user_id', removedParticipantIds);
           if (deleteParticipantsError) throw deleteParticipantsError;
         }
+        if (viewerRows.length) {
+          const { error: viewerUpsertError } = await supabaseClient
+            .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
+            .upsert(viewerRows, { onConflict: 'competition_id,user_id' });
+          if (viewerUpsertError) throw viewerUpsertError;
+        } else if (creatorUserId) {
+          const { error: deleteViewerError } = await supabaseClient
+            .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
+            .delete()
+            .eq('competition_id', competitionId)
+            .eq('user_id', creatorUserId)
+            .eq('participant_role', 'viewer');
+          if (deleteViewerError) throw deleteViewerError;
+        }
       } else {
         const { error: gameError } = await supabaseClient
           .from(SUPABASE_COMPETITION_GAMES_TABLE)
@@ -16350,6 +16374,12 @@
             }))));
         }
         if (saveParticipantError) throw saveParticipantError;
+        if (viewerRows.length) {
+          const { error: viewerError } = await supabaseClient
+            .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
+            .insert(viewerRows);
+          if (viewerError) throw viewerError;
+        }
       }
       const normalizedGame = normalizeCompetitionGame({
         competition_id: competitionId,
@@ -16363,12 +16393,18 @@
         created_at: nowIso,
         updated_at: nowIso
       })).filter(Boolean);
+      const normalizedViewers = viewerRows.map(row => normalizeCompetitionParticipant({
+        ...row,
+        created_at: nowIso,
+        updated_at: nowIso
+      })).filter(Boolean);
       if (normalizedGame) {
         competitionGames = [normalizedGame, ...competitionGames.filter(game => game.competition_id !== normalizedGame.competition_id)];
       }
       competitionParticipants = [
+        ...normalizedViewers,
         ...normalizedParticipants,
-        ...competitionParticipants.filter(row => row.competition_id !== competitionId || row.participant_role === 'viewer')
+        ...competitionParticipants.filter(row => row.competition_id !== competitionId || (row.participant_role === 'viewer' && row.user_id !== creatorUserId))
       ];
       competitionDraft = null;
       competitionActionMenuId = '';
@@ -16513,11 +16549,10 @@
     const assignedUserIds = new Set(teamConfigs.flatMap(team => team.memberIds));
     const unassignedUsers = selectableUsers.filter(profile => !assignedUserIds.has(profile.user_id));
     const participantCards = selectableUsers
-      .filter(profile => profile.user_id !== String(currentUser?.id || ''))
       .map(profile => `
         <label class="games-checkbox-card">
           <input type="checkbox" ${draft.participantIds.includes(profile.user_id) ? 'checked' : ''} onchange="toggleCompetitionParticipant('${profile.user_id}')">
-          <span>${escHtml(profile.display_name)}${profile.team ? ` · ${escHtml(profile.team)}` : ''}</span>
+          <span>${escHtml(profile.display_name)}${profile.user_id === String(currentUser?.id || '') ? ' · deg' : ''}${profile.team ? ` · ${escHtml(profile.team)}` : ''}</span>
         </label>
       `).join('');
     const stepItems = getCompetitionCreateStepItems(draft, { isTeamMode, teamConfigs, unassignedUsers });
