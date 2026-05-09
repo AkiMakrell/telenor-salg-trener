@@ -6141,6 +6141,21 @@
       color: #fcd34d;
     }
 
+    .leaderboard-source-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .leaderboard-source-note {
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
     .leaderboard-period-switcher {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -15732,10 +15747,19 @@
   }
 
   function getLeaderboardSourceBadgeConfig() {
+    const migrationState = getBackendMigrationState();
+    const notes = migrationState.notes_json && typeof migrationState.notes_json === 'object' && !Array.isArray(migrationState.notes_json)
+      ? migrationState.notes_json
+      : {};
+    const paritySummary = notes.lastParitySummary && typeof notes.lastParitySummary === 'object' && !Array.isArray(notes.lastParitySummary)
+      ? notes.lastParitySummary
+      : null;
+    const mismatchCount = Math.max(0, Number(paritySummary?.mismatchCount) || 0);
     if (leaderboardSourceMode === 'backend') {
       return {
         className: 'backend',
         label: 'Kilde: Ny',
+        detail: 'Backend aktiv',
         title: 'Leaderboardet leses fra den nye backend-versjonen.'
       };
     }
@@ -15743,19 +15767,74 @@
       return {
         className: 'fallback',
         label: 'Kilde: Fallback',
+        detail: 'Reservevisning aktiv',
         title: 'Leaderboardet viser reservevisning fordi den nye kilden ikke svarte som forventet.'
+      };
+    }
+    if (migrationState.backfill_status === 'running') {
+      return {
+        className: 'legacy',
+        label: 'Kilde: Gammel',
+        detail: 'Backfill p\u00e5g\u00e5r',
+        title: 'Leaderboardet bruker gammel kilde mens gammel data kopieres inn i den nye backend-en.'
+      };
+    }
+    if (migrationState.backfill_status === 'failed') {
+      return {
+        className: 'legacy',
+        label: 'Kilde: Gammel',
+        detail: 'Backfill feilet',
+        title: 'Leaderboardet bruker gammel kilde fordi kopiering av historisk data til ny backend feilet.'
+      };
+    }
+    if (migrationState.parity_status === 'running') {
+      return {
+        className: 'legacy',
+        label: 'Kilde: Gammel',
+        detail: 'Sjekker samsvar',
+        title: 'Leaderboardet bruker gammel kilde mens appen sammenligner gammel og ny backend.'
+      };
+    }
+    if (migrationState.parity_status === 'mismatch') {
+      return {
+        className: 'legacy',
+        label: 'Kilde: Gammel',
+        detail: mismatchCount ? `Dataavvik (${mismatchCount})` : 'Dataavvik',
+        title: 'Leaderboardet holder seg p\u00e5 gammel kilde fordi gammel og ny backend ikke gir samme resultat enn\u00e5.'
+      };
+    }
+    if (migrationState.parity_status === 'failed') {
+      return {
+        className: 'legacy',
+        label: 'Kilde: Gammel',
+        detail: 'Kontroll feilet',
+        title: 'Leaderboardet holder seg p\u00e5 gammel kilde fordi kontrollen av den nye backend-en feilet.'
+      };
+    }
+    if (migrationState.backfill_status !== 'complete') {
+      return {
+        className: 'legacy',
+        label: 'Kilde: Gammel',
+        detail: 'Ikke aktivert enn\u00e5',
+        title: 'Leaderboardet bruker gammel kilde fordi ny backend ikke er aktivert enn\u00e5. Vanlige \u00e5rsaker er at Supabase-SQL ikke er lagt inn eller at kontrollen ikke har kj\u00f8rt ferdig.'
       };
     }
     return {
       className: 'legacy',
       label: 'Kilde: Gammel',
-      title: 'Leaderboardet leses fra den gamle, stabile kilden.'
+      detail: 'Venter p\u00e5 aktivering',
+      title: 'Leaderboardet leses fra den gamle, stabile kilden fordi den nye backend-en ikke er godkjent for lesing enn\u00e5.'
     };
   }
 
   function renderLeaderboardSourceBadge() {
     const badge = getLeaderboardSourceBadgeConfig();
-    return `<span class="leaderboard-source-badge ${badge.className}" title="${escHtml(badge.title)}">${escHtml(badge.label)}</span>`;
+    return `
+      <span class="leaderboard-source-meta">
+        <span class="leaderboard-source-badge ${badge.className}" title="${escHtml(badge.title)}">${escHtml(badge.label)}</span>
+        ${badge.detail ? `<span class="leaderboard-source-note">${escHtml(badge.detail)}</span>` : ''}
+      </span>
+    `;
   }
 
   function renderDashboardLeaderboardCard() {
