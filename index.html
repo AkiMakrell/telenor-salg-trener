@@ -9692,6 +9692,8 @@
   const SUPABASE_BACKEND_BACKFILL_RPC = 'backfill_user_stats_activity_entries';
   const SUPABASE_BACKEND_STATS_RPC = 'get_user_stats_snapshot';
   const SUPABASE_BACKEND_LEADERBOARD_RPC = 'get_leaderboard_snapshot';
+  const SUPABASE_BACKEND_COMPETITION_PLAYER_RPC = 'get_competition_player_standings';
+  const SUPABASE_BACKEND_COMPETITION_TEAM_RPC = 'get_competition_team_standings';
   const SUPABASE_PROFILE_AVATAR_BUCKET = 'profile-avatars';
   const PROFILE_AVATAR_MAX_BYTES = 3 * 1024 * 1024;
   const INTRO_LEADERBOARD_DATA_VERSION = '2';
@@ -9780,6 +9782,8 @@
   let publicActivityRows = [];
   let competitionGames = [];
   let competitionParticipants = [];
+  let competitionPlayerStandingsByGame = {};
+  let competitionTeamStandingsByGame = {};
   let competitionState = 'idle';
   let competitionErrorMessage = '';
   let activeCompetitionFilter = 'active';
@@ -10068,6 +10072,8 @@
     publicActivityRows = [];
     competitionGames = [];
     competitionParticipants = [];
+    competitionPlayerStandingsByGame = {};
+    competitionTeamStandingsByGame = {};
     competitionMovementByGame = {};
     competitionErrorMessage = '';
     selectedCompetitionId = '';
@@ -11155,6 +11161,7 @@
       : '';
     const requestedStrategy = surfacePreference || state.read_source_preference;
     if (!state.backend_ready || state.parity_status !== 'matched') return 'legacy';
+    if (!surfacePreference && normalizedSurface === 'competition') return 'backend';
     if (requestedStrategy === 'backend') return 'backend';
     if (requestedStrategy === 'hybrid') return 'hybrid';
     return 'legacy';
@@ -11474,7 +11481,8 @@
       notes_json: {
         surfacePreferences: {
           ...currentSurfacePreferences,
-          leaderboard: mismatches.length ? 'legacy' : 'backend'
+          leaderboard: mismatches.length ? 'legacy' : 'backend',
+          competition: mismatches.length ? 'legacy' : 'backend'
         },
         lastCanonicalSyncAt: new Date().toISOString(),
         lastParityCheckedAt: new Date().toISOString(),
@@ -11582,6 +11590,47 @@
       joined_at: row.joined_at ? String(row.joined_at) : '',
       updated_at: row.updated_at ? String(row.updated_at) : '',
       created_at: row.created_at ? String(row.created_at) : ''
+    };
+  }
+
+  function normalizeBackendCompetitionStandingRow(row, game) {
+    if (!row || typeof row !== 'object') return null;
+    const userId = String(row.user_id || '').trim();
+    if (!userId) return null;
+    const profile = getPublicProfileByUserId(userId);
+    const isTeamGame = isTeamCompetitionGame(game);
+    const teamName = String(row.team || '').trim()
+      || (isTeamGame ? getCompetitionAssignedTeamName(game, userId) : String(profile?.team || '').trim());
+    return {
+      user_id: userId,
+      display_name: String(row.display_name || '').trim() || profile?.display_name || (userId === String(currentUser?.id || '') ? getUserDisplayName(currentUser) : 'Ukjent bruker'),
+      team: teamName,
+      teamColor: String(row.team_color || '').trim() || getCompetitionTeamColor(teamName, game),
+      score: Number(row.score) || 0,
+      totalSales: Math.max(0, Number(row.total_sales) || 0),
+      totalOver6: Math.max(0, Number(row.total_over6) || 0),
+      totalPoints: Math.max(0, Number(row.total_points) || 0),
+      currentScore: Math.max(0, Number(row.current_score) || 0),
+      baselineScore: Math.max(0, Number(row.baseline_score) || 0),
+      progressLabel: String(row.progress_label || '').trim(),
+      reachedAt: row.reached_at ? String(row.reached_at) : ''
+    };
+  }
+
+  function normalizeBackendCompetitionTeamStandingRow(row, game) {
+    if (!row || typeof row !== 'object') return null;
+    const teamName = String(row.team || '').trim();
+    if (!teamName) return null;
+    return {
+      team: teamName,
+      teamColor: String(row.team_color || '').trim() || getCompetitionTeamColor(teamName, game),
+      score: Number(row.score) || 0,
+      totalScore: Math.max(0, Number(row.total_score) || 0),
+      averageScore: Number(row.average_score) || 0,
+      totalSales: Math.max(0, Number(row.total_sales) || 0),
+      totalOver6: Math.max(0, Number(row.total_over6) || 0),
+      totalPoints: Math.max(0, Number(row.total_points) || 0),
+      playerCount: Math.max(0, Number(row.player_count) || 0)
     };
   }
 
@@ -11820,6 +11869,56 @@
       .filter(hasVisibleLeaderboardActivity);
   }
 
+  async function loadBackendCompetitionPlayerStandings(game) {
+    const competitionId = String(game?.competition_id || '').trim();
+    if (!competitionId) return [];
+    const { data, error } = await supabaseClient.rpc(SUPABASE_BACKEND_COMPETITION_PLAYER_RPC, {
+      target_competition_id: competitionId
+    });
+    if (error) throw error;
+    return (Array.isArray(data) ? data : [])
+      .map(row => normalizeBackendCompetitionStandingRow(row, game))
+      .filter(Boolean);
+  }
+
+  async function loadBackendCompetitionTeamStandings(game) {
+    if (!isTeamCompetitionGame(game)) return [];
+    const competitionId = String(game?.competition_id || '').trim();
+    if (!competitionId) return [];
+    const { data, error } = await supabaseClient.rpc(SUPABASE_BACKEND_COMPETITION_TEAM_RPC, {
+      target_competition_id: competitionId
+    });
+    if (error) throw error;
+    return (Array.isArray(data) ? data : [])
+      .map(row => normalizeBackendCompetitionTeamStandingRow(row, game))
+      .filter(Boolean);
+  }
+
+  async function loadBackendCompetitionStandings(games = []) {
+    const nextPlayerStandings = {};
+    const nextTeamStandings = {};
+    await Promise.all((Array.isArray(games) ? games : []).map(async game => {
+      const competitionId = String(game?.competition_id || '').trim();
+      if (!competitionId) return;
+      try {
+        nextPlayerStandings[competitionId] = await loadBackendCompetitionPlayerStandings(game);
+        nextTeamStandings[competitionId] = isTeamCompetitionGame(game)
+          ? await loadBackendCompetitionTeamStandings(game)
+          : [];
+      } catch (error) {
+        if (!isBackendStatsSchemaMismatch(error)) {
+          console.warn(`Backend competition standings read failed for ${competitionId}, falling back to legacy rows.`, error);
+        }
+      }
+    }));
+    competitionPlayerStandingsByGame = nextPlayerStandings;
+    competitionTeamStandingsByGame = nextTeamStandings;
+    return {
+      playerStandings: competitionPlayerStandingsByGame,
+      teamStandings: competitionTeamStandingsByGame
+    };
+  }
+
   async function loadPublicProfiles() {
     let data = [];
     let error = null;
@@ -11891,6 +11990,11 @@
     if (participantsResponse.error) throw participantsResponse.error;
     competitionGames = (gamesResponse.data || []).map(normalizeCompetitionGame).filter(Boolean);
     competitionParticipants = (participantsResponse.data || []).map(normalizeCompetitionParticipant).filter(Boolean);
+    competitionPlayerStandingsByGame = {};
+    competitionTeamStandingsByGame = {};
+    if (getBackendReadStrategy('competition') === 'backend') {
+      await loadBackendCompetitionStandings(competitionGames);
+    }
     return { games: competitionGames, participants: competitionParticipants };
   }
 
@@ -16422,7 +16526,22 @@
     });
   }
 
-  function buildCompetitionStandings(game) {
+  function sortCompetitionStandings(game, standings = []) {
+    const targetValue = Math.max(0, Number(game?.target_value) || 0);
+    return [...(Array.isArray(standings) ? standings : [])].sort((a, b) => {
+      if (game?.game_type === 'target-hit' && targetValue > 0) {
+        if (a?.reachedAt && b?.reachedAt) return String(a.reachedAt).localeCompare(String(b.reachedAt));
+        if (a?.reachedAt) return -1;
+        if (b?.reachedAt) return 1;
+      }
+      if ((Number(b?.score) || 0) !== (Number(a?.score) || 0)) return (Number(b?.score) || 0) - (Number(a?.score) || 0);
+      if ((Number(b?.totalSales) || 0) !== (Number(a?.totalSales) || 0)) return (Number(b?.totalSales) || 0) - (Number(a?.totalSales) || 0);
+      if ((Number(b?.totalOver6) || 0) !== (Number(a?.totalOver6) || 0)) return (Number(b?.totalOver6) || 0) - (Number(a?.totalOver6) || 0);
+      return String(a?.display_name || '').localeCompare(String(b?.display_name || ''), 'no-NO');
+    });
+  }
+
+  function buildLegacyCompetitionStandings(game) {
     const participantIds = [...new Set(getCompetitionParticipantIds(game))];
     const metricType = game.metric_type || getCompetitionGameConfig(game.game_type).metricType;
     const targetValue = Math.max(0, Number(game.target_value) || 0);
@@ -16469,18 +16588,23 @@
       };
     });
 
-    standings.sort((a, b) => {
-      if (game.game_type === 'target-hit' && targetValue > 0) {
-        if (a.reachedAt && b.reachedAt) return String(a.reachedAt).localeCompare(String(b.reachedAt));
-        if (a.reachedAt) return -1;
-        if (b.reachedAt) return 1;
-      }
-      if (b.score !== a.score) return b.score - a.score;
-      if (b.totalSales !== a.totalSales) return b.totalSales - a.totalSales;
-      if (b.totalOver6 !== a.totalOver6) return b.totalOver6 - a.totalOver6;
-      return a.display_name.localeCompare(b.display_name, 'no-NO');
+    return sortCompetitionStandings(game, standings);
+  }
+
+  function buildCompetitionStandings(game) {
+    const legacyStandings = buildLegacyCompetitionStandings(game);
+    if (getBackendReadStrategy('competition') !== 'backend') return legacyStandings;
+    const competitionId = String(game?.competition_id || '').trim();
+    const backendStandings = Array.isArray(competitionPlayerStandingsByGame?.[competitionId])
+      ? competitionPlayerStandingsByGame[competitionId]
+      : null;
+    if (!backendStandings) return legacyStandings;
+    const merged = [...backendStandings];
+    const backendUserIds = new Set(backendStandings.map(row => row.user_id));
+    legacyStandings.forEach(row => {
+      if (!backendUserIds.has(row.user_id)) merged.push(row);
     });
-    return standings;
+    return sortCompetitionStandings(game, merged);
   }
 
   function buildCompetitionRankSnapshot(games = competitionGames) {
@@ -16531,9 +16655,19 @@
     `;
   }
 
-  function buildCompetitionTeamStandings(game) {
+  function sortCompetitionTeamStandings(rows = []) {
+    return [...(Array.isArray(rows) ? rows : [])].sort((a, b) => {
+      if ((Number(b?.score) || 0) !== (Number(a?.score) || 0)) return (Number(b?.score) || 0) - (Number(a?.score) || 0);
+      if ((Number(b?.totalScore) || 0) !== (Number(a?.totalScore) || 0)) return (Number(b?.totalScore) || 0) - (Number(a?.totalScore) || 0);
+      if ((Number(b?.totalSales) || 0) !== (Number(a?.totalSales) || 0)) return (Number(b?.totalSales) || 0) - (Number(a?.totalSales) || 0);
+      if ((Number(b?.totalOver6) || 0) !== (Number(a?.totalOver6) || 0)) return (Number(b?.totalOver6) || 0) - (Number(a?.totalOver6) || 0);
+      return String(a?.team || '').localeCompare(String(b?.team || ''), 'no-NO');
+    });
+  }
+
+  function buildLegacyCompetitionTeamStandings(game) {
     if (!isTeamCompetitionGame(game)) return [];
-    const playerStandings = buildCompetitionStandings(game);
+    const playerStandings = buildLegacyCompetitionStandings(game);
     const teamScoreMode = getCompetitionTeamScoreMode(game);
     const groups = new Map();
     playerStandings.forEach(player => {
@@ -16559,19 +16693,29 @@
       current.totalPoints += player.totalPoints;
       current.playerCount += 1;
     });
-    return [...groups.values()].map(team => ({
+    return sortCompetitionTeamStandings([...groups.values()].map(team => ({
       ...team,
       averageScore: team.playerCount ? team.totalScore / team.playerCount : 0,
       score: teamScoreMode === 'average'
         ? (team.playerCount ? team.totalScore / team.playerCount : 0)
         : team.totalScore
-    })).sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
-      if (b.totalSales !== a.totalSales) return b.totalSales - a.totalSales;
-      if (b.totalOver6 !== a.totalOver6) return b.totalOver6 - a.totalOver6;
-      return a.team.localeCompare(b.team, 'no-NO');
+    })));
+  }
+
+  function buildCompetitionTeamStandings(game) {
+    const legacyTeamStandings = buildLegacyCompetitionTeamStandings(game);
+    if (!isTeamCompetitionGame(game) || getBackendReadStrategy('competition') !== 'backend') return legacyTeamStandings;
+    const competitionId = String(game?.competition_id || '').trim();
+    const backendTeamStandings = Array.isArray(competitionTeamStandingsByGame?.[competitionId])
+      ? competitionTeamStandingsByGame[competitionId]
+      : null;
+    if (!backendTeamStandings) return legacyTeamStandings;
+    const merged = [...backendTeamStandings];
+    const backendTeams = new Set(backendTeamStandings.map(row => normalizeTeamKey(row.team)).filter(Boolean));
+    legacyTeamStandings.forEach(row => {
+      if (!backendTeams.has(normalizeTeamKey(row.team))) merged.push(row);
     });
+    return sortCompetitionTeamStandings(merged);
   }
 
   function openCompetitionCreator() {
