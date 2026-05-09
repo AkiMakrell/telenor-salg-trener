@@ -9781,6 +9781,7 @@
   let publicProfileRows = [];
   let publicActivityRows = [];
   let backendStatsHistoryEntries = [];
+  let backendStatsHistoryLoaded = false;
   let competitionGames = [];
   let competitionParticipants = [];
   let competitionPlayerStandingsByGame = {};
@@ -10072,6 +10073,7 @@
     publicProfileRows = [];
     publicActivityRows = [];
     backendStatsHistoryEntries = [];
+    backendStatsHistoryLoaded = false;
     competitionGames = [];
     competitionParticipants = [];
     competitionPlayerStandingsByGame = {};
@@ -11966,6 +11968,7 @@
     backendStatsHistoryEntries = (data || [])
       .map(normalizeBackendStatsHistoryEntry)
       .filter(Boolean);
+    backendStatsHistoryLoaded = true;
     return backendStatsHistoryEntries;
   }
 
@@ -12081,12 +12084,14 @@
           await loadBackendStatsHistoryEntries();
         } catch (error) {
           backendStatsHistoryEntries = [];
+          backendStatsHistoryLoaded = false;
           if (!isBackendStatsSchemaMismatch(error)) {
             console.warn('Backend stats history read failed, falling back to local stats history.', error);
           }
         }
       } else {
         backendStatsHistoryEntries = [];
+        backendStatsHistoryLoaded = false;
       }
       let nextRows = [];
       if (readStrategy === 'backend') {
@@ -15999,14 +16004,81 @@
     };
   }
 
-  function renderLeaderboardSourceBadge() {
-    const badge = getLeaderboardSourceBadgeConfig();
+  function getStatsSourceBadgeConfig() {
+    const requestedStrategy = getBackendReadStrategy('stats');
+    if (requestedStrategy !== 'backend') {
+      return {
+        className: 'legacy',
+        label: 'Kilde: Gammel',
+        detail: 'Lokal historikk',
+        title: 'Statssiden leses fortsatt fra den gamle lokale historikken.'
+      };
+    }
+    if (backendStatsHistoryLoaded) {
+      return {
+        className: 'backend',
+        label: 'Kilde: Ny',
+        detail: 'Backend aktiv',
+        title: 'Statssiden leses fra den nye backend-versjonen.'
+      };
+    }
+    return {
+      className: 'fallback',
+      label: 'Kilde: Fallback',
+      detail: 'Lokal reserve',
+      title: 'Statssiden skulle bruke ny backend, men falt tilbake til lokal historikk.'
+    };
+  }
+
+  function getCompetitionSourceBadgeConfig(game) {
+    const requestedStrategy = getBackendReadStrategy('competition');
+    if (requestedStrategy !== 'backend') {
+      return {
+        className: 'legacy',
+        label: 'Kilde: Gammel',
+        detail: 'Legacy stilling',
+        title: 'Spillstillingen leses fortsatt fra den gamle klientberegningen.'
+      };
+    }
+    const competitionId = String(game?.competition_id || '').trim();
+    const hasBackendRows = competitionId
+      ? Object.prototype.hasOwnProperty.call(competitionPlayerStandingsByGame, competitionId)
+      : false;
+    if (hasBackendRows) {
+      return {
+        className: 'backend',
+        label: 'Kilde: Ny',
+        detail: 'Backend aktiv',
+        title: 'Spillstillingen leses fra den nye backend-versjonen.'
+      };
+    }
+    return {
+      className: 'fallback',
+      label: 'Kilde: Fallback',
+      detail: 'Legacy reserve',
+      title: 'Spillstillingen skulle bruke ny backend, men falt tilbake til den gamle beregningen.'
+    };
+  }
+
+  function renderSourceBadge(badge) {
     return `
       <span class="leaderboard-source-meta">
         <span class="leaderboard-source-badge ${badge.className}" title="${escHtml(badge.title)}">${escHtml(badge.label)}</span>
         ${badge.detail ? `<span class="leaderboard-source-note">${escHtml(badge.detail)}</span>` : ''}
       </span>
     `;
+  }
+
+  function renderLeaderboardSourceBadge() {
+    return renderSourceBadge(getLeaderboardSourceBadgeConfig());
+  }
+
+  function renderStatsSourceBadge() {
+    return renderSourceBadge(getStatsSourceBadgeConfig());
+  }
+
+  function renderCompetitionSourceBadge(game) {
+    return renderSourceBadge(getCompetitionSourceBadgeConfig(game));
   }
 
   function renderDashboardLeaderboardCard() {
@@ -18130,6 +18202,7 @@
           ` : ''}
           <div style="text-align:center;">
             <div class="games-detail-title" style="font-size:40px;line-height:1.06;">${escHtml(game.name)}</div>
+            <div style="margin-top:10px;display:flex;justify-content:center;">${renderCompetitionSourceBadge(game)}</div>
             ${renderCompetitionTimeProgress(game)}
             ${prize ? `<div style="margin-top:14px;"><span class="games-prize-chip">PREMIE: ${escHtml(prize)}</span></div>` : ''}
           </div>
@@ -18167,6 +18240,7 @@
           <div>
             <div class="games-detail-title">${escHtml(game.name)}</div>
             <div class="games-detail-meta">${escHtml(isTeamGame ? 'Lagspill' : 'Alle mot alle')} · ${escHtml(getCompetitionObjectiveLabel(game))}${isTeamGame ? ` · ${escHtml(getCompetitionTeamScoreModeLabel(game))}` : ''} · ${escHtml(formatCompetitionTimeRange(game))}</div>
+            <div style="margin-top:10px;">${renderCompetitionSourceBadge(game)}</div>
           </div>
           <span class="games-badge ${status}">${getCompetitionStatusLabel(status)}</span>
         </div>
@@ -18580,6 +18654,7 @@
             ${renderStatsSubviewNav(activeView)}
           </aside>
           <div class="stats-main">
+            <div style="margin-bottom:14px;">${renderStatsSourceBadge()}</div>
             ${panes[activeView]}
           </div>
         </div>
