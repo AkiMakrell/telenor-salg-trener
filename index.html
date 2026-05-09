@@ -9686,10 +9686,12 @@
   const SUPABASE_PUBLIC_PROFILES_TABLE = 'user_public_profiles';
   const SUPABASE_PUBLIC_ACTIVITY_TABLE = 'user_public_activity_entries';
   const SUPABASE_CANONICAL_STATS_ACTIVITY_TABLE = 'user_stats_activity_entries';
+  const SUPABASE_OBJECTION_CARDS_TABLE = 'user_objection_cards';
   const SUPABASE_COMPETITION_GAMES_TABLE = 'competition_games';
   const SUPABASE_COMPETITION_PARTICIPANTS_TABLE = 'competition_participants';
   const SUPABASE_BACKEND_MIGRATION_TABLE = 'user_backend_migration_state';
   const SUPABASE_BACKEND_BACKFILL_RPC = 'backfill_user_stats_activity_entries';
+  const SUPABASE_OBJECTION_BACKFILL_RPC = 'backfill_user_objection_cards';
   const SUPABASE_BACKEND_STATS_RPC = 'get_user_stats_snapshot';
   const SUPABASE_BACKEND_LEADERBOARD_RPC = 'get_leaderboard_snapshot';
   const SUPABASE_BACKEND_COMPETITION_PLAYER_RPC = 'get_competition_player_standings';
@@ -9782,6 +9784,8 @@
   let publicActivityRows = [];
   let backendStatsHistoryEntries = [];
   let backendStatsHistoryLoaded = false;
+  let backendFaktaData = null;
+  let backendFaktaLoaded = false;
   let competitionGames = [];
   let competitionParticipants = [];
   let competitionPlayerStandingsByGame = {};
@@ -9800,6 +9804,7 @@
   let profileAvatarSaving = false;
   let backendMigrationState = null;
   let backendBackfillPromise = null;
+  let backendFaktaBackfillPromise = null;
   let leaderboardSourceMode = 'legacy';
 
   localStorage.setItem = function(k, v) {
@@ -10296,6 +10301,12 @@
     const message = String(error?.message || error || '');
     return /(schema cache|relation .* does not exist|column .* does not exist|function .* does not exist|could not find the function)/i.test(message)
       && /(user_stats_activity_entries|get_user_stats_snapshot|get_leaderboard_snapshot|source_entry_type|source_intro_id|source_text|local_date|week_start_date|month_start_date|session_date|session_id|session_label|leaderboard_points)/i.test(message);
+  }
+
+  function isObjectionBackendSchemaMismatch(error) {
+    const message = String(error?.message || error || '');
+    return /(schema cache|relation .* does not exist|column .* does not exist|function .* does not exist|could not find the function)/i.test(message)
+      && /(user_objection_cards|backfill_user_objection_cards|theme_key|item_id|objection|response|notes|keywords|favorite)/i.test(message);
   }
 
   function isFetchNetworkError(error) {
@@ -11147,6 +11158,12 @@
     backendBackfillPromise = null;
     backendMigrationState = getDefaultBackendMigrationState(userId);
     return backendMigrationState;
+  }
+
+  function resetBackendFaktaState() {
+    backendFaktaBackfillPromise = null;
+    backendFaktaData = null;
+    backendFaktaLoaded = false;
   }
 
   function getBackendMigrationState() {
@@ -12783,6 +12800,19 @@
     }
 
     try {
+      await ensureBackendFaktaBackfill();
+      await syncAllFaktaToBackend(getLocalFakta());
+      await loadBackendFaktaData();
+    } catch (error) {
+      if (isObjectionBackendSchemaMismatch(error)) {
+        resetBackendFaktaState();
+        setAuthStatus(BACKEND_MIGRATION_SCHEMA_WARNING, 'warning');
+      } else {
+        console.warn('Could not activate objection backend.', error);
+      }
+    }
+
+    try {
       await syncPublicLeaderboard({ skipReload: true });
       await loadLeaderboardRows({ silentLoading: true });
       subscribeToLeaderboardRealtime();
@@ -12806,6 +12836,7 @@
       }
       currentUser = null;
       resetBackendMigrationState();
+      resetBackendFaktaState();
       clearTrackedLocalData();
       clearLeaderboardState();
       clearCompetitionState();
@@ -12830,6 +12861,7 @@
       unsubscribeLeaderboardRealtime();
       currentUser = null;
       resetBackendMigrationState();
+      resetBackendFaktaState();
       clearTrackedLocalData();
       clearLeaderboardState();
       clearCompetitionState();
@@ -21111,11 +21143,18 @@
     };
   }
 
-  function getFakta() {
-    const raw = localStorage.getItem('produktFakta');
-    let parsed = raw ? JSON.parse(raw) : { dekning: [], nettsikkerhet: [], bildelagring: [] };
-    let changed = !raw;
-    const normalized = {};
+  function createEmptyFaktaState() {
+    const empty = {};
+    FAKTA_THEMES.forEach(({ key }) => {
+      empty[key] = [];
+    });
+    return empty;
+  }
+
+  function normalizeFaktaCollection(data) {
+    const parsed = data && typeof data === 'object' && !Array.isArray(data) ? data : {};
+    let changed = !data || Array.isArray(data);
+    const normalized = createEmptyFaktaState();
     FAKTA_THEMES.forEach(({ key }) => {
       const source = Array.isArray(parsed[key]) ? parsed[key] : [];
       normalized[key] = source.map((item, index) => normalizeFaktaItem(item, key, index)).filter(Boolean);
@@ -21123,12 +21162,140 @@
         changed = true;
       }
     });
-    if (changed) saveFakta(normalized);
-    return normalized;
+    return { data: normalized, changed };
   }
 
-  function saveFakta(data) {
+  function saveLocalFakta(data) {
     localStorage.setItem('produktFakta', JSON.stringify(data));
+  }
+
+  function getLocalFakta() {
+    const raw = localStorage.getItem('produktFakta');
+    const parsed = raw ? JSON.parse(raw) : {};
+    const { data, changed } = normalizeFaktaCollection(parsed);
+    if (!raw || changed) saveLocalFakta(data);
+    return data;
+  }
+
+  function setBackendFaktaSnapshot(data) {
+    backendFaktaData = normalizeFaktaCollection(data).data;
+    return backendFaktaData;
+  }
+
+  function getFakta() {
+    if (currentUser && backendFaktaLoaded) {
+      return backendFaktaData || createEmptyFaktaState();
+    }
+    return getLocalFakta();
+  }
+
+  function buildBackendFaktaRows(data = getLocalFakta()) {
+    const normalized = normalizeFaktaCollection(data).data;
+    return FAKTA_THEMES.flatMap(({ key }) => (
+      normalized[key] || []
+    ).map(item => ({
+      user_id: currentUser.id,
+      item_id: item.id,
+      theme_key: key,
+      objection: item.objection,
+      response: item.response,
+      notes: item.notes,
+      keywords: Array.isArray(item.keywords) ? item.keywords : [],
+      favorite: Boolean(item.favorite)
+    })));
+  }
+
+  async function ensureBackendFaktaBackfill() {
+    if (!supabaseClient || !currentUser) return false;
+    if (backendFaktaBackfillPromise) return backendFaktaBackfillPromise;
+
+    backendFaktaBackfillPromise = (async () => {
+      const { error } = await supabaseClient.rpc(SUPABASE_OBJECTION_BACKFILL_RPC, {
+        target_user_id: currentUser.id
+      });
+      if (error) {
+        if (isObjectionBackendSchemaMismatch(error)) return false;
+        throw error;
+      }
+      return true;
+    })();
+
+    try {
+      return await backendFaktaBackfillPromise;
+    } finally {
+      backendFaktaBackfillPromise = null;
+    }
+  }
+
+  async function syncAllFaktaToBackend(data = getLocalFakta()) {
+    if (!supabaseClient || !currentUser) return [];
+    const rows = buildBackendFaktaRows(data);
+    if (!rows.length) return [];
+    const { error } = await supabaseClient
+      .from(SUPABASE_OBJECTION_CARDS_TABLE)
+      .upsert(rows, { onConflict: 'user_id,item_id' });
+    if (error) throw error;
+    return rows;
+  }
+
+  async function loadBackendFaktaData() {
+    if (!supabaseClient || !currentUser) {
+      resetBackendFaktaState();
+      return getLocalFakta();
+    }
+    const { data, error } = await supabaseClient
+      .from(SUPABASE_OBJECTION_CARDS_TABLE)
+      .select('item_id, theme_key, objection, response, notes, keywords, favorite, updated_at')
+      .eq('user_id', currentUser.id)
+      .order('favorite', { ascending: false })
+      .order('updated_at', { ascending: false });
+    if (error) throw error;
+    const nextData = createEmptyFaktaState();
+    (data || []).forEach((row, index) => {
+      const themeKey = String(row.theme_key || '').trim();
+      if (!Object.prototype.hasOwnProperty.call(nextData, themeKey)) return;
+      const item = normalizeFaktaItem({
+        id: row.item_id,
+        objection: row.objection,
+        response: row.response,
+        notes: row.notes,
+        keywords: Array.isArray(row.keywords) ? row.keywords : [],
+        favorite: row.favorite
+      }, themeKey, index);
+      if (item) nextData[themeKey].push(item);
+    });
+    setBackendFaktaSnapshot(nextData);
+    backendFaktaLoaded = true;
+    saveLocalFakta(backendFaktaData);
+    return backendFaktaData;
+  }
+
+  async function upsertFaktaCardToBackend(themeKey, item) {
+    if (!supabaseClient || !currentUser) return item;
+    const { error } = await supabaseClient
+      .from(SUPABASE_OBJECTION_CARDS_TABLE)
+      .upsert([{
+        user_id: currentUser.id,
+        item_id: item.id,
+        theme_key: themeKey,
+        objection: item.objection,
+        response: item.response,
+        notes: item.notes,
+        keywords: Array.isArray(item.keywords) ? item.keywords : [],
+        favorite: Boolean(item.favorite)
+      }], { onConflict: 'user_id,item_id' });
+    if (error) throw error;
+    return item;
+  }
+
+  async function deleteFaktaCardFromBackend(id) {
+    if (!supabaseClient || !currentUser) return;
+    const { error } = await supabaseClient
+      .from(SUPABASE_OBJECTION_CARDS_TABLE)
+      .delete()
+      .eq('user_id', currentUser.id)
+      .eq('item_id', id);
+    if (error) throw error;
   }
 
   function toggleFaktaCard(id) {
@@ -21156,7 +21323,7 @@
     if (form) { form.style.display = 'none'; form.dataset.editId = ''; }
   }
 
-  function saveFaktaCard(themeKey) {
+  async function saveFaktaCard(themeKey) {
     const titleEl = document.getElementById('fakta-input-title-' + themeKey);
     const objection = titleEl.value.trim();
     if (!objection) { titleEl.focus(); return; }
@@ -21170,21 +21337,53 @@
     const editId = form.dataset.editId;
     const data = getFakta();
     if (!data[themeKey]) data[themeKey] = [];
+    let savedItem = null;
     if (editId) {
       const idx = data[themeKey].findIndex(x => x.id === editId);
-      if (idx !== -1) data[themeKey][idx] = { ...data[themeKey][idx], id: editId, objection, response, notes, keywords };
+      if (idx !== -1) {
+        data[themeKey][idx] = { ...data[themeKey][idx], id: editId, objection, response, notes, keywords };
+        savedItem = data[themeKey][idx];
+      }
     } else {
-      data[themeKey].push({ id: themeKey + '_' + Date.now(), objection, response, notes, keywords, favorite: false });
+      savedItem = { id: themeKey + '_' + Date.now(), objection, response, notes, keywords, favorite: false };
+      data[themeKey].push(savedItem);
     }
-    saveFakta(data);
+    if (!savedItem) return;
+    saveLocalFakta(data);
+    if (currentUser && backendFaktaLoaded) setBackendFaktaSnapshot(data);
+    if (currentUser && supabaseClient) {
+      try {
+        await upsertFaktaCardToBackend(themeKey, savedItem);
+      } catch (error) {
+        if (isObjectionBackendSchemaMismatch(error)) {
+          setAuthStatus(BACKEND_MIGRATION_SCHEMA_WARNING, 'warning');
+        } else {
+          console.warn('Could not save objection card to backend.', error);
+          setAuthStatus('Innvendingen ble lagret lokalt, men ikke i ny backend.', 'warning');
+        }
+      }
+    }
     renderFakta();
   }
 
-  function deleteFaktaCard(themeKey, id) {
+  async function deleteFaktaCard(themeKey, id) {
     if (!confirm('Slette denne innvendingen?')) return;
     const data = getFakta();
     data[themeKey] = (data[themeKey] || []).filter(x => x.id !== id);
-    saveFakta(data);
+    saveLocalFakta(data);
+    if (currentUser && backendFaktaLoaded) setBackendFaktaSnapshot(data);
+    if (currentUser && supabaseClient) {
+      try {
+        await deleteFaktaCardFromBackend(id);
+      } catch (error) {
+        if (isObjectionBackendSchemaMismatch(error)) {
+          setAuthStatus(BACKEND_MIGRATION_SCHEMA_WARNING, 'warning');
+        } else {
+          console.warn('Could not delete objection card from backend.', error);
+          setAuthStatus('Innvendingen ble slettet lokalt, men ikke i ny backend.', 'warning');
+        }
+      }
+    }
     renderFakta();
   }
 
@@ -21196,12 +21395,25 @@
     }
   }
 
-  function toggleFaktaFavorite(themeKey, id) {
+  async function toggleFaktaFavorite(themeKey, id) {
     const data = getFakta();
     const item = (data[themeKey] || []).find(x => x.id === id);
     if (!item) return;
     item.favorite = !item.favorite;
-    saveFakta(data);
+    saveLocalFakta(data);
+    if (currentUser && backendFaktaLoaded) setBackendFaktaSnapshot(data);
+    if (currentUser && supabaseClient) {
+      try {
+        await upsertFaktaCardToBackend(themeKey, item);
+      } catch (error) {
+        if (isObjectionBackendSchemaMismatch(error)) {
+          setAuthStatus(BACKEND_MIGRATION_SCHEMA_WARNING, 'warning');
+        } else {
+          console.warn('Could not update objection favorite in backend.', error);
+          setAuthStatus('Favoritten ble oppdatert lokalt, men ikke i ny backend.', 'warning');
+        }
+      }
+    }
     renderFakta();
   }
 

@@ -418,6 +418,202 @@ on public.user_backend_migration_state
 for delete
 using (auth.uid() = user_id);
 
+create table if not exists public.user_objection_cards (
+  user_id uuid not null references auth.users (id) on delete cascade,
+  item_id text not null,
+  theme_key text not null check (theme_key in ('intro', 'dekning', 'nettsikkerhet', 'bildelagring', 'losningspresentasjon')),
+  objection text not null default '',
+  response text not null default '',
+  notes text not null default '',
+  keywords jsonb not null default '[]'::jsonb,
+  favorite boolean not null default false,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now()),
+  primary key (user_id, item_id)
+);
+
+alter table public.user_objection_cards
+  add column if not exists theme_key text,
+  add column if not exists objection text not null default '',
+  add column if not exists response text not null default '',
+  add column if not exists notes text not null default '',
+  add column if not exists keywords jsonb not null default '[]'::jsonb,
+  add column if not exists favorite boolean not null default false;
+
+create index if not exists user_objection_cards_user_theme_idx
+  on public.user_objection_cards (user_id, theme_key, favorite desc, updated_at desc);
+
+drop trigger if exists user_objection_cards_set_updated_at on public.user_objection_cards;
+create trigger user_objection_cards_set_updated_at
+before update on public.user_objection_cards
+for each row
+execute function public.set_user_app_state_updated_at();
+
+alter table public.user_objection_cards enable row level security;
+
+grant select, insert, update, delete on public.user_objection_cards to authenticated;
+
+drop policy if exists "Users can read own objection cards" on public.user_objection_cards;
+create policy "Users can read own objection cards"
+on public.user_objection_cards
+for select
+using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert own objection cards" on public.user_objection_cards;
+create policy "Users can insert own objection cards"
+on public.user_objection_cards
+for insert
+with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update own objection cards" on public.user_objection_cards;
+create policy "Users can update own objection cards"
+on public.user_objection_cards
+for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+drop policy if exists "Users can delete own objection cards" on public.user_objection_cards;
+create policy "Users can delete own objection cards"
+on public.user_objection_cards
+for delete
+using (auth.uid() = user_id);
+
+create or replace function public.backfill_user_objection_cards(target_user_id uuid default auth.uid())
+returns table (
+  user_id uuid,
+  state_items integer,
+  upserted_items integer,
+  total_items integer,
+  backfill_status text
+)
+language plpgsql
+security definer
+set search_path = public
+set row_security = off
+as $$
+#variable_conflict use_column
+declare
+  v_state_items integer := 0;
+  v_upserted_items integer := 0;
+  v_total_items integer := 0;
+begin
+  if auth.uid() is null or auth.uid() <> target_user_id then
+    raise exception 'You can only backfill your own objection cards.';
+  end if;
+
+  with state_payload as (
+    select state.state_value
+    from public.user_app_state state
+    where state.user_id = target_user_id
+      and state.state_key = 'produktFakta'
+  ),
+  raw_items as (
+    select
+      theme.key as theme_key,
+      item.value as raw_item,
+      item.ordinality as item_position
+    from state_payload payload
+    cross join lateral jsonb_each(
+      case
+        when jsonb_typeof(payload.state_value) = 'object' then payload.state_value
+        else '{}'::jsonb
+      end
+    ) as theme(key, value)
+    cross join lateral jsonb_array_elements(
+      case
+        when jsonb_typeof(theme.value) = 'array' then theme.value
+        else '[]'::jsonb
+      end
+    ) with ordinality as item(value, ordinality)
+    where theme.key in ('intro', 'dekning', 'nettsikkerhet', 'bildelagring', 'losningspresentasjon')
+  ),
+  normalized_items as (
+    select
+      target_user_id as user_id,
+      coalesce(
+        nullif(trim(raw_item ->> 'id'), ''),
+        theme_key || '_' || extract(epoch from timezone('utc', now()))::bigint::text || '_' || item_position::text
+      ) as item_id,
+      theme_key,
+      trim(coalesce(nullif(raw_item ->> 'objection', ''), nullif(raw_item ->> 'title', ''), '')) as objection,
+      trim(coalesce(nullif(raw_item ->> 'response', ''), nullif(raw_item ->> 'desc', ''), '')) as response,
+      trim(coalesce(raw_item ->> 'notes', '')) as notes,
+      case
+        when jsonb_typeof(raw_item -> 'keywords') = 'array' then (
+          select coalesce(jsonb_agg(to_jsonb(trim(keyword.value))), '[]'::jsonb)
+          from jsonb_array_elements_text(raw_item -> 'keywords') as keyword(value)
+          where trim(keyword.value) <> ''
+        )
+        when nullif(trim(coalesce(raw_item ->> 'keywords', '')), '') is not null then (
+          select coalesce(jsonb_agg(to_jsonb(trim(keyword.value))), '[]'::jsonb)
+          from regexp_split_to_table(coalesce(raw_item ->> 'keywords', ''), ',') as keyword(value)
+          where trim(keyword.value) <> ''
+        )
+        else '[]'::jsonb
+      end as keywords,
+      case
+        when lower(coalesce(nullif(trim(raw_item ->> 'favorite'), ''), 'false')) in ('true', 't', '1', 'yes', 'ja', 'on') then true
+        else false
+      end as favorite
+    from raw_items
+  ),
+  filtered_items as (
+    select *
+    from normalized_items
+    where objection <> '' or response <> '' or notes <> ''
+  ),
+  upserted_rows as (
+    insert into public.user_objection_cards (
+      user_id,
+      item_id,
+      theme_key,
+      objection,
+      response,
+      notes,
+      keywords,
+      favorite
+    )
+    select
+      filtered.user_id,
+      filtered.item_id,
+      filtered.theme_key,
+      filtered.objection,
+      filtered.response,
+      filtered.notes,
+      filtered.keywords,
+      filtered.favorite
+    from filtered_items filtered
+    on conflict (user_id, item_id) do update
+      set theme_key = excluded.theme_key,
+          objection = excluded.objection,
+          response = excluded.response,
+          notes = excluded.notes,
+          keywords = excluded.keywords,
+          favorite = excluded.favorite
+    returning item_id
+  )
+  select
+    coalesce((select count(*) from filtered_items), 0)::integer,
+    coalesce((select count(*) from upserted_rows), 0)::integer,
+    coalesce((select count(*) from public.user_objection_cards where public.user_objection_cards.user_id = target_user_id), 0)::integer
+  into
+    v_state_items,
+    v_upserted_items,
+    v_total_items;
+
+  return query
+  select
+    target_user_id,
+    v_state_items,
+    v_upserted_items,
+    v_total_items,
+    'complete'::text;
+end;
+$$;
+
+revoke all on function public.backfill_user_objection_cards(uuid) from public;
+grant execute on function public.backfill_user_objection_cards(uuid) to authenticated;
+
 create table if not exists public.user_public_stats (
   user_id uuid not null references auth.users (id) on delete cascade,
   display_name text not null,
