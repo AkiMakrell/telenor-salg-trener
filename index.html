@@ -9780,6 +9780,7 @@
   let recoveryEventRows = [];
   let publicProfileRows = [];
   let publicActivityRows = [];
+  let backendStatsHistoryEntries = [];
   let competitionGames = [];
   let competitionParticipants = [];
   let competitionPlayerStandingsByGame = {};
@@ -10070,6 +10071,7 @@
   function clearCompetitionState() {
     publicProfileRows = [];
     publicActivityRows = [];
+    backendStatsHistoryEntries = [];
     competitionGames = [];
     competitionParticipants = [];
     competitionPlayerStandingsByGame = {};
@@ -11161,7 +11163,7 @@
       : '';
     const requestedStrategy = surfacePreference || state.read_source_preference;
     if (!state.backend_ready || state.parity_status !== 'matched') return 'legacy';
-    if (!surfacePreference && normalizedSurface === 'competition') return 'backend';
+    if (!surfacePreference && ['competition', 'stats'].includes(normalizedSurface)) return 'backend';
     if (requestedStrategy === 'backend') return 'backend';
     if (requestedStrategy === 'hybrid') return 'hybrid';
     return 'legacy';
@@ -11482,7 +11484,8 @@
         surfacePreferences: {
           ...currentSurfacePreferences,
           leaderboard: mismatches.length ? 'legacy' : 'backend',
-          competition: mismatches.length ? 'legacy' : 'backend'
+          competition: mismatches.length ? 'legacy' : 'backend',
+          stats: mismatches.length ? 'legacy' : 'backend'
         },
         lastCanonicalSyncAt: new Date().toISOString(),
         lastParityCheckedAt: new Date().toISOString(),
@@ -11631,6 +11634,39 @@
       totalOver6: Math.max(0, Number(row.total_over6) || 0),
       totalPoints: Math.max(0, Number(row.total_points) || 0),
       playerCount: Math.max(0, Number(row.player_count) || 0)
+    };
+  }
+
+  function normalizeBackendStatsHistoryEntry(row) {
+    if (!row || typeof row !== 'object') return null;
+    const entryId = String(row.entry_id || '').trim();
+    const occurredAt = String(row.occurred_at || '').trim();
+    if (!entryId || !occurredAt) return null;
+    const salesCount = Math.max(0, Number(row.sales_count) || 0);
+    const portSalesCount = Math.max(0, Number(row.port_sales_count) || 0);
+    const ovSalesCount = Math.max(0, Number(row.ov_sales_count) || 0);
+    const addonCount = Math.max(0, Number(row.addon_count) || 0);
+    const localDateKey = String(row.session_date || row.local_date || '').trim();
+    const entryDate = new Date(occurredAt);
+    return {
+      id: entryId,
+      type: String(row.source_entry_type || '').trim() === 'introSuccess' || Number(row.intro_success_count) > 0 ? 'introSuccess' : 'introAttempt',
+      introId: String(row.source_intro_id || '').trim() || null,
+      text: String(row.source_text || '').trim(),
+      opptak: Number(row.intro_success_count) > 0 ? 'ja' : 'nei',
+      over5min: Number(row.over6_count) > 0 ? 'ja' : 'nei',
+      salg: salesCount > 0 ? 'ja' : 'nei',
+      salesCount,
+      saleCategory: ovSalesCount > 0 && portSalesCount === 0 ? 'ov' : 'port',
+      portSalesCount,
+      ovSalesCount,
+      addonCount,
+      isoDate: occurredAt,
+      tid: Number.isNaN(entryDate.getTime()) ? occurredAt : formatHistoryTimestamp(entryDate),
+      sessionId: String(row.session_id || '').trim() || null,
+      sessionLabel: String(row.session_label || '').trim() || null,
+      sessionDate: localDateKey || (Number.isNaN(entryDate.getTime()) ? null : makeLocalDateKey(entryDate)),
+      quickEntry: row.quick_entry === true
     };
   }
 
@@ -11919,6 +11955,20 @@
     };
   }
 
+  async function loadBackendStatsHistoryEntries() {
+    if (!supabaseClient || !currentUser) return [];
+    const { data, error } = await supabaseClient
+      .from(SUPABASE_CANONICAL_STATS_ACTIVITY_TABLE)
+      .select('entry_id, source_entry_type, source_intro_id, source_text, occurred_at, local_date, session_date, session_id, session_label, intro_success_count, over6_count, sales_count, port_sales_count, ov_sales_count, addon_count, quick_entry')
+      .eq('user_id', currentUser.id)
+      .order('occurred_at', { ascending: false });
+    if (error) throw error;
+    backendStatsHistoryEntries = (data || [])
+      .map(normalizeBackendStatsHistoryEntry)
+      .filter(Boolean);
+    return backendStatsHistoryEntries;
+  }
+
   async function loadPublicProfiles() {
     let data = [];
     let error = null;
@@ -12026,6 +12076,18 @@
           participants: competitionParticipants
         }))
       ]);
+      if (getBackendReadStrategy('stats') === 'backend') {
+        try {
+          await loadBackendStatsHistoryEntries();
+        } catch (error) {
+          backendStatsHistoryEntries = [];
+          if (!isBackendStatsSchemaMismatch(error)) {
+            console.warn('Backend stats history read failed, falling back to local stats history.', error);
+          }
+        }
+      } else {
+        backendStatsHistoryEntries = [];
+      }
       let nextRows = [];
       if (readStrategy === 'backend') {
         try {
@@ -18330,7 +18392,9 @@
   }
 
   function renderStatsSurface(containerId = 'stats-home', mode = 'overview') {
-    const history = getIntroHistory();
+    const history = getBackendReadStrategy('stats') === 'backend' && backendStatsHistoryEntries.length
+      ? backendStatsHistoryEntries
+      : getIntroHistory();
     const now = new Date();
     const dagEntries = getHistoryEntriesForPeriod(history, 'day', now);
     const ukeEntries = getHistoryEntriesForPeriod(history, 'week', now);
