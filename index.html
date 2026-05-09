@@ -16518,6 +16518,11 @@
       .sort((a, b) => String(a.starts_at).localeCompare(String(b.starts_at)));
   }
 
+  function getCompetitionDateSortValue(value, fallback = Number.POSITIVE_INFINITY) {
+    const timestamp = new Date(value).getTime();
+    return Number.isNaN(timestamp) ? fallback : timestamp;
+  }
+
   function getCompetitionUpcomingAndCompletedGames() {
     return competitionGames
       .filter(game => ['scheduled', 'completed'].includes(getCompetitionStatus(game)))
@@ -16525,9 +16530,12 @@
         const statusOrder = { scheduled: 0, completed: 1 };
         const statusCompare = (statusOrder[getCompetitionStatus(a)] ?? 99) - (statusOrder[getCompetitionStatus(b)] ?? 99);
         if (statusCompare !== 0) return statusCompare;
-        return getCompetitionStatus(a) === 'completed'
-          ? String(b.starts_at).localeCompare(String(a.starts_at))
-          : String(a.starts_at).localeCompare(String(b.starts_at));
+        if (getCompetitionStatus(a) === 'completed') {
+          return getCompetitionDateSortValue(b.ends_at, Number.NEGATIVE_INFINITY) - getCompetitionDateSortValue(a.ends_at, Number.NEGATIVE_INFINITY)
+            || getCompetitionDateSortValue(b.starts_at, Number.NEGATIVE_INFINITY) - getCompetitionDateSortValue(a.starts_at, Number.NEGATIVE_INFINITY);
+        }
+        return getCompetitionDateSortValue(a.starts_at) - getCompetitionDateSortValue(b.starts_at)
+          || String(a.starts_at).localeCompare(String(b.starts_at));
       });
   }
 
