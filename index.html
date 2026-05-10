@@ -317,6 +317,63 @@
       margin: 0;
     }
 
+    .profile-avatar-picker-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    .profile-avatar-option {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.78);
+    }
+
+    .profile-avatar-option.is-selected {
+      border-color: rgba(56, 189, 248, 0.7);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.24);
+    }
+
+    .profile-avatar-preview {
+      width: min(240px, 100%);
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      align-self: center;
+      background: rgba(15, 23, 42, 0.8);
+    }
+
+    .profile-avatar-option-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .profile-avatar-option-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .profile-avatar-option-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.16);
+      color: #7dd3fc;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
     .settings-avatar-input {
       display: none;
     }
@@ -9228,6 +9285,20 @@
   </div>
 </div>
 
+<div id="profile-avatar-picker-overlay" class="recovery-overlay" aria-hidden="true" onclick="if (event.target === this) closeProfileAvatarPicker()">
+  <div class="recovery-modal" role="dialog" aria-modal="true" aria-labelledby="profile-avatar-picker-title">
+    <div class="recovery-modal-head">
+      <div>
+        <div id="profile-avatar-picker-title" class="recovery-modal-title">Velg avatar</div>
+        <div class="recovery-modal-text">Test med en forhandslaget avatar.</div>
+      </div>
+      <button type="button" class="backup-btn" style="margin-top:0;" onclick="closeProfileAvatarPicker()">Lukk</button>
+    </div>
+    <div id="profile-avatar-picker-status" class="auth-message auth-message-info"></div>
+    <div id="profile-avatar-picker-body" class="recovery-modal-body"></div>
+  </div>
+</div>
+
 <div id="competition-viewer-overlay" class="recovery-overlay" aria-hidden="true" onclick="if (event.target === this) closeCompetitionViewerModal()">
   <div class="recovery-modal" role="dialog" aria-modal="true" aria-labelledby="competition-viewer-title">
     <div class="recovery-modal-head">
@@ -9360,12 +9431,10 @@
           </div>
           <div class="settings-user-note">Din konto har sitt eget datasett. Andre brukere ser bare sitt eget innhold.</div>
           <div class="settings-avatar-card">
-            <span class="settings-status-label">Profilbilde</span>
-            <div class="settings-user-note">Last opp et bilde av deg selv. Hvis du ikke har et bilde, brukes initialene dine automatisk.</div>
+            <span class="settings-status-label">Avatar</span>
             <div class="settings-avatar-actions">
-              <button id="settings-avatar-upload" class="backup-btn" type="button" onclick="openProfileAvatarPicker()">Last opp profilbilde</button>
-              <button id="settings-avatar-remove" class="backup-btn" type="button" onclick="removeCurrentUserAvatar()">Fjern profilbilde</button>
-              <input id="settings-avatar-input" class="settings-avatar-input" type="file" accept="image/png,image/jpeg,image/webp,image/gif" onchange="handleProfileAvatarFileChange(event)">
+              <button id="settings-avatar-upload" class="backup-btn" type="button" onclick="openProfileAvatarPicker()">Velg avatar</button>
+              <button id="settings-avatar-remove" class="backup-btn" type="button" onclick="removeCurrentUserAvatar()">Fjern avatar</button>
             </div>
             <div id="settings-avatar-status" class="auth-message auth-message-info settings-avatar-status"></div>
           </div>
@@ -9698,6 +9767,9 @@
   const SUPABASE_BACKEND_COMPETITION_TEAM_RPC = 'get_competition_team_standings';
   const SUPABASE_PROFILE_AVATAR_BUCKET = 'profile-avatars';
   const PROFILE_AVATAR_MAX_BYTES = 3 * 1024 * 1024;
+  const PROFILE_AVATAR_PRESETS = [
+    { id: 'polar-bear', label: 'Isbjorn', avatar_url: 'avatar-preset-polar-bear.png' }
+  ];
   const INTRO_LEADERBOARD_DATA_VERSION = '2';
   const INTRO_LEADERBOARD_DATA_VERSION_KEY = 'introLeaderboardDataVersion';
   const STORAGE_KEYS = [
@@ -9961,9 +10033,11 @@
   function setSettingsAvatarStatus(message, tone = 'info') {
     if (!message) {
       clearElementMessage('settings-avatar-status');
+      clearElementMessage('profile-avatar-picker-status');
       return;
     }
     setElementMessage('settings-avatar-status', message, tone);
+    setElementMessage('profile-avatar-picker-status', message, tone);
   }
 
   function updateSettingsTeamControls(user = currentUser, isSaving = false) {
@@ -9984,7 +10058,11 @@
 
   function normalizeAvatarUrl(value) {
     const url = String(value || '').trim();
-    return /^https?:\/\//i.test(url) ? url : '';
+    if (!url || /^javascript:/i.test(url)) return '';
+    if (/^data:image\//i.test(url)) return url;
+    if (/^(https?:|file:)/i.test(url)) return url;
+    if (/^(\/|\.\/|\.\.\/)/.test(url)) return url;
+    return /^[a-z0-9][a-z0-9\-_/\.]*\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(url) ? url : '';
   }
 
   function getCurrentUserAvatarUrl(user = currentUser) {
@@ -10006,11 +10084,50 @@
   function updateSettingsAvatarControls(user = currentUser, isSaving = profileAvatarSaving) {
     const uploadButton = document.getElementById('settings-avatar-upload');
     const removeButton = document.getElementById('settings-avatar-remove');
-    const input = document.getElementById('settings-avatar-input');
     const hasAvatar = Boolean(getCurrentUserAvatarUrl(user));
     if (uploadButton) uploadButton.disabled = isSaving;
     if (removeButton) removeButton.disabled = isSaving || !hasAvatar;
-    if (input) input.disabled = isSaving;
+  }
+
+  function getProfileAvatarPresets() {
+    return PROFILE_AVATAR_PRESETS
+      .map(preset => ({
+        ...preset,
+        avatar_url: normalizeAvatarUrl(preset.avatar_url)
+      }))
+      .filter(preset => preset.id && preset.avatar_url);
+  }
+
+  function getProfileAvatarPresetById(presetId = '') {
+    const normalizedPresetId = String(presetId || '').trim();
+    return getProfileAvatarPresets().find(preset => preset.id === normalizedPresetId) || null;
+  }
+
+  function getProfileAvatarPresetByUrl(avatarUrl = '') {
+    const normalizedUrl = normalizeAvatarUrl(avatarUrl);
+    return getProfileAvatarPresets().find(preset => preset.avatar_url === normalizedUrl) || null;
+  }
+
+  function renderProfileAvatarPickerBody() {
+    const body = document.getElementById('profile-avatar-picker-body');
+    if (!body) return;
+    const currentPreset = getProfileAvatarPresetByUrl(getCurrentUserAvatarUrl());
+    const presets = getProfileAvatarPresets();
+    body.innerHTML = presets.length
+      ? `<div class="profile-avatar-picker-grid">${presets.map(preset => {
+        const isSelected = currentPreset?.id === preset.id;
+        return `
+          <div class="profile-avatar-option${isSelected ? ' is-selected' : ''}">
+            <img class="profile-avatar-preview" src="${escAttr(preset.avatar_url)}" alt="${escAttr(preset.label)}">
+            <div class="profile-avatar-option-head">
+              <div class="profile-avatar-option-title">${escHtml(preset.label)}</div>
+              ${isSelected ? '<span class="profile-avatar-option-badge">Valgt</span>' : ''}
+            </div>
+            <button class="${isSelected ? 'backup-btn' : 'save-btn'}" type="button" style="margin-top:0;" onclick="selectProfileAvatarPreset('${escAttr(preset.id)}')"${isSelected || profileAvatarSaving ? ' disabled' : ''}>${isSelected ? 'Valgt' : 'Bruk denne'}</button>
+          </div>
+        `;
+      }).join('')}</div>`
+      : '<div class="games-empty-note">Ingen avatarer tilgjengelige.</div>';
   }
 
   function getUserInitials(name) {
@@ -12714,6 +12831,7 @@
       closeTopBarTools();
       closeCompetitionActionMenu();
       closeCompetitionViewerModal();
+      closeProfileAvatarPicker();
     }
   });
 
@@ -13027,59 +13145,47 @@
 
   function openProfileAvatarPicker() {
     if (profileAvatarSaving) return;
-    document.getElementById('settings-avatar-input')?.click();
+    closeTopBarSettings();
+    const overlay = document.getElementById('profile-avatar-picker-overlay');
+    if (!overlay) return;
+    setSettingsAvatarStatus('');
+    renderProfileAvatarPickerBody();
+    overlay.classList.add('visible');
+    overlay.setAttribute('aria-hidden', 'false');
   }
 
-  async function handleProfileAvatarFileChange(event) {
-    if (!supabaseClient || !currentUser) return;
-    const input = event?.target;
-    const file = input?.files?.[0];
-    if (!file) return;
-    if (!String(file.type || '').startsWith('image/')) {
-      setSettingsAvatarStatus('Velg en bildefil for profilbildet.', 'warning');
-      input.value = '';
-      return;
-    }
-    if (file.size > PROFILE_AVATAR_MAX_BYTES) {
-      setSettingsAvatarStatus('Bildet ma vare 3 MB eller mindre.', 'warning');
-      input.value = '';
+  function closeProfileAvatarPicker() {
+    const overlay = document.getElementById('profile-avatar-picker-overlay');
+    if (!overlay) return;
+    overlay.classList.remove('visible');
+    overlay.setAttribute('aria-hidden', 'true');
+  }
+
+  async function selectProfileAvatarPreset(presetId) {
+    if (!supabaseClient || !currentUser || profileAvatarSaving) return;
+    const preset = getProfileAvatarPresetById(presetId);
+    if (!preset) {
+      setSettingsAvatarStatus('Fant ikke avataren du valgte.', 'warning');
       return;
     }
 
     profileAvatarSaving = true;
     updateSettingsAvatarControls(currentUser, true);
-    setSettingsAvatarStatus('Laster opp profilbilde...', 'info');
+    renderProfileAvatarPickerBody();
+    setSettingsAvatarStatus('Lagrer avatar...', 'info');
 
     try {
-      const objectPath = getProfileAvatarObjectPath(currentUser.id);
-      const { error: uploadError } = await supabaseClient.storage
-        .from(SUPABASE_PROFILE_AVATAR_BUCKET)
-        .upload(objectPath, file, {
-          upsert: true,
-          contentType: file.type
-        });
-      if (uploadError) {
-        if (isProfileAvatarSchemaMismatch(uploadError)) {
-          throw new Error('Profilbilder trenger nyeste Supabase-schema. Kjor nyeste supabase-schema.sql i SQL Editor.');
-        }
-        throw uploadError;
-      }
-
-      const { data: publicUrlData } = supabaseClient.storage
-        .from(SUPABASE_PROFILE_AVATAR_BUCKET)
-        .getPublicUrl(objectPath);
-      const avatarUrl = normalizeAvatarUrl(publicUrlData?.publicUrl);
-      if (!avatarUrl) throw new Error('Kunne ikke lage URL for profilbildet.');
-
-      await persistCurrentUserAvatarUrl(`${avatarUrl}?v=${Date.now()}`);
+      await persistCurrentUserAvatarUrl(preset.avatar_url);
       renderAll();
-      setSettingsAvatarStatus('Profilbildet ble oppdatert.', 'success');
+      renderProfileAvatarPickerBody();
+      setSettingsAvatarStatus('Avataren ble oppdatert.', 'success');
+      closeProfileAvatarPicker();
     } catch (error) {
-      setSettingsAvatarStatus(error?.message || 'Kunne ikke laste opp profilbildet.', 'error');
+      setSettingsAvatarStatus(error?.message || 'Kunne ikke lagre avatar.', 'error');
     } finally {
       profileAvatarSaving = false;
       updateSettingsAvatarControls(currentUser, false);
-      if (input) input.value = '';
+      renderProfileAvatarPickerBody();
     }
   }
 
@@ -13087,26 +13193,19 @@
     if (!supabaseClient || !currentUser || profileAvatarSaving) return;
     profileAvatarSaving = true;
     updateSettingsAvatarControls(currentUser, true);
-    setSettingsAvatarStatus('Fjerner profilbildet...', 'info');
+    renderProfileAvatarPickerBody();
+    setSettingsAvatarStatus('Fjerner avatar...', 'info');
     try {
-      const objectPath = getProfileAvatarObjectPath(currentUser.id);
-      const { error: removeStorageError } = await supabaseClient.storage
-        .from(SUPABASE_PROFILE_AVATAR_BUCKET)
-        .remove([objectPath]);
-      if (removeStorageError && !/not found/i.test(String(removeStorageError?.message || ''))) {
-        if (isProfileAvatarSchemaMismatch(removeStorageError)) {
-          throw new Error('Profilbilder trenger nyeste Supabase-schema. Kjor nyeste supabase-schema.sql i SQL Editor.');
-        }
-        throw removeStorageError;
-      }
       await persistCurrentUserAvatarUrl('');
       renderAll();
-      setSettingsAvatarStatus('Profilbildet ble fjernet.', 'success');
+      renderProfileAvatarPickerBody();
+      setSettingsAvatarStatus('Avataren ble fjernet.', 'success');
     } catch (error) {
-      setSettingsAvatarStatus(error?.message || 'Kunne ikke fjerne profilbildet.', 'error');
+      setSettingsAvatarStatus(error?.message || 'Kunne ikke fjerne avatar.', 'error');
     } finally {
       profileAvatarSaving = false;
       updateSettingsAvatarControls(currentUser, false);
+      renderProfileAvatarPickerBody();
     }
   }
 
