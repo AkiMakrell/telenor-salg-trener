@@ -10744,6 +10744,10 @@
     return String(email || '').trim().toLowerCase();
   }
 
+  function canViewSourceBadges(user = currentUser) {
+    return normalizeUserEmail(user?.email) === 'aki.fackrell@telenor.no';
+  }
+
   function isDemoSeedUser(user) {
     return DEMO_SEED_EMAILS.includes(normalizeUserEmail(user?.email));
   }
@@ -16267,6 +16271,7 @@
   }
 
   function renderSourceBadge(badge) {
+    if (!canViewSourceBadges()) return '';
     return `
       <span class="leaderboard-source-meta">
         <span class="leaderboard-source-badge ${badge.className}" title="${escHtml(badge.title)}">${escHtml(badge.label)}</span>
