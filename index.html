@@ -11815,7 +11815,7 @@
       || (isTeamGame ? getCompetitionAssignedTeamName(game, userId) : String(profile?.team || '').trim());
     return {
       user_id: userId,
-      display_name: String(row.display_name || '').trim() || profile?.display_name || (userId === String(currentUser?.id || '') ? getUserDisplayName(currentUser) : 'Ukjent bruker'),
+      display_name: formatDisplayNameValue(row.display_name) || String(row.display_name || '').trim() || profile?.display_name || (userId === String(currentUser?.id || '') ? getUserDisplayName(currentUser) : 'Ukjent bruker'),
       team: teamName,
       teamColor: String(row.team_color || '').trim() || getCompetitionTeamColor(teamName, game),
       score: Number(row.score) || 0,
@@ -12196,7 +12196,7 @@
     try {
       fallbackProfiles = (await loadLegacyPublicStatsRows()).map(row => ({
         user_id: row.user_id,
-        display_name: row.display_name,
+        display_name: formatDisplayNameValue(row.display_name) || String(row.display_name || '').trim() || 'Ukjent bruker',
         team: row.team,
         avatar_url: '',
         updated_at: row.updated_at || row.latest_entry_at || ''
