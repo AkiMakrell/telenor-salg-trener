@@ -4856,6 +4856,45 @@
       color: #cbd5e1;
     }
 
+    .leaderboard-user-main,
+    .dashboard-leaderboard-user-main,
+    .games-standing-user-main {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .leaderboard-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      background: linear-gradient(135deg, #38bdf8, #2563eb);
+      color: #fff;
+      font-size: 0.88rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      overflow: hidden;
+    }
+
+    .leaderboard-avatar.has-image {
+      color: transparent;
+      text-indent: -999px;
+    }
+
+    .leaderboard-avatar.small {
+      width: 38px;
+      height: 38px;
+      font-size: 0.8rem;
+    }
+
     .dashboard-leaderboard-name-row,
     .leaderboard-user-name-row {
       display: inline-flex;
@@ -10098,6 +10137,13 @@
     element.textContent = initials;
     element.classList.toggle('has-image', Boolean(avatarUrl));
     element.style.backgroundImage = avatarUrl ? `url("${String(avatarUrl).replace(/"/g, '%22')}")` : '';
+  }
+
+  function renderLeaderboardAvatar(userId, name, size = 'default') {
+    const profile = getPublicProfileByUserId(String(userId || '').trim());
+    const avatarUrl = normalizeAvatarUrl(profile?.avatar_url || (String(userId || '') === String(currentUser?.id || '') ? getCurrentUserAvatarUrl(currentUser) : ''));
+    const initials = getUserInitials(name);
+    return `<span class="leaderboard-avatar${size === 'small' ? ' small' : ''}${avatarUrl ? ' has-image' : ''}"${avatarUrl ? ` style="background-image:url('${escAttr(String(avatarUrl).replace(/'/g, '%27'))}');"` : ''} aria-hidden="true">${escHtml(initials)}</span>`;
   }
 
   function updateSettingsAvatarControls(user = currentUser, isSaving = profileAvatarSaving) {
@@ -16060,12 +16106,15 @@
     return `
       <div class="dashboard-leaderboard-row ${podiumClass}${row.user_id === currentUser?.id ? ' is-you' : ''}">
         <div class="dashboard-leaderboard-rank ${podiumClass}">#${rank}</div>
-        <div>
-          <div class="dashboard-leaderboard-name-row">
-            <div class="dashboard-leaderboard-name ${teamClass}">${escHtml(row.display_name)}</div>
-            ${renderLeaderboardCrown(rank)}
+        <div class="dashboard-leaderboard-user-main">
+          ${renderLeaderboardAvatar(row.user_id, row.display_name, 'small')}
+          <div>
+            <div class="dashboard-leaderboard-name-row">
+              <div class="dashboard-leaderboard-name ${teamClass}">${escHtml(row.display_name)}</div>
+              ${renderLeaderboardCrown(rank)}
+            </div>
+            <div class="dashboard-leaderboard-sub">${sales} abo · ${over6} stk 6-min</div>
           </div>
-          <div class="dashboard-leaderboard-sub">${sales} abo · ${over6} stk 6-min</div>
         </div>
         <div class="dashboard-leaderboard-score">
           <div class="dashboard-leaderboard-points">${points}<span>poeng</span></div>
@@ -16326,14 +16375,17 @@
             return `
               <div class="leaderboard-row ${podiumClass}${row.user_id === currentUser?.id ? ' is-you' : ''}">
                 <div class="leaderboard-rank ${podiumClass}">#${rank}</div>
-                <div class="leaderboard-user">
-                  <div class="leaderboard-user-name-row">
-                    <div class="leaderboard-user-name ${teamClass}">${escHtml(row.display_name)}</div>
-                    ${renderLeaderboardCrown(rank)}
-                  </div>
-                  <div class="leaderboard-user-points">
-                    <span class="leaderboard-user-points-value">${points}</span>
-                    <span class="leaderboard-value-label">poeng</span>
+                <div class="leaderboard-user-main">
+                  ${renderLeaderboardAvatar(row.user_id, row.display_name)}
+                  <div class="leaderboard-user">
+                    <div class="leaderboard-user-name-row">
+                      <div class="leaderboard-user-name ${teamClass}">${escHtml(row.display_name)}</div>
+                      ${renderLeaderboardCrown(rank)}
+                    </div>
+                    <div class="leaderboard-user-points">
+                      <span class="leaderboard-user-points-value">${points}</span>
+                      <span class="leaderboard-value-label">poeng</span>
+                    </div>
                   </div>
                 </div>
                 <div class="leaderboard-user-score">
@@ -18387,10 +18439,13 @@
             ${standings.length ? standings.map((row, index) => `
               <div class="games-standing-row${isTeamGame ? ' team-colored' : ''}"${isTeamGame ? getCompetitionTeamRowStyle(row.team, game) : ''}>
                 ${renderCompetitionStandingRank(index + 1, game.competition_id, row.user_id)}
-                <div>
-                  <div class="games-standing-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
-                  <div class="games-standing-team-meta">
-                    ${renderCompetitionStandingStatCards(row)}
+                <div class="games-standing-user-main">
+                  ${renderLeaderboardAvatar(row.user_id, row.display_name, 'small')}
+                  <div>
+                    <div class="games-standing-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
+                    <div class="games-standing-team-meta">
+                      ${renderCompetitionStandingStatCards(row)}
+                    </div>
                   </div>
                 </div>
                 <div class="games-standing-score">${formatCompetitionScoreValue(row.score)}</div>
@@ -18437,13 +18492,16 @@
           ${standings.length ? standings.map((row, index) => `
             <div class="games-standing-row${isTeamGame ? ' team-colored' : ''}"${isTeamGame ? getCompetitionTeamRowStyle(row.team, game) : ''}>
               <div class="games-standing-rank">#${index + 1}</div>
-              <div>
-                <div class="games-standing-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
-                <div class="games-standing-team-meta">
-                  ${renderCompetitionStandingStatCards(row)}
+              <div class="games-standing-user-main">
+                ${renderLeaderboardAvatar(row.user_id, row.display_name, 'small')}
+                <div>
+                  <div class="games-standing-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
+                  <div class="games-standing-team-meta">
+                    ${renderCompetitionStandingStatCards(row)}
+                  </div>
                 </div>
               </div>
-                <div class="games-standing-score">${formatCompetitionScoreValue(row.score)}</div>
+              <div class="games-standing-score">${formatCompetitionScoreValue(row.score)}</div>
             </div>
           `).join('') : '<div class="games-empty-note">Ingen aktivitet registrert i denne konkurransen ennå.</div>'}
         </div>
