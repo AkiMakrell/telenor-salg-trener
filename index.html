@@ -9566,11 +9566,11 @@
             <div class="history-panel-head">
               <div>
                 <span style="font-weight:600;color:var(--primary-dark);">Historikk</span>
-                <div id="intro-history-undo-note" class="history-danger-note">Tøm all historikk sletter alle opptak og tidligere forsøk. Du kan angre siste sletting.</div>
+                <div id="intro-history-undo-note" class="history-danger-note">Tøm all historikk sletter alle opptak og tidligere forsøk.</div>
               </div>
               <div class="history-panel-actions">
                 <button class="clear-history-btn" type="button" onclick="clearIntroHistory()">Tøm all historikk</button>
-                <button id="intro-history-undo-btn" class="backup-btn undo-history-btn" data-intro-history-undo type="button" onclick="undoLastIntroHistoryAction()">Angre siste handling</button>
+                <button id="intro-history-undo-btn" class="backup-btn undo-history-btn" data-intro-history-undo type="button" onclick="undoLastIntroHistoryAction()">Angre siste registrering</button>
               </div>
             </div>
             <div id="intro-history" class="history-list"></div>
@@ -13339,7 +13339,6 @@
   let activeLeaderboardPeriod = 'day';
   let retroHistoryFeedback = null;
   let retroHistoryDraft = null;
-  let introHistoryUndoStack = [];
   const DASHBOARD_OPPTAK_SHORTCUT_KEY = 'dashboardOpptakShortcutEnabled';
 
   function updateToggleSelectionState(key, value) {
@@ -19041,51 +19040,22 @@
     return normalized.length > 46 ? `${normalized.slice(0, 46).trim()}...` : normalized;
   }
 
-  function buildIntroHistoryUndoState(actionLabel, previousHistory) {
-    return {
-      actionLabel,
-      previousHistory: cloneIntroHistory(previousHistory),
-      message: `${actionLabel}. Klikk "Angre siste handling" hvis det var feil.`
-    };
-  }
-
-  function buildRegistrationUndoState(actionLabel, previousHistory) {
-    return buildIntroHistoryUndoState(actionLabel, previousHistory);
-  }
-
-  function cloneIntroHistoryUndoState(state) {
-    if (!state) return null;
-    return {
-      actionLabel: String(state.actionLabel || ''),
-      previousHistory: cloneIntroHistory(state.previousHistory),
-      message: String(state.message || '')
-    };
-  }
-
-  function getCurrentIntroHistoryUndoState() {
-    return introHistoryUndoStack.length ? introHistoryUndoStack[introHistoryUndoStack.length - 1] : null;
-  }
-
-  function setIntroHistoryUndoStack(stack = []) {
-    introHistoryUndoStack = Array.isArray(stack)
-      ? stack.map(cloneIntroHistoryUndoState).filter(Boolean)
-      : [];
-    updateIntroHistoryUndoUi();
-  }
-
   function updateIntroHistoryUndoUi() {
-    const currentUndoState = getCurrentIntroHistoryUndoState();
-    const hasUndo = !!currentUndoState;
+    const latestEntry = getSortedIntroHistory()[0] || null;
+    const hasUndo = !!latestEntry;
+    const latestLabel = latestEntry
+      ? summarizeHistoryEntry(getHistoryEntryDisplayText(latestEntry))
+      : '';
     document.querySelectorAll('[data-intro-history-undo]').forEach(button => {
       button.disabled = !hasUndo;
       button.setAttribute('aria-disabled', hasUndo ? 'false' : 'true');
-      button.title = hasUndo ? currentUndoState.actionLabel : 'Ingen handling å angre ennå';
+      button.title = hasUndo ? `Fjern siste registrering: ${latestLabel}` : 'Ingen registreringer å fjerne ennå';
     });
     const note = document.getElementById('intro-history-undo-note');
     if (note) {
       note.textContent = hasUndo
-        ? currentUndoState.message
-        : 'Tøm all historikk sletter alle opptak og tidligere forsøk. Du kan angre siste sletting.';
+        ? `Angre siste registrering fjerner "${latestLabel}".`
+        : 'Tøm all historikk sletter alle opptak og tidligere forsøk.';
       note.classList.toggle('has-undo', hasUndo);
     }
   }
@@ -19107,29 +19077,20 @@
       retroHistoryFeedback = options.feedback;
     }
     refreshIntroHistoryUi();
-    if (Object.prototype.hasOwnProperty.call(options, 'undoState')) {
-      const nextUndoStack = options.undoState
-        ? [...introHistoryUndoStack, cloneIntroHistoryUndoState(options.undoState)]
-        : [];
-      setIntroHistoryUndoStack(nextUndoStack);
-    } else if (options.clearUndo !== false) {
-      setIntroHistoryUndoStack([]);
-    } else {
-      updateIntroHistoryUndoUi();
-    }
+    updateIntroHistoryUndoUi();
     return normalizedHistory;
   }
 
   function undoLastIntroHistoryAction() {
-    const currentUndoState = getCurrentIntroHistoryUndoState();
-    if (!currentUndoState) return;
-    const remainingUndoStack = introHistoryUndoStack.slice(0, -1);
-    const previousHistory = cloneIntroHistory(currentUndoState.previousHistory);
-    commitIntroHistory(previousHistory, {
-      clearUndo: false,
-      feedback: { tone: 'success', message: 'Siste historikkhandling ble angret.' }
+    const previousHistory = cloneIntroHistory();
+    const latestEntry = getSortedIntroHistory(previousHistory)[0];
+    if (!latestEntry?.id) return;
+    const nextHistory = previousHistory.filter(entry => entry?.id !== latestEntry.id);
+    if (retroHistoryDraft && retroHistoryDraft.editId === latestEntry.id) retroHistoryDraft = null;
+    commitIntroHistory(nextHistory, {
+      previousHistory,
+      feedback: { tone: 'success', message: 'Siste registrering ble fjernet.' }
     });
-    setIntroHistoryUndoStack(remainingUndoStack);
   }
 
   function clearIntroHistory() {
@@ -19138,8 +19099,8 @@
     if (!confirm('Tømme all introhistorikk? Dette sletter alle opptak og tidligere forsøk.')) return;
     retroHistoryDraft = null;
     commitIntroHistory([], {
-      undoState: buildIntroHistoryUndoState('Tømte hele historikken', history),
-      feedback: { tone: 'warning', message: 'All historikk ble slettet. Du kan angre siste handling.' }
+      previousHistory: history,
+      feedback: { tone: 'warning', message: 'All historikk ble slettet.' }
     });
   }
 
@@ -19187,9 +19148,7 @@
     const previousHistory = cloneIntroHistory();
     const history = cloneIntroHistory(previousHistory);
     history.unshift(buildOpptakEntry(intro));
-    commitIntroHistory(history, {
-      undoState: buildRegistrationUndoState('Registrerte opptak', previousHistory)
-    });
+    commitIntroHistory(history, { previousHistory });
     resetOpptak();
   }
 
@@ -19467,7 +19426,8 @@
         ? 'Registrerte opptak med 6-minutter'
         : 'Registrerte opptak';
     commitIntroHistory(history, {
-      undoState: buildRegistrationUndoState(actionLabel, previousHistory)
+      previousHistory,
+      feedback: { tone: 'success', message: `${actionLabel}.` }
     });
     queueCelebrationsForEntryChange(null, nextEntry);
 
@@ -19494,8 +19454,8 @@
     const [removedEntry] = history.splice(index, 1);
     if (retroHistoryDraft && retroHistoryDraft.editId === entryId) retroHistoryDraft = null;
     commitIntroHistory(history, {
-      undoState: buildIntroHistoryUndoState(`Slettet "${summarizeHistoryEntry(getHistoryEntryDisplayText(removedEntry))}"`, getIntroHistory()),
-      feedback: { tone: 'success', message: 'Oppføringen ble slettet. Du kan angre siste handling.' }
+      previousHistory: getIntroHistory(),
+      feedback: { tone: 'success', message: `Oppføringen "${summarizeHistoryEntry(getHistoryEntryDisplayText(removedEntry))}" ble slettet.` }
     });
   }
 
@@ -19637,7 +19597,6 @@
       salg
     });
     commitIntroHistory(history, {
-      clearUndo: true,
       feedback: {
         tone: 'success',
         message: editId
@@ -19726,7 +19685,7 @@
             </div>
             <div class="retro-history-list-tools">
               <div class="retro-history-summary">${historySummary}</div>
-              <button class="backup-btn undo-history-btn" data-intro-history-undo type="button" onclick="undoLastIntroHistoryAction()">Angre siste handling</button>
+              <button class="backup-btn undo-history-btn" data-intro-history-undo type="button" onclick="undoLastIntroHistoryAction()">Angre siste registrering</button>
             </div>
           </div>
           ${historyEntries.length ? `
@@ -21934,7 +21893,8 @@
       ? `Registrerte ${saleDetails.salesCount} abo${saleDetails.addonCount ? ` og ${saleDetails.addonCount} tilleggstjenester` : ''}`
       : 'Registrerte 6-minutter';
     commitIntroHistory(history, {
-      undoState: buildRegistrationUndoState(actionLabel, previousHistory)
+      previousHistory,
+      feedback: { tone: 'success', message: `${actionLabel}.` }
     });
     if (type === 'salg') {
       enqueueCelebration('salg', { salesCount: saleDetails?.salesCount || 1 });
