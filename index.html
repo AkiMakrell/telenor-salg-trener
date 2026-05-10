@@ -9768,7 +9768,26 @@
   const SUPABASE_PROFILE_AVATAR_BUCKET = 'profile-avatars';
   const PROFILE_AVATAR_MAX_BYTES = 3 * 1024 * 1024;
   const PROFILE_AVATAR_PRESETS = [
-    { id: 'polar-bear', label: 'Isbjorn', avatar_url: 'avatar-preset-polar-bear.png' }
+    { id: 'nysalg-avatar-1', team: 'nysalg', label: 'Avatar 1', avatar_url: './Avatars/Avatar Nysalg/ChatGPT Image May 10, 2026, 10_56_39 AM.png' },
+    { id: 'nysalg-avatar-2', team: 'nysalg', label: 'Avatar 2', avatar_url: './Avatars/Avatar Nysalg/ChatGPT Image May 10, 2026, 11_47_18 AM.png' },
+    { id: 'nysalg-avatar-3', team: 'nysalg', label: 'Avatar 3', avatar_url: './Avatars/Avatar Nysalg/ChatGPT Image May 10, 2026, 11_51_31 AM.png' },
+    { id: 'nysalg-avatar-4', team: 'nysalg', label: 'Avatar 4', avatar_url: './Avatars/Avatar Nysalg/ChatGPT Image May 10, 2026, 11_51_49 AM.png' },
+    { id: 'nysalg-avatar-5', team: 'nysalg', label: 'Avatar 5', avatar_url: './Avatars/Avatar Nysalg/ChatGPT Image May 10, 2026, 11_52_06 AM.png' },
+    { id: 'nysalg-avatar-6', team: 'nysalg', label: 'Avatar 6', avatar_url: './Avatars/Avatar Nysalg/ChatGPT Image May 10, 2026, 11_52_24 AM.png' },
+    { id: 'nysalg-avatar-7', team: 'nysalg', label: 'Avatar 7', avatar_url: './Avatars/Avatar Nysalg/ChatGPT Image May 10, 2026, 11_52_40 AM.png' },
+    { id: 'nysalg-avatar-8', team: 'nysalg', label: 'Avatar 8', avatar_url: './Avatars/Avatar Nysalg/ChatGPT Image May 10, 2026, 11_52_52 AM.png' },
+    { id: 'nysalg-avatar-9', team: 'nysalg', label: 'Avatar 9', avatar_url: './Avatars/Avatar Nysalg/ChatGPT Image May 10, 2026, 11_53_12 AM.png' },
+    { id: 'nysalg-avatar-10', team: 'nysalg', label: 'Avatar 10', avatar_url: './Avatars/Avatar Nysalg/ChatGPT Image May 10, 2026, 11_53_25 AM.png' },
+    { id: 'agrol-avatar-1', team: 'agrol', label: 'Avatar 1', avatar_url: './Avatars/Avatar Agrol/ChatGPT Image May 10, 2026, 11_47_38 AM.png' },
+    { id: 'agrol-avatar-2', team: 'agrol', label: 'Avatar 2', avatar_url: './Avatars/Avatar Agrol/ChatGPT Image May 10, 2026, 11_48_34 AM.png' },
+    { id: 'agrol-avatar-3', team: 'agrol', label: 'Avatar 3', avatar_url: './Avatars/Avatar Agrol/ChatGPT Image May 10, 2026, 11_48_50 AM.png' },
+    { id: 'agrol-avatar-4', team: 'agrol', label: 'Avatar 4', avatar_url: './Avatars/Avatar Agrol/ChatGPT Image May 10, 2026, 11_49_05 AM.png' },
+    { id: 'agrol-avatar-5', team: 'agrol', label: 'Avatar 5', avatar_url: './Avatars/Avatar Agrol/ChatGPT Image May 10, 2026, 11_49_31 AM.png' },
+    { id: 'agrol-avatar-6', team: 'agrol', label: 'Avatar 6', avatar_url: './Avatars/Avatar Agrol/ChatGPT Image May 10, 2026, 11_49_45 AM.png' },
+    { id: 'agrol-avatar-7', team: 'agrol', label: 'Avatar 7', avatar_url: './Avatars/Avatar Agrol/ChatGPT Image May 10, 2026, 11_50_01 AM.png' },
+    { id: 'agrol-avatar-8', team: 'agrol', label: 'Avatar 8', avatar_url: './Avatars/Avatar Agrol/ChatGPT Image May 10, 2026, 11_50_15 AM.png' },
+    { id: 'agrol-avatar-9', team: 'agrol', label: 'Avatar 9', avatar_url: './Avatars/Avatar Agrol/ChatGPT Image May 10, 2026, 11_50_30 AM.png' },
+    { id: 'agrol-avatar-10', team: 'agrol', label: 'Avatar 10', avatar_url: './Avatars/Avatar Agrol/ChatGPT Image May 10, 2026, 11_51_14 AM.png' }
   ];
   const INTRO_LEADERBOARD_DATA_VERSION = '2';
   const INTRO_LEADERBOARD_DATA_VERSION_KEY = 'introLeaderboardDataVersion';
@@ -10089,13 +10108,20 @@
     if (removeButton) removeButton.disabled = isSaving || !hasAvatar;
   }
 
-  function getProfileAvatarPresets() {
+  function getAllProfileAvatarPresets() {
     return PROFILE_AVATAR_PRESETS
       .map(preset => ({
         ...preset,
+        team: normalizeTeamKey(preset.team),
         avatar_url: normalizeAvatarUrl(preset.avatar_url)
       }))
-      .filter(preset => preset.id && preset.avatar_url);
+      .filter(preset => preset.id && preset.team && preset.avatar_url);
+  }
+
+  function getProfileAvatarPresets(user = currentUser) {
+    const team = normalizeTeamKey(getUserTeam(user));
+    return getAllProfileAvatarPresets()
+      .filter(preset => preset.team === team);
   }
 
   function getProfileAvatarPresetById(presetId = '') {
@@ -10105,12 +10131,13 @@
 
   function getProfileAvatarPresetByUrl(avatarUrl = '') {
     const normalizedUrl = normalizeAvatarUrl(avatarUrl);
-    return getProfileAvatarPresets().find(preset => preset.avatar_url === normalizedUrl) || null;
+    return getAllProfileAvatarPresets().find(preset => preset.avatar_url === normalizedUrl) || null;
   }
 
   function renderProfileAvatarPickerBody() {
     const body = document.getElementById('profile-avatar-picker-body');
     if (!body) return;
+    const team = String(getUserTeam(currentUser) || '').trim();
     const currentPreset = getProfileAvatarPresetByUrl(getCurrentUserAvatarUrl());
     const presets = getProfileAvatarPresets();
     body.innerHTML = presets.length
@@ -10127,7 +10154,7 @@
           </div>
         `;
       }).join('')}</div>`
-      : '<div class="games-empty-note">Ingen avatarer tilgjengelige.</div>';
+      : `<div class="games-empty-note">${team ? `Ingen avatarer tilgjengelige for ${escHtml(team)} ennå.` : 'Velg team for å se avatarer.'}</div>`;
   }
 
   function getUserInitials(name) {
