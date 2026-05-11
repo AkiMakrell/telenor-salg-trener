@@ -13340,6 +13340,7 @@
   let selectedOver5min = 'nei';
   let selectedSalg = 'nei';
   let activeStatsSubview = 'overview';
+  let shouldGlowStatsSidebarOnEntry = false;
   let activeLeaderboardPeriod = 'day';
   let retroHistoryFeedback = null;
   let retroHistoryDraft = null;
@@ -15800,6 +15801,7 @@
 
   function openStatsPage(view = 'overview', triggerButton = null) {
     activeStatsSubview = getDetailedStatsSubview(view || activeStatsSubview);
+    shouldGlowStatsSidebarOnEntry = !isTabActive('stats');
     activateTab('stats', 'stats', triggerButton);
   }
 
@@ -18878,7 +18880,7 @@
       `
       : `
         <div class="stats-page-shell">
-          <aside class="stats-sidebar stats-sidebar-glow">
+          <aside class="stats-sidebar${shouldGlowStatsSidebarOnEntry ? ' stats-sidebar-glow' : ''}">
             ${renderStatsSubviewNav(activeView)}
           </aside>
           <div class="stats-main">
@@ -18887,6 +18889,7 @@
           </div>
         </div>
       `;
+    if (mode !== 'overview') shouldGlowStatsSidebarOnEntry = false;
     triggerGoalAchievementCelebrations([dayGoalStatus, weekGoalStatus, monthGoalStatus]);
   }
 
