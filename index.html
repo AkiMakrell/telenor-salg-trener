@@ -5204,113 +5204,227 @@
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 18px;
     }
 
     .team-records-hero {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
       padding: 24px 26px;
-      border-radius: 24px;
-      border: 1px solid rgba(148, 163, 184, 0.18);
-      background: linear-gradient(135deg, #181a31, #101828 58%, #0f172a);
-      box-shadow: 0 18px 40px rgba(0,0,0,0.24);
+      border-radius: 26px;
+      border: 1px solid rgba(196, 181, 253, 0.18);
+      background:
+        radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 42%),
+        linear-gradient(135deg, #221638, #101828 58%, #0f172a);
+      box-shadow: 0 20px 44px rgba(0,0,0,0.28);
     }
 
     .team-records-title {
       margin: 0;
-      font-size: 2rem;
+      font-size: 2.15rem;
       font-weight: 900;
-      line-height: 1.05;
-      color: #e9d5ff;
-      text-shadow: 0 6px 24px rgba(139, 92, 246, 0.18);
+      line-height: 1.02;
+      color: #f5e9ff;
+      text-shadow: 0 10px 30px rgba(168, 85, 247, 0.22);
     }
 
-    .team-records-subtitle {
-      margin: 0;
-      color: var(--muted);
-      font-size: 0.95rem;
-      line-height: 1.45;
-    }
-
-    .team-records-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 18px;
-    }
-
-    .team-record-card {
+    .team-records-section-nav {
       display: flex;
-      flex-direction: column;
-      gap: 18px;
-      min-height: 380px;
-      padding: 22px;
-      border-radius: 22px;
-      border: 1px solid rgba(148, 163, 184, 0.14);
-      background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(11, 18, 32, 0.98));
-      box-shadow: 0 16px 32px rgba(2, 6, 23, 0.2);
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
-    .team-record-card.abo-record {
-      background: linear-gradient(180deg, rgba(245, 158, 11, 0.1), rgba(15, 23, 42, 0.96));
-    }
-
-    .team-record-card.over6-record {
-      background: linear-gradient(180deg, rgba(20, 184, 166, 0.1), rgba(15, 23, 42, 0.96));
-    }
-
-    .team-record-card.streak-record {
-      background: linear-gradient(180deg, rgba(168, 85, 247, 0.12), rgba(15, 23, 42, 0.96));
-    }
-
-    .team-record-card-head {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .team-record-card-title {
-      margin: 0;
-      font-size: 1.05rem;
-      font-weight: 800;
-      line-height: 1.35;
+    .team-records-section-btn,
+    .team-records-record-btn {
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(15, 23, 42, 0.8);
       color: var(--text);
+      cursor: pointer;
+      transition: transform 0.14s ease, border-color 0.14s ease, box-shadow 0.14s ease, background 0.14s ease;
     }
 
-    .team-record-card-meta {
+    .team-records-section-btn:hover,
+    .team-records-record-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,0.22);
+      box-shadow: 0 12px 26px rgba(2, 6, 23, 0.16);
+    }
+
+    .team-records-section-btn {
+      min-width: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 5px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      text-align: left;
+    }
+
+    .team-records-section-btn.active {
+      border-color: rgba(255,255,255,0.28);
+      background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(15, 23, 42, 0.9));
+      box-shadow: 0 18px 34px rgba(2, 6, 23, 0.18);
+    }
+
+    .team-records-section-kicker {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .team-records-section-name {
+      font-size: 0.98rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.25;
+    }
+
+    .team-records-stage {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding: 24px;
+      border-radius: 28px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background:
+        radial-gradient(circle at top center, rgba(255,255,255,0.1), transparent 38%),
+        linear-gradient(180deg, rgba(17, 24, 39, 0.96), rgba(9, 14, 26, 0.99));
+      box-shadow: 0 24px 50px rgba(2, 6, 23, 0.26);
+      isolation: isolate;
+    }
+
+    .team-records-stage::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .team-records-stage.abo-record {
+      border-color: rgba(245, 158, 11, 0.22);
+      box-shadow: 0 24px 52px rgba(120, 53, 15, 0.18);
+    }
+
+    .team-records-stage.over6-record {
+      border-color: rgba(20, 184, 166, 0.22);
+      box-shadow: 0 24px 52px rgba(15, 118, 110, 0.18);
+    }
+
+    .team-records-stage.streak-record {
+      border-color: rgba(168, 85, 247, 0.22);
+      box-shadow: 0 24px 52px rgba(109, 40, 217, 0.16);
+    }
+
+    .team-records-stage-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .team-records-stage-label {
+      display: inline-flex;
+      align-items: center;
       width: fit-content;
+      margin-bottom: 10px;
       padding: 7px 12px;
       border-radius: 999px;
-      font-size: 0.74rem;
+      font-size: 0.72rem;
       font-weight: 800;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
       color: var(--muted);
       background: rgba(148, 163, 184, 0.12);
     }
 
-    .team-record-card.abo-record .team-record-card-meta {
+    .team-records-stage.abo-record .team-records-stage-label,
+    .team-records-section-btn.group-abo.active .team-records-section-kicker {
       color: #fcd34d;
-      background: rgba(245, 158, 11, 0.16);
     }
 
-    .team-record-card.over6-record .team-record-card-meta {
+    .team-records-stage.over6-record .team-records-stage-label,
+    .team-records-section-btn.group-over6.active .team-records-section-kicker {
       color: #5eead4;
-      background: rgba(20, 184, 166, 0.16);
     }
 
-    .team-record-card.streak-record .team-record-card-meta {
+    .team-records-stage.streak-record .team-records-stage-label,
+    .team-records-section-btn.group-streak.active .team-records-section-kicker {
       color: #d8b4fe;
-      background: rgba(168, 85, 247, 0.16);
+    }
+
+    .team-records-stage-title {
+      margin: 0;
+      font-size: 1.55rem;
+      font-weight: 900;
+      line-height: 1.15;
+      color: #fff;
+    }
+
+    .team-records-stage-award {
+      flex-shrink: 0;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.88);
+    }
+
+    .team-records-record-nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .team-records-record-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .team-records-record-btn.active {
+      border-color: rgba(255,255,255,0.24);
+      background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(15, 23, 42, 0.94));
+      box-shadow: 0 14px 28px rgba(2, 6, 23, 0.18);
+    }
+
+    .team-records-record-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.34);
+    }
+
+    .team-records-stage-body {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding: 18px;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background:
+        radial-gradient(circle at top center, rgba(255,255,255,0.06), transparent 46%),
+        linear-gradient(180deg, rgba(15, 23, 42, 0.76), rgba(2, 6, 23, 0.92));
     }
 
     .team-records-podium {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
+      gap: 16px;
       align-items: end;
-      flex: 1;
     }
 
     .team-records-place {
@@ -5318,11 +5432,14 @@
       flex-direction: column;
       align-items: center;
       justify-content: flex-end;
-      gap: 10px;
+      gap: 12px;
       min-width: 0;
     }
 
-    .team-records-place.place-1 { order: 2; }
+    .team-records-place.place-1 {
+      order: 2;
+      transform: translateY(-12px);
+    }
     .team-records-place.place-2 { order: 1; }
     .team-records-place.place-3 { order: 3; }
 
@@ -5331,18 +5448,18 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
-      padding: 14px 12px;
-      border-radius: 18px;
-      border: 1px solid rgba(148, 163, 184, 0.14);
-      background: rgba(15, 23, 42, 0.82);
-      box-shadow: 0 14px 30px rgba(2, 6, 23, 0.18);
+      gap: 9px;
+      padding: 16px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.94));
+      box-shadow: 0 16px 32px rgba(2, 6, 23, 0.2);
       text-align: center;
     }
 
     .team-records-place-card.empty {
       color: var(--muted);
-      background: rgba(15, 23, 42, 0.5);
+      background: rgba(15, 23, 42, 0.56);
       box-shadow: none;
     }
 
@@ -5350,10 +5467,11 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 34px;
-      height: 34px;
+      min-width: 36px;
+      height: 36px;
+      padding: 0 12px;
       border-radius: 999px;
-      font-size: 0.9rem;
+      font-size: 0.82rem;
       font-weight: 900;
       color: #fff;
       background: rgba(148, 163, 184, 0.22);
@@ -5403,25 +5521,26 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 18px 18px 10px 10px;
+      border-radius: 20px 20px 12px 12px;
       color: #fff;
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       font-weight: 900;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), 0 18px 34px rgba(2, 6, 23, 0.18);
     }
 
     .team-records-place.place-1 .team-records-platform {
-      height: 132px;
+      height: 146px;
       background: linear-gradient(180deg, rgba(245, 158, 11, 0.9), rgba(217, 119, 6, 0.98));
     }
 
     .team-records-place.place-2 .team-records-platform {
-      height: 104px;
+      height: 112px;
       background: linear-gradient(180deg, rgba(148, 163, 184, 0.88), rgba(100, 116, 139, 0.98));
     }
 
     .team-records-place.place-3 .team-records-platform {
-      height: 88px;
+      height: 94px;
       background: linear-gradient(180deg, rgba(180, 83, 9, 0.9), rgba(146, 64, 14, 0.98));
     }
 
@@ -8012,10 +8131,19 @@
       .development-mini-row { grid-template-columns: 1fr; }
       .development-grouped-chart,
       .development-line-labels { grid-template-columns: 1fr; }
+      .team-records-section-nav,
+      .team-records-record-nav { flex-direction: column; }
+      .team-records-section-btn,
+      .team-records-record-btn { width: 100%; }
       .team-records-podium { grid-template-columns: 1fr; }
       .team-records-place.place-1,
       .team-records-place.place-2,
-      .team-records-place.place-3 { order: initial; }
+      .team-records-place.place-3 {
+        order: initial;
+        transform: none;
+      }
+      .team-records-stage-head { flex-direction: column; }
+      .team-records-stage-award { align-self: flex-start; }
 
       .development-highlight-line-labels { grid-template-columns: repeat(5, minmax(0, 1fr)); }
     }
@@ -14460,33 +14588,168 @@
     `;
   }
 
-  function renderTeamRecordCard(definition, dailyTotals) {
-    const entries = definition.kind === 'streak'
+  const TEAM_RECORD_GROUPS = [
+    { id: 'abo', label: 'Abo', kicker: 'Kategori' },
+    { id: 'over6', label: '6-minuttere', kicker: 'Kategori' },
+    { id: 'streak', label: 'Streaks', kicker: 'Kategori' }
+  ];
+
+  const TEAM_RECORD_DEFINITIONS = [
+    {
+      id: 'abo-day',
+      groupId: 'abo',
+      title: 'Flest Abo på en dag',
+      navLabel: 'Dag',
+      stageLabel: 'Abo',
+      metaLabel: 'Dagrekord',
+      kind: 'period',
+      period: 'day',
+      metricKey: 'sales',
+      accentClass: 'abo-record',
+      valueLabel: value => `${value} abo`
+    },
+    {
+      id: 'abo-week',
+      groupId: 'abo',
+      title: 'Flest Abo på en uke',
+      navLabel: 'Uke',
+      stageLabel: 'Abo',
+      metaLabel: 'Ukerekord',
+      kind: 'period',
+      period: 'week',
+      metricKey: 'sales',
+      accentClass: 'abo-record',
+      valueLabel: value => `${value} abo`
+    },
+    {
+      id: 'over6-day',
+      groupId: 'over6',
+      title: 'Flest 6 minuttere på en dag',
+      navLabel: 'Dag',
+      stageLabel: '6-minuttere',
+      metaLabel: 'Dagrekord',
+      kind: 'period',
+      period: 'day',
+      metricKey: 'over6',
+      accentClass: 'over6-record',
+      valueLabel: value => `${value} stk`
+    },
+    {
+      id: 'over6-week',
+      groupId: 'over6',
+      title: 'Flest 6 minuttere på en uke',
+      navLabel: 'Uke',
+      stageLabel: '6-minuttere',
+      metaLabel: 'Ukerekord',
+      kind: 'period',
+      period: 'week',
+      metricKey: 'over6',
+      accentClass: 'over6-record',
+      valueLabel: value => `${value} stk`
+    },
+    {
+      id: 'streak-over6',
+      groupId: 'streak',
+      title: 'Fleste dager på rad med minst 5 6-minuttere',
+      navLabel: '5+ 6-min',
+      stageLabel: 'Streaks',
+      metaLabel: 'Hall of Fame',
+      kind: 'streak',
+      metricKey: 'over6',
+      minimumValue: 5,
+      accentClass: 'streak-record',
+      valueLabel: value => `${value} dager`
+    },
+    {
+      id: 'streak-sales',
+      groupId: 'streak',
+      title: 'Flest dager på rad med minst 1 Salg',
+      navLabel: '1+ salg',
+      stageLabel: 'Streaks',
+      metaLabel: 'Hall of Fame',
+      kind: 'streak',
+      metricKey: 'sales',
+      minimumValue: 1,
+      accentClass: 'streak-record',
+      valueLabel: value => `${value} dager`
+    }
+  ];
+
+  let activeTeamRecordGroup = 'abo';
+  let activeTeamRecordId = 'abo-day';
+
+  function getTeamRecordDefinitionsForGroup(groupId = activeTeamRecordGroup) {
+    return TEAM_RECORD_DEFINITIONS.filter(definition => definition.groupId === groupId);
+  }
+
+  function getTeamRecordDefinitionById(recordId = activeTeamRecordId) {
+    return TEAM_RECORD_DEFINITIONS.find(definition => definition.id === recordId) || null;
+  }
+
+  function ensureActiveTeamRecordSelection() {
+    const groupDefinitions = getTeamRecordDefinitionsForGroup(activeTeamRecordGroup);
+    if (!groupDefinitions.length) {
+      activeTeamRecordGroup = TEAM_RECORD_GROUPS[0]?.id || 'abo';
+      activeTeamRecordId = getTeamRecordDefinitionsForGroup(activeTeamRecordGroup)[0]?.id || '';
+      return;
+    }
+    if (!groupDefinitions.some(definition => definition.id === activeTeamRecordId)) {
+      activeTeamRecordId = groupDefinitions[0].id;
+    }
+  }
+
+  function setActiveTeamRecordGroup(groupId) {
+    if (!TEAM_RECORD_GROUPS.some(group => group.id === groupId)) return;
+    activeTeamRecordGroup = groupId;
+    ensureActiveTeamRecordSelection();
+    if (isTabActive('rekorder')) renderTeamRecordsPage();
+  }
+
+  function setActiveTeamRecord(recordId) {
+    const definition = getTeamRecordDefinitionById(recordId);
+    if (!definition) return;
+    activeTeamRecordGroup = definition.groupId;
+    activeTeamRecordId = definition.id;
+    if (isTabActive('rekorder')) renderTeamRecordsPage();
+  }
+
+  function getTeamRecordEntries(definition, dailyTotals) {
+    if (!definition) return [];
+    return definition.kind === 'streak'
       ? buildTeamStreakRecordPodium(dailyTotals, definition.metricKey, definition.minimumValue, definition.valueLabel)
       : buildTeamPeriodRecordPodium(dailyTotals, definition.metricKey, definition.period, definition.valueLabel);
+  }
 
-    if (!entries.length) {
-      return `
-        <section class="team-record-card ${definition.accentClass}">
-          <div class="team-record-card-head">
-            <h3 class="team-record-card-title">${escHtml(definition.title)}</h3>
-            <div class="team-record-card-meta">${escHtml(definition.metaLabel)}</div>
-          </div>
-          <div class="team-records-empty">Ingen registreringer ennå.</div>
-        </section>
-      `;
-    }
-
+  function renderTeamRecordStage(definition, entries, emptyText = 'Ingen registreringer ennå.') {
     return `
-      <section class="team-record-card ${definition.accentClass}">
-        <div class="team-record-card-head">
-          <h3 class="team-record-card-title">${escHtml(definition.title)}</h3>
-          <div class="team-record-card-meta">${escHtml(definition.metaLabel)}</div>
+      <section class="team-records-stage ${definition.accentClass}">
+        <div class="team-records-stage-head">
+          <div>
+            <div class="team-records-stage-label">${escHtml(definition.stageLabel)}</div>
+            <h2 class="team-records-stage-title">${escHtml(definition.title)}</h2>
+          </div>
+          <div class="team-records-stage-award">${escHtml(definition.metaLabel)}</div>
         </div>
-        <div class="team-records-podium">
-          ${renderTeamRecordPodiumPlace(2, entries[1] || null)}
-          ${renderTeamRecordPodiumPlace(1, entries[0] || null)}
-          ${renderTeamRecordPodiumPlace(3, entries[2] || null)}
+        <div class="team-records-record-nav">
+          ${getTeamRecordDefinitionsForGroup(definition.groupId).map(item => `
+            <button
+              class="team-records-record-btn${item.id === definition.id ? ' active' : ''}"
+              type="button"
+              onclick="setActiveTeamRecord('${item.id}')"
+            >
+              <span class="team-records-record-dot" aria-hidden="true"></span>
+              <span>${escHtml(item.navLabel)}</span>
+            </button>
+          `).join('')}
+        </div>
+        <div class="team-records-stage-body">
+          ${entries.length ? `
+            <div class="team-records-podium">
+              ${renderTeamRecordPodiumPlace(2, entries[1] || null)}
+              ${renderTeamRecordPodiumPlace(1, entries[0] || null)}
+              ${renderTeamRecordPodiumPlace(3, entries[2] || null)}
+            </div>
+          ` : `<div class="team-records-empty">${escHtml(emptyText)}</div>`}
         </div>
       </section>
     `;
@@ -14499,85 +14762,42 @@
     const rows = getTeamRecordsActivityRows();
     const hasAnyRows = rows.length > 0;
     const dailyTotals = buildTeamRecordsDailyTotals(rows);
+    ensureActiveTeamRecordSelection();
+    const activeDefinition = getTeamRecordDefinitionById(activeTeamRecordId)
+      || getTeamRecordDefinitionsForGroup(activeTeamRecordGroup)[0]
+      || TEAM_RECORD_DEFINITIONS[0];
+    const activeEntries = getTeamRecordEntries(activeDefinition, dailyTotals);
 
     if (!hasAnyRows && leaderboardState === 'loading') {
       host.innerHTML = `
         <div class="team-records-page">
           <section class="team-records-hero">
             <h1 class="team-records-title">Rekorder</h1>
-            <p class="team-records-subtitle">Laster inn teamets beste dager, uker og streaks.</p>
           </section>
+          ${renderTeamRecordStage(activeDefinition, [], 'Laster rekorder...')}
         </div>
       `;
       return;
     }
 
-    const definitions = [
-      {
-        title: 'Flest Abo på en dag',
-        metaLabel: 'Dag',
-        kind: 'period',
-        period: 'day',
-        metricKey: 'sales',
-        accentClass: 'abo-record',
-        valueLabel: value => `${value} abo`
-      },
-      {
-        title: 'Flest Abo på en uke',
-        metaLabel: 'Uke',
-        kind: 'period',
-        period: 'week',
-        metricKey: 'sales',
-        accentClass: 'abo-record',
-        valueLabel: value => `${value} abo`
-      },
-      {
-        title: 'Flest 6 minuttere på en dag',
-        metaLabel: 'Dag',
-        kind: 'period',
-        period: 'day',
-        metricKey: 'over6',
-        accentClass: 'over6-record',
-        valueLabel: value => `${value} stk`
-      },
-      {
-        title: 'Flest 6 minuttere på en uke',
-        metaLabel: 'Uke',
-        kind: 'period',
-        period: 'week',
-        metricKey: 'over6',
-        accentClass: 'over6-record',
-        valueLabel: value => `${value} stk`
-      },
-      {
-        title: 'Fleste dager på rad med minst 5 6-minuttere',
-        metaLabel: 'Streak',
-        kind: 'streak',
-        metricKey: 'over6',
-        minimumValue: 5,
-        accentClass: 'streak-record',
-        valueLabel: value => `${value} dager`
-      },
-      {
-        title: 'Flest dager på rad med minst 1 Salg',
-        metaLabel: 'Streak',
-        kind: 'streak',
-        metricKey: 'sales',
-        minimumValue: 1,
-        accentClass: 'streak-record',
-        valueLabel: value => `${value} dager`
-      }
-    ];
-
     host.innerHTML = `
       <div class="team-records-page">
         <section class="team-records-hero">
           <h1 class="team-records-title">Rekorder</h1>
-          <p class="team-records-subtitle">Teamets beste dager, uker og streaks.</p>
         </section>
-        <div class="team-records-grid">
-          ${definitions.map(definition => renderTeamRecordCard(definition, dailyTotals)).join('')}
+        <div class="team-records-section-nav">
+          ${TEAM_RECORD_GROUPS.map(group => `
+            <button
+              class="team-records-section-btn group-${group.id}${group.id === activeTeamRecordGroup ? ' active' : ''}"
+              type="button"
+              onclick="setActiveTeamRecordGroup('${group.id}')"
+            >
+              <span class="team-records-section-kicker">${escHtml(group.kicker)}</span>
+              <span class="team-records-section-name">${escHtml(group.label)}</span>
+            </button>
+          `).join('')}
         </div>
+        ${renderTeamRecordStage(activeDefinition, activeEntries)}
       </div>
     `;
   }
