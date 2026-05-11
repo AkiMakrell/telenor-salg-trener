@@ -9902,7 +9902,9 @@
   let authChangeToken = 0;
   let syncTimeout = null;
   let leaderboardSyncTimeout = null;
+  let leaderboardRefreshTimeout = null;
   let leaderboardRealtimeChannel = null;
+  let leaderboardLoadToken = 0;
   const pendingSyncKeys = new Set();
   let leaderboardRows = [];
   let leaderboardState = 'idle';
@@ -10254,6 +10256,7 @@
   }
 
   function clearLeaderboardState() {
+    clearTimeout(leaderboardRefreshTimeout);
     leaderboardRows = [];
     leaderboardErrorMessage = '';
     leaderboardMovementByPeriod = {};
@@ -12267,6 +12270,7 @@
   }
 
   async function loadLeaderboardRows(options = {}) {
+    const loadToken = ++leaderboardLoadToken;
     if (!supabaseClient || !currentUser) {
       clearLeaderboardState();
       clearCompetitionState();
@@ -12331,6 +12335,7 @@
         nextRows = mergeCurrentUserLocalLeaderboardRow([...freshRows, ...legacyRows.filter(row => !freshUserIds.has(row.user_id))]);
         setLeaderboardSourceMode('legacy');
       }
+      if (loadToken !== leaderboardLoadToken) return leaderboardRows;
       updateLeaderboardMovementState(nextRows);
       updateCompetitionMovementState(competitionGames);
       leaderboardRows = nextRows;
@@ -12338,6 +12343,7 @@
       setCompetitionState('ready');
       return leaderboardRows;
     } catch (error) {
+      if (loadToken !== leaderboardLoadToken) return leaderboardRows;
       if (isFetchNetworkError(error)) {
         const fallbackRows = mergeCurrentUserLocalLeaderboardRow(leaderboardRows);
         leaderboardRows = fallbackRows;
@@ -12352,8 +12358,19 @@
     }
   }
 
+  function scheduleLeaderboardReload(options = {}, onError = null, delay = 250) {
+    clearTimeout(leaderboardRefreshTimeout);
+    leaderboardRefreshTimeout = setTimeout(() => {
+      leaderboardRefreshTimeout = null;
+      loadLeaderboardRows(options).catch(error => {
+        if (typeof onError === 'function') onError(error);
+      });
+    }, delay);
+  }
+
   function unsubscribeLeaderboardRealtime() {
     clearTimeout(leaderboardSyncTimeout);
+    clearTimeout(leaderboardRefreshTimeout);
     if (!supabaseClient || !leaderboardRealtimeChannel) {
       leaderboardRealtimeChannel = null;
       return;
@@ -12371,7 +12388,7 @@
         'postgres_changes',
         { event: '*', schema: 'public', table: SUPABASE_PUBLIC_ACTIVITY_TABLE },
         () => {
-          loadLeaderboardRows({ silentLoading: !(isTabActive('stats') && activeStatsSubview === 'leaderboard') && !isTabActive('ledertavler-spill') }).catch(error => {
+          scheduleLeaderboardReload({ silentLoading: !(isTabActive('stats') && activeStatsSubview === 'leaderboard') && !isTabActive('ledertavler-spill') }, error => {
             setLeaderboardState('error', getLeaderboardErrorMessage(error, 'Kunne ikke oppdatere leaderboard.'));
           });
         }
@@ -12380,7 +12397,7 @@
         'postgres_changes',
         { event: '*', schema: 'public', table: SUPABASE_PUBLIC_PROFILES_TABLE },
         () => {
-          loadLeaderboardRows({ silentLoading: !(isTabActive('stats') && activeStatsSubview === 'leaderboard') && !isTabActive('ledertavler-spill') }).catch(error => {
+          scheduleLeaderboardReload({ silentLoading: !(isTabActive('stats') && activeStatsSubview === 'leaderboard') && !isTabActive('ledertavler-spill') }, error => {
             setLeaderboardState('error', getLeaderboardErrorMessage(error, 'Kunne ikke oppdatere leaderboard.'));
           });
         }
@@ -12389,7 +12406,7 @@
         'postgres_changes',
         { event: '*', schema: 'public', table: SUPABASE_COMPETITION_GAMES_TABLE },
         () => {
-          loadLeaderboardRows({ silentLoading: !isTabActive('ledertavler-spill') }).catch(error => {
+          scheduleLeaderboardReload({ silentLoading: !isTabActive('ledertavler-spill') }, error => {
             setCompetitionState('error', error?.message || 'Kunne ikke oppdatere spill.');
           });
         }
@@ -12398,7 +12415,7 @@
         'postgres_changes',
         { event: '*', schema: 'public', table: SUPABASE_COMPETITION_PARTICIPANTS_TABLE },
         () => {
-          loadLeaderboardRows({ silentLoading: !isTabActive('ledertavler-spill') }).catch(error => {
+          scheduleLeaderboardReload({ silentLoading: !isTabActive('ledertavler-spill') }, error => {
             setCompetitionState('error', error?.message || 'Kunne ikke oppdatere spill.');
           });
         }
