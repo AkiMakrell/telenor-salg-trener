@@ -5199,6 +5199,245 @@
       text-align: center;
     }
 
+    .team-records-page {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .team-records-hero {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 24px 26px;
+      border-radius: 24px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: linear-gradient(135deg, #181a31, #101828 58%, #0f172a);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.24);
+    }
+
+    .team-records-title {
+      margin: 0;
+      font-size: 2rem;
+      font-weight: 900;
+      line-height: 1.05;
+      color: #e9d5ff;
+      text-shadow: 0 6px 24px rgba(139, 92, 246, 0.18);
+    }
+
+    .team-records-subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+
+    .team-records-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
+    }
+
+    .team-record-card {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      min-height: 380px;
+      padding: 22px;
+      border-radius: 22px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(11, 18, 32, 0.98));
+      box-shadow: 0 16px 32px rgba(2, 6, 23, 0.2);
+    }
+
+    .team-record-card.abo-record {
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.1), rgba(15, 23, 42, 0.96));
+    }
+
+    .team-record-card.over6-record {
+      background: linear-gradient(180deg, rgba(20, 184, 166, 0.1), rgba(15, 23, 42, 0.96));
+    }
+
+    .team-record-card.streak-record {
+      background: linear-gradient(180deg, rgba(168, 85, 247, 0.12), rgba(15, 23, 42, 0.96));
+    }
+
+    .team-record-card-head {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .team-record-card-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 800;
+      line-height: 1.35;
+      color: var(--text);
+    }
+
+    .team-record-card-meta {
+      width: fit-content;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: rgba(148, 163, 184, 0.12);
+    }
+
+    .team-record-card.abo-record .team-record-card-meta {
+      color: #fcd34d;
+      background: rgba(245, 158, 11, 0.16);
+    }
+
+    .team-record-card.over6-record .team-record-card-meta {
+      color: #5eead4;
+      background: rgba(20, 184, 166, 0.16);
+    }
+
+    .team-record-card.streak-record .team-record-card-meta {
+      color: #d8b4fe;
+      background: rgba(168, 85, 247, 0.16);
+    }
+
+    .team-records-podium {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      align-items: end;
+      flex: 1;
+    }
+
+    .team-records-place {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .team-records-place.place-1 { order: 2; }
+    .team-records-place.place-2 { order: 1; }
+    .team-records-place.place-3 { order: 3; }
+
+    .team-records-place-card {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: rgba(15, 23, 42, 0.82);
+      box-shadow: 0 14px 30px rgba(2, 6, 23, 0.18);
+      text-align: center;
+    }
+
+    .team-records-place-card.empty {
+      color: var(--muted);
+      background: rgba(15, 23, 42, 0.5);
+      box-shadow: none;
+    }
+
+    .team-records-place-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-weight: 900;
+      color: #fff;
+      background: rgba(148, 163, 184, 0.22);
+    }
+
+    .team-records-place.place-1 .team-records-place-badge {
+      background: linear-gradient(135deg, #f59e0b, #f97316);
+    }
+
+    .team-records-place.place-2 .team-records-place-badge {
+      background: linear-gradient(135deg, #94a3b8, #64748b);
+    }
+
+    .team-records-place.place-3 .team-records-place-badge {
+      background: linear-gradient(135deg, #b45309, #92400e);
+    }
+
+    .team-records-place-name {
+      font-size: 0.94rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.3;
+      word-break: break-word;
+    }
+
+    .team-records-place-value {
+      font-size: 1rem;
+      font-weight: 900;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .team-records-place-date {
+      font-size: 0.76rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .team-records-place-label {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .team-records-platform {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 18px 18px 10px 10px;
+      color: #fff;
+      font-size: 1.4rem;
+      font-weight: 900;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.14);
+    }
+
+    .team-records-place.place-1 .team-records-platform {
+      height: 132px;
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.9), rgba(217, 119, 6, 0.98));
+    }
+
+    .team-records-place.place-2 .team-records-platform {
+      height: 104px;
+      background: linear-gradient(180deg, rgba(148, 163, 184, 0.88), rgba(100, 116, 139, 0.98));
+    }
+
+    .team-records-place.place-3 .team-records-platform {
+      height: 88px;
+      background: linear-gradient(180deg, rgba(180, 83, 9, 0.9), rgba(146, 64, 14, 0.98));
+    }
+
+    .team-records-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 220px;
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px dashed rgba(148, 163, 184, 0.2);
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.5;
+    }
+
     .stats-goals-overview-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -7773,6 +8012,10 @@
       .development-mini-row { grid-template-columns: 1fr; }
       .development-grouped-chart,
       .development-line-labels { grid-template-columns: 1fr; }
+      .team-records-podium { grid-template-columns: 1fr; }
+      .team-records-place.place-1,
+      .team-records-place.place-2,
+      .team-records-place.place-3 { order: initial; }
 
       .development-highlight-line-labels { grid-template-columns: repeat(5, minmax(0, 1fr)); }
     }
@@ -9380,6 +9623,7 @@
   <div class="tabs">
     <button class="tab-btn active" data-tab="hjem" onclick="switchTab('hjem', this)">Dashboard</button>
     <button class="tab-btn" data-tab="stats" onclick="openStatsPage('overview', this)">Stats</button>
+    <button class="tab-btn" data-tab="rekorder" onclick="switchTab('rekorder', this)">Rekorder</button>
     <button class="tab-btn" data-tab="ledertavler-spill" onclick="switchTab('ledertavler-spill', this)">Spill</button>
     <div id="top-bar-tools" class="top-bar-tools">
       <button
@@ -9486,6 +9730,10 @@
 
 <div id="tab-stats" class="tab-content">
   <div id="stats-page"></div>
+</div>
+
+<div id="tab-rekorder" class="tab-content">
+  <div id="rekorder-page"></div>
 </div>
 
 <div id="tab-ledertavler-spill" class="tab-content">
@@ -12890,6 +13138,7 @@
     renderGoalsPage();
     renderRetroHistoryPage();
     renderLedertavlerSpillPage();
+    renderTeamRecordsPage();
     renderCompetitionCreatePage();
     renderAllPriceCalculators();
     renderSamtaleflyt();
@@ -13286,6 +13535,7 @@
     if (name === 'samtaleflyt') renderSamtaleflyt();
     if (name === 'notater') renderConversationNotes();
     if (name === 'samtalerating') renderSamtaleRating();
+    if (name === 'rekorder') renderTeamRecordsPage();
     if (name === 'ledertavler-spill') renderLedertavlerSpillPage();
     if (name === 'competition-create') renderCompetitionCreatePage();
     if (name === 'stats') renderStatsPage();
@@ -13985,6 +14235,15 @@
     return new Date(Number(year), Number(month) - 1, 1).toLocaleDateString('no-NO', { month: 'long', year: 'numeric' });
   }
 
+  function formatStatsRecordRange(startKey, endKey) {
+    if (!startKey) return '';
+    if (!endKey || endKey === startKey) return formatStatsRecordPeriod('day', startKey);
+    const start = parseLocalDateKey(startKey);
+    const end = parseLocalDateKey(endKey);
+    if (!start || !end) return `${startKey}–${endKey}`;
+    return `${start.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' })}–${end.toLocaleDateString('no-NO', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+  }
+
   function getGroupedStatsRecords(history, period) {
     const groups = new Map();
     history.forEach(entry => {
@@ -14032,6 +14291,295 @@
       value: best?.value || 0,
       isNew: isNewStatsRecord(groupedRecords, metricKey, currentKey),
     };
+  }
+
+  function getTeamRecordsDisplayName(userId) {
+    const normalizedUserId = String(userId || '').trim();
+    const profile = normalizePublicProfileRow(getPublicProfileByUserId(normalizedUserId));
+    if (profile?.display_name) return profile.display_name;
+    if (normalizedUserId && normalizedUserId === String(currentUser?.id || '')) return getUserDisplayName(currentUser);
+    return 'Ukjent bruker';
+  }
+
+  function getTeamRecordsActivityRows() {
+    const sharedRows = (Array.isArray(publicActivityRows) ? publicActivityRows : [])
+      .map(normalizePublicActivityRow)
+      .filter(Boolean);
+    if (!currentUser) return sharedRows;
+    const ownUserId = String(currentUser.id || '').trim();
+    const localRows = buildPublicActivityEntries()
+      .map(normalizePublicActivityRow)
+      .filter(Boolean);
+    return [
+      ...sharedRows.filter(row => row.user_id !== ownUserId),
+      ...localRows
+    ];
+  }
+
+  function buildTeamRecordsDailyTotals(rows = getTeamRecordsActivityRows()) {
+    const totals = new Map();
+    rows.forEach(row => {
+      const userId = String(row?.user_id || '').trim();
+      const occurredAt = new Date(row?.occurred_at || '');
+      if (!userId || Number.isNaN(occurredAt.getTime())) return;
+      const dateKey = makeLocalDateKey(occurredAt);
+      if (!totals.has(userId)) totals.set(userId, new Map());
+      const userTotals = totals.get(userId);
+      if (!userTotals.has(dateKey)) userTotals.set(dateKey, { sales: 0, over6: 0 });
+      const dayTotals = userTotals.get(dateKey);
+      dayTotals.sales += Math.max(0, Number(row.sales_count) || 0);
+      dayTotals.over6 += Math.max(0, Number(row.over6_count) || 0);
+    });
+    return totals;
+  }
+
+  function compareTeamRecordEntries(left, right) {
+    const valueDiff = (Number(right?.value) || 0) - (Number(left?.value) || 0);
+    if (valueDiff) return valueDiff;
+    const dateDiff = (Number(left?.sortDateValue) || 0) - (Number(right?.sortDateValue) || 0);
+    if (dateDiff) return dateDiff;
+    return String(left?.display_name || '').localeCompare(String(right?.display_name || ''), 'no-NO');
+  }
+
+  function pickBetterTeamRecord(best, candidate) {
+    if (!best) return candidate;
+    return compareTeamRecordEntries(best, candidate) <= 0 ? best : candidate;
+  }
+
+  function buildTeamPeriodRecordPodium(dailyTotals, metricKey, period, valueLabel) {
+    const metricField = metricKey === 'sales' ? 'sales' : 'over6';
+    const bestByUser = new Map();
+
+    dailyTotals.forEach((dateTotals, userId) => {
+      dateTotals.forEach((totals, dateKey) => {
+        const date = parseLocalDateKey(dateKey);
+        if (!date) return;
+        const periodKey = period === 'week' ? getWeekKeyFromDate(date) : dateKey;
+        if (!periodKey) return;
+        const currentMap = bestByUser.get(userId) || new Map();
+        const currentTotals = currentMap.get(periodKey) || 0;
+        currentMap.set(periodKey, currentTotals + Math.max(0, Number(totals[metricField]) || 0));
+        bestByUser.set(userId, currentMap);
+      });
+    });
+
+    const records = [];
+    bestByUser.forEach((periodTotals, userId) => {
+      let bestRecord = null;
+      periodTotals.forEach((value, periodKey) => {
+        if (!value) return;
+        const periodDate = parseLocalDateKey(periodKey);
+        const candidate = {
+          user_id: userId,
+          display_name: getTeamRecordsDisplayName(userId),
+          value,
+          valueLabel: valueLabel(value),
+          dateLabel: formatStatsRecordPeriod(period, periodKey),
+          sortDateValue: periodDate ? periodDate.getTime() : 0,
+        };
+        bestRecord = pickBetterTeamRecord(bestRecord, candidate);
+      });
+      if (bestRecord) records.push(bestRecord);
+    });
+
+    return records.sort(compareTeamRecordEntries).slice(0, 3);
+  }
+
+  function buildTeamStreakRecordPodium(dailyTotals, metricKey, minimumValue, valueLabel) {
+    const metricField = metricKey === 'sales' ? 'sales' : 'over6';
+    const records = [];
+
+    dailyTotals.forEach((dateTotals, userId) => {
+      const dateKeys = [...dateTotals.keys()].sort();
+      if (!dateKeys.length) return;
+      const firstDate = parseLocalDateKey(dateKeys[0]);
+      const lastDate = parseLocalDateKey(dateKeys[dateKeys.length - 1]);
+      if (!firstDate || !lastDate) return;
+
+      let currentLength = 0;
+      let currentStartKey = '';
+      let currentEndKey = '';
+      let bestRecord = null;
+
+      for (let day = startOfDay(firstDate); day <= lastDate; day = addDays(day, 1)) {
+        if (!isBusinessDay(day)) continue;
+        const dateKey = makeLocalDateKey(day);
+        const value = Math.max(0, Number(dateTotals.get(dateKey)?.[metricField]) || 0);
+
+        if (value >= minimumValue) {
+          if (!currentLength) currentStartKey = dateKey;
+          currentLength += 1;
+          currentEndKey = dateKey;
+          const candidate = {
+            user_id: userId,
+            display_name: getTeamRecordsDisplayName(userId),
+            value: currentLength,
+            valueLabel: valueLabel(currentLength),
+            dateLabel: formatStatsRecordRange(currentStartKey, currentEndKey),
+            sortDateValue: parseLocalDateKey(currentStartKey)?.getTime() || 0,
+          };
+          bestRecord = pickBetterTeamRecord(bestRecord, candidate);
+          continue;
+        }
+
+        currentLength = 0;
+        currentStartKey = '';
+        currentEndKey = '';
+      }
+
+      if (bestRecord) records.push(bestRecord);
+    });
+
+    return records.sort(compareTeamRecordEntries).slice(0, 3);
+  }
+
+  function renderTeamRecordPodiumPlace(place, entry) {
+    if (!entry) {
+      return `
+        <div class="team-records-place place-${place}">
+          <div class="team-records-place-card empty">
+            <div class="team-records-place-badge">#${place}</div>
+            <div class="team-records-place-label">Ledig plass</div>
+          </div>
+          <div class="team-records-platform">#${place}</div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="team-records-place place-${place}">
+        <div class="team-records-place-card">
+          <div class="team-records-place-badge">#${place}</div>
+          ${renderLeaderboardAvatar(entry.user_id, entry.display_name)}
+          <div class="team-records-place-name">${escHtml(entry.display_name)}</div>
+          <div class="team-records-place-value">${escHtml(entry.valueLabel)}</div>
+          <div class="team-records-place-date">${escHtml(entry.dateLabel)}</div>
+        </div>
+        <div class="team-records-platform">${place}</div>
+      </div>
+    `;
+  }
+
+  function renderTeamRecordCard(definition, dailyTotals) {
+    const entries = definition.kind === 'streak'
+      ? buildTeamStreakRecordPodium(dailyTotals, definition.metricKey, definition.minimumValue, definition.valueLabel)
+      : buildTeamPeriodRecordPodium(dailyTotals, definition.metricKey, definition.period, definition.valueLabel);
+
+    if (!entries.length) {
+      return `
+        <section class="team-record-card ${definition.accentClass}">
+          <div class="team-record-card-head">
+            <h3 class="team-record-card-title">${escHtml(definition.title)}</h3>
+            <div class="team-record-card-meta">${escHtml(definition.metaLabel)}</div>
+          </div>
+          <div class="team-records-empty">Ingen registreringer ennå.</div>
+        </section>
+      `;
+    }
+
+    return `
+      <section class="team-record-card ${definition.accentClass}">
+        <div class="team-record-card-head">
+          <h3 class="team-record-card-title">${escHtml(definition.title)}</h3>
+          <div class="team-record-card-meta">${escHtml(definition.metaLabel)}</div>
+        </div>
+        <div class="team-records-podium">
+          ${renderTeamRecordPodiumPlace(2, entries[1] || null)}
+          ${renderTeamRecordPodiumPlace(1, entries[0] || null)}
+          ${renderTeamRecordPodiumPlace(3, entries[2] || null)}
+        </div>
+      </section>
+    `;
+  }
+
+  function renderTeamRecordsPage() {
+    const host = document.getElementById('rekorder-page');
+    if (!host) return;
+
+    const rows = getTeamRecordsActivityRows();
+    const hasAnyRows = rows.length > 0;
+    const dailyTotals = buildTeamRecordsDailyTotals(rows);
+
+    if (!hasAnyRows && leaderboardState === 'loading') {
+      host.innerHTML = `
+        <div class="team-records-page">
+          <section class="team-records-hero">
+            <h1 class="team-records-title">Rekorder</h1>
+            <p class="team-records-subtitle">Laster inn teamets beste dager, uker og streaks.</p>
+          </section>
+        </div>
+      `;
+      return;
+    }
+
+    const definitions = [
+      {
+        title: 'Flest Abo på en dag',
+        metaLabel: 'Dag',
+        kind: 'period',
+        period: 'day',
+        metricKey: 'sales',
+        accentClass: 'abo-record',
+        valueLabel: value => `${value} abo`
+      },
+      {
+        title: 'Flest Abo på en uke',
+        metaLabel: 'Uke',
+        kind: 'period',
+        period: 'week',
+        metricKey: 'sales',
+        accentClass: 'abo-record',
+        valueLabel: value => `${value} abo`
+      },
+      {
+        title: 'Flest 6 minuttere på en dag',
+        metaLabel: 'Dag',
+        kind: 'period',
+        period: 'day',
+        metricKey: 'over6',
+        accentClass: 'over6-record',
+        valueLabel: value => `${value} stk`
+      },
+      {
+        title: 'Flest 6 minuttere på en uke',
+        metaLabel: 'Uke',
+        kind: 'period',
+        period: 'week',
+        metricKey: 'over6',
+        accentClass: 'over6-record',
+        valueLabel: value => `${value} stk`
+      },
+      {
+        title: 'Fleste dager på rad med minst 5 6-minuttere',
+        metaLabel: 'Streak',
+        kind: 'streak',
+        metricKey: 'over6',
+        minimumValue: 5,
+        accentClass: 'streak-record',
+        valueLabel: value => `${value} dager`
+      },
+      {
+        title: 'Flest dager på rad med minst 1 Salg',
+        metaLabel: 'Streak',
+        kind: 'streak',
+        metricKey: 'sales',
+        minimumValue: 1,
+        accentClass: 'streak-record',
+        valueLabel: value => `${value} dager`
+      }
+    ];
+
+    host.innerHTML = `
+      <div class="team-records-page">
+        <section class="team-records-hero">
+          <h1 class="team-records-title">Rekorder</h1>
+          <p class="team-records-subtitle">Teamets beste dager, uker og streaks.</p>
+        </section>
+        <div class="team-records-grid">
+          ${definitions.map(definition => renderTeamRecordCard(definition, dailyTotals)).join('')}
+        </div>
+      </div>
+    `;
   }
 
   function getMetricValueForEntry(entry, metricKey) {
@@ -15741,6 +16289,10 @@
       renderStatsPage();
       return;
     }
+    if (isTabActive('rekorder')) {
+      renderTeamRecordsPage();
+      return;
+    }
     if (isTabActive('ledertavler-spill')) {
       renderLedertavlerSpillPage();
       return;
@@ -15775,7 +16327,7 @@
     const items = [
       { id: 'overview', label: 'Hjem' },
       { id: 'development', label: 'Utvikling' },
-      { id: 'records', label: 'Rekorder' },
+      { id: 'records', label: 'Personlige rekorder' },
       { id: 'leaderboard', label: 'Leaderboard' },
       { id: 'goals', label: 'Mål' },
     ];
