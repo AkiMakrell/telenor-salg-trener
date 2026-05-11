@@ -9887,9 +9887,7 @@
   const APP_META_LAST_IMPORT_USER = 'telenorSalgTrainer:lastImportedUserId';
   const APP_META_DEVICE_BACKUP_PREFIX = 'telenorSalgTrainer:deviceBackup:';
   const LEADERBOARD_RANK_SNAPSHOT_PREFIX = 'telenorSalgTrainer:leaderboardRankSnapshot:';
-  const LEADERBOARD_RANK_MOVEMENT_PREFIX = 'telenorSalgTrainer:leaderboardRankMovement:';
   const COMPETITION_RANK_SNAPSHOT_PREFIX = 'telenorSalgTrainer:competitionRankSnapshot:';
-  const COMPETITION_RANK_MOVEMENT_PREFIX = 'telenorSalgTrainer:competitionRankMovement:';
   const _origSetItem    = localStorage.setItem.bind(localStorage);
   const _origRemoveItem = localStorage.removeItem.bind(localStorage);
   const _origGetItem    = localStorage.getItem.bind(localStorage);
@@ -10399,14 +10397,6 @@
     return userId ? `${COMPETITION_RANK_SNAPSHOT_PREFIX}${userId}` : '';
   }
 
-  function getLeaderboardMovementStorageKey(userId = currentUser?.id) {
-    return userId ? `${LEADERBOARD_RANK_MOVEMENT_PREFIX}${userId}` : '';
-  }
-
-  function getCompetitionMovementStorageKey(userId = currentUser?.id) {
-    return userId ? `${COMPETITION_RANK_MOVEMENT_PREFIX}${userId}` : '';
-  }
-
   function createEmptyLeaderboardPeriodMap() {
     return LEADERBOARD_PERIOD_CONFIG.reduce((acc, period) => {
       acc[period.id] = {};
@@ -10440,32 +10430,6 @@
     _origSetItem(key, JSON.stringify(snapshot));
   }
 
-  function readLeaderboardRankMovement(userId = currentUser?.id) {
-    const key = getLeaderboardMovementStorageKey(userId);
-    if (!key) return createEmptyLeaderboardPeriodMap();
-    try {
-      const parsed = JSON.parse(_origGetItem(key) || '{}');
-      const movement = createEmptyLeaderboardPeriodMap();
-      LEADERBOARD_PERIOD_CONFIG.forEach(period => {
-        const entries = parsed?.[period.id];
-        if (!entries || typeof entries !== 'object') return;
-        Object.entries(entries).forEach(([entryUserId, delta]) => {
-          const normalizedDelta = Number(delta);
-          if (entryUserId && Number.isFinite(normalizedDelta)) movement[period.id][entryUserId] = normalizedDelta;
-        });
-      });
-      return movement;
-    } catch {
-      return createEmptyLeaderboardPeriodMap();
-    }
-  }
-
-  function saveLeaderboardRankMovement(movement, userId = currentUser?.id) {
-    const key = getLeaderboardMovementStorageKey(userId);
-    if (!key) return;
-    _origSetItem(key, JSON.stringify(movement));
-  }
-
   function readCompetitionRankSnapshot(userId = currentUser?.id) {
     const key = getCompetitionSnapshotStorageKey(userId);
     if (!key) return {};
@@ -10492,34 +10456,6 @@
     const key = getCompetitionSnapshotStorageKey(userId);
     if (!key) return;
     _origSetItem(key, JSON.stringify(snapshot));
-  }
-
-  function readCompetitionRankMovement(userId = currentUser?.id) {
-    const key = getCompetitionMovementStorageKey(userId);
-    if (!key) return {};
-    try {
-      const parsed = JSON.parse(_origGetItem(key) || '{}');
-      if (!parsed || typeof parsed !== 'object') return {};
-      return Object.entries(parsed).reduce((acc, [competitionId, entries]) => {
-        if (!competitionId || !entries || typeof entries !== 'object') return acc;
-        acc[competitionId] = {};
-        Object.entries(entries).forEach(([entryUserId, delta]) => {
-          const normalizedDelta = Number(delta);
-          if (entryUserId && Number.isFinite(normalizedDelta)) {
-            acc[competitionId][entryUserId] = normalizedDelta;
-          }
-        });
-        return acc;
-      }, {});
-    } catch {
-      return {};
-    }
-  }
-
-  function saveCompetitionRankMovement(movement, userId = currentUser?.id) {
-    const key = getCompetitionMovementStorageKey(userId);
-    if (!key) return;
-    _origSetItem(key, JSON.stringify(movement));
   }
 
   function isLeaderboardSchemaMismatch(error) {
@@ -15943,19 +15879,16 @@
 
   function updateLeaderboardMovementState(rows) {
     const previousSnapshot = readLeaderboardRankSnapshot();
-    const previousMovement = readLeaderboardRankMovement();
     const nextSnapshot = buildLeaderboardRankSnapshot(rows);
     const nextMovement = createEmptyLeaderboardPeriodMap();
     LEADERBOARD_PERIOD_CONFIG.forEach(period => {
       Object.entries(nextSnapshot[period.id]).forEach(([userId, currentRank]) => {
         const previousRank = Number(previousSnapshot[period.id]?.[userId]);
-        const delta = Number.isFinite(previousRank) ? previousRank - currentRank : 0;
-        nextMovement[period.id][userId] = delta || Number(previousMovement?.[period.id]?.[userId]) || 0;
+        nextMovement[period.id][userId] = Number.isFinite(previousRank) ? previousRank - currentRank : 0;
       });
     });
     leaderboardMovementByPeriod = nextMovement;
     saveLeaderboardRankSnapshot(nextSnapshot);
-    saveLeaderboardRankMovement(nextMovement);
   }
 
   function getLeaderboardMovementDelta(periodId, userId) {
@@ -17056,20 +16989,17 @@
 
   function updateCompetitionMovementState(games = competitionGames) {
     const previousSnapshot = readCompetitionRankSnapshot();
-    const previousMovement = readCompetitionRankMovement();
     const nextSnapshot = buildCompetitionRankSnapshot(games);
     const nextMovement = {};
     Object.entries(nextSnapshot).forEach(([competitionId, entries]) => {
       nextMovement[competitionId] = {};
       Object.entries(entries).forEach(([userId, currentRank]) => {
         const previousRank = Number(previousSnapshot?.[competitionId]?.[userId]);
-        const delta = Number.isFinite(previousRank) ? previousRank - currentRank : 0;
-        nextMovement[competitionId][userId] = delta || Number(previousMovement?.[competitionId]?.[userId]) || 0;
+        nextMovement[competitionId][userId] = Number.isFinite(previousRank) ? previousRank - currentRank : 0;
       });
     });
     competitionMovementByGame = nextMovement;
     saveCompetitionRankSnapshot(nextSnapshot);
-    saveCompetitionRankMovement(nextMovement);
   }
 
   function getCompetitionMovementDelta(competitionId, userId) {
