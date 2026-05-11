@@ -4274,7 +4274,7 @@
       font-size: 0.84rem;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.18s ease;
+      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
       text-align: left;
       white-space: nowrap;
     }
@@ -15789,7 +15789,9 @@
   }
 
   function setStatsSubview(view) {
-    activeStatsSubview = getDetailedStatsSubview(view);
+    const nextView = getDetailedStatsSubview(view);
+    if (nextView === activeStatsSubview && isTabActive('stats')) return;
+    activeStatsSubview = nextView;
     renderStatsPage();
   }
 
@@ -15824,6 +15826,7 @@
           ${items.map(item => `
             <button
               class="stats-nav-btn${activeView === item.id ? ' active' : ''}"
+              data-stats-view="${item.id}"
               type="button"
               onclick="setStatsSubview('${item.id}')"
             >${item.label}</button>
@@ -15831,6 +15834,13 @@
         </div>
       </div>
     `;
+  }
+
+  function syncStatsSubviewNav(activeView, sidebar = document.querySelector('#stats-page .stats-sidebar')) {
+    if (!sidebar) return;
+    sidebar.querySelectorAll('.stats-nav-btn').forEach(button => {
+      button.classList.toggle('active', button.dataset.statsView === activeView);
+    });
   }
 
   function getLeaderboardPeriodField(periodId, metric) {
@@ -18872,23 +18882,38 @@
     const target = document.getElementById(containerId);
     if (!target) return;
 
-    target.innerHTML = mode === 'overview' && activeView === 'overview'
-      ? `
+    if (mode === 'overview' && activeView === 'overview') {
+      target.innerHTML = `
         <div class="stats-main stats-main-standalone">
           ${panes[activeView]}
         </div>
-      `
-      : `
-        <div class="stats-page-shell">
-          <aside class="stats-sidebar${shouldGlowStatsSidebarOnEntry ? ' stats-sidebar-glow' : ''}">
-            ${renderStatsSubviewNav(activeView)}
-          </aside>
-          <div class="stats-main">
-            <div style="margin-bottom:14px;">${renderStatsSourceBadge()}</div>
-            ${panes[activeView]}
-          </div>
-        </div>
       `;
+    } else {
+      const shell = target.querySelector('.stats-page-shell');
+      if (!shell) {
+        target.innerHTML = `
+          <div class="stats-page-shell">
+            <aside class="stats-sidebar${shouldGlowStatsSidebarOnEntry ? ' stats-sidebar-glow' : ''}">
+              ${renderStatsSubviewNav(activeView)}
+            </aside>
+            <div class="stats-main">
+              <div class="stats-source-slot" style="margin-bottom:14px;">${renderStatsSourceBadge()}</div>
+              <div class="stats-pane-slot">${panes[activeView]}</div>
+            </div>
+          </div>
+        `;
+      } else {
+        const sidebar = shell.querySelector('.stats-sidebar');
+        if (sidebar) {
+          sidebar.className = `stats-sidebar${shouldGlowStatsSidebarOnEntry ? ' stats-sidebar-glow' : ''}`;
+          syncStatsSubviewNav(activeView, sidebar);
+        }
+        const sourceSlot = shell.querySelector('.stats-source-slot');
+        if (sourceSlot) sourceSlot.innerHTML = renderStatsSourceBadge();
+        const paneSlot = shell.querySelector('.stats-pane-slot');
+        if (paneSlot) paneSlot.innerHTML = panes[activeView];
+      }
+    }
     if (mode !== 'overview') shouldGlowStatsSidebarOnEntry = false;
     triggerGoalAchievementCelebrations([dayGoalStatus, weekGoalStatus, monthGoalStatus]);
   }
