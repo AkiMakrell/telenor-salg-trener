@@ -4553,29 +4553,11 @@
     }
 
     .dashboard-active-games {
-      border-color: rgba(139, 92, 246, 0.34);
-      background:
-        radial-gradient(circle at top left, rgba(139, 92, 246, 0.2), transparent 38%),
-        linear-gradient(180deg, rgba(24, 17, 48, 0.96), rgba(10, 14, 28, 0.96));
-      box-shadow: 0 20px 42px rgba(46, 16, 101, 0.24);
-    }
-
-    .dashboard-active-games .dashboard-card-title {
-      color: #f3e8ff;
-    }
-
-    .dashboard-active-games-badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(167, 139, 250, 0.34);
-      background: rgba(91, 33, 182, 0.24);
-      color: #ddd6fe;
-      font-size: 0.72rem;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      border-color: rgba(255, 255, 255, 0.22);
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.03),
+        0 0 28px rgba(255, 255, 255, 0.1),
+        0 20px 40px rgba(2, 6, 23, 0.26);
     }
 
     .dashboard-quick-grid,
@@ -6383,14 +6365,6 @@
       padding: 22px;
     }
 
-    .games-section-card.active-games-section {
-      border-color: rgba(139, 92, 246, 0.28);
-      background:
-        radial-gradient(circle at top left, rgba(139, 92, 246, 0.14), transparent 34%),
-        linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(8, 15, 30, 0.96));
-      box-shadow: 0 20px 44px rgba(46, 16, 101, 0.2);
-    }
-
     .games-create-page-shell {
       width: min(100%, 1240px);
     }
@@ -6420,6 +6394,14 @@
       border-radius: 18px;
       border: 1px solid rgba(51, 65, 85, 0.74);
       background: rgba(8, 15, 30, 0.78);
+    }
+
+    .games-section-card.active-games-section {
+      border-color: rgba(255, 255, 255, 0.18);
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.03),
+        0 0 32px rgba(255, 255, 255, 0.08),
+        0 18px 40px rgba(2, 6, 23, 0.28);
     }
 
     .games-hero {
@@ -6635,19 +6617,6 @@
       font-weight: 800;
       letter-spacing: -0.02em;
       color: var(--text);
-    }
-
-    .games-competition-detail.active-game-card {
-      border-color: rgba(139, 92, 246, 0.3);
-      background:
-        radial-gradient(circle at top, rgba(139, 92, 246, 0.16), transparent 42%),
-        linear-gradient(180deg, rgba(24, 17, 48, 0.94), rgba(10, 14, 28, 0.96));
-      box-shadow: 0 20px 44px rgba(46, 16, 101, 0.22);
-    }
-
-    .games-competition-detail.active-game-card .games-detail-title,
-    .games-section-card.active-games-section .games-section-title {
-      color: #f3e8ff;
     }
 
     .games-card-top,
@@ -18300,7 +18269,7 @@
       const isPointBreakdownOpen = expandedCompetitionPointWeightsId === game.competition_id;
       const isMenuOpen = competitionActionMenuId === game.competition_id;
       return `
-        <div class="games-competition-detail active-game-card">
+        <div class="games-competition-detail">
           ${showActions ? `
             <div class="games-card-actions" style="justify-content:flex-start;margin-bottom:8px;">
               ${canManage ? `
@@ -18437,7 +18406,6 @@
         <div class="dashboard-card dashboard-active-games" onclick="event.stopPropagation()">
           <div class="dashboard-card-heading">
             <div class="dashboard-card-title">Aktive spill</div>
-            <span class="dashboard-active-games-badge">Live konkurranse</span>
           </div>
           <div class="stats-empty-card">Laster spill...</div>
         </div>
@@ -18448,7 +18416,6 @@
       <div class="dashboard-card dashboard-active-games" onclick="event.stopPropagation()">
         <div class="dashboard-card-heading">
           <div class="dashboard-card-title">Aktive spill</div>
-          <span class="dashboard-active-games-badge">Live konkurranse</span>
         </div>
         ${competitionState === 'error' ? `<div class="stats-empty-card">${escHtml(competitionErrorMessage || 'Kunne ikke laste spill.')}</div>` : ''}
         ${activeGames.map(game => renderCompetitionDetailCard(game, { showActions: false })).join('')}
