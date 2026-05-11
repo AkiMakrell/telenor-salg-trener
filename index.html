@@ -18531,6 +18531,16 @@
 
   function renderDashboardActiveGamesCard() {
     const activeGames = getCompetitionVisibleGames('active');
+    if (competitionState === 'loading') {
+      return `
+        <div class="dashboard-card dashboard-active-games" onclick="event.stopPropagation()">
+          <div class="dashboard-card-heading">
+            <div class="dashboard-card-title">Aktive spill</div>
+          </div>
+          <div class="stats-empty-card">Laster spill...</div>
+        </div>
+      `;
+    }
     if (!activeGames.length) return '';
     return `
       <div class="dashboard-card dashboard-active-games" onclick="event.stopPropagation()">
@@ -18571,7 +18581,9 @@
               <div class="games-section-title">Aktive spill</div>
             </div>
             ${competitionState === 'error' ? `<div class="stats-empty-card">${escHtml(competitionErrorMessage || 'Kunne ikke laste spill.')}</div>` : ''}
-            ${activeGames.length ? activeGames.map(renderCompetitionDetailCard).join('') : '<div class="games-empty-note">Ingen aktive spill akkurat nå.</div>'}
+            ${competitionState === 'loading'
+              ? '<div class="games-empty-note">Laster spill...</div>'
+              : (activeGames.length ? activeGames.map(renderCompetitionDetailCard).join('') : '<div class="games-empty-note">Ingen aktive spill akkurat nå.</div>')}
           </div>
 
           <div class="games-section-card">
