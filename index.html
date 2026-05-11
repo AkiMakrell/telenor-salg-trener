@@ -12076,6 +12076,48 @@
     return nextRows;
   }
 
+  function getLeaderboardRowRecencyValue(row) {
+    const latestEntryTime = Date.parse(String(row?.latest_entry_at || ''));
+    if (Number.isFinite(latestEntryTime)) return latestEntryTime;
+    const updatedTime = Date.parse(String(row?.updated_at || ''));
+    return Number.isFinite(updatedTime) ? updatedTime : 0;
+  }
+
+  function getLeaderboardRowStrengthValue(row) {
+    return (
+      Math.max(0, Number(row?.month_points) || 0) * 1000000 +
+      Math.max(0, Number(row?.week_points) || 0) * 10000 +
+      Math.max(0, Number(row?.day_points) || 0) * 100 +
+      Math.max(0, Number(row?.total_sales) || 0) * 10 +
+      Math.max(0, Number(row?.total_over6) || 0)
+    );
+  }
+
+  function pickPreferredLeaderboardRow(leftRow, rightRow) {
+    if (!leftRow) return rightRow || null;
+    if (!rightRow) return leftRow;
+    const leftRecency = getLeaderboardRowRecencyValue(leftRow);
+    const rightRecency = getLeaderboardRowRecencyValue(rightRow);
+    if (leftRecency !== rightRecency) return leftRecency > rightRecency ? leftRow : rightRow;
+    const leftStrength = getLeaderboardRowStrengthValue(leftRow);
+    const rightStrength = getLeaderboardRowStrengthValue(rightRow);
+    if (leftStrength !== rightStrength) return leftStrength > rightStrength ? leftRow : rightRow;
+    return leftRow;
+  }
+
+  function mergeLeaderboardSourceRows(...rowSets) {
+    const mergedByUser = new Map();
+    rowSets.forEach(rows => {
+      (Array.isArray(rows) ? rows : []).forEach(rawRow => {
+        const row = normalizeLeaderboardRow(rawRow);
+        const userId = String(row?.user_id || '').trim();
+        if (!userId) return;
+        mergedByUser.set(userId, pickPreferredLeaderboardRow(mergedByUser.get(userId), row));
+      });
+    });
+    return [...mergedByUser.values()].filter(hasVisibleLeaderboardActivity);
+  }
+
   function upsertCurrentUserLocalLeaderboardRow(options = {}) {
     leaderboardRows = mergeCurrentUserLocalLeaderboardRow(leaderboardRows);
     if (leaderboardRows.length && leaderboardState !== 'loading') {
@@ -12324,15 +12366,13 @@
           }
           const legacyRows = await loadLegacyPublicStatsRows().catch(() => []);
           const freshRows = buildLeaderboardRowsFromPublicActivity();
-          const freshUserIds = new Set(freshRows.map(row => row.user_id));
-          nextRows = mergeCurrentUserLocalLeaderboardRow([...freshRows, ...legacyRows.filter(row => !freshUserIds.has(row.user_id))]);
+          nextRows = mergeCurrentUserLocalLeaderboardRow(mergeLeaderboardSourceRows(freshRows, legacyRows));
           setLeaderboardSourceMode('fallback');
         }
       } else {
         const legacyRows = await loadLegacyPublicStatsRows().catch(() => []);
         const freshRows = buildLeaderboardRowsFromPublicActivity();
-        const freshUserIds = new Set(freshRows.map(row => row.user_id));
-        nextRows = mergeCurrentUserLocalLeaderboardRow([...freshRows, ...legacyRows.filter(row => !freshUserIds.has(row.user_id))]);
+        nextRows = mergeCurrentUserLocalLeaderboardRow(mergeLeaderboardSourceRows(freshRows, legacyRows));
         setLeaderboardSourceMode('legacy');
       }
       if (loadToken !== leaderboardLoadToken) return leaderboardRows;
