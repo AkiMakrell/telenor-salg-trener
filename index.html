@@ -14284,9 +14284,62 @@
     return entry.type === 'introSuccess' || (!entry.quickEntry && entry.opptak === 'ja');
   }
 
+  const norwegianPublicHolidayCache = new Map();
+
+  function getEasterSundayDate(year) {
+    const a = year % 19;
+    const b = Math.floor(year / 100);
+    const c = year % 100;
+    const d = Math.floor(b / 4);
+    const e = b % 4;
+    const f = Math.floor((b + 8) / 25);
+    const g = Math.floor((b - f + 1) / 3);
+    const h = (19 * a + b - d - g + 15) % 30;
+    const i = Math.floor(c / 4);
+    const k = c % 4;
+    const l = (32 + 2 * e + 2 * i - h - k) % 7;
+    const m = Math.floor((a + 11 * h + 22 * l) / 451);
+    const month = Math.floor((h + l - 7 * m + 114) / 31);
+    const day = ((h + l - 7 * m + 114) % 31) + 1;
+    return new Date(year, month - 1, day);
+  }
+
+  function getNorwegianPublicHolidayDateKeys(year) {
+    const normalizedYear = Math.floor(Number(year));
+    if (!Number.isFinite(normalizedYear)) return new Set();
+    if (norwegianPublicHolidayCache.has(normalizedYear)) {
+      return norwegianPublicHolidayCache.get(normalizedYear);
+    }
+
+    const easterSunday = getEasterSundayDate(normalizedYear);
+    const holidayDates = [
+      new Date(normalizedYear, 0, 1),
+      addDays(easterSunday, -3),
+      addDays(easterSunday, -2),
+      easterSunday,
+      addDays(easterSunday, 1),
+      new Date(normalizedYear, 4, 1),
+      addDays(easterSunday, 39),
+      new Date(normalizedYear, 4, 17),
+      addDays(easterSunday, 49),
+      addDays(easterSunday, 50),
+      new Date(normalizedYear, 11, 25),
+      new Date(normalizedYear, 11, 26)
+    ];
+
+    const dateKeys = new Set(holidayDates.map(date => makeLocalDateKey(date)));
+    norwegianPublicHolidayCache.set(normalizedYear, dateKeys);
+    return dateKeys;
+  }
+
+  function isNorwegianPublicHoliday(date) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return false;
+    return getNorwegianPublicHolidayDateKeys(date.getFullYear()).has(makeLocalDateKey(date));
+  }
+
   function isBusinessDay(date) {
     const day = date.getDay();
-    return day >= 1 && day <= 5;
+    return day >= 1 && day <= 5 && !isNorwegianPublicHoliday(date);
   }
 
   function getEntrySalesCount(entry) {
