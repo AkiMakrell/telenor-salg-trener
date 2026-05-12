@@ -5428,15 +5428,20 @@
       inset: 0;
       border-radius: inherit;
       background:
-        radial-gradient(circle at 50% 34%, rgba(250, 204, 21, 0.08), transparent 24%),
+        radial-gradient(circle at 50% 34%, rgba(250, 204, 21, 0.12), transparent 24%),
         repeating-conic-gradient(from -90deg at 50% 34%,
-          rgba(255,255,255,0.05) 0deg 4deg,
+          rgba(255,255,255,0.07) 0deg 4deg,
           transparent 4deg 14deg);
-      opacity: 0.24;
+      opacity: 0.34;
       pointer-events: none;
-      z-index: -1;
+      z-index: 0;
       mask-image: radial-gradient(circle at 50% 36%, rgba(0,0,0,0.92), rgba(0,0,0,0.34) 52%, transparent 78%);
       -webkit-mask-image: radial-gradient(circle at 50% 36%, rgba(0,0,0,0.92), rgba(0,0,0,0.34) 52%, transparent 78%);
+    }
+
+    .team-records-stage-body > * {
+      position: relative;
+      z-index: 1;
     }
 
     .team-records-podium {
