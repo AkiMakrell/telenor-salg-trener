@@ -5437,8 +5437,25 @@
     }
 
     .team-records-place.place-1 {
+      position: relative;
       order: 2;
       transform: translateY(-12px);
+    }
+
+    .team-records-place.place-1::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 28px;
+      width: 180px;
+      height: 180px;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(250, 204, 21, 0.26) 0%, rgba(245, 158, 11, 0.14) 42%, transparent 72%);
+      filter: blur(18px);
+      opacity: 0.95;
+      pointer-events: none;
+      z-index: -1;
     }
     .team-records-place.place-2 { order: 1; }
     .team-records-place.place-3 { order: 3; }
@@ -5589,10 +5606,11 @@
     }
 
     .team-records-place.place-1 .team-records-place-card {
+      border-color: rgba(250, 204, 21, 0.24);
       box-shadow:
-        0 0 0 1px rgba(250, 204, 21, 0.14),
+        0 0 0 1px rgba(250, 204, 21, 0.2),
         0 20px 38px rgba(2, 6, 23, 0.22),
-        0 0 28px rgba(250, 204, 21, 0.12);
+        0 0 36px rgba(250, 204, 21, 0.18);
     }
 
     .team-records-place.place-1 .team-records-platform {
