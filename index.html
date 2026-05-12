@@ -19729,6 +19729,8 @@
     const activeGames = getCompetitionVisibleGames('active')
       .slice()
       .sort((a, b) => {
+        const endTimeDelta = getCompetitionDateSortValue(a.ends_at) - getCompetitionDateSortValue(b.ends_at);
+        if (endTimeDelta !== 0) return endTimeDelta;
         const participantDelta = getCompetitionMemberRowsForGame(b.competition_id).length - getCompetitionMemberRowsForGame(a.competition_id).length;
         if (participantDelta !== 0) return participantDelta;
         return String(a.starts_at).localeCompare(String(b.starts_at));
