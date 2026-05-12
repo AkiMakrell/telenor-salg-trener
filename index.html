@@ -5200,11 +5200,29 @@
     }
 
     .team-records-page {
+      position: relative;
+      isolation: isolate;
       max-width: 1180px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
       gap: 18px;
+    }
+
+    .team-records-page::before {
+      content: "";
+      position: absolute;
+      inset: -40px 0 0;
+      background:
+        radial-gradient(circle at 50% 14%, rgba(250, 204, 21, 0.1), transparent 26%),
+        repeating-conic-gradient(from -90deg at 50% 14%,
+          rgba(255,255,255,0.06) 0deg 4deg,
+          transparent 4deg 14deg);
+      opacity: 0.2;
+      pointer-events: none;
+      z-index: -1;
+      mask-image: radial-gradient(circle at 50% 18%, rgba(0,0,0,0.95), rgba(0,0,0,0.38) 50%, transparent 78%);
+      -webkit-mask-image: radial-gradient(circle at 50% 18%, rgba(0,0,0,0.95), rgba(0,0,0,0.38) 50%, transparent 78%);
     }
 
     .team-records-hero {
@@ -5602,7 +5620,6 @@
     .team-records-place.place-1 .team-records-platform::after {
       width: 56%;
       background: linear-gradient(90deg, transparent, rgba(255,255,255,0.42), transparent);
-      animation: team-records-gold-shimmer 3.2s ease-in-out infinite;
     }
 
     .team-records-place.place-1 .team-records-place-card {
@@ -5644,23 +5661,6 @@
         inset 0 18px 26px rgba(255,255,255,0.08),
         0 0 18px rgba(217, 119, 6, 0.14),
         0 18px 34px rgba(2, 6, 23, 0.18);
-    }
-
-    @keyframes team-records-gold-shimmer {
-      0%, 100% {
-        left: -18%;
-        opacity: 0.2;
-      }
-      18% {
-        opacity: 0.95;
-      }
-      52% {
-        left: 68%;
-        opacity: 0.85;
-      }
-      80% {
-        opacity: 0.12;
-      }
     }
 
     .team-records-empty {
