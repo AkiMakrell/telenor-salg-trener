@@ -4118,6 +4118,28 @@
     }
 
     @media (max-width: 560px) {
+      .lead-change-celebration {
+        margin: 12px auto 14px;
+      }
+
+      .lead-change-celebration-card {
+        padding: 16px 14px;
+        border-radius: 20px;
+      }
+
+      .lead-change-celebration-main .leaderboard-avatar {
+        width: 54px;
+        height: 54px;
+      }
+
+      .lead-change-celebration-name {
+        font-size: 1.7rem;
+      }
+
+      .lead-change-celebration-line {
+        font-size: 0.9rem;
+      }
+
       .tab-btn {
         padding: 8px 16px;
       }
@@ -8532,6 +8554,139 @@
       text-align: center;
     }
 
+    .lead-change-celebration {
+      max-width: 1100px;
+      margin: 14px auto 18px;
+      pointer-events: none;
+    }
+
+    .lead-change-celebration-card {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      padding: 18px 24px;
+      border-radius: 24px;
+      border: 1px solid rgba(250, 204, 21, 0.26);
+      background:
+        radial-gradient(circle at top center, rgba(255,255,255,0.16), transparent 34%),
+        linear-gradient(135deg, rgba(250, 204, 21, 0.18), rgba(249, 115, 22, 0.12) 32%, rgba(15, 23, 42, 0.96) 72%);
+      box-shadow:
+        0 22px 44px rgba(15, 23, 42, 0.24),
+        0 0 34px rgba(250, 204, 21, 0.12);
+      animation: lead-change-banner-in 320ms ease-out;
+      pointer-events: auto;
+    }
+
+    .lead-change-celebration-card.is-you {
+      border-color: rgba(94, 234, 212, 0.28);
+      background:
+        radial-gradient(circle at top center, rgba(255,255,255,0.16), transparent 34%),
+        linear-gradient(135deg, rgba(94, 234, 212, 0.18), rgba(56, 189, 248, 0.12) 32%, rgba(15, 23, 42, 0.96) 72%);
+      box-shadow:
+        0 22px 44px rgba(15, 23, 42, 0.24),
+        0 0 34px rgba(45, 212, 191, 0.12);
+    }
+
+    .lead-change-celebration-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      text-align: center;
+    }
+
+    .lead-change-celebration-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.86);
+      font-size: 0.72rem;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .lead-change-celebration-main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .lead-change-celebration-main .leaderboard-avatar {
+      width: 62px;
+      height: 62px;
+      font-size: 1.08rem;
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.24);
+    }
+
+    .lead-change-celebration-name {
+      font-size: clamp(1.55rem, 4vw, 2.5rem);
+      font-weight: 950;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      color: #fff;
+    }
+
+    .lead-change-celebration-line {
+      color: rgba(255,255,255,0.84);
+      font-size: 0.96rem;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .lead-change-celebration-confetti {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .lead-change-celebration-confetti-piece {
+      position: absolute;
+      top: -16px;
+      left: var(--piece-left, 50%);
+      width: 10px;
+      height: 16px;
+      border-radius: 999px;
+      background: var(--piece-color, #facc15);
+      opacity: 0;
+      transform: translateY(-8px) rotate(var(--piece-rotation, 0deg));
+      animation: lead-change-confetti 1050ms ease-out var(--piece-delay, 0s) forwards;
+    }
+
+    @keyframes lead-change-banner-in {
+      from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.985);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes lead-change-confetti {
+      0% {
+        opacity: 0;
+        transform: translateY(-16px) rotate(var(--piece-rotation, 0deg)) scale(0.8);
+      }
+      18% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(120px) rotate(calc(var(--piece-rotation, 0deg) + 160deg)) scale(1);
+      }
+    }
+
     .goals-page {
       max-width: 940px;
       margin: 0 auto;
@@ -10122,6 +10277,8 @@
   </div>
 </div>
 
+<div id="competition-lead-celebration-root"></div>
+
 <!-- ===== STATS TAB ===== -->
 <div id="tab-hjem" class="tab-content active">
   <div id="stats-home"></div>
@@ -10546,6 +10703,10 @@
   let competitionParticipants = [];
   let competitionPlayerStandingsByGame = {};
   let competitionTeamStandingsByGame = {};
+  let competitionLeadSnapshotByGame = {};
+  let competitionLeadSnapshotReady = false;
+  let competitionLeadCelebration = null;
+  let competitionLeadCelebrationTimeout = null;
   let competitionState = 'idle';
   let competitionErrorMessage = '';
   let activeCompetitionFilter = 'active';
@@ -10776,6 +10937,61 @@
     return `<span class="leaderboard-avatar${size === 'small' ? ' small' : ''}${avatarUrl ? ' has-image' : ''}"${avatarUrl ? ` style="background-image:url('${escAttr(String(avatarUrl).replace(/'/g, '%27'))}');"` : ''} aria-hidden="true">${escHtml(initials)}</span>`;
   }
 
+  function renderCompetitionLeadCelebrationConfetti() {
+    const pieces = [
+      { left: 8, delay: 0.02, rotate: -18, color: '#facc15' },
+      { left: 16, delay: 0.12, rotate: 12, color: '#fb7185' },
+      { left: 24, delay: 0.04, rotate: -8, color: '#38bdf8' },
+      { left: 31, delay: 0.18, rotate: 16, color: '#f59e0b' },
+      { left: 38, delay: 0.08, rotate: -14, color: '#a78bfa' },
+      { left: 46, delay: 0.16, rotate: 10, color: '#facc15' },
+      { left: 54, delay: 0.06, rotate: -12, color: '#5eead4' },
+      { left: 62, delay: 0.2, rotate: 14, color: '#fb7185' },
+      { left: 69, delay: 0.1, rotate: -10, color: '#f97316' },
+      { left: 76, delay: 0.14, rotate: 18, color: '#38bdf8' },
+      { left: 84, delay: 0.03, rotate: -16, color: '#facc15' },
+      { left: 92, delay: 0.22, rotate: 9, color: '#a78bfa' }
+    ];
+    return pieces.map(piece => `
+      <span
+        class="lead-change-celebration-confetti-piece"
+        style="--piece-left:${piece.left}%;--piece-delay:${piece.delay}s;--piece-rotation:${piece.rotate}deg;--piece-color:${piece.color};"
+      ></span>
+    `).join('');
+  }
+
+  function renderCompetitionLeadCelebration() {
+    const root = document.getElementById('competition-lead-celebration-root');
+    if (!root) return;
+    if (!competitionLeadCelebration) {
+      root.innerHTML = '';
+      return;
+    }
+    const displayName = String(competitionLeadCelebration.displayName || '').trim() || 'Ukjent bruker';
+    const gameName = String(competitionLeadCelebration.gameName || '').trim() || 'spillet';
+    const isYou = String(competitionLeadCelebration.userId || '') === String(currentUser?.id || '');
+    const line = isYou
+      ? `Du tok ledelsen i ${gameName}.`
+      : `${displayName} tok ledelsen i ${gameName}.`;
+    root.innerHTML = `
+      <div class="lead-change-celebration">
+        <div class="lead-change-celebration-card${isYou ? ' is-you' : ''}">
+          <div class="lead-change-celebration-confetti" aria-hidden="true">${renderCompetitionLeadCelebrationConfetti()}</div>
+          <div class="lead-change-celebration-content">
+            <div class="lead-change-celebration-badge">${isYou ? 'Du tok ledelsen' : 'Ny #1'}</div>
+            <div class="lead-change-celebration-main">
+              ${renderLeaderboardAvatar(competitionLeadCelebration.userId, displayName)}
+              <div>
+                <div class="lead-change-celebration-name">${escHtml(displayName)}</div>
+                <div class="lead-change-celebration-line">${escHtml(line)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   function updateSettingsAvatarControls(user = currentUser, isSaving = profileAvatarSaving) {
     const uploadButton = document.getElementById('settings-avatar-upload');
     const removeButton = document.getElementById('settings-avatar-remove');
@@ -10907,6 +11123,12 @@
     competitionParticipants = [];
     competitionPlayerStandingsByGame = {};
     competitionTeamStandingsByGame = {};
+    competitionLeadSnapshotByGame = {};
+    competitionLeadSnapshotReady = false;
+    competitionLeadCelebration = null;
+    clearTimeout(competitionLeadCelebrationTimeout);
+    competitionLeadCelebrationTimeout = null;
+    renderCompetitionLeadCelebration();
     competitionErrorMessage = '';
     selectedCompetitionId = '';
     competitionDraft = null;
@@ -12991,6 +13213,7 @@
       }
       if (loadToken !== leaderboardLoadToken) return leaderboardRows;
       leaderboardRows = nextRows;
+      syncCompetitionLeadCelebration();
       setLeaderboardState('ready');
       setCompetitionState('ready');
       return leaderboardRows;
@@ -18033,6 +18256,71 @@
     return competitionGames
       .filter(game => getCompetitionStatus(game) === filterId)
       .sort((a, b) => String(a.starts_at).localeCompare(String(b.starts_at)));
+  }
+
+  function getCompetitionSoleLeaderSnapshot(game) {
+    const standings = buildCompetitionStandings(game);
+    if (!standings.length) return null;
+    const leader = standings[0];
+    const topScore = Number(leader?.score || 0);
+    if (topScore <= 0) return null;
+    const secondScore = Number(standings[1]?.score || 0);
+    if (standings.length > 1 && secondScore >= topScore) return null;
+    return {
+      competitionId: String(game?.competition_id || '').trim(),
+      userId: String(leader?.user_id || '').trim(),
+      displayName: String(leader?.display_name || '').trim() || 'Ukjent bruker',
+      gameName: String(game?.name || '').trim() || 'Spill',
+      score: topScore
+    };
+  }
+
+  function buildCompetitionLeadSnapshotByGame() {
+    return Object.fromEntries(getCompetitionVisibleGames('active').map(game => [
+      String(game.competition_id || '').trim(),
+      getCompetitionSoleLeaderSnapshot(game)
+    ]));
+  }
+
+  function showCompetitionLeadCelebration(snapshot) {
+    if (!snapshot?.userId) return;
+    competitionLeadCelebration = {
+      competitionId: snapshot.competitionId,
+      userId: snapshot.userId,
+      displayName: snapshot.displayName,
+      gameName: snapshot.gameName,
+      score: snapshot.score
+    };
+    clearTimeout(competitionLeadCelebrationTimeout);
+    renderCompetitionLeadCelebration();
+    competitionLeadCelebrationTimeout = setTimeout(() => {
+      competitionLeadCelebration = null;
+      competitionLeadCelebrationTimeout = null;
+      renderCompetitionLeadCelebration();
+    }, 4800);
+  }
+
+  function syncCompetitionLeadCelebration() {
+    const nextSnapshots = buildCompetitionLeadSnapshotByGame();
+    if (!competitionLeadSnapshotReady) {
+      competitionLeadSnapshotByGame = nextSnapshots;
+      competitionLeadSnapshotReady = true;
+      return;
+    }
+    const changedSnapshot = getCompetitionVisibleGames('active')
+      .map(game => String(game?.competition_id || '').trim())
+      .find(competitionId => {
+        if (!Object.prototype.hasOwnProperty.call(competitionLeadSnapshotByGame, competitionId)) return false;
+        const previousSnapshot = competitionLeadSnapshotByGame[competitionId];
+        const nextSnapshot = nextSnapshots[competitionId];
+        if (!nextSnapshot?.userId) return false;
+        if (previousSnapshot?.userId === nextSnapshot.userId) return false;
+        return true;
+      });
+    if (changedSnapshot) {
+      showCompetitionLeadCelebration(nextSnapshots[changedSnapshot]);
+    }
+    competitionLeadSnapshotByGame = nextSnapshots;
   }
 
   function getCompetitionDateSortValue(value, fallback = Number.POSITIVE_INFINITY) {
