@@ -5200,29 +5200,11 @@
     }
 
     .team-records-page {
-      position: relative;
-      isolation: isolate;
       max-width: 1180px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
       gap: 18px;
-    }
-
-    .team-records-page::before {
-      content: "";
-      position: absolute;
-      inset: -40px 0 0;
-      background:
-        radial-gradient(circle at 50% 14%, rgba(250, 204, 21, 0.1), transparent 26%),
-        repeating-conic-gradient(from -90deg at 50% 14%,
-          rgba(255,255,255,0.06) 0deg 4deg,
-          transparent 4deg 14deg);
-      opacity: 0.2;
-      pointer-events: none;
-      z-index: -1;
-      mask-image: radial-gradient(circle at 50% 18%, rgba(0,0,0,0.95), rgba(0,0,0,0.38) 50%, transparent 78%);
-      -webkit-mask-image: radial-gradient(circle at 50% 18%, rgba(0,0,0,0.95), rgba(0,0,0,0.38) 50%, transparent 78%);
     }
 
     .team-records-hero {
@@ -5427,6 +5409,8 @@
     }
 
     .team-records-stage-body {
+      position: relative;
+      isolation: isolate;
       display: flex;
       flex-direction: column;
       gap: 18px;
@@ -5436,6 +5420,23 @@
       background:
         radial-gradient(circle at top center, rgba(255,255,255,0.06), transparent 46%),
         linear-gradient(180deg, rgba(15, 23, 42, 0.76), rgba(2, 6, 23, 0.92));
+    }
+
+    .team-records-stage-body::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background:
+        radial-gradient(circle at 50% 34%, rgba(250, 204, 21, 0.08), transparent 24%),
+        repeating-conic-gradient(from -90deg at 50% 34%,
+          rgba(255,255,255,0.05) 0deg 4deg,
+          transparent 4deg 14deg);
+      opacity: 0.24;
+      pointer-events: none;
+      z-index: -1;
+      mask-image: radial-gradient(circle at 50% 36%, rgba(0,0,0,0.92), rgba(0,0,0,0.34) 52%, transparent 78%);
+      -webkit-mask-image: radial-gradient(circle at 50% 36%, rgba(0,0,0,0.92), rgba(0,0,0,0.34) 52%, transparent 78%);
     }
 
     .team-records-podium {
