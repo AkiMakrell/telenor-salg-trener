@@ -5210,6 +5210,7 @@
     .team-records-hero {
       position: relative;
       overflow: hidden;
+      text-align: center;
       padding: 28px 30px 24px;
       border-radius: 32px;
       border: 1px solid rgba(255,255,255,0.12);
@@ -5241,7 +5242,7 @@
       position: relative;
       z-index: 1;
       margin: 0;
-      max-width: 7ch;
+      max-width: none;
       font-size: clamp(3.2rem, 7vw, 5.8rem);
       font-weight: 950;
       line-height: 0.9;
@@ -5255,6 +5256,7 @@
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 14px;
+      justify-content: center;
     }
 
     .team-records-section-btn,
@@ -5277,11 +5279,11 @@
       min-width: 0;
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
+      align-items: center;
       gap: 8px;
       padding: 18px 18px 16px;
       border-radius: 22px;
-      text-align: left;
+      text-align: center;
       background:
         linear-gradient(180deg, rgba(255,255,255,0.06), rgba(15, 23, 42, 0.84)),
         linear-gradient(135deg, rgba(255,255,255,0.04), transparent 55%);
@@ -5363,9 +5365,11 @@
 
     .team-records-stage-head {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: 1fr;
       align-items: start;
       gap: 18px;
+      justify-items: center;
+      text-align: center;
     }
 
     .team-records-stage-label {
@@ -5400,7 +5404,7 @@
 
     .team-records-stage-title {
       margin: 0;
-      max-width: 12ch;
+      max-width: none;
       font-size: clamp(2.3rem, 5vw, 3.6rem);
       font-weight: 950;
       line-height: 0.95;
@@ -5420,12 +5424,14 @@
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: rgba(255,255,255,0.88);
+      justify-self: center;
     }
 
     .team-records-record-nav {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+      justify-content: center;
     }
 
     .team-records-record-btn {
@@ -5710,8 +5716,8 @@
     .team-records-hero-row,
     .team-records-stage-actions {
       display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
+      align-items: center;
+      justify-content: center;
       gap: 12px;
       flex-wrap: wrap;
     }
@@ -8372,8 +8378,8 @@
         order: initial;
         transform: none;
       }
-      .team-records-stage-head { grid-template-columns: 1fr; }
-      .team-records-stage-award { align-self: flex-start; justify-self: flex-start; }
+      .team-records-stage-head { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+      .team-records-stage-award { align-self: center; justify-self: center; }
       .team-records-section-nav { grid-template-columns: 1fr; }
       .team-records-hero { padding: 24px 20px 20px; }
       .team-records-hero::before {
@@ -8382,7 +8388,6 @@
         font-size: 4.4rem;
       }
       .team-records-title {
-        max-width: none;
         font-size: 3rem;
       }
       .team-records-stage {
@@ -8391,7 +8396,6 @@
       }
       .team-records-stage::after { inset: 12px; }
       .team-records-stage-title {
-        max-width: none;
         font-size: 2.2rem;
       }
       .team-records-stage-body {
