@@ -997,6 +997,89 @@ on public.user_public_activity_entries
 for delete
 using (auth.uid() = user_id);
 
+create table if not exists public.team_record_invalidations (
+  record_key text not null primary key,
+  record_definition_id text not null,
+  record_title text not null default '',
+  user_id uuid not null references auth.users (id) on delete cascade,
+  display_name text not null default '',
+  record_value integer not null default 0 check (record_value >= 0),
+  value_label text not null default '',
+  date_label text not null default '',
+  period_key text,
+  range_start_key date,
+  range_end_key date,
+  metric_key text not null default '',
+  invalidated_by_user_id uuid not null references auth.users (id) on delete cascade,
+  invalidated_at timestamptz not null default timezone('utc', now()),
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.team_record_invalidations
+  add column if not exists record_definition_id text not null default '',
+  add column if not exists record_title text not null default '',
+  add column if not exists user_id uuid references auth.users (id) on delete cascade,
+  add column if not exists display_name text not null default '',
+  add column if not exists record_value integer not null default 0,
+  add column if not exists value_label text not null default '',
+  add column if not exists date_label text not null default '',
+  add column if not exists period_key text,
+  add column if not exists range_start_key date,
+  add column if not exists range_end_key date,
+  add column if not exists metric_key text not null default '',
+  add column if not exists invalidated_by_user_id uuid references auth.users (id) on delete cascade,
+  add column if not exists invalidated_at timestamptz not null default timezone('utc', now()),
+  add column if not exists created_at timestamptz not null default timezone('utc', now()),
+  add column if not exists updated_at timestamptz not null default timezone('utc', now());
+
+create index if not exists team_record_invalidations_definition_idx
+  on public.team_record_invalidations (record_definition_id, invalidated_at desc);
+
+create index if not exists team_record_invalidations_user_idx
+  on public.team_record_invalidations (user_id, invalidated_at desc);
+
+drop trigger if exists team_record_invalidations_set_updated_at on public.team_record_invalidations;
+create trigger team_record_invalidations_set_updated_at
+before update on public.team_record_invalidations
+for each row
+execute function public.set_user_app_state_updated_at();
+
+alter table public.team_record_invalidations enable row level security;
+
+grant select, insert, update, delete on public.team_record_invalidations to authenticated;
+
+drop policy if exists "Authenticated users can read team record invalidations" on public.team_record_invalidations;
+create policy "Authenticated users can read team record invalidations"
+on public.team_record_invalidations
+for select
+using (auth.uid() is not null);
+
+drop policy if exists "Creator can insert team record invalidations" on public.team_record_invalidations;
+create policy "Creator can insert team record invalidations"
+on public.team_record_invalidations
+for insert
+with check (
+  auth.uid() = invalidated_by_user_id
+  and lower(coalesce(auth.jwt() ->> 'email', '')) = 'aki.fackrell@telenor.no'
+);
+
+drop policy if exists "Creator can update team record invalidations" on public.team_record_invalidations;
+create policy "Creator can update team record invalidations"
+on public.team_record_invalidations
+for update
+using (lower(coalesce(auth.jwt() ->> 'email', '')) = 'aki.fackrell@telenor.no')
+with check (
+  auth.uid() = invalidated_by_user_id
+  and lower(coalesce(auth.jwt() ->> 'email', '')) = 'aki.fackrell@telenor.no'
+);
+
+drop policy if exists "Creator can delete team record invalidations" on public.team_record_invalidations;
+create policy "Creator can delete team record invalidations"
+on public.team_record_invalidations
+for delete
+using (lower(coalesce(auth.jwt() ->> 'email', '')) = 'aki.fackrell@telenor.no');
+
 create or replace function public.backfill_user_stats_activity_entries(target_user_id uuid default auth.uid())
 returns table (
   user_id uuid,

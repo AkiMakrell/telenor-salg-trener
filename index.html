@@ -5606,6 +5606,84 @@
       line-height: 1.5;
     }
 
+    .team-records-hero-row,
+    .team-records-stage-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .team-records-admin-btn,
+    .team-records-moderate-btn,
+    .team-records-restore-btn {
+      margin-top: 0;
+    }
+
+    .team-records-admin-btn {
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      border-radius: 999px;
+    }
+
+    .team-records-moderate-btn,
+    .team-records-restore-btn {
+      padding: 8px 12px;
+      font-size: 0.78rem;
+      border-radius: 999px;
+    }
+
+    .team-records-moderate-btn[disabled],
+    .team-records-restore-btn[disabled] {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    .team-records-modal-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .team-records-modal-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      background: rgba(15, 23, 42, 0.74);
+    }
+
+    .team-records-modal-item-main {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .team-records-modal-item-title {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.35;
+    }
+
+    .team-records-modal-item-meta {
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+
+    .team-records-modal-empty {
+      padding: 18px;
+      border-radius: 16px;
+      border: 1px dashed rgba(148, 163, 184, 0.18);
+      color: var(--muted);
+      text-align: center;
+    }
+
     .stats-goals-overview-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -9748,6 +9826,19 @@
   </div>
 </div>
 
+<div id="team-record-invalidations-overlay" class="recovery-overlay" aria-hidden="true" onclick="if (event.target === this) closeTeamRecordInvalidationsModal()">
+  <div class="recovery-modal" role="dialog" aria-modal="true" aria-labelledby="team-record-invalidations-title">
+    <div class="recovery-modal-head">
+      <div>
+        <div id="team-record-invalidations-title" class="recovery-modal-title">Ugyldige rekorder</div>
+      </div>
+      <button type="button" class="backup-btn" style="margin-top:0;" onclick="closeTeamRecordInvalidationsModal()">Lukk</button>
+    </div>
+    <div id="team-record-invalidations-status" class="auth-message auth-message-info" style="display:none;"></div>
+    <div id="team-record-invalidations-body" class="recovery-modal-body"></div>
+  </div>
+</div>
+
 <div id="auth-card" class="auth-card">
   <div class="auth-card-title">Logg inn for din egen data</div>
   <div class="auth-card-text">
@@ -10195,6 +10286,7 @@
   const SUPABASE_PUBLIC_PROFILES_TABLE = 'user_public_profiles';
   const SUPABASE_PUBLIC_ACTIVITY_TABLE = 'user_public_activity_entries';
   const SUPABASE_CANONICAL_STATS_ACTIVITY_TABLE = 'user_stats_activity_entries';
+  const SUPABASE_TEAM_RECORD_INVALIDATIONS_TABLE = 'team_record_invalidations';
   const SUPABASE_OBJECTION_CARDS_TABLE = 'user_objection_cards';
   const SUPABASE_COMPETITION_GAMES_TABLE = 'competition_games';
   const SUPABASE_COMPETITION_PARTICIPANTS_TABLE = 'competition_participants';
@@ -10339,6 +10431,10 @@
   let backendBackfillPromise = null;
   let backendFaktaBackfillPromise = null;
   let leaderboardSourceMode = 'legacy';
+  let teamRecordInvalidationRows = [];
+  let teamRecordModerationSavingKey = '';
+  let teamRecordModerationStatus = { tone: 'info', message: '' };
+  let teamRecordModerationSchemaReady = true;
 
   localStorage.setItem = function(k, v) {
     _origSetItem(k, v);
@@ -10670,6 +10766,10 @@
   function clearCompetitionState() {
     publicProfileRows = [];
     publicActivityRows = [];
+    teamRecordInvalidationRows = [];
+    teamRecordModerationSavingKey = '';
+    teamRecordModerationStatus = { tone: 'info', message: '' };
+    teamRecordModerationSchemaReady = true;
     backendStatsHistoryEntries = [];
     backendStatsHistoryLoaded = false;
     competitionGames = [];
@@ -10830,6 +10930,12 @@
     const message = String(error?.message || error || '');
     return /(schema cache|relation .* does not exist|column .* does not exist|function .* does not exist|could not find the function)/i.test(message)
       && /(user_objection_cards|backfill_user_objection_cards|theme_key|item_id|objection|response|notes|keywords|favorite)/i.test(message);
+  }
+
+  function isTeamRecordModerationSchemaMismatch(error) {
+    const message = String(error?.message || error || '');
+    return /(schema cache|relation .* does not exist|column .* does not exist)/i.test(message)
+      && /(team_record_invalidations|record_key|record_definition_id|record_title|record_value|value_label|date_label|invalidated_by_user_id|invalidated_at)/i.test(message);
   }
 
   function isFetchNetworkError(error) {
@@ -11078,6 +11184,10 @@
   }
 
   function canViewSourceBadges(user = currentUser) {
+    return normalizeUserEmail(user?.email) === 'aki.fackrell@telenor.no';
+  }
+
+  function canModerateTeamRecords(user = currentUser) {
     return normalizeUserEmail(user?.email) === 'aki.fackrell@telenor.no';
   }
 
@@ -12104,6 +12214,32 @@
     };
   }
 
+  function normalizeTeamRecordInvalidationRow(row) {
+    if (!row || typeof row !== 'object') return null;
+    const recordKey = String(row.record_key || '').trim();
+    const recordDefinitionId = String(row.record_definition_id || '').trim();
+    const userId = String(row.user_id || '').trim();
+    if (!recordKey || !recordDefinitionId || !userId) return null;
+    return {
+      record_key: recordKey,
+      record_definition_id: recordDefinitionId,
+      record_title: String(row.record_title || '').trim(),
+      user_id: userId,
+      display_name: formatDisplayNameValue(row.display_name) || String(row.display_name || '').trim() || 'Ukjent bruker',
+      record_value: Math.max(0, Number(row.record_value) || 0),
+      value_label: String(row.value_label || '').trim(),
+      date_label: String(row.date_label || '').trim(),
+      period_key: String(row.period_key || '').trim(),
+      range_start_key: String(row.range_start_key || '').trim(),
+      range_end_key: String(row.range_end_key || '').trim(),
+      metric_key: String(row.metric_key || '').trim(),
+      invalidated_by_user_id: String(row.invalidated_by_user_id || '').trim(),
+      invalidated_at: row.invalidated_at ? String(row.invalidated_at) : '',
+      created_at: row.created_at ? String(row.created_at) : '',
+      updated_at: row.updated_at ? String(row.updated_at) : ''
+    };
+  }
+
   function normalizeCompetitionGame(row) {
     if (!row || typeof row !== 'object') return null;
     const competitionId = String(row.competition_id || '').trim();
@@ -12611,6 +12747,19 @@
     return publicActivityRows;
   }
 
+  async function loadTeamRecordInvalidations() {
+    let data = [];
+    let error = null;
+    ({ data, error } = await supabaseClient
+      .from(SUPABASE_TEAM_RECORD_INVALIDATIONS_TABLE)
+      .select('record_key, record_definition_id, record_title, user_id, display_name, record_value, value_label, date_label, period_key, range_start_key, range_end_key, metric_key, invalidated_by_user_id, invalidated_at, created_at, updated_at')
+      .order('invalidated_at', { ascending: false }));
+    if (error) throw error;
+    teamRecordInvalidationRows = (data || []).map(normalizeTeamRecordInvalidationRow).filter(Boolean);
+    teamRecordModerationSchemaReady = true;
+    return teamRecordInvalidationRows;
+  }
+
   async function loadCompetitionData() {
     let [gamesResponse, participantsResponse] = await Promise.all([
       supabaseClient
@@ -12657,6 +12806,14 @@
         loadPublicActivityEntries().catch(error => {
           if (isLeaderboardSchemaMismatch(error)) {
             publicActivityRows = [];
+            return [];
+          }
+          throw error;
+        }),
+        loadTeamRecordInvalidations().catch(error => {
+          if (isTeamRecordModerationSchemaMismatch(error)) {
+            teamRecordInvalidationRows = [];
+            teamRecordModerationSchemaReady = false;
             return [];
           }
           throw error;
@@ -12763,6 +12920,15 @@
         () => {
           scheduleLeaderboardReload({ silentLoading: !(isTabActive('stats') && activeStatsSubview === 'leaderboard') && !isTabActive('ledertavler-spill') }, error => {
             setLeaderboardState('error', getLeaderboardErrorMessage(error, 'Kunne ikke oppdatere leaderboard.'));
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: SUPABASE_TEAM_RECORD_INVALIDATIONS_TABLE },
+        () => {
+          scheduleLeaderboardReload({ silentLoading: !isTabActive('rekorder') }, error => {
+            setLeaderboardState('error', getLeaderboardErrorMessage(error, 'Kunne ikke oppdatere rekorder.'));
           });
         }
       )
@@ -14523,15 +14689,15 @@
     return compareTeamRecordEntries(best, candidate) <= 0 ? best : candidate;
   }
 
-  function buildTeamPeriodRecordPodium(dailyTotals, metricKey, period, valueLabel) {
-    const metricField = metricKey === 'sales' ? 'sales' : 'over6';
+  function buildTeamPeriodRecordPodium(definition, dailyTotals, invalidationMap = new Map()) {
+    const metricField = definition.metricKey === 'sales' ? 'sales' : 'over6';
     const bestByUser = new Map();
 
     dailyTotals.forEach((dateTotals, userId) => {
       dateTotals.forEach((totals, dateKey) => {
         const date = parseLocalDateKey(dateKey);
         if (!date) return;
-        const periodKey = period === 'week' ? getWeekKeyFromDate(date) : dateKey;
+        const periodKey = definition.period === 'week' ? getWeekKeyFromDate(date) : dateKey;
         if (!periodKey) return;
         const currentMap = bestByUser.get(userId) || new Map();
         const currentTotals = currentMap.get(periodKey) || 0;
@@ -14546,12 +14712,25 @@
       periodTotals.forEach((value, periodKey) => {
         if (!value) return;
         const periodDate = parseLocalDateKey(periodKey);
+        const rangeStartKey = periodKey;
+        const rangeEndKey = definition.period === 'week' && periodDate
+          ? makeLocalDateKey(addDays(periodDate, 4))
+          : periodKey;
+        const recordKey = buildTeamRecordKey(definition.id, userId, periodKey);
+        if (invalidationMap.has(recordKey)) return;
         const candidate = {
+          record_key: recordKey,
+          record_definition_id: definition.id,
+          record_title: definition.title,
           user_id: userId,
           display_name: getTeamRecordsDisplayName(userId),
           value,
-          valueLabel: valueLabel(value),
-          dateLabel: formatStatsRecordPeriod(period, periodKey),
+          valueLabel: definition.valueLabel(value),
+          dateLabel: formatStatsRecordPeriod(definition.period, periodKey),
+          metric_key: definition.metricKey,
+          period_key: periodKey,
+          range_start_key: rangeStartKey,
+          range_end_key: rangeEndKey,
           sortDateValue: periodDate ? periodDate.getTime() : 0,
         };
         bestRecord = pickBetterTeamRecord(bestRecord, candidate);
@@ -14562,8 +14741,8 @@
     return records.sort(compareTeamRecordEntries).slice(0, 3);
   }
 
-  function buildTeamStreakRecordPodium(dailyTotals, metricKey, minimumValue, valueLabel) {
-    const metricField = metricKey === 'sales' ? 'sales' : 'over6';
+  function buildTeamStreakRecordPodium(definition, dailyTotals, invalidationMap = new Map()) {
+    const metricField = definition.metricKey === 'sales' ? 'sales' : 'over6';
     const records = [];
 
     dailyTotals.forEach((dateTotals, userId) => {
@@ -14583,16 +14762,25 @@
         const dateKey = makeLocalDateKey(day);
         const value = Math.max(0, Number(dateTotals.get(dateKey)?.[metricField]) || 0);
 
-        if (value >= minimumValue) {
+        if (value >= definition.minimumValue) {
           if (!currentLength) currentStartKey = dateKey;
           currentLength += 1;
           currentEndKey = dateKey;
+          const recordKey = buildTeamRecordKey(definition.id, userId, currentStartKey, currentEndKey);
+          if (invalidationMap.has(recordKey)) continue;
           const candidate = {
+            record_key: recordKey,
+            record_definition_id: definition.id,
+            record_title: definition.title,
             user_id: userId,
             display_name: getTeamRecordsDisplayName(userId),
             value: currentLength,
-            valueLabel: valueLabel(currentLength),
+            valueLabel: definition.valueLabel(currentLength),
             dateLabel: formatStatsRecordRange(currentStartKey, currentEndKey),
+            metric_key: definition.metricKey,
+            period_key: '',
+            range_start_key: currentStartKey,
+            range_end_key: currentEndKey,
             sortDateValue: parseLocalDateKey(currentStartKey)?.getTime() || 0,
           };
           bestRecord = pickBetterTeamRecord(bestRecord, candidate);
@@ -14631,6 +14819,14 @@
           <div class="team-records-place-name">${escHtml(entry.display_name)}</div>
           <div class="team-records-place-value">${escHtml(entry.valueLabel)}</div>
           <div class="team-records-place-date">${escHtml(entry.dateLabel)}</div>
+          ${canModerateTeamRecords() ? `
+            <button
+              class="backup-btn team-records-moderate-btn"
+              type="button"
+              onclick="invalidateTeamRecord('${encodeTeamRecordActionKey(entry.record_key)}')"
+              ${teamRecordModerationSavingKey === entry.record_key ? 'disabled' : ''}
+            >Ugyldiggjør</button>
+          ` : ''}
         </div>
         <div class="team-records-platform">${place}</div>
       </div>
@@ -14727,6 +14923,96 @@
   let activeTeamRecordGroup = 'abo';
   let activeTeamRecordId = 'abo-day';
 
+  function getTeamRecordInvalidationMap() {
+    return new Map(teamRecordInvalidationRows.map(row => [row.record_key, row]));
+  }
+
+  function encodeTeamRecordActionKey(recordKey) {
+    return encodeURIComponent(String(recordKey || ''));
+  }
+
+  function decodeTeamRecordActionKey(encodedKey) {
+    try {
+      return decodeURIComponent(String(encodedKey || ''));
+    } catch (_error) {
+      return String(encodedKey || '');
+    }
+  }
+
+  function buildTeamRecordKey(definitionId, userId, ...parts) {
+    return [definitionId, userId, ...parts.map(part => String(part || ''))].join('::');
+  }
+
+  function setTeamRecordModerationStatus(message = '', tone = 'info') {
+    teamRecordModerationStatus = { tone, message };
+    const status = document.getElementById('team-record-invalidations-status');
+    if (!status) return;
+    status.textContent = message || '';
+    status.className = `auth-message auth-message-${tone}`;
+    status.style.display = message ? '' : 'none';
+    status.classList.toggle('visible', Boolean(message));
+  }
+
+  function refreshTeamRecordInvalidationsModal() {
+    const body = document.getElementById('team-record-invalidations-body');
+    if (!body) return;
+    body.innerHTML = renderTeamRecordInvalidationsModalBody();
+    setTeamRecordModerationStatus(teamRecordModerationStatus.message, teamRecordModerationStatus.tone);
+  }
+
+  function openTeamRecordInvalidationsModal() {
+    if (!canModerateTeamRecords()) return;
+    const overlay = document.getElementById('team-record-invalidations-overlay');
+    if (!overlay) return;
+    refreshTeamRecordInvalidationsModal();
+    overlay.classList.add('visible');
+    overlay.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeTeamRecordInvalidationsModal() {
+    const overlay = document.getElementById('team-record-invalidations-overlay');
+    if (!overlay) return;
+    overlay.classList.remove('visible');
+    overlay.setAttribute('aria-hidden', 'true');
+  }
+
+  function renderTeamRecordInvalidationsModalBody() {
+    if (!teamRecordModerationSchemaReady) {
+      return '<div class="team-records-modal-empty">Rekordmoderering trenger nyeste supabase-schema.sql.</div>';
+    }
+    if (!teamRecordInvalidationRows.length) {
+      return '<div class="team-records-modal-empty">Ingen ugyldige rekorder.</div>';
+    }
+    return `
+      <div class="team-records-modal-list">
+        ${teamRecordInvalidationRows.map(row => `
+          <div class="team-records-modal-item">
+            <div class="team-records-modal-item-main">
+              <div class="team-records-modal-item-title">${escHtml(row.record_title || 'Rekord')}</div>
+              <div class="team-records-modal-item-meta">${escHtml(row.display_name)} · ${escHtml(row.value_label || String(row.record_value || 0))} · ${escHtml(row.date_label || 'Dato mangler')}</div>
+            </div>
+            <button
+              class="save-btn team-records-restore-btn"
+              type="button"
+              onclick="restoreTeamRecord('${encodeTeamRecordActionKey(row.record_key)}')"
+              ${teamRecordModerationSavingKey === row.record_key ? 'disabled' : ''}
+            >Gjør gyldig</button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function getAllVisibleTeamRecordEntries() {
+    const rows = getTeamRecordsActivityRows();
+    const dailyTotals = buildTeamRecordsDailyTotals(rows);
+    return TEAM_RECORD_DEFINITIONS.flatMap(definition => getTeamRecordEntries(definition, dailyTotals));
+  }
+
+  function getTeamRecordByKey(recordKey) {
+    return getAllVisibleTeamRecordEntries().find(entry => entry.record_key === recordKey) || null;
+  }
+
   function getTeamRecordDefinitionsForGroup(groupId = activeTeamRecordGroup) {
     return TEAM_RECORD_DEFINITIONS.filter(definition => definition.groupId === groupId);
   }
@@ -14764,9 +15050,113 @@
 
   function getTeamRecordEntries(definition, dailyTotals) {
     if (!definition) return [];
+    const invalidationMap = getTeamRecordInvalidationMap();
     return definition.kind === 'streak'
-      ? buildTeamStreakRecordPodium(dailyTotals, definition.metricKey, definition.minimumValue, definition.valueLabel)
-      : buildTeamPeriodRecordPodium(dailyTotals, definition.metricKey, definition.period, definition.valueLabel);
+      ? buildTeamStreakRecordPodium(definition, dailyTotals, invalidationMap)
+      : buildTeamPeriodRecordPodium(definition, dailyTotals, invalidationMap);
+  }
+
+  async function invalidateTeamRecord(encodedKey) {
+    if (!canModerateTeamRecords()) return;
+    if (!teamRecordModerationSchemaReady) {
+      setTeamRecordModerationStatus('Rekordmoderering trenger nyeste supabase-schema.sql.', 'warning');
+      openTeamRecordInvalidationsModal();
+      return;
+    }
+    const recordKey = decodeTeamRecordActionKey(encodedKey);
+    const candidate = getTeamRecordByKey(recordKey);
+    if (!candidate) {
+      setTeamRecordModerationStatus('Fant ikke rekorden du valgte.', 'warning');
+      refreshTeamRecordInvalidationsModal();
+      renderTeamRecordsPage();
+      return;
+    }
+    if (!confirm('Ugyldiggjøre denne rekorden?')) return;
+    teamRecordModerationSavingKey = recordKey;
+    renderTeamRecordsPage();
+    refreshTeamRecordInvalidationsModal();
+    try {
+      const payload = {
+        record_key: candidate.record_key,
+        record_definition_id: candidate.record_definition_id,
+        record_title: candidate.record_title,
+        user_id: candidate.user_id,
+        display_name: candidate.display_name,
+        record_value: candidate.value,
+        value_label: candidate.valueLabel,
+        date_label: candidate.dateLabel,
+        period_key: candidate.period_key || null,
+        range_start_key: candidate.range_start_key || null,
+        range_end_key: candidate.range_end_key || null,
+        metric_key: candidate.metric_key,
+        invalidated_by_user_id: currentUser.id
+      };
+      const { data, error } = await supabaseClient
+        .from(SUPABASE_TEAM_RECORD_INVALIDATIONS_TABLE)
+        .upsert([payload], { onConflict: 'record_key' })
+        .select('record_key, record_definition_id, record_title, user_id, display_name, record_value, value_label, date_label, period_key, range_start_key, range_end_key, metric_key, invalidated_by_user_id, invalidated_at, created_at, updated_at');
+      if (error) {
+        if (isTeamRecordModerationSchemaMismatch(error)) {
+          teamRecordModerationSchemaReady = false;
+          throw new Error('Rekordmoderering trenger nyeste supabase-schema.sql.');
+        }
+        throw error;
+      }
+      const normalized = normalizeTeamRecordInvalidationRow((data || [])[0] || payload);
+      teamRecordInvalidationRows = [
+        ...(normalized ? [normalized] : []),
+        ...teamRecordInvalidationRows.filter(row => row.record_key !== recordKey)
+      ];
+      setTeamRecordModerationStatus('Rekorden er markert som ugyldig.', 'info');
+      refreshTeamRecordInvalidationsModal();
+      renderTeamRecordsPage();
+    } catch (error) {
+      setTeamRecordModerationStatus(error?.message || 'Kunne ikke ugyldiggjøre rekorden.', 'error');
+      refreshTeamRecordInvalidationsModal();
+    } finally {
+      teamRecordModerationSavingKey = '';
+      refreshTeamRecordInvalidationsModal();
+      renderTeamRecordsPage();
+    }
+  }
+
+  async function restoreTeamRecord(encodedKey) {
+    if (!canModerateTeamRecords()) return;
+    if (!teamRecordModerationSchemaReady) {
+      setTeamRecordModerationStatus('Rekordmoderering trenger nyeste supabase-schema.sql.', 'warning');
+      refreshTeamRecordInvalidationsModal();
+      return;
+    }
+    const recordKey = decodeTeamRecordActionKey(encodedKey);
+    if (!recordKey) return;
+    if (!confirm('Gjør denne rekorden gyldig igjen?')) return;
+    teamRecordModerationSavingKey = recordKey;
+    refreshTeamRecordInvalidationsModal();
+    renderTeamRecordsPage();
+    try {
+      const { error } = await supabaseClient
+        .from(SUPABASE_TEAM_RECORD_INVALIDATIONS_TABLE)
+        .delete()
+        .eq('record_key', recordKey);
+      if (error) {
+        if (isTeamRecordModerationSchemaMismatch(error)) {
+          teamRecordModerationSchemaReady = false;
+          throw new Error('Rekordmoderering trenger nyeste supabase-schema.sql.');
+        }
+        throw error;
+      }
+      teamRecordInvalidationRows = teamRecordInvalidationRows.filter(row => row.record_key !== recordKey);
+      setTeamRecordModerationStatus('Rekorden er gyldig igjen.', 'info');
+      refreshTeamRecordInvalidationsModal();
+      renderTeamRecordsPage();
+    } catch (error) {
+      setTeamRecordModerationStatus(error?.message || 'Kunne ikke gjøre rekorden gyldig igjen.', 'error');
+      refreshTeamRecordInvalidationsModal();
+    } finally {
+      teamRecordModerationSavingKey = '';
+      refreshTeamRecordInvalidationsModal();
+      renderTeamRecordsPage();
+    }
   }
 
   function renderTeamRecordStage(definition, entries, emptyText = 'Ingen registreringer ennå.') {
@@ -14794,9 +15184,9 @@
         <div class="team-records-stage-body">
           ${entries.length ? `
             <div class="team-records-podium">
-              ${renderTeamRecordPodiumPlace(2, entries[1] || null)}
-              ${renderTeamRecordPodiumPlace(1, entries[0] || null)}
-              ${renderTeamRecordPodiumPlace(3, entries[2] || null)}
+              ${renderTeamRecordPodiumPlace(2, entries[1] || null, definition)}
+              ${renderTeamRecordPodiumPlace(1, entries[0] || null, definition)}
+              ${renderTeamRecordPodiumPlace(3, entries[2] || null, definition)}
             </div>
           ` : `<div class="team-records-empty">${escHtml(emptyText)}</div>`}
         </div>
@@ -14821,7 +15211,10 @@
       host.innerHTML = `
         <div class="team-records-page">
           <section class="team-records-hero">
-            <h1 class="team-records-title">Rekorder</h1>
+            <div class="team-records-hero-row">
+              <h1 class="team-records-title">Rekorder</h1>
+              ${canModerateTeamRecords() ? `<button class="backup-btn team-records-admin-btn" type="button" onclick="openTeamRecordInvalidationsModal()">Ugyldige Rekorder</button>` : ''}
+            </div>
           </section>
           ${renderTeamRecordStage(activeDefinition, [], 'Laster rekorder...')}
         </div>
@@ -14832,7 +15225,10 @@
     host.innerHTML = `
       <div class="team-records-page">
         <section class="team-records-hero">
-          <h1 class="team-records-title">Rekorder</h1>
+          <div class="team-records-hero-row">
+            <h1 class="team-records-title">Rekorder</h1>
+            ${canModerateTeamRecords() ? `<button class="backup-btn team-records-admin-btn" type="button" onclick="openTeamRecordInvalidationsModal()">Ugyldige Rekorder</button>` : ''}
+          </div>
         </section>
         <div class="team-records-section-nav">
           ${TEAM_RECORD_GROUPS.map(group => `
