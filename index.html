@@ -5208,13 +5208,28 @@
     }
 
     .team-records-hero {
+      position: relative;
+      overflow: hidden;
       padding: 24px 26px;
       border-radius: 26px;
       border: 1px solid rgba(196, 181, 253, 0.18);
       background:
+        radial-gradient(circle at 20% -10%, rgba(255,255,255,0.2), transparent 30%),
+        radial-gradient(circle at 80% -10%, rgba(255,255,255,0.16), transparent 28%),
         radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 42%),
         linear-gradient(135deg, #221638, #101828 58%, #0f172a);
       box-shadow: 0 20px 44px rgba(0,0,0,0.28);
+    }
+
+    .team-records-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(115deg, transparent 0%, rgba(255,255,255,0.08) 18%, transparent 34%),
+        linear-gradient(245deg, transparent 0%, rgba(255,255,255,0.06) 18%, transparent 34%);
+      pointer-events: none;
+      opacity: 0.9;
     }
 
     .team-records-title {
@@ -5290,6 +5305,8 @@
       border-radius: 28px;
       border: 1px solid rgba(255,255,255,0.12);
       background:
+        radial-gradient(circle at 18% -8%, rgba(255,255,255,0.18), transparent 24%),
+        radial-gradient(circle at 82% -8%, rgba(255,255,255,0.15), transparent 24%),
         radial-gradient(circle at top center, rgba(255,255,255,0.1), transparent 38%),
         linear-gradient(180deg, rgba(17, 24, 39, 0.96), rgba(9, 14, 26, 0.99));
       box-shadow: 0 24px 50px rgba(2, 6, 23, 0.26);
@@ -5300,8 +5317,26 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+      background:
+        linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent),
+        linear-gradient(180deg, rgba(255,255,255,0.06), transparent 24%);
       pointer-events: none;
+      z-index: -1;
+    }
+
+    .team-records-stage::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 78px;
+      width: 74%;
+      height: 220px;
+      transform: translateX(-50%);
+      background:
+        radial-gradient(ellipse at top, rgba(255,255,255,0.16), rgba(255,255,255,0.05) 34%, transparent 68%);
+      filter: blur(8px);
+      pointer-events: none;
+      opacity: 0.75;
       z-index: -1;
     }
 
@@ -5316,8 +5351,8 @@
     }
 
     .team-records-stage.streak-record {
-      border-color: rgba(168, 85, 247, 0.22);
-      box-shadow: 0 24px 52px rgba(109, 40, 217, 0.16);
+      border-color: rgba(248, 113, 113, 0.24);
+      box-shadow: 0 24px 52px rgba(185, 28, 28, 0.18);
     }
 
     .team-records-stage-head {
@@ -5354,7 +5389,7 @@
 
     .team-records-stage.streak-record .team-records-stage-label,
     .team-records-section-btn.group-streak.active .team-records-section-kicker {
-      color: #d8b4fe;
+      color: #fca5a5;
     }
 
     .team-records-stage-title {
@@ -5409,6 +5444,7 @@
     }
 
     .team-records-stage-body {
+      position: relative;
       display: flex;
       flex-direction: column;
       gap: 18px;
@@ -5418,6 +5454,20 @@
       background:
         radial-gradient(circle at top center, rgba(255,255,255,0.06), transparent 46%),
         linear-gradient(180deg, rgba(15, 23, 42, 0.76), rgba(2, 6, 23, 0.92));
+    }
+
+    .team-records-stage-body::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -24px;
+      width: 56%;
+      height: 170px;
+      transform: translateX(-50%);
+      background: radial-gradient(ellipse at top, rgba(255,255,255,0.18), transparent 72%);
+      filter: blur(10px);
+      pointer-events: none;
+      opacity: 0.85;
     }
 
     .team-records-podium {
@@ -5444,6 +5494,8 @@
     .team-records-place.place-3 { order: 3; }
 
     .team-records-place-card {
+      position: relative;
+      overflow: hidden;
       width: 100%;
       display: flex;
       flex-direction: column;
@@ -5455,6 +5507,15 @@
       background: linear-gradient(180deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.94));
       box-shadow: 0 16px 32px rgba(2, 6, 23, 0.2);
       text-align: center;
+    }
+
+    .team-records-place-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), transparent 26%);
+      pointer-events: none;
+      opacity: 0.75;
     }
 
     .team-records-place-card.empty {
@@ -5479,6 +5540,7 @@
 
     .team-records-place.place-1 .team-records-place-badge {
       background: linear-gradient(135deg, #f59e0b, #f97316);
+      box-shadow: 0 0 18px rgba(250, 204, 21, 0.24);
     }
 
     .team-records-place.place-2 .team-records-place-badge {
@@ -5560,6 +5622,19 @@
       opacity: 0.85;
     }
 
+    .team-records-place.place-1 .team-records-platform::after {
+      width: 56%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.42), transparent);
+      animation: team-records-gold-shimmer 3.2s ease-in-out infinite;
+    }
+
+    .team-records-place.place-1 .team-records-place-card {
+      box-shadow:
+        0 0 0 1px rgba(250, 204, 21, 0.14),
+        0 20px 38px rgba(2, 6, 23, 0.22),
+        0 0 28px rgba(250, 204, 21, 0.12);
+    }
+
     .team-records-place.place-1 .team-records-platform {
       height: 146px;
       background:
@@ -5591,6 +5666,23 @@
         inset 0 18px 26px rgba(255,255,255,0.08),
         0 0 18px rgba(217, 119, 6, 0.14),
         0 18px 34px rgba(2, 6, 23, 0.18);
+    }
+
+    @keyframes team-records-gold-shimmer {
+      0%, 100% {
+        left: -18%;
+        opacity: 0.2;
+      }
+      18% {
+        opacity: 0.95;
+      }
+      52% {
+        left: 68%;
+        opacity: 0.85;
+      }
+      80% {
+        opacity: 0.12;
+      }
     }
 
     .team-records-empty {
