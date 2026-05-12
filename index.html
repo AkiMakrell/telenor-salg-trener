@@ -19726,7 +19726,13 @@
   }
 
   function renderDashboardActiveGamesCard() {
-    const activeGames = getCompetitionVisibleGames('active');
+    const activeGames = getCompetitionVisibleGames('active')
+      .slice()
+      .sort((a, b) => {
+        const participantDelta = getCompetitionMemberRowsForGame(b.competition_id).length - getCompetitionMemberRowsForGame(a.competition_id).length;
+        if (participantDelta !== 0) return participantDelta;
+        return String(a.starts_at).localeCompare(String(b.starts_at));
+      });
     if (competitionState === 'loading') {
       return `
         <div class="dashboard-card dashboard-active-games" onclick="event.stopPropagation()">
