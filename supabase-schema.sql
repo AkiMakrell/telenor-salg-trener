@@ -614,6 +614,225 @@ $$;
 revoke all on function public.backfill_user_objection_cards(uuid) from public;
 grant execute on function public.backfill_user_objection_cards(uuid) to authenticated;
 
+create table if not exists public.coaching_conversation_ratings (
+  rating_id text not null primary key,
+  worker_user_id uuid not null references auth.users (id) on delete cascade,
+  manager_user_id uuid not null references auth.users (id) on delete cascade,
+  interaction_id text not null default '',
+  rating_date date not null default current_date,
+  week_start_date date not null,
+  score_values jsonb not null default '{}'::jsonb,
+  notes text not null default '',
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.coaching_conversation_ratings
+  add column if not exists interaction_id text not null default '',
+  add column if not exists rating_date date not null default current_date,
+  add column if not exists week_start_date date,
+  add column if not exists score_values jsonb not null default '{}'::jsonb,
+  add column if not exists notes text not null default '';
+
+update public.coaching_conversation_ratings
+set week_start_date = public.get_stats_week_start(coalesce(week_start_date, rating_date))
+where week_start_date is null;
+
+alter table public.coaching_conversation_ratings
+  alter column week_start_date set not null;
+
+create index if not exists coaching_conversation_ratings_worker_week_idx
+  on public.coaching_conversation_ratings (worker_user_id, week_start_date desc, rating_date desc);
+
+create index if not exists coaching_conversation_ratings_manager_week_idx
+  on public.coaching_conversation_ratings (manager_user_id, week_start_date desc, rating_date desc);
+
+drop trigger if exists coaching_conversation_ratings_set_updated_at on public.coaching_conversation_ratings;
+create trigger coaching_conversation_ratings_set_updated_at
+before update on public.coaching_conversation_ratings
+for each row
+execute function public.set_user_app_state_updated_at();
+
+alter table public.coaching_conversation_ratings enable row level security;
+
+grant select, insert, update, delete on public.coaching_conversation_ratings to authenticated;
+
+drop policy if exists "Managers and workers can read coaching ratings" on public.coaching_conversation_ratings;
+create policy "Managers and workers can read coaching ratings"
+on public.coaching_conversation_ratings
+for select
+using (auth.uid() = worker_user_id or auth.uid() = manager_user_id);
+
+drop policy if exists "Temporary manager can insert coaching ratings" on public.coaching_conversation_ratings;
+create policy "Temporary manager can insert coaching ratings"
+on public.coaching_conversation_ratings
+for insert
+with check (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+);
+
+drop policy if exists "Temporary manager can update coaching ratings" on public.coaching_conversation_ratings;
+create policy "Temporary manager can update coaching ratings"
+on public.coaching_conversation_ratings
+for update
+using (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+)
+with check (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+);
+
+drop policy if exists "Temporary manager can delete coaching ratings" on public.coaching_conversation_ratings;
+create policy "Temporary manager can delete coaching ratings"
+on public.coaching_conversation_ratings
+for delete
+using (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+);
+
+create table if not exists public.coaching_weekly_worker_feedback (
+  feedback_id text not null primary key,
+  worker_user_id uuid not null references auth.users (id) on delete cascade,
+  manager_user_id uuid not null references auth.users (id) on delete cascade,
+  week_start_date date not null,
+  strength_highlight text not null default '',
+  focus_primary text not null default '',
+  focus_secondary text not null default '',
+  personal_message text not null default '',
+  status text not null default 'draft' check (status in ('draft', 'published')),
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.coaching_weekly_worker_feedback
+  add column if not exists strength_highlight text not null default '',
+  add column if not exists focus_primary text not null default '',
+  add column if not exists focus_secondary text not null default '',
+  add column if not exists personal_message text not null default '',
+  add column if not exists status text not null default 'draft';
+
+create unique index if not exists coaching_weekly_worker_feedback_worker_week_uidx
+  on public.coaching_weekly_worker_feedback (worker_user_id, week_start_date);
+
+drop trigger if exists coaching_weekly_worker_feedback_set_updated_at on public.coaching_weekly_worker_feedback;
+create trigger coaching_weekly_worker_feedback_set_updated_at
+before update on public.coaching_weekly_worker_feedback
+for each row
+execute function public.set_user_app_state_updated_at();
+
+alter table public.coaching_weekly_worker_feedback enable row level security;
+
+grant select, insert, update, delete on public.coaching_weekly_worker_feedback to authenticated;
+
+drop policy if exists "Managers and workers can read worker feedback" on public.coaching_weekly_worker_feedback;
+create policy "Managers and workers can read worker feedback"
+on public.coaching_weekly_worker_feedback
+for select
+using (auth.uid() = worker_user_id or auth.uid() = manager_user_id);
+
+drop policy if exists "Temporary manager can insert worker feedback" on public.coaching_weekly_worker_feedback;
+create policy "Temporary manager can insert worker feedback"
+on public.coaching_weekly_worker_feedback
+for insert
+with check (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+);
+
+drop policy if exists "Temporary manager can update worker feedback" on public.coaching_weekly_worker_feedback;
+create policy "Temporary manager can update worker feedback"
+on public.coaching_weekly_worker_feedback
+for update
+using (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+)
+with check (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+);
+
+drop policy if exists "Temporary manager can delete worker feedback" on public.coaching_weekly_worker_feedback;
+create policy "Temporary manager can delete worker feedback"
+on public.coaching_weekly_worker_feedback
+for delete
+using (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+);
+
+create table if not exists public.coaching_weekly_team_feedback (
+  feedback_id text not null primary key,
+  manager_user_id uuid not null references auth.users (id) on delete cascade,
+  week_start_date date not null,
+  team_key text not null default '',
+  message_one text not null default '',
+  message_two text not null default '',
+  status text not null default 'draft' check (status in ('draft', 'published')),
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.coaching_weekly_team_feedback
+  add column if not exists team_key text not null default '',
+  add column if not exists message_one text not null default '',
+  add column if not exists message_two text not null default '',
+  add column if not exists status text not null default 'draft';
+
+create unique index if not exists coaching_weekly_team_feedback_team_week_uidx
+  on public.coaching_weekly_team_feedback (team_key, week_start_date);
+
+drop trigger if exists coaching_weekly_team_feedback_set_updated_at on public.coaching_weekly_team_feedback;
+create trigger coaching_weekly_team_feedback_set_updated_at
+before update on public.coaching_weekly_team_feedback
+for each row
+execute function public.set_user_app_state_updated_at();
+
+alter table public.coaching_weekly_team_feedback enable row level security;
+
+grant select, insert, update, delete on public.coaching_weekly_team_feedback to authenticated;
+
+drop policy if exists "Authenticated users can read team feedback" on public.coaching_weekly_team_feedback;
+create policy "Authenticated users can read team feedback"
+on public.coaching_weekly_team_feedback
+for select
+using (auth.role() = 'authenticated');
+
+drop policy if exists "Temporary manager can insert team feedback" on public.coaching_weekly_team_feedback;
+create policy "Temporary manager can insert team feedback"
+on public.coaching_weekly_team_feedback
+for insert
+with check (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+);
+
+drop policy if exists "Temporary manager can update team feedback" on public.coaching_weekly_team_feedback;
+create policy "Temporary manager can update team feedback"
+on public.coaching_weekly_team_feedback
+for update
+using (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+)
+with check (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+);
+
+drop policy if exists "Temporary manager can delete team feedback" on public.coaching_weekly_team_feedback;
+create policy "Temporary manager can delete team feedback"
+on public.coaching_weekly_team_feedback
+for delete
+using (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+);
+
 create table if not exists public.user_public_stats (
   user_id uuid not null references auth.users (id) on delete cascade,
   display_name text not null,

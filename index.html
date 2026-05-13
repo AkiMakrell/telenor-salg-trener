@@ -1549,6 +1549,300 @@
       padding: 10px 2px 2px;
     }
 
+    .coaching-page {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .coaching-hero,
+    .coaching-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+    }
+
+    .coaching-hero {
+      padding: 22px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .coaching-hero-title {
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .coaching-hero-text,
+    .coaching-subtext,
+    .coaching-empty {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .coaching-role-pill,
+    .coaching-week-pill,
+    .coaching-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+
+    .coaching-role-pill {
+      background: rgba(41,168,224,0.14);
+      color: #7dd3fc;
+    }
+
+    .coaching-week-pill {
+      background: rgba(148,163,184,0.16);
+      color: #cbd5f5;
+    }
+
+    .coaching-status-pill.draft {
+      background: rgba(245, 158, 11, 0.16);
+      color: #fcd34d;
+    }
+
+    .coaching-status-pill.published {
+      background: rgba(34, 197, 94, 0.16);
+      color: #86efac;
+    }
+
+    .coaching-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .coaching-main,
+    .coaching-side,
+    .coaching-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .coaching-card {
+      padding: 22px 24px;
+    }
+
+    .coaching-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .coaching-title {
+      font-size: 1.08rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .coaching-select,
+    .coaching-input,
+    .coaching-textarea {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 12px;
+      font-size: 0.94rem;
+      font-family: inherit;
+      background: var(--primary-xlight);
+      color: var(--text);
+    }
+
+    .coaching-select:focus,
+    .coaching-input:focus,
+    .coaching-textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(41,168,224,0.12);
+    }
+
+    .coaching-textarea {
+      min-height: 124px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .coaching-field label,
+    .coaching-score-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .coaching-grid,
+    .coaching-metric-grid,
+    .coaching-history-list,
+    .coaching-detail-list,
+    .coaching-score-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .coaching-grid,
+    .coaching-score-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .coaching-field-full {
+      grid-column: 1 / -1;
+    }
+
+    .coaching-score-card,
+    .coaching-metric-card,
+    .coaching-history-item,
+    .coaching-note-card {
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      background: rgba(11, 18, 32, 0.88);
+    }
+
+    .coaching-score-choice-row,
+    .coaching-chip-row,
+    .coaching-actions,
+    .coaching-preview-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .coaching-score-choice {
+      min-width: 42px;
+      justify-content: center;
+      padding: 9px 14px;
+    }
+
+    .coaching-metric-grid {
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    }
+
+    .coaching-metric-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .coaching-metric-value {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .coaching-metric-value.small {
+      font-size: 1rem;
+    }
+
+    .coaching-note-title {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .coaching-note-copy,
+    .coaching-history-note {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+
+    .coaching-history-item {
+      cursor: pointer;
+      transition: border-color 0.15s ease, transform 0.15s ease;
+    }
+
+    .coaching-history-item:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .coaching-history-item.active {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(41,168,224,0.12);
+    }
+
+    .coaching-history-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .coaching-history-title {
+      font-size: 0.98rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .coaching-history-meta {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .coaching-message {
+      margin-bottom: 12px;
+    }
+
+    .coaching-message:last-child {
+      margin-bottom: 0;
+    }
+
+    .coaching-status-card {
+      border-radius: 16px;
+      padding: 14px 16px;
+      border: 1px solid rgba(41,168,224,0.24);
+      background: rgba(41,168,224,0.1);
+      color: #7dd3fc;
+      font-size: 0.88rem;
+      line-height: 1.5;
+    }
+
+    .coaching-status-card.warning {
+      border-color: rgba(245, 158, 11, 0.28);
+      background: rgba(245, 158, 11, 0.12);
+      color: #fcd34d;
+    }
+
+    .coaching-preview-banner {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      border: 1px solid rgba(41,168,224,0.24);
+      background: rgba(41,168,224,0.1);
+      color: #7dd3fc;
+      border-radius: 16px;
+      padding: 14px 16px;
+    }
+
     .ov-page {
       max-width: 1120px;
       margin: 0 auto;
@@ -4085,6 +4379,30 @@
 
       .samtalerating-actions .save-btn,
       .samtalerating-actions .backup-btn {
+        width: 100%;
+      }
+
+      .coaching-hero,
+      .coaching-head,
+      .coaching-history-head,
+      .coaching-preview-banner {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .coaching-layout,
+      .coaching-grid,
+      .coaching-score-grid,
+      .coaching-metric-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .coaching-actions {
+        flex-direction: column;
+      }
+
+      .coaching-actions .save-btn,
+      .coaching-actions .backup-btn {
         width: 100%;
       }
 
@@ -10213,6 +10531,12 @@
         <button class="more-tab-btn" data-tab="samtalerating" type="button" onclick="switchTab('samtalerating', this); closeTopBarTools();">
           <span>Samtalerating</span>
         </button>
+        <button id="coaching-manager-tab-btn" class="more-tab-btn" data-tab="coaching-manager" type="button" style="display:none;" onclick="switchTab('coaching-manager', this); closeTopBarTools();">
+          <span>Coachingoversikt</span>
+        </button>
+        <button class="more-tab-btn" data-tab="coaching-worker" type="button" onclick="switchTab('coaching-worker', this); closeTopBarTools();">
+          <span>Min coaching</span>
+        </button>
         <button class="more-tab-btn" data-tab="samtaleflyt" type="button" onclick="switchTab('samtaleflyt', this); closeTopBarTools();">
           <span>Flyt</span>
         </button>
@@ -10450,6 +10774,14 @@
   <div id="samtalerating-page" class="samtalerating-page"></div>
 </div>
 
+<div id="tab-coaching-manager" class="tab-content">
+  <div id="coaching-manager-page" class="coaching-page"></div>
+</div>
+
+<div id="tab-coaching-worker" class="tab-content">
+  <div id="coaching-worker-page" class="coaching-page"></div>
+</div>
+
 <div id="tab-priser" class="tab-content">
   <div class="notes-page">
     <div class="notes-page-title">Pris kalkulator</div>
@@ -10581,6 +10913,9 @@
   const SUPABASE_CANONICAL_STATS_ACTIVITY_TABLE = 'user_stats_activity_entries';
   const SUPABASE_TEAM_RECORD_INVALIDATIONS_TABLE = 'team_record_invalidations';
   const SUPABASE_OBJECTION_CARDS_TABLE = 'user_objection_cards';
+  const SUPABASE_COACHING_RATINGS_TABLE = 'coaching_conversation_ratings';
+  const SUPABASE_COACHING_WORKER_FEEDBACK_TABLE = 'coaching_weekly_worker_feedback';
+  const SUPABASE_COACHING_TEAM_FEEDBACK_TABLE = 'coaching_weekly_team_feedback';
   const SUPABASE_COMPETITION_GAMES_TABLE = 'competition_games';
   const SUPABASE_COMPETITION_PARTICIPANTS_TABLE = 'competition_participants';
   const SUPABASE_BACKEND_MIGRATION_TABLE = 'user_backend_migration_state';
@@ -10646,11 +10981,20 @@
     INTRO_LEADERBOARD_DATA_VERSION_KEY
   ];
   const DEMO_SEED_EMAILS = ['aki.fackrell@gmail.com'];
+  const COACHING_MANAGER_EMAILS = ['aki.fackrell@telenor.no'];
+  const COACHING_SCORE_FIELDS = [
+    { key: 'behovsanalyse', label: 'Behovsanalyse' },
+    { key: 'kjemibygging', label: 'Kjemibygging' },
+    { key: 'oppsummering', label: 'Oppsummering' },
+    { key: 'losningsforslag', label: 'Løsningsforslag' },
+    { key: 'nesteSteg', label: 'Neste steg' }
+  ];
   const LEADERBOARD_POINTS_PER_SALE = 300;
   const LEADERBOARD_POINTS_PER_OVER6 = 100;
   const LEADERBOARD_SCHEMA_WARNING = 'Leaderboard trenger en Supabase-oppdatering før dag/uke/måned kan vises. Kjør den nyeste supabase-schema.sql i SQL Editor.';
   const DATA_SAFETY_SCHEMA_WARNING = 'Databeskyttelse trenger en Supabase-oppdatering. Kjør den nyeste supabase-schema.sql i SQL Editor.';
   const BACKEND_MIGRATION_SCHEMA_WARNING = 'Backend-migrering trenger en Supabase-oppdatering. Kjør den nyeste supabase-schema.sql i SQL Editor.';
+  const COACHING_SCHEMA_WARNING = 'Coaching trenger en Supabase-oppdatering før sider og deling virker live. Kjør den nyeste supabase-schema.sql i SQL Editor.';
   const MAX_APP_SNAPSHOTS = 20;
   const MAX_RECOVERY_SNAPSHOTS = 12;
   const BACKEND_MIGRATION_SCOPE = 'stats-leaderboard-spill-v1';
@@ -10732,6 +11076,20 @@
   let teamRecordModerationSavingKey = '';
   let teamRecordModerationStatus = { tone: 'info', message: '' };
   let teamRecordModerationSchemaReady = true;
+  let coachingConversationRatings = [];
+  let coachingWorkerFeedbackRows = [];
+  let coachingTeamFeedbackRows = [];
+  let coachingState = 'idle';
+  let coachingErrorMessage = '';
+  let coachingSchemaReady = true;
+  let coachingManagerStatus = { tone: 'info', message: '' };
+  let coachingLoadingPromise = null;
+  let coachingRatingDraft = null;
+  let coachingEditingRatingId = '';
+  let coachingWorkerFeedbackDraft = null;
+  let coachingTeamFeedbackDraft = null;
+  let selectedCoachingWorkerId = '';
+  let coachingPreviewUserId = '';
 
   localStorage.setItem = function(k, v) {
     _origSetItem(k, v);
@@ -10787,6 +11145,7 @@
     const authCard = document.getElementById('auth-card');
     if (appShell) appShell.style.display = isVisible ? 'block' : 'none';
     if (authCard) authCard.style.display = isVisible ? 'none' : 'block';
+    updateCoachingTabVisibility();
     if (!isVisible) {
       closeTopBarSettings();
       closeRecoveryModal();
@@ -11088,6 +11447,7 @@
     applyAvatarToElement(avatarEl, displayName, avatarUrl);
     updateSettingsTeamControls(user);
     updateSettingsAvatarControls(user);
+    updateCoachingTabVisibility();
   }
 
   function setLeaderboardState(state, errorMessage = '') {
@@ -13946,6 +14306,7 @@
       clearTrackedLocalData();
       clearLeaderboardState();
       clearCompetitionState();
+      clearCoachingState();
       updateSettingsTeamControls(null, false);
       setSettingsTeamStatus('');
       setSettingsAvatarStatus('');
@@ -13971,6 +14332,7 @@
       clearTrackedLocalData();
       clearLeaderboardState();
       clearCompetitionState();
+      clearCoachingState();
       updateSettingsTeamControls(null, false);
       setSettingsTeamStatus('');
       setSettingsAvatarStatus('');
@@ -14223,7 +14585,7 @@
     document.getElementById('tab-' + name).classList.add('active');
     const button = triggerButton || document.querySelector(`.tab-btn[data-tab="${activeButtonName}"], .more-tab-btn[data-tab="${activeButtonName}"]`);
     if (button) button.classList.add('active');
-    if (['intro', 'innvendinger', 'notater', 'priser', 'samtalerating', 'samtaleflyt'].includes(name)) {
+    if (['intro', 'innvendinger', 'notater', 'priser', 'samtalerating', 'coaching-manager', 'coaching-worker', 'samtaleflyt'].includes(name)) {
       document.getElementById('top-bar-tools-button')?.classList.add('active');
     }
     closeTopBarTools();
@@ -14237,6 +14599,8 @@
     if (name === 'samtaleflyt') renderSamtaleflyt();
     if (name === 'notater') renderConversationNotes();
     if (name === 'samtalerating') renderSamtaleRating();
+    if (name === 'coaching-manager') renderCoachingManagerPage();
+    if (name === 'coaching-worker') renderCoachingWorkerPage();
     if (name === 'rekorder') renderTeamRecordsPage();
     if (name === 'ledertavler-spill') renderLedertavlerSpillPage();
     if (name === 'competition-create') renderCompetitionCreatePage();
@@ -21365,6 +21729,7 @@
     { key: 'oppsummering', label: 'Oppsummering' },
     { key: 'losningspresentasjon', label: 'Løsningspresentasjon' }
   ];
+  const COACHING_FEEDBACK_STATUSES = ['draft', 'published'];
   const OV_STATUS_OPTIONS = [
     { id: 'ikke-svart', label: 'Ubesvart' },
     { id: 'vil-ikke-ha', label: 'Avslag' },
@@ -22465,6 +22830,1039 @@
     }
     samtaleRatingFeedback = 'Samtalen ble slettet.';
     renderSamtaleRating();
+  }
+
+  function canManageCoaching(user = currentUser) {
+    return COACHING_MANAGER_EMAILS.includes(normalizeUserEmail(user?.email));
+  }
+
+  function setCoachingManagerStatus(message = '', tone = 'info') {
+    coachingManagerStatus = { message: String(message || ''), tone: tone === 'warning' || tone === 'error' ? tone : 'info' };
+    if (isTabActive('coaching-manager')) renderCoachingManagerPage();
+  }
+
+  function setCoachingState(state, errorMessage = '') {
+    coachingState = state;
+    coachingErrorMessage = String(errorMessage || '');
+    if (isTabActive('coaching-manager')) renderCoachingManagerPage();
+    if (isTabActive('coaching-worker')) renderCoachingWorkerPage();
+  }
+
+  function clearCoachingState() {
+    coachingConversationRatings = [];
+    coachingWorkerFeedbackRows = [];
+    coachingTeamFeedbackRows = [];
+    coachingState = 'idle';
+    coachingErrorMessage = '';
+    coachingSchemaReady = true;
+    coachingManagerStatus = { tone: 'info', message: '' };
+    coachingLoadingPromise = null;
+    coachingRatingDraft = null;
+    coachingEditingRatingId = '';
+    coachingWorkerFeedbackDraft = null;
+    coachingTeamFeedbackDraft = null;
+    selectedCoachingWorkerId = '';
+    coachingPreviewUserId = '';
+    updateCoachingTabVisibility();
+  }
+
+  function updateCoachingTabVisibility() {
+    const managerButton = document.getElementById('coaching-manager-tab-btn');
+    if (managerButton) managerButton.style.display = currentUser && canManageCoaching() ? '' : 'none';
+  }
+
+  function getCoachingWeekStartDate(value = new Date()) {
+    const date = value instanceof Date ? new Date(value.getTime()) : new Date(value || Date.now());
+    date.setHours(12, 0, 0, 0);
+    const day = (date.getDay() + 6) % 7;
+    date.setDate(date.getDate() - day);
+    return date;
+  }
+
+  function getCoachingWeekKey(value = new Date()) {
+    return makeLocalDateKey(getCoachingWeekStartDate(value));
+  }
+
+  function getCoachingWeekEndKey(weekKey) {
+    const startDate = parseLocalDateKey(weekKey);
+    if (!startDate) return '';
+    const endDate = new Date(startDate.getTime());
+    endDate.setDate(endDate.getDate() + 6);
+    return makeLocalDateKey(endDate);
+  }
+
+  function formatCoachingWeekLabel(weekKey) {
+    const startDate = parseLocalDateKey(weekKey);
+    if (!startDate) return 'Denne uken';
+    const endDate = new Date(startDate.getTime());
+    endDate.setDate(endDate.getDate() + 6);
+    const startLabel = startDate.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
+    const endLabel = endDate.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' });
+    return `${startLabel} - ${endLabel}`;
+  }
+
+  function normalizeCoachingStatus(value) {
+    return COACHING_FEEDBACK_STATUSES.includes(String(value || '').trim()) ? String(value || '').trim() : 'draft';
+  }
+
+  function formatCoachingStatusLabel(status) {
+    return normalizeCoachingStatus(status) === 'published' ? 'Publisert' : 'Utkast';
+  }
+
+  function createEmptyCoachingScores() {
+    return Object.fromEntries(COACHING_SCORE_FIELDS.map(field => [field.key, null]));
+  }
+
+  function normalizeCoachingScores(rawScores) {
+    const nextScores = createEmptyCoachingScores();
+    COACHING_SCORE_FIELDS.forEach(field => {
+      const rawValue = rawScores?.[field.key];
+      if (rawValue === null || rawValue === undefined || rawValue === '') return;
+      const value = Number(rawValue);
+      if (Number.isFinite(value) && value >= 0 && value <= 5) nextScores[field.key] = Math.round(value);
+    });
+    return nextScores;
+  }
+
+  function normalizeCoachingRatingRow(row, index = 0) {
+    if (!row || typeof row !== 'object') return null;
+    const ratingDate = /^\d{4}-\d{2}-\d{2}$/.test(String(row.rating_date || '')) ? String(row.rating_date) : getTodayIsoDate();
+    return {
+      rating_id: String(row.rating_id || `coaching-rating-${Date.now()}-${index}`),
+      worker_user_id: String(row.worker_user_id || '').trim(),
+      manager_user_id: String(row.manager_user_id || '').trim(),
+      interaction_id: String(row.interaction_id || '').trim(),
+      rating_date: ratingDate,
+      week_start_date: /^\d{4}-\d{2}-\d{2}$/.test(String(row.week_start_date || ''))
+        ? String(row.week_start_date)
+        : getCoachingWeekKey(new Date(`${ratingDate}T12:00:00`)),
+      scores: normalizeCoachingScores(row.score_values || row.scores),
+      notes: String(row.notes || '').trim(),
+      created_at: String(row.created_at || row.updated_at || new Date().toISOString()),
+      updated_at: String(row.updated_at || row.created_at || new Date().toISOString())
+    };
+  }
+
+  function normalizeCoachingWorkerFeedbackRow(row) {
+    if (!row || typeof row !== 'object') return null;
+    return {
+      feedback_id: String(row.feedback_id || ''),
+      worker_user_id: String(row.worker_user_id || '').trim(),
+      manager_user_id: String(row.manager_user_id || '').trim(),
+      week_start_date: /^\d{4}-\d{2}-\d{2}$/.test(String(row.week_start_date || '')) ? String(row.week_start_date) : getCoachingWeekKey(),
+      strength_highlight: String(row.strength_highlight || '').trim(),
+      focus_primary: String(row.focus_primary || '').trim(),
+      focus_secondary: String(row.focus_secondary || '').trim(),
+      personal_message: String(row.personal_message || '').trim(),
+      status: normalizeCoachingStatus(row.status),
+      created_at: String(row.created_at || row.updated_at || ''),
+      updated_at: String(row.updated_at || row.created_at || '')
+    };
+  }
+
+  function normalizeCoachingTeamFeedbackRow(row) {
+    if (!row || typeof row !== 'object') return null;
+    return {
+      feedback_id: String(row.feedback_id || ''),
+      manager_user_id: String(row.manager_user_id || '').trim(),
+      week_start_date: /^\d{4}-\d{2}-\d{2}$/.test(String(row.week_start_date || '')) ? String(row.week_start_date) : getCoachingWeekKey(),
+      team_key: normalizeTeamKey(row.team_key || ''),
+      message_one: String(row.message_one || '').trim(),
+      message_two: String(row.message_two || '').trim(),
+      status: normalizeCoachingStatus(row.status),
+      created_at: String(row.created_at || row.updated_at || ''),
+      updated_at: String(row.updated_at || row.created_at || '')
+    };
+  }
+
+  function getCoachingProfile(userId) {
+    const normalizedUserId = String(userId || '').trim();
+    if (!normalizedUserId) return null;
+    const publicProfile = getPublicProfileByUserId(normalizedUserId);
+    if (publicProfile) return publicProfile;
+    if (normalizedUserId === String(currentUser?.id || '')) {
+      return {
+        user_id: normalizedUserId,
+        display_name: getUserDisplayName(currentUser),
+        team: getUserTeam(currentUser),
+        avatar_url: getCurrentUserAvatarUrl(currentUser)
+      };
+    }
+    return null;
+  }
+
+  function getCoachingWorkerOptions() {
+    const ownUserId = String(currentUser?.id || '').trim();
+    const rows = publicProfileRows
+      .map(profile => ({
+        user_id: String(profile?.user_id || '').trim(),
+        display_name: String(profile?.display_name || '').trim() || 'Ukjent bruker',
+        team: String(profile?.team || '').trim()
+      }))
+      .filter(profile => profile.user_id);
+    if (ownUserId && !rows.some(profile => profile.user_id === ownUserId)) {
+      rows.push({
+        user_id: ownUserId,
+        display_name: getUserDisplayName(currentUser),
+        team: getUserTeam(currentUser)
+      });
+    }
+    return rows
+      .filter(profile => canManageCoaching() ? profile.user_id !== ownUserId : profile.user_id === ownUserId)
+      .sort((a, b) => a.display_name.localeCompare(b.display_name, 'no-NO'));
+  }
+
+  function getSelectedCoachingWorkerId() {
+    if (!canManageCoaching()) return String(currentUser?.id || '');
+    const options = getCoachingWorkerOptions();
+    if (selectedCoachingWorkerId && options.some(option => option.user_id === selectedCoachingWorkerId)) return selectedCoachingWorkerId;
+    selectedCoachingWorkerId = String(options[0]?.user_id || '');
+    return selectedCoachingWorkerId;
+  }
+
+  function getCoachingVisibleWorkerId() {
+    if (canManageCoaching() && coachingPreviewUserId) return coachingPreviewUserId;
+    return String(currentUser?.id || '');
+  }
+
+  function getDefaultCoachingRatingDraft(workerUserId = getSelectedCoachingWorkerId()) {
+    return {
+      workerUserId: String(workerUserId || ''),
+      interactionId: '',
+      date: getTodayIsoDate(),
+      scores: createEmptyCoachingScores(),
+      notes: ''
+    };
+  }
+
+  function ensureCoachingRatingDraft() {
+    if (!coachingRatingDraft) coachingRatingDraft = getDefaultCoachingRatingDraft();
+    coachingRatingDraft.workerUserId = String(coachingRatingDraft.workerUserId || getSelectedCoachingWorkerId() || '');
+    coachingRatingDraft.interactionId = String(coachingRatingDraft.interactionId || '');
+    coachingRatingDraft.date = /^\d{4}-\d{2}-\d{2}$/.test(String(coachingRatingDraft.date || '')) ? String(coachingRatingDraft.date) : getTodayIsoDate();
+    coachingRatingDraft.scores = normalizeCoachingScores(coachingRatingDraft.scores);
+    coachingRatingDraft.notes = String(coachingRatingDraft.notes || '');
+    return coachingRatingDraft;
+  }
+
+  function getDefaultCoachingWorkerFeedbackDraft(workerUserId = getSelectedCoachingWorkerId(), weekKey = getCoachingWeekKey()) {
+    return {
+      workerUserId: String(workerUserId || ''),
+      weekKey: String(weekKey || getCoachingWeekKey()),
+      strengthHighlight: '',
+      focusPrimary: '',
+      focusSecondary: '',
+      personalMessage: '',
+      status: 'draft'
+    };
+  }
+
+  function getDefaultCoachingTeamFeedbackDraft(weekKey = getCoachingWeekKey(), teamKey = normalizeTeamKey(getUserTeam(currentUser))) {
+    return {
+      weekKey: String(weekKey || getCoachingWeekKey()),
+      teamKey: String(teamKey || ''),
+      messageOne: '',
+      messageTwo: '',
+      status: 'draft'
+    };
+  }
+
+  function getCoachingWorkerFeedbackRow(workerUserId, weekKey = getCoachingWeekKey(), publishedOnly = false) {
+    const normalizedUserId = String(workerUserId || '').trim();
+    const normalizedWeekKey = String(weekKey || '').trim();
+    return coachingWorkerFeedbackRows.find(row =>
+      row.worker_user_id === normalizedUserId
+      && row.week_start_date === normalizedWeekKey
+      && (!publishedOnly || row.status === 'published')
+    ) || null;
+  }
+
+  function getCoachingTeamFeedbackRow(teamKey = normalizeTeamKey(getUserTeam(currentUser)), weekKey = getCoachingWeekKey(), publishedOnly = false) {
+    const normalizedTeamKey = normalizeTeamKey(teamKey || '');
+    const normalizedWeekKey = String(weekKey || '').trim();
+    const rows = coachingTeamFeedbackRows.filter(row =>
+      row.week_start_date === normalizedWeekKey
+      && (!publishedOnly || row.status === 'published')
+      && (row.team_key === normalizedTeamKey || row.team_key === '')
+    );
+    return rows.find(row => row.team_key === normalizedTeamKey) || rows[0] || null;
+  }
+
+  function syncCoachingDraftsForSelectedWorker() {
+    const workerUserId = getSelectedCoachingWorkerId();
+    const weekKey = getCoachingWeekKey();
+    if (!coachingEditingRatingId) coachingRatingDraft = getDefaultCoachingRatingDraft(workerUserId);
+    const workerFeedback = getCoachingWorkerFeedbackRow(workerUserId, weekKey);
+    coachingWorkerFeedbackDraft = workerFeedback
+      ? {
+          workerUserId,
+          weekKey,
+          strengthHighlight: workerFeedback.strength_highlight,
+          focusPrimary: workerFeedback.focus_primary,
+          focusSecondary: workerFeedback.focus_secondary,
+          personalMessage: workerFeedback.personal_message,
+          status: workerFeedback.status
+        }
+      : getDefaultCoachingWorkerFeedbackDraft(workerUserId, weekKey);
+    const teamKey = normalizeTeamKey(getUserTeam(currentUser));
+    const teamFeedback = getCoachingTeamFeedbackRow(teamKey, weekKey);
+    coachingTeamFeedbackDraft = teamFeedback
+      ? {
+          weekKey,
+          teamKey,
+          messageOne: teamFeedback.message_one,
+          messageTwo: teamFeedback.message_two,
+          status: teamFeedback.status
+        }
+      : getDefaultCoachingTeamFeedbackDraft(weekKey, teamKey);
+  }
+
+  function setSelectedCoachingWorker(userId) {
+    selectedCoachingWorkerId = String(userId || '');
+    coachingEditingRatingId = '';
+    coachingRatingDraft = getDefaultCoachingRatingDraft(selectedCoachingWorkerId);
+    syncCoachingDraftsForSelectedWorker();
+    setCoachingManagerStatus('');
+    renderCoachingManagerPage();
+  }
+
+  function setCoachingPreviewUser(userId) {
+    coachingPreviewUserId = String(userId || '');
+    renderCoachingWorkerPage();
+  }
+
+  function clearCoachingPreviewUser() {
+    coachingPreviewUserId = '';
+    renderCoachingWorkerPage();
+  }
+
+  function buildCoachingSummary(ratings = []) {
+    const categoryAverages = COACHING_SCORE_FIELDS.map(field => {
+      const values = ratings
+        .map(rating => rating?.scores?.[field.key])
+        .filter(value => Number.isFinite(value));
+      const average = values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
+      return {
+        key: field.key,
+        label: field.label,
+        average,
+        count: values.length
+      };
+    });
+    const filled = categoryAverages.filter(item => item.count > 0);
+    const overallAverage = filled.length ? filled.reduce((sum, item) => sum + item.average, 0) / filled.length : 0;
+    const strongest = filled.reduce((best, item) => (!best || item.average > best.average ? item : best), null);
+    const weakest = filled.reduce((best, item) => (!best || item.average < best.average ? item : best), null);
+    return {
+      count: ratings.length,
+      overallAverage,
+      categoryAverages,
+      strongest,
+      weakest
+    };
+  }
+
+  function formatCoachingAverage(value) {
+    return Number.isFinite(value) && value > 0 ? value.toFixed(1).replace('.', ',') : '0,0';
+  }
+
+  function buildCoachingPreviewBundle(workerUserId, weekKey = getCoachingWeekKey()) {
+    const profile = getCoachingProfile(workerUserId) || {
+      user_id: String(workerUserId || ''),
+      display_name: 'Ansatt',
+      team: getUserTeam(currentUser)
+    };
+    const previewRatings = [
+      {
+        rating_id: 'preview-rating-1',
+        worker_user_id: profile.user_id,
+        manager_user_id: String(currentUser?.id || ''),
+        interaction_id: '41234891',
+        rating_date: weekKey,
+        week_start_date: weekKey,
+        scores: { behovsanalyse: 4, kjemibygging: 3, oppsummering: 4, losningsforslag: 3, nesteSteg: 2 },
+        notes: 'God kontroll tidlig i samtalen. Neste steg kunne blitt tydeligere.',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      {
+        rating_id: 'preview-rating-2',
+        worker_user_id: profile.user_id,
+        manager_user_id: String(currentUser?.id || ''),
+        interaction_id: '41234892',
+        rating_date: makeLocalDateKey(addDays(parseLocalDateKey(weekKey) || new Date(), 2)),
+        week_start_date: weekKey,
+        scores: { behovsanalyse: 5, kjemibygging: 4, oppsummering: 3, losningsforslag: 4, nesteSteg: 3 },
+        notes: 'Sterk behovsanalyse. Oppsummeringen må strammes inn før løsning.',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      {
+        rating_id: 'preview-rating-3',
+        worker_user_id: profile.user_id,
+        manager_user_id: String(currentUser?.id || ''),
+        interaction_id: '41234893',
+        rating_date: makeLocalDateKey(addDays(parseLocalDateKey(weekKey) || new Date(), 3)),
+        week_start_date: weekKey,
+        scores: { behovsanalyse: 4, kjemibygging: 4, oppsummering: 4, losningsforslag: 4, nesteSteg: 3 },
+        notes: 'Fin flyt. Fortsett å være tydelig på hvorfor kunden skal ta neste steg nå.',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+    ];
+    return {
+      ratings: previewRatings,
+      workerFeedback: {
+        feedback_id: 'preview-worker-feedback',
+        worker_user_id: profile.user_id,
+        manager_user_id: String(currentUser?.id || ''),
+        week_start_date: weekKey,
+        strength_highlight: 'Behovsanalyse',
+        focus_primary: 'Neste steg',
+        focus_secondary: 'Oppsummering',
+        personal_message: `Du skaper god trygghet og får kunden med deg inn i behovsbildet. Neste løft nå er å eie avslutningen tydeligere og gjøre oppsummeringen enda skarpere.`,
+        status: 'published'
+      },
+      teamFeedback: {
+        feedback_id: 'preview-team-feedback',
+        manager_user_id: String(currentUser?.id || ''),
+        week_start_date: weekKey,
+        team_key: normalizeTeamKey(profile.team),
+        message_one: 'Bra uke på behovsanalyse. Fortsett å stille ett spørsmål til før dere går videre til løsning.',
+        message_two: 'Vi skal være tydeligere på neste steg. Kunden skal vite akkurat hva som skjer videre.',
+        status: 'published'
+      }
+    };
+  }
+
+  function getCoachingWorkerBundle(workerUserId, weekKey = getCoachingWeekKey()) {
+    if (!coachingSchemaReady) return buildCoachingPreviewBundle(workerUserId, weekKey);
+    return {
+      ratings: coachingConversationRatings.filter(row => row.worker_user_id === String(workerUserId || '').trim() && row.week_start_date === weekKey),
+      workerFeedback: getCoachingWorkerFeedbackRow(workerUserId, weekKey),
+      teamFeedback: getCoachingTeamFeedbackRow(normalizeTeamKey(getCoachingProfile(workerUserId)?.team || getUserTeam(currentUser)), weekKey)
+    };
+  }
+
+  function isCoachingSchemaMismatch(error) {
+    const message = String(error?.message || error || '');
+    return /(schema cache|relation .* does not exist|column .* does not exist)/i.test(message)
+      && /(coaching_conversation_ratings|coaching_weekly_worker_feedback|coaching_weekly_team_feedback|score_values|focus_primary|message_one|message_two)/i.test(message);
+  }
+
+  async function loadCoachingData(options = {}) {
+    if (!supabaseClient || !currentUser) {
+      clearCoachingState();
+      return [];
+    }
+    if (coachingLoadingPromise) return coachingLoadingPromise;
+    if (!options.silentLoading) setCoachingState('loading');
+    coachingLoadingPromise = (async () => {
+      try {
+        if (!publicProfileRows.length) {
+          try {
+            await loadPublicProfiles();
+          } catch (_error) {}
+        }
+        const ratingsQuery = supabaseClient
+          .from(SUPABASE_COACHING_RATINGS_TABLE)
+          .select('rating_id, worker_user_id, manager_user_id, interaction_id, rating_date, week_start_date, score_values, notes, created_at, updated_at')
+          .order('rating_date', { ascending: false })
+          .order('updated_at', { ascending: false });
+        const workerFeedbackQuery = supabaseClient
+          .from(SUPABASE_COACHING_WORKER_FEEDBACK_TABLE)
+          .select('feedback_id, worker_user_id, manager_user_id, week_start_date, strength_highlight, focus_primary, focus_secondary, personal_message, status, created_at, updated_at')
+          .order('week_start_date', { ascending: false });
+        const teamFeedbackQuery = supabaseClient
+          .from(SUPABASE_COACHING_TEAM_FEEDBACK_TABLE)
+          .select('feedback_id, manager_user_id, week_start_date, team_key, message_one, message_two, status, created_at, updated_at')
+          .order('week_start_date', { ascending: false });
+        const [ratingsResponse, workerFeedbackResponse, teamFeedbackResponse] = await Promise.all([ratingsQuery, workerFeedbackQuery, teamFeedbackQuery]);
+        const responses = [ratingsResponse, workerFeedbackResponse, teamFeedbackResponse];
+        const schemaError = responses.find(response => response.error && isCoachingSchemaMismatch(response.error))?.error;
+        if (schemaError) {
+          coachingConversationRatings = [];
+          coachingWorkerFeedbackRows = [];
+          coachingTeamFeedbackRows = [];
+          coachingSchemaReady = false;
+          syncCoachingDraftsForSelectedWorker();
+          setCoachingState('ready');
+          return [];
+        }
+        const firstError = responses.find(response => response.error)?.error;
+        if (firstError) throw firstError;
+        coachingConversationRatings = (ratingsResponse.data || []).map(normalizeCoachingRatingRow).filter(Boolean);
+        coachingWorkerFeedbackRows = (workerFeedbackResponse.data || []).map(normalizeCoachingWorkerFeedbackRow).filter(Boolean);
+        coachingTeamFeedbackRows = (teamFeedbackResponse.data || []).map(normalizeCoachingTeamFeedbackRow).filter(Boolean);
+        coachingSchemaReady = true;
+        syncCoachingDraftsForSelectedWorker();
+        setCoachingState('ready');
+        return coachingConversationRatings;
+      } catch (error) {
+        setCoachingState('error', error?.message || 'Kunne ikke laste coaching akkurat nå.');
+        throw error;
+      } finally {
+        coachingLoadingPromise = null;
+      }
+    })();
+    return coachingLoadingPromise;
+  }
+
+  function ensureCoachingLoaded() {
+    if (!supabaseClient || !currentUser) return Promise.resolve([]);
+    if (coachingState === 'ready') return Promise.resolve(coachingConversationRatings);
+    return loadCoachingData().catch(() => []);
+  }
+
+  function renderCoachingScorePills(summary) {
+    const pills = summary.categoryAverages
+      .filter(item => item.count > 0)
+      .map(item => `<span class="samtalerating-pill">${escHtml(item.label)}: ${escHtml(formatCoachingAverage(item.average))}/5</span>`);
+    return pills.length ? `<div class="coaching-chip-row">${pills.join('')}</div>` : `<div class="coaching-empty">Ingen ratings denne uken ennå.</div>`;
+  }
+
+  function previewCoachingWorkerPage() {
+    const workerUserId = getSelectedCoachingWorkerId();
+    if (!workerUserId) return;
+    setCoachingPreviewUser(workerUserId);
+    switchTab('coaching-worker');
+  }
+
+  function renderCoachingManagerPage() {
+    const page = document.getElementById('coaching-manager-page');
+    if (!page) return;
+    if (!currentUser) {
+      page.innerHTML = '';
+      return;
+    }
+    updateCoachingTabVisibility();
+    if (!canManageCoaching()) {
+      page.innerHTML = `
+        <div class="coaching-card">
+          <div class="coaching-title">Coachingoversikt</div>
+          <div class="coaching-subtext" style="margin-top:8px;">Denne siden er midlertidig bare åpnet for manager-profilen.</div>
+        </div>
+      `;
+      return;
+    }
+    if (coachingState === 'idle') ensureCoachingLoaded();
+    const workerOptions = getCoachingWorkerOptions();
+    const selectedWorkerId = getSelectedCoachingWorkerId();
+    const selectedProfile = getCoachingProfile(selectedWorkerId);
+    const weekKey = getCoachingWeekKey();
+    const bundle = getCoachingWorkerBundle(selectedWorkerId, weekKey);
+    const summary = buildCoachingSummary(bundle.ratings);
+    const ratingDraft = ensureCoachingRatingDraft();
+    const workerFeedbackDraft = coachingWorkerFeedbackDraft || getDefaultCoachingWorkerFeedbackDraft(selectedWorkerId, weekKey);
+    const teamFeedbackDraft = coachingTeamFeedbackDraft || getDefaultCoachingTeamFeedbackDraft(weekKey, normalizeTeamKey(getUserTeam(currentUser)));
+    const teamFeedbackStatus = coachingSchemaReady ? getCoachingTeamFeedbackRow(teamFeedbackDraft.teamKey, weekKey) : bundle.teamFeedback;
+    page.innerHTML = `
+      <div class="coaching-hero">
+        <div>
+          <div class="coaching-hero-title">Coachingoversikt</div>
+          <div class="coaching-hero-text">Rate samtaler, skriv ukesfeedback og publiser det de ansatte skal se.</div>
+        </div>
+        <div class="coaching-preview-row">
+          <span class="coaching-role-pill">Manager</span>
+          <span class="coaching-week-pill">${escHtml(formatCoachingWeekLabel(weekKey))}</span>
+          <button class="backup-btn" style="margin-top:0;" type="button" onclick="previewCoachingWorkerPage()" ${selectedWorkerId ? '' : 'disabled'}>Forhåndsvis ansattside</button>
+        </div>
+      </div>
+      ${!coachingSchemaReady ? `<div class="coaching-status-card warning">${escHtml(COACHING_SCHEMA_WARNING)} Viser forhåndsvisning under.</div>` : ''}
+      ${coachingState === 'error' ? `<div class="coaching-status-card warning">${escHtml(coachingErrorMessage || 'Kunne ikke laste coaching akkurat nå.')}</div>` : ''}
+      ${coachingManagerStatus.message ? `<div class="coaching-status-card${coachingManagerStatus.tone === 'warning' || coachingManagerStatus.tone === 'error' ? ' warning' : ''}">${escHtml(coachingManagerStatus.message)}</div>` : ''}
+      <div class="coaching-layout">
+        <div class="coaching-main">
+          <div class="coaching-card">
+            <div class="coaching-head">
+              <div>
+                <div class="coaching-title">Ansatt</div>
+              </div>
+            </div>
+            ${workerOptions.length ? `
+              <div class="coaching-field">
+                <label for="coaching-worker-select">Velg ansatt</label>
+                <select id="coaching-worker-select" class="coaching-select" onchange="setSelectedCoachingWorker(this.value)">
+                  ${workerOptions.map(option => `<option value="${escAttr(option.user_id)}" ${option.user_id === selectedWorkerId ? 'selected' : ''}>${escHtml(option.display_name)}${option.team ? ` · ${escHtml(option.team)}` : ''}</option>`).join('')}
+                </select>
+              </div>
+            ` : `<div class="coaching-empty">Ingen ansatte tilgjengelige ennå.</div>`}
+          </div>
+          <div class="coaching-card">
+            <div class="coaching-head">
+              <div>
+                <div class="coaching-title">Denne uken</div>
+                <div class="coaching-subtext">${selectedProfile ? escHtml(selectedProfile.display_name) : 'Velg en ansatt'}</div>
+              </div>
+              ${bundle.workerFeedback ? `<span class="coaching-status-pill ${escAttr(bundle.workerFeedback.status)}">${escHtml(formatCoachingStatusLabel(bundle.workerFeedback.status))}</span>` : ''}
+            </div>
+            <div class="coaching-metric-grid">
+              <div class="coaching-metric-card">
+                <div class="coaching-metric-label">Samtaler rated</div>
+                <div class="coaching-metric-value">${summary.count}</div>
+              </div>
+              <div class="coaching-metric-card">
+                <div class="coaching-metric-label">Snittscore</div>
+                <div class="coaching-metric-value">${escHtml(formatCoachingAverage(summary.overallAverage))}</div>
+              </div>
+              <div class="coaching-metric-card">
+                <div class="coaching-metric-label">Styrke</div>
+                <div class="coaching-metric-value small">${escHtml(bundle.workerFeedback?.strength_highlight || summary.strongest?.label || '-')}</div>
+              </div>
+              <div class="coaching-metric-card">
+                <div class="coaching-metric-label">Fokus nå</div>
+                <div class="coaching-metric-value small">${escHtml(bundle.workerFeedback?.focus_primary || summary.weakest?.label || '-')}</div>
+              </div>
+            </div>
+            <div style="margin-top:14px;">${renderCoachingScorePills(summary)}</div>
+          </div>
+          <div class="coaching-card">
+            <div class="coaching-head">
+              <div>
+                <div class="coaching-title">${coachingEditingRatingId ? 'Rediger samtalerating' : 'Ny samtalerating'}</div>
+              </div>
+            </div>
+            <div class="coaching-grid">
+              <div class="coaching-field">
+                <label for="coaching-interaction-id">InteractionID</label>
+                <input id="coaching-interaction-id" class="coaching-input" type="text" placeholder="F.eks. 123456789" value="${escAttr(ratingDraft.interactionId)}" oninput="updateCoachingRatingDraftField('interactionId', this.value)" />
+              </div>
+              <div class="coaching-field">
+                <label for="coaching-rating-date">Dato</label>
+                <input id="coaching-rating-date" class="coaching-input" type="date" value="${escAttr(ratingDraft.date)}" oninput="updateCoachingRatingDraftField('date', this.value)" />
+              </div>
+              <div class="coaching-field coaching-field-full">
+                <label>Rating</label>
+                <div class="coaching-score-grid">
+                  ${COACHING_SCORE_FIELDS.map(field => `
+                    <div class="coaching-score-card">
+                      <div class="coaching-score-label">${escHtml(field.label)}</div>
+                      <div class="coaching-score-choice-row">
+                        ${[0, 1, 2, 3, 4, 5].map(value => `
+                          <button class="choice-chip coaching-score-choice ${ratingDraft.scores[field.key] === value ? 'active' : ''}" type="button" onclick="setCoachingScore('${field.key}', ${value})">${value}</button>
+                        `).join('')}
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+              <div class="coaching-field coaching-field-full">
+                <label for="coaching-rating-notes">Kort notat</label>
+                <textarea id="coaching-rating-notes" class="coaching-textarea" placeholder="Skriv det viktigste du vil huske fra denne samtalen." oninput="updateCoachingRatingDraftField('notes', this.value)">${escHtml(ratingDraft.notes)}</textarea>
+              </div>
+            </div>
+            <div class="coaching-actions" style="margin-top:18px;">
+              <button class="save-btn" style="margin-top:0;" type="button" onclick="saveCoachingConversationRating()" ${!selectedWorkerId ? 'disabled' : ''}>${coachingEditingRatingId ? 'Oppdater rating' : 'Lagre rating'}</button>
+              <button class="backup-btn" style="margin-top:0;" type="button" onclick="resetCoachingRatingDraft()">Nullstill</button>
+            </div>
+          </div>
+          <div class="coaching-card">
+            <div class="coaching-head">
+              <div>
+                <div class="coaching-title">Personlig ukesfeedback</div>
+              </div>
+              <span class="coaching-status-pill ${escAttr(workerFeedbackDraft.status)}">${escHtml(formatCoachingStatusLabel(workerFeedbackDraft.status))}</span>
+            </div>
+            <div class="coaching-grid">
+              <div class="coaching-field">
+                <label for="coaching-strength-highlight">Styrke</label>
+                <input id="coaching-strength-highlight" class="coaching-input" type="text" placeholder="F.eks. Behovsanalyse" value="${escAttr(workerFeedbackDraft.strengthHighlight)}" oninput="updateCoachingWorkerFeedbackDraftField('strengthHighlight', this.value)" />
+              </div>
+              <div class="coaching-field">
+                <label for="coaching-focus-primary">Fokus 1</label>
+                <input id="coaching-focus-primary" class="coaching-input" type="text" placeholder="F.eks. Neste steg" value="${escAttr(workerFeedbackDraft.focusPrimary)}" oninput="updateCoachingWorkerFeedbackDraftField('focusPrimary', this.value)" />
+              </div>
+              <div class="coaching-field">
+                <label for="coaching-focus-secondary">Fokus 2</label>
+                <input id="coaching-focus-secondary" class="coaching-input" type="text" placeholder="F.eks. Oppsummering" value="${escAttr(workerFeedbackDraft.focusSecondary)}" oninput="updateCoachingWorkerFeedbackDraftField('focusSecondary', this.value)" />
+              </div>
+              <div class="coaching-field coaching-field-full">
+                <label for="coaching-personal-message">Fra leder</label>
+                <textarea id="coaching-personal-message" class="coaching-textarea" placeholder="Skriv den ene personlige meldingen den ansatte skal se denne uken." oninput="updateCoachingWorkerFeedbackDraftField('personalMessage', this.value)">${escHtml(workerFeedbackDraft.personalMessage)}</textarea>
+              </div>
+            </div>
+            <div class="coaching-actions" style="margin-top:18px;">
+              <button class="backup-btn" style="margin-top:0;" type="button" onclick="saveCoachingWorkerFeedback('draft')" ${!selectedWorkerId ? 'disabled' : ''}>Lagre utkast</button>
+              <button class="save-btn" style="margin-top:0;" type="button" onclick="saveCoachingWorkerFeedback('published')" ${!selectedWorkerId ? 'disabled' : ''}>Publiser til ansatt</button>
+            </div>
+          </div>
+        </div>
+        <div class="coaching-side">
+          <div class="coaching-card">
+            <div class="coaching-head">
+              <div>
+                <div class="coaching-title">Teammeldinger</div>
+              </div>
+              ${teamFeedbackStatus ? `<span class="coaching-status-pill ${escAttr(teamFeedbackStatus.status)}">${escHtml(formatCoachingStatusLabel(teamFeedbackStatus.status))}</span>` : ''}
+            </div>
+            <div class="coaching-stack">
+              <div class="coaching-field">
+                <label for="coaching-team-message-one">Melding 1</label>
+                <textarea id="coaching-team-message-one" class="coaching-textarea" placeholder="Første beskjed til hele teamet." oninput="updateCoachingTeamFeedbackDraftField('messageOne', this.value)">${escHtml(teamFeedbackDraft.messageOne)}</textarea>
+              </div>
+              <div class="coaching-field">
+                <label for="coaching-team-message-two">Melding 2</label>
+                <textarea id="coaching-team-message-two" class="coaching-textarea" placeholder="Andre beskjed til hele teamet." oninput="updateCoachingTeamFeedbackDraftField('messageTwo', this.value)">${escHtml(teamFeedbackDraft.messageTwo)}</textarea>
+              </div>
+            </div>
+            <div class="coaching-actions" style="margin-top:18px;">
+              <button class="backup-btn" style="margin-top:0;" type="button" onclick="saveCoachingTeamFeedback('draft')">Lagre utkast</button>
+              <button class="save-btn" style="margin-top:0;" type="button" onclick="saveCoachingTeamFeedback('published')">Publiser til teamet</button>
+            </div>
+          </div>
+          <div class="coaching-card">
+            <div class="coaching-head">
+              <div>
+                <div class="coaching-title">Ukens ratings</div>
+                <div class="coaching-subtext">${summary.count ? `${summary.count} registrert` : 'Ingen registrert ennå'}</div>
+              </div>
+            </div>
+            <div class="coaching-history-list">
+              ${bundle.ratings.length ? bundle.ratings.map(rating => `
+                <div class="coaching-history-item ${rating.rating_id === coachingEditingRatingId ? 'active' : ''}"${coachingSchemaReady ? ` onclick="openCoachingRatingEntry('${rating.rating_id}')"` : ''}>
+                  <div class="coaching-history-head">
+                    <div>
+                      <div class="coaching-history-title">${escHtml(rating.interaction_id || 'Uten InteractionID')}</div>
+                      <div class="coaching-history-meta">${escHtml(formatSamtaleRatingDate(rating.rating_date))}</div>
+                    </div>
+                    <div class="coaching-history-meta">Snitt ${escHtml(formatCoachingAverage(buildCoachingSummary([rating]).overallAverage))}/5</div>
+                  </div>
+                  ${renderCoachingScorePills(buildCoachingSummary([rating]))}
+                  ${rating.notes ? `<div class="coaching-history-note" style="margin-top:10px;">${escHtml(rating.notes)}</div>` : ''}
+                  <div class="coaching-actions" style="margin-top:12px;${coachingSchemaReady ? '' : 'display:none;'}">
+                    <button class="backup-btn" style="margin-top:0;" type="button" onclick="event.stopPropagation(); openCoachingRatingEntry('${rating.rating_id}')">Rediger</button>
+                    <button class="backup-btn" style="margin-top:0;" type="button" onclick="event.stopPropagation(); deleteCoachingRatingEntry('${rating.rating_id}')">Slett</button>
+                  </div>
+                </div>
+              `).join('') : `<div class="coaching-empty">Ingen samtaler rated denne uken ennå.</div>`}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderCoachingWorkerPage() {
+    const page = document.getElementById('coaching-worker-page');
+    if (!page) return;
+    if (!currentUser) {
+      page.innerHTML = '';
+      return;
+    }
+    if (coachingState === 'idle') ensureCoachingLoaded();
+    const visibleWorkerId = getCoachingVisibleWorkerId();
+    const profile = getCoachingProfile(visibleWorkerId);
+    const weekKey = getCoachingWeekKey();
+    const bundle = getCoachingWorkerBundle(visibleWorkerId, weekKey);
+    const publishedWorkerFeedback = bundle.workerFeedback?.status === 'published' ? bundle.workerFeedback : null;
+    const publishedTeamFeedback = bundle.teamFeedback?.status === 'published' ? bundle.teamFeedback : null;
+    const isPreview = canManageCoaching() && coachingPreviewUserId && coachingPreviewUserId !== String(currentUser?.id || '');
+    const summary = buildCoachingSummary((!coachingSchemaReady || publishedWorkerFeedback || isPreview) ? bundle.ratings : []);
+    const historyRows = coachingSchemaReady
+      ? coachingWorkerFeedbackRows
+          .filter(row => row.worker_user_id === visibleWorkerId && row.status === 'published')
+          .sort((a, b) => String(b.week_start_date).localeCompare(String(a.week_start_date)))
+      : [bundle.workerFeedback];
+    page.innerHTML = `
+      ${isPreview ? `
+        <div class="coaching-preview-banner">
+          <div>Forhåndsviser ansattsiden for ${escHtml(profile?.display_name || 'ansatt')}.</div>
+          <button class="backup-btn" style="margin-top:0;" type="button" onclick="clearCoachingPreviewUser()">Tilbake til min side</button>
+        </div>
+      ` : ''}
+      <div class="coaching-hero">
+        <div>
+          <div class="coaching-hero-title">Min coaching</div>
+          <div class="coaching-hero-text">Det viktigste du skal fokusere på akkurat nå.</div>
+        </div>
+        <div class="coaching-preview-row">
+          <span class="coaching-week-pill">${escHtml(formatCoachingWeekLabel(weekKey))}</span>
+          ${publishedWorkerFeedback ? `<span class="coaching-status-pill published">Publisert</span>` : ''}
+        </div>
+      </div>
+      ${!coachingSchemaReady ? `<div class="coaching-status-card warning">${escHtml(COACHING_SCHEMA_WARNING)} Viser forhåndsvisning under.</div>` : ''}
+      ${coachingState === 'error' ? `<div class="coaching-status-card warning">${escHtml(coachingErrorMessage || 'Kunne ikke laste coaching akkurat nå.')}</div>` : ''}
+      ${coachingSchemaReady && !publishedWorkerFeedback && !isPreview ? `
+        <div class="coaching-status-card">Leder har ikke publisert ukesfeedback til deg ennå.</div>
+      ` : ''}
+      <div class="coaching-layout">
+        <div class="coaching-main">
+          <div class="coaching-card">
+            <div class="coaching-head">
+              <div>
+                <div class="coaching-title">Ukens fokus</div>
+                <div class="coaching-subtext">${escHtml(profile?.display_name || getUserDisplayName(currentUser))}</div>
+              </div>
+            </div>
+            <div class="coaching-metric-grid">
+              <div class="coaching-metric-card">
+                <div class="coaching-metric-label">Snittscore</div>
+                <div class="coaching-metric-value">${escHtml(formatCoachingAverage(summary.overallAverage))}</div>
+              </div>
+              <div class="coaching-metric-card">
+                <div class="coaching-metric-label">Styrke</div>
+                <div class="coaching-metric-value small">${escHtml(publishedWorkerFeedback?.strength_highlight || bundle.workerFeedback?.strength_highlight || summary.strongest?.label || '-')}</div>
+              </div>
+              <div class="coaching-metric-card">
+                <div class="coaching-metric-label">Fokus 1</div>
+                <div class="coaching-metric-value small">${escHtml(publishedWorkerFeedback?.focus_primary || bundle.workerFeedback?.focus_primary || summary.weakest?.label || '-')}</div>
+              </div>
+              <div class="coaching-metric-card">
+                <div class="coaching-metric-label">Fokus 2</div>
+                <div class="coaching-metric-value small">${escHtml(publishedWorkerFeedback?.focus_secondary || bundle.workerFeedback?.focus_secondary || '-')}</div>
+              </div>
+            </div>
+            <div style="margin-top:14px;">${renderCoachingScorePills(summary)}</div>
+          </div>
+          <div class="coaching-card">
+            <div class="coaching-head">
+              <div>
+                <div class="coaching-title">Fra leder</div>
+              </div>
+            </div>
+            <div class="coaching-note-card">
+              <div class="coaching-note-copy">${escHtml(publishedWorkerFeedback?.personal_message || bundle.workerFeedback?.personal_message || 'Ingen personlig melding publisert ennå.')}</div>
+            </div>
+          </div>
+          <div class="coaching-card">
+            <div class="coaching-head">
+              <div>
+                <div class="coaching-title">Til hele teamet</div>
+              </div>
+            </div>
+            <div class="coaching-stack">
+              <div class="coaching-note-card">
+                <div class="coaching-note-title">Melding 1</div>
+                <div class="coaching-note-copy">${escHtml(publishedTeamFeedback?.message_one || bundle.teamFeedback?.message_one || 'Ingen teammelding publisert ennå.')}</div>
+              </div>
+              <div class="coaching-note-card">
+                <div class="coaching-note-title">Melding 2</div>
+                <div class="coaching-note-copy">${escHtml(publishedTeamFeedback?.message_two || bundle.teamFeedback?.message_two || 'Ingen teammelding publisert ennå.')}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="coaching-side">
+          <div class="coaching-card">
+            <div class="coaching-head">
+              <div>
+                <div class="coaching-title">Utvikling</div>
+              </div>
+            </div>
+            <div class="coaching-detail-list">
+              ${historyRows.filter(Boolean).length ? historyRows.filter(Boolean).map(row => `
+                <div class="coaching-history-item">
+                  <div class="coaching-history-head">
+                    <div>
+                      <div class="coaching-history-title">${escHtml(formatCoachingWeekLabel(row.week_start_date))}</div>
+                      <div class="coaching-history-meta">${escHtml(formatCoachingStatusLabel(row.status))}</div>
+                    </div>
+                  </div>
+                  <div class="coaching-chip-row">
+                    ${row.strength_highlight ? `<span class="samtalerating-pill">Styrke: ${escHtml(row.strength_highlight)}</span>` : ''}
+                    ${row.focus_primary ? `<span class="samtalerating-pill">Fokus 1: ${escHtml(row.focus_primary)}</span>` : ''}
+                    ${row.focus_secondary ? `<span class="samtalerating-pill">Fokus 2: ${escHtml(row.focus_secondary)}</span>` : ''}
+                  </div>
+                </div>
+              `).join('') : `<div class="coaching-empty">Ingen tidligere publiserte uker ennå.</div>`}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function updateCoachingRatingDraftField(field, value) {
+    const draft = ensureCoachingRatingDraft();
+    if (field === 'interactionId' || field === 'date' || field === 'notes') {
+      draft[field] = field === 'notes' ? value : String(value || '');
+      renderCoachingManagerPage();
+    }
+  }
+
+  function setCoachingScore(fieldKey, value) {
+    const draft = ensureCoachingRatingDraft();
+    draft.scores[fieldKey] = value;
+    renderCoachingManagerPage();
+  }
+
+  function updateCoachingWorkerFeedbackDraftField(field, value) {
+    if (!coachingWorkerFeedbackDraft) coachingWorkerFeedbackDraft = getDefaultCoachingWorkerFeedbackDraft();
+    coachingWorkerFeedbackDraft[field] = String(value || '');
+  }
+
+  function updateCoachingTeamFeedbackDraftField(field, value) {
+    if (!coachingTeamFeedbackDraft) coachingTeamFeedbackDraft = getDefaultCoachingTeamFeedbackDraft();
+    coachingTeamFeedbackDraft[field] = String(value || '');
+  }
+
+  function resetCoachingRatingDraft() {
+    coachingEditingRatingId = '';
+    coachingRatingDraft = getDefaultCoachingRatingDraft(getSelectedCoachingWorkerId());
+    renderCoachingManagerPage();
+  }
+
+  function openCoachingRatingEntry(ratingId) {
+    const rating = coachingConversationRatings.find(row => row.rating_id === ratingId);
+    if (!rating) return;
+    selectedCoachingWorkerId = rating.worker_user_id;
+    coachingEditingRatingId = ratingId;
+    coachingRatingDraft = {
+      workerUserId: rating.worker_user_id,
+      interactionId: rating.interaction_id,
+      date: rating.rating_date,
+      scores: { ...rating.scores },
+      notes: rating.notes
+    };
+    syncCoachingDraftsForSelectedWorker();
+    renderCoachingManagerPage();
+  }
+
+  function validateCoachingRatingDraft(draft) {
+    if (!draft.workerUserId) {
+      alert('Velg en ansatt før du lagrer.');
+      return false;
+    }
+    if (!draft.date) {
+      alert('Velg dato for samtalen.');
+      return false;
+    }
+    const missingScore = COACHING_SCORE_FIELDS.find(field => !(draft.scores[field.key] >= 0 && draft.scores[field.key] <= 5));
+    if (missingScore) {
+      alert(`Velg en rating fra 0 til 5 for ${missingScore.label}.`);
+      return false;
+    }
+    return true;
+  }
+
+  async function saveCoachingConversationRating() {
+    if (!canManageCoaching()) return;
+    if (!coachingSchemaReady) {
+      setCoachingManagerStatus(COACHING_SCHEMA_WARNING, 'warning');
+      return;
+    }
+    const draft = ensureCoachingRatingDraft();
+    if (!validateCoachingRatingDraft(draft)) return;
+    const ratingId = coachingEditingRatingId || `coaching-rating-${Date.now()}`;
+    const row = {
+      rating_id: ratingId,
+      worker_user_id: draft.workerUserId,
+      manager_user_id: currentUser.id,
+      interaction_id: draft.interactionId.trim(),
+      rating_date: draft.date,
+      week_start_date: getCoachingWeekKey(new Date(`${draft.date}T12:00:00`)),
+      score_values: { ...draft.scores },
+      notes: draft.notes.trim()
+    };
+    const { error } = await supabaseClient
+      .from(SUPABASE_COACHING_RATINGS_TABLE)
+      .upsert([row], { onConflict: 'rating_id' });
+    if (error) {
+      if (isCoachingSchemaMismatch(error)) {
+        coachingSchemaReady = false;
+        setCoachingManagerStatus(COACHING_SCHEMA_WARNING, 'warning');
+        renderCoachingManagerPage();
+        return;
+      }
+      setCoachingManagerStatus(error.message, 'warning');
+      return;
+    }
+    coachingEditingRatingId = '';
+    coachingRatingDraft = getDefaultCoachingRatingDraft(draft.workerUserId);
+    await loadCoachingData({ silentLoading: true }).catch(() => {});
+    setCoachingManagerStatus('Samtalerating lagret.');
+  }
+
+  async function deleteCoachingRatingEntry(ratingId) {
+    if (!canManageCoaching() || !coachingSchemaReady) return;
+    const rating = coachingConversationRatings.find(row => row.rating_id === ratingId);
+    if (!rating) return;
+    if (!confirm(`Slette ratingen ${rating.interaction_id || 'uten InteractionID'}?`)) return;
+    const { error } = await supabaseClient
+      .from(SUPABASE_COACHING_RATINGS_TABLE)
+      .delete()
+      .eq('rating_id', ratingId);
+    if (error) {
+      setCoachingManagerStatus(error.message, 'warning');
+      return;
+    }
+    if (coachingEditingRatingId === ratingId) resetCoachingRatingDraft();
+    await loadCoachingData({ silentLoading: true }).catch(() => {});
+    setCoachingManagerStatus('Samtalerating slettet.');
+  }
+
+  async function saveCoachingWorkerFeedback(status = 'draft') {
+    if (!canManageCoaching()) return;
+    if (!coachingSchemaReady) {
+      setCoachingManagerStatus(COACHING_SCHEMA_WARNING, 'warning');
+      return;
+    }
+    const draft = coachingWorkerFeedbackDraft || getDefaultCoachingWorkerFeedbackDraft();
+    if (!draft.workerUserId) {
+      alert('Velg en ansatt før du lagrer feedback.');
+      return;
+    }
+    const row = {
+      feedback_id: `coaching-worker-${draft.workerUserId}-${draft.weekKey}`,
+      worker_user_id: draft.workerUserId,
+      manager_user_id: currentUser.id,
+      week_start_date: draft.weekKey,
+      strength_highlight: String(draft.strengthHighlight || '').trim(),
+      focus_primary: String(draft.focusPrimary || '').trim(),
+      focus_secondary: String(draft.focusSecondary || '').trim(),
+      personal_message: String(draft.personalMessage || '').trim(),
+      status: normalizeCoachingStatus(status)
+    };
+    const { error } = await supabaseClient
+      .from(SUPABASE_COACHING_WORKER_FEEDBACK_TABLE)
+      .upsert([row], { onConflict: 'feedback_id' });
+    if (error) {
+      if (isCoachingSchemaMismatch(error)) {
+        coachingSchemaReady = false;
+        setCoachingManagerStatus(COACHING_SCHEMA_WARNING, 'warning');
+        renderCoachingManagerPage();
+        return;
+      }
+      setCoachingManagerStatus(error.message, 'warning');
+      return;
+    }
+    coachingWorkerFeedbackDraft.status = row.status;
+    await loadCoachingData({ silentLoading: true }).catch(() => {});
+    setCoachingManagerStatus(row.status === 'published' ? 'Personlig ukesfeedback publisert.' : 'Personlig ukesfeedback lagret som utkast.');
+  }
+
+  async function saveCoachingTeamFeedback(status = 'draft') {
+    if (!canManageCoaching()) return;
+    if (!coachingSchemaReady) {
+      setCoachingManagerStatus(COACHING_SCHEMA_WARNING, 'warning');
+      return;
+    }
+    const draft = coachingTeamFeedbackDraft || getDefaultCoachingTeamFeedbackDraft();
+    const row = {
+      feedback_id: `coaching-team-${draft.teamKey || 'all'}-${draft.weekKey}`,
+      manager_user_id: currentUser.id,
+      week_start_date: draft.weekKey,
+      team_key: normalizeTeamKey(draft.teamKey || ''),
+      message_one: String(draft.messageOne || '').trim(),
+      message_two: String(draft.messageTwo || '').trim(),
+      status: normalizeCoachingStatus(status)
+    };
+    const { error } = await supabaseClient
+      .from(SUPABASE_COACHING_TEAM_FEEDBACK_TABLE)
+      .upsert([row], { onConflict: 'feedback_id' });
+    if (error) {
+      if (isCoachingSchemaMismatch(error)) {
+        coachingSchemaReady = false;
+        setCoachingManagerStatus(COACHING_SCHEMA_WARNING, 'warning');
+        renderCoachingManagerPage();
+        return;
+      }
+      setCoachingManagerStatus(error.message, 'warning');
+      return;
+    }
+    coachingTeamFeedbackDraft.status = row.status;
+    await loadCoachingData({ silentLoading: true }).catch(() => {});
+    setCoachingManagerStatus(row.status === 'published' ? 'Teammeldingene ble publisert.' : 'Teammeldingene ble lagret som utkast.');
   }
 
   function getDefaultOvDraft() {
