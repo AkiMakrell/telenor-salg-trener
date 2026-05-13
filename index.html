@@ -1843,6 +1843,54 @@
       padding: 14px 16px;
     }
 
+    .coaching-toggle-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .coaching-toggle-row .choice-chip {
+      margin-top: 0;
+    }
+
+    .coaching-panel-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .coaching-report-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .coaching-report-item {
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      background: rgba(11, 18, 32, 0.88);
+    }
+
+    .coaching-report-item-title {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .coaching-report-item-copy {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    .coaching-divider {
+      height: 1px;
+      background: rgba(148, 163, 184, 0.18);
+      margin: 2px 0;
+    }
+
     .ov-page {
       max-width: 1120px;
       margin: 0 auto;
@@ -11090,6 +11138,9 @@
   let coachingTeamFeedbackDraft = null;
   let selectedCoachingWorkerId = '';
   let coachingPreviewUserId = '';
+  let activeCoachingManagerSection = 'ratings';
+  let activeCoachingFeedbackSection = 'individual';
+  let isCoachingRatingFormOpen = false;
 
   localStorage.setItem = function(k, v) {
     _origSetItem(k, v);
@@ -23121,6 +23172,7 @@
     selectedCoachingWorkerId = String(userId || '');
     coachingEditingRatingId = '';
     coachingRatingDraft = getDefaultCoachingRatingDraft(selectedCoachingWorkerId);
+    isCoachingRatingFormOpen = false;
     syncCoachingDraftsForSelectedWorker();
     setCoachingManagerStatus('');
     renderCoachingManagerPage();
@@ -23328,6 +23380,207 @@
     switchTab('coaching-worker');
   }
 
+  function setActiveCoachingManagerSection(sectionId) {
+    activeCoachingManagerSection = sectionId === 'feedback' ? 'feedback' : 'ratings';
+    if (activeCoachingManagerSection !== 'ratings') isCoachingRatingFormOpen = false;
+    renderCoachingManagerPage();
+  }
+
+  function setActiveCoachingFeedbackSection(sectionId) {
+    activeCoachingManagerSection = 'feedback';
+    activeCoachingFeedbackSection = sectionId === 'team' ? 'team' : 'individual';
+    renderCoachingManagerPage();
+  }
+
+  function openNewCoachingRatingForm() {
+    coachingEditingRatingId = '';
+    coachingRatingDraft = getDefaultCoachingRatingDraft(getSelectedCoachingWorkerId());
+    isCoachingRatingFormOpen = true;
+    renderCoachingManagerPage();
+  }
+
+  function closeCoachingRatingForm() {
+    coachingEditingRatingId = '';
+    coachingRatingDraft = getDefaultCoachingRatingDraft(getSelectedCoachingWorkerId());
+    isCoachingRatingFormOpen = false;
+    renderCoachingManagerPage();
+  }
+
+  function getCoachingSortedCategoryAverages(summary) {
+    return (summary?.categoryAverages || [])
+      .filter(item => item.count > 0)
+      .sort((a, b) => a.average - b.average || a.label.localeCompare(b.label, 'no-NO'));
+  }
+
+  function buildCoachingIndividualReport(summary) {
+    const sorted = getCoachingSortedCategoryAverages(summary);
+    const strongest = sorted.length ? sorted[sorted.length - 1] : null;
+    const weakest = sorted[0] || null;
+    const secondary = sorted[1] || null;
+    return {
+      strongest,
+      weakest,
+      secondary,
+      summaryLine: strongest && weakest
+        ? `Sterkest i ${strongest.label}. Størst løft nå ligger i ${weakest.label}${secondary && secondary.key !== weakest.key ? ` og ${secondary.label}` : ''}.`
+        : 'Trenger flere samtaleratinger før rapporten blir tydelig.'
+    };
+  }
+
+  function getCoachingCurrentWeekTeamRatings(weekKey = getCoachingWeekKey()) {
+    const teamKey = normalizeTeamKey(getUserTeam(currentUser));
+    const sourceRatings = coachingSchemaReady
+      ? coachingConversationRatings.filter(rating => rating.week_start_date === weekKey)
+      : getCoachingWorkerBundle(getSelectedCoachingWorkerId(), weekKey).ratings;
+    if (!teamKey) return sourceRatings;
+    return sourceRatings.filter(rating => normalizeTeamKey(getCoachingProfile(rating.worker_user_id)?.team) === teamKey);
+  }
+
+  function buildCoachingTeamReport(ratings = []) {
+    const summary = buildCoachingSummary(ratings);
+    const sorted = getCoachingSortedCategoryAverages(summary);
+    const strongest = sorted.length ? sorted[sorted.length - 1] : null;
+    const weakest = sorted[0] || null;
+    const secondary = sorted[1] || null;
+    const workerCount = new Set((ratings || []).map(rating => rating.worker_user_id).filter(Boolean)).size;
+    return {
+      summary,
+      strongest,
+      weakest,
+      secondary,
+      workerCount,
+      summaryLine: strongest && weakest
+        ? `Teamet er sterkest i ${strongest.label}. Det største felles forbedringsområdet er ${weakest.label}${secondary && secondary.key !== weakest.key ? `, deretter ${secondary.label}` : ''}.`
+        : 'Trenger flere samtaleratinger før teamrapporten blir tydelig.'
+    };
+  }
+
+  function renderCoachingIndividualFeedbackSection(workerFeedbackDraft, summary, selectedWorkerId, weekKey) {
+    const report = buildCoachingIndividualReport(summary);
+    return `
+      <div class="coaching-card">
+        <div class="coaching-head">
+          <div>
+            <div class="coaching-title">Individuell tilbakemelding</div>
+          </div>
+          <div class="coaching-toggle-row">
+            <button class="choice-chip ${activeCoachingFeedbackSection === 'individual' ? 'active' : ''}" type="button" onclick="setActiveCoachingFeedbackSection('individual')">Individuell tilbakemelding</button>
+            <button class="choice-chip ${activeCoachingFeedbackSection === 'team' ? 'active' : ''}" type="button" onclick="setActiveCoachingFeedbackSection('team')">Team tilbakemelding</button>
+          </div>
+        </div>
+        <div class="coaching-panel-stack">
+          <div class="coaching-note-card">
+            <div class="coaching-note-title">Individrapport</div>
+            <div class="coaching-note-copy">${escHtml(report.summaryLine)}</div>
+          </div>
+          <div class="coaching-report-list">
+            <div class="coaching-report-item">
+              <div class="coaching-report-item-title">God på nå</div>
+              <div class="coaching-report-item-copy">${escHtml(report.strongest ? `${report.strongest.label} (${formatCoachingAverage(report.strongest.average)}/5)` : 'Ikke nok data ennå.')}</div>
+            </div>
+            <div class="coaching-report-item">
+              <div class="coaching-report-item-title">Bør jobbe mest med</div>
+              <div class="coaching-report-item-copy">${escHtml(report.weakest ? `${report.weakest.label} (${formatCoachingAverage(report.weakest.average)}/5)` : 'Ikke nok data ennå.')}</div>
+            </div>
+            <div class="coaching-report-item">
+              <div class="coaching-report-item-title">Neste område etter det</div>
+              <div class="coaching-report-item-copy">${escHtml(report.secondary ? `${report.secondary.label} (${formatCoachingAverage(report.secondary.average)}/5)` : 'Ikke nok data ennå.')}</div>
+            </div>
+          </div>
+          <div class="coaching-divider"></div>
+          <div class="coaching-grid">
+            <div class="coaching-field">
+              <label for="coaching-strength-highlight">Styrke</label>
+              <input id="coaching-strength-highlight" class="coaching-input" type="text" placeholder="F.eks. Behovsanalyse" value="${escAttr(workerFeedbackDraft.strengthHighlight)}" oninput="updateCoachingWorkerFeedbackDraftField('strengthHighlight', this.value)" />
+            </div>
+            <div class="coaching-field">
+              <label for="coaching-focus-primary">Fokus 1</label>
+              <input id="coaching-focus-primary" class="coaching-input" type="text" placeholder="F.eks. Neste steg" value="${escAttr(workerFeedbackDraft.focusPrimary)}" oninput="updateCoachingWorkerFeedbackDraftField('focusPrimary', this.value)" />
+            </div>
+            <div class="coaching-field">
+              <label for="coaching-focus-secondary">Fokus 2</label>
+              <input id="coaching-focus-secondary" class="coaching-input" type="text" placeholder="F.eks. Oppsummering" value="${escAttr(workerFeedbackDraft.focusSecondary)}" oninput="updateCoachingWorkerFeedbackDraftField('focusSecondary', this.value)" />
+            </div>
+            <div class="coaching-field coaching-field-full">
+              <label for="coaching-personal-message">Fra leder</label>
+              <textarea id="coaching-personal-message" class="coaching-textarea" placeholder="Skriv den ene personlige meldingen den ansatte skal se denne uken." oninput="updateCoachingWorkerFeedbackDraftField('personalMessage', this.value)">${escHtml(workerFeedbackDraft.personalMessage)}</textarea>
+            </div>
+          </div>
+          <div class="coaching-actions">
+            <button class="backup-btn" style="margin-top:0;" type="button" onclick="saveCoachingWorkerFeedback('draft')" ${!selectedWorkerId ? 'disabled' : ''}>Lagre utkast</button>
+            <button class="save-btn" style="margin-top:0;" type="button" onclick="saveCoachingWorkerFeedback('published')" ${!selectedWorkerId ? 'disabled' : ''}>Publiser til ansatt</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderCoachingTeamFeedbackSection(teamFeedbackDraft, teamReport, teamFeedbackStatus = null) {
+    return `
+      <div class="coaching-card">
+        <div class="coaching-head">
+          <div>
+            <div class="coaching-title">Team tilbakemelding</div>
+          </div>
+          ${teamFeedbackStatus ? `<span class="coaching-status-pill ${escAttr(teamFeedbackStatus.status)}">${escHtml(formatCoachingStatusLabel(teamFeedbackStatus.status))}</span>` : ''}
+          <div class="coaching-toggle-row">
+            <button class="choice-chip ${activeCoachingFeedbackSection === 'individual' ? 'active' : ''}" type="button" onclick="setActiveCoachingFeedbackSection('individual')">Individuell tilbakemelding</button>
+            <button class="choice-chip ${activeCoachingFeedbackSection === 'team' ? 'active' : ''}" type="button" onclick="setActiveCoachingFeedbackSection('team')">Team tilbakemelding</button>
+          </div>
+        </div>
+        <div class="coaching-panel-stack">
+          <div class="coaching-note-card">
+            <div class="coaching-note-title">Teamrapport</div>
+            <div class="coaching-note-copy">${escHtml(teamReport.summaryLine)}</div>
+          </div>
+          <div class="coaching-metric-grid">
+            <div class="coaching-metric-card">
+              <div class="coaching-metric-label">Ansatte i rapporten</div>
+              <div class="coaching-metric-value">${teamReport.workerCount}</div>
+            </div>
+            <div class="coaching-metric-card">
+              <div class="coaching-metric-label">Snittscore</div>
+              <div class="coaching-metric-value">${escHtml(formatCoachingAverage(teamReport.summary.overallAverage))}</div>
+            </div>
+            <div class="coaching-metric-card">
+              <div class="coaching-metric-label">Best samlet</div>
+              <div class="coaching-metric-value small">${escHtml(teamReport.strongest ? teamReport.strongest.label : '-')}</div>
+            </div>
+            <div class="coaching-metric-card">
+              <div class="coaching-metric-label">Må løftes mest</div>
+              <div class="coaching-metric-value small">${escHtml(teamReport.weakest ? teamReport.weakest.label : '-')}</div>
+            </div>
+          </div>
+          <div class="coaching-report-list">
+            <div class="coaching-report-item">
+              <div class="coaching-report-item-title">Det teamet bør bli bedre på</div>
+              <div class="coaching-report-item-copy">${escHtml(teamReport.weakest ? teamReport.weakest.label : 'Ikke nok data ennå.')}</div>
+            </div>
+            <div class="coaching-report-item">
+              <div class="coaching-report-item-title">Neste felles fokus</div>
+              <div class="coaching-report-item-copy">${escHtml(teamReport.secondary ? teamReport.secondary.label : 'Ikke nok data ennå.')}</div>
+            </div>
+          </div>
+          <div class="coaching-divider"></div>
+          <div class="coaching-stack">
+            <div class="coaching-field">
+              <label for="coaching-team-message-one">Melding 1</label>
+              <textarea id="coaching-team-message-one" class="coaching-textarea" placeholder="Første beskjed til hele teamet." oninput="updateCoachingTeamFeedbackDraftField('messageOne', this.value)">${escHtml(teamFeedbackDraft.messageOne)}</textarea>
+            </div>
+            <div class="coaching-field">
+              <label for="coaching-team-message-two">Melding 2</label>
+              <textarea id="coaching-team-message-two" class="coaching-textarea" placeholder="Andre beskjed til hele teamet." oninput="updateCoachingTeamFeedbackDraftField('messageTwo', this.value)">${escHtml(teamFeedbackDraft.messageTwo)}</textarea>
+            </div>
+          </div>
+          <div class="coaching-actions">
+            <button class="backup-btn" style="margin-top:0;" type="button" onclick="saveCoachingTeamFeedback('draft')">Lagre utkast</button>
+            <button class="save-btn" style="margin-top:0;" type="button" onclick="saveCoachingTeamFeedback('published')">Publiser til teamet</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   function renderCoachingManagerPage() {
     const page = document.getElementById('coaching-manager-page');
     if (!page) return;
@@ -23356,11 +23609,13 @@
     const workerFeedbackDraft = coachingWorkerFeedbackDraft || getDefaultCoachingWorkerFeedbackDraft(selectedWorkerId, weekKey);
     const teamFeedbackDraft = coachingTeamFeedbackDraft || getDefaultCoachingTeamFeedbackDraft(weekKey, normalizeTeamKey(getUserTeam(currentUser)));
     const teamFeedbackStatus = coachingSchemaReady ? getCoachingTeamFeedbackRow(teamFeedbackDraft.teamKey, weekKey) : bundle.teamFeedback;
+    const teamWeekRatings = getCoachingCurrentWeekTeamRatings(weekKey);
+    const teamReport = buildCoachingTeamReport(teamWeekRatings);
     page.innerHTML = `
       <div class="coaching-hero">
         <div>
           <div class="coaching-hero-title">Coachingoversikt</div>
-          <div class="coaching-hero-text">Rate samtaler, skriv ukesfeedback og publiser det de ansatte skal se.</div>
+          <div class="coaching-hero-text">Rate samtaler og bygg tydelige rapporter for ansatte og team.</div>
         </div>
         <div class="coaching-preview-row">
           <span class="coaching-role-pill">Manager</span>
@@ -23387,6 +23642,12 @@
                 </select>
               </div>
             ` : `<div class="coaching-empty">Ingen ansatte tilgjengelige ennå.</div>`}
+          </div>
+          <div class="coaching-card">
+            <div class="coaching-toggle-row">
+              <button class="choice-chip ${activeCoachingManagerSection === 'ratings' ? 'active' : ''}" type="button" onclick="setActiveCoachingManagerSection('ratings')">Samtalerating</button>
+              <button class="choice-chip ${activeCoachingManagerSection === 'feedback' ? 'active' : ''}" type="button" onclick="setActiveCoachingManagerSection('feedback')">Tilbakemelding</button>
+            </div>
           </div>
           <div class="coaching-card">
             <div class="coaching-head">
@@ -23416,100 +23677,72 @@
             </div>
             <div style="margin-top:14px;">${renderCoachingScorePills(summary)}</div>
           </div>
-          <div class="coaching-card">
-            <div class="coaching-head">
-              <div>
-                <div class="coaching-title">${coachingEditingRatingId ? 'Rediger samtalerating' : 'Ny samtalerating'}</div>
+          ${activeCoachingManagerSection === 'ratings' ? `
+            <div class="coaching-card">
+              <div class="coaching-head">
+                <div>
+                  <div class="coaching-title">Samtalerating</div>
+                </div>
+                <button class="save-btn" style="margin-top:0;" type="button" onclick="openNewCoachingRatingForm()" ${!selectedWorkerId ? 'disabled' : ''}>Ny samtalerating</button>
               </div>
-            </div>
-            <div class="coaching-grid">
-              <div class="coaching-field">
-                <label for="coaching-interaction-id">InteractionID</label>
-                <input id="coaching-interaction-id" class="coaching-input" type="text" placeholder="F.eks. 123456789" value="${escAttr(ratingDraft.interactionId)}" oninput="updateCoachingRatingDraftField('interactionId', this.value)" />
-              </div>
-              <div class="coaching-field">
-                <label for="coaching-rating-date">Dato</label>
-                <input id="coaching-rating-date" class="coaching-input" type="date" value="${escAttr(ratingDraft.date)}" oninput="updateCoachingRatingDraftField('date', this.value)" />
-              </div>
-              <div class="coaching-field coaching-field-full">
-                <label>Rating</label>
-                <div class="coaching-score-grid">
-                  ${COACHING_SCORE_FIELDS.map(field => `
-                    <div class="coaching-score-card">
-                      <div class="coaching-score-label">${escHtml(field.label)}</div>
-                      <div class="coaching-score-choice-row">
-                        ${[0, 1, 2, 3, 4, 5].map(value => `
-                          <button class="choice-chip coaching-score-choice ${ratingDraft.scores[field.key] === value ? 'active' : ''}" type="button" onclick="setCoachingScore('${field.key}', ${value})">${value}</button>
+              ${isCoachingRatingFormOpen || coachingEditingRatingId ? `
+                <div class="coaching-panel-stack">
+                  <div class="coaching-grid">
+                    <div class="coaching-field">
+                      <label for="coaching-interaction-id">InteractionID</label>
+                      <input id="coaching-interaction-id" class="coaching-input" type="text" placeholder="F.eks. 123456789" value="${escAttr(ratingDraft.interactionId)}" oninput="updateCoachingRatingDraftField('interactionId', this.value)" />
+                    </div>
+                    <div class="coaching-field">
+                      <label for="coaching-rating-date">Dato</label>
+                      <input id="coaching-rating-date" class="coaching-input" type="date" value="${escAttr(ratingDraft.date)}" oninput="updateCoachingRatingDraftField('date', this.value)" />
+                    </div>
+                    <div class="coaching-field coaching-field-full">
+                      <label>Rating</label>
+                      <div class="coaching-score-grid">
+                        ${COACHING_SCORE_FIELDS.map(field => `
+                          <div class="coaching-score-card">
+                            <div class="coaching-score-label">${escHtml(field.label)}</div>
+                            <div class="coaching-score-choice-row">
+                              ${[0, 1, 2, 3, 4, 5].map(value => `
+                                <button class="choice-chip coaching-score-choice ${ratingDraft.scores[field.key] === value ? 'active' : ''}" type="button" onclick="setCoachingScore('${field.key}', ${value})">${value}</button>
+                              `).join('')}
+                            </div>
+                          </div>
                         `).join('')}
                       </div>
                     </div>
-                  `).join('')}
+                    <div class="coaching-field coaching-field-full">
+                      <label for="coaching-rating-notes">Kort notat</label>
+                      <textarea id="coaching-rating-notes" class="coaching-textarea" placeholder="Skriv det viktigste du vil huske fra denne samtalen." oninput="updateCoachingRatingDraftField('notes', this.value)">${escHtml(ratingDraft.notes)}</textarea>
+                    </div>
+                  </div>
+                  <div class="coaching-actions">
+                    <button class="save-btn" style="margin-top:0;" type="button" onclick="saveCoachingConversationRating()" ${!selectedWorkerId ? 'disabled' : ''}>${coachingEditingRatingId ? 'Oppdater rating' : 'Lagre rating'}</button>
+                    <button class="backup-btn" style="margin-top:0;" type="button" onclick="closeCoachingRatingForm()">Lukk</button>
+                  </div>
+                </div>
+              ` : ''}
+            </div>
+          ` : activeCoachingFeedbackSection === 'individual'
+            ? renderCoachingIndividualFeedbackSection(workerFeedbackDraft, summary, selectedWorkerId, weekKey)
+            : `
+              <div class="coaching-card">
+                <div class="coaching-head">
+                  <div>
+                    <div class="coaching-title">Tilbakemelding</div>
+                    <div class="coaching-subtext">Teamrapporten bruker alle samtaleratingene for denne uken.</div>
+                  </div>
+                </div>
+                <div class="coaching-note-card">
+                  <div class="coaching-note-copy">${escHtml(teamReport.summaryLine)}</div>
                 </div>
               </div>
-              <div class="coaching-field coaching-field-full">
-                <label for="coaching-rating-notes">Kort notat</label>
-                <textarea id="coaching-rating-notes" class="coaching-textarea" placeholder="Skriv det viktigste du vil huske fra denne samtalen." oninput="updateCoachingRatingDraftField('notes', this.value)">${escHtml(ratingDraft.notes)}</textarea>
-              </div>
-            </div>
-            <div class="coaching-actions" style="margin-top:18px;">
-              <button class="save-btn" style="margin-top:0;" type="button" onclick="saveCoachingConversationRating()" ${!selectedWorkerId ? 'disabled' : ''}>${coachingEditingRatingId ? 'Oppdater rating' : 'Lagre rating'}</button>
-              <button class="backup-btn" style="margin-top:0;" type="button" onclick="resetCoachingRatingDraft()">Nullstill</button>
-            </div>
-          </div>
-          <div class="coaching-card">
-            <div class="coaching-head">
-              <div>
-                <div class="coaching-title">Personlig ukesfeedback</div>
-              </div>
-              <span class="coaching-status-pill ${escAttr(workerFeedbackDraft.status)}">${escHtml(formatCoachingStatusLabel(workerFeedbackDraft.status))}</span>
-            </div>
-            <div class="coaching-grid">
-              <div class="coaching-field">
-                <label for="coaching-strength-highlight">Styrke</label>
-                <input id="coaching-strength-highlight" class="coaching-input" type="text" placeholder="F.eks. Behovsanalyse" value="${escAttr(workerFeedbackDraft.strengthHighlight)}" oninput="updateCoachingWorkerFeedbackDraftField('strengthHighlight', this.value)" />
-              </div>
-              <div class="coaching-field">
-                <label for="coaching-focus-primary">Fokus 1</label>
-                <input id="coaching-focus-primary" class="coaching-input" type="text" placeholder="F.eks. Neste steg" value="${escAttr(workerFeedbackDraft.focusPrimary)}" oninput="updateCoachingWorkerFeedbackDraftField('focusPrimary', this.value)" />
-              </div>
-              <div class="coaching-field">
-                <label for="coaching-focus-secondary">Fokus 2</label>
-                <input id="coaching-focus-secondary" class="coaching-input" type="text" placeholder="F.eks. Oppsummering" value="${escAttr(workerFeedbackDraft.focusSecondary)}" oninput="updateCoachingWorkerFeedbackDraftField('focusSecondary', this.value)" />
-              </div>
-              <div class="coaching-field coaching-field-full">
-                <label for="coaching-personal-message">Fra leder</label>
-                <textarea id="coaching-personal-message" class="coaching-textarea" placeholder="Skriv den ene personlige meldingen den ansatte skal se denne uken." oninput="updateCoachingWorkerFeedbackDraftField('personalMessage', this.value)">${escHtml(workerFeedbackDraft.personalMessage)}</textarea>
-              </div>
-            </div>
-            <div class="coaching-actions" style="margin-top:18px;">
-              <button class="backup-btn" style="margin-top:0;" type="button" onclick="saveCoachingWorkerFeedback('draft')" ${!selectedWorkerId ? 'disabled' : ''}>Lagre utkast</button>
-              <button class="save-btn" style="margin-top:0;" type="button" onclick="saveCoachingWorkerFeedback('published')" ${!selectedWorkerId ? 'disabled' : ''}>Publiser til ansatt</button>
-            </div>
-          </div>
+            `}
         </div>
         <div class="coaching-side">
-          <div class="coaching-card">
-            <div class="coaching-head">
-              <div>
-                <div class="coaching-title">Teammeldinger</div>
-              </div>
-              ${teamFeedbackStatus ? `<span class="coaching-status-pill ${escAttr(teamFeedbackStatus.status)}">${escHtml(formatCoachingStatusLabel(teamFeedbackStatus.status))}</span>` : ''}
-            </div>
-            <div class="coaching-stack">
-              <div class="coaching-field">
-                <label for="coaching-team-message-one">Melding 1</label>
-                <textarea id="coaching-team-message-one" class="coaching-textarea" placeholder="Første beskjed til hele teamet." oninput="updateCoachingTeamFeedbackDraftField('messageOne', this.value)">${escHtml(teamFeedbackDraft.messageOne)}</textarea>
-              </div>
-              <div class="coaching-field">
-                <label for="coaching-team-message-two">Melding 2</label>
-                <textarea id="coaching-team-message-two" class="coaching-textarea" placeholder="Andre beskjed til hele teamet." oninput="updateCoachingTeamFeedbackDraftField('messageTwo', this.value)">${escHtml(teamFeedbackDraft.messageTwo)}</textarea>
-              </div>
-            </div>
-            <div class="coaching-actions" style="margin-top:18px;">
-              <button class="backup-btn" style="margin-top:0;" type="button" onclick="saveCoachingTeamFeedback('draft')">Lagre utkast</button>
-              <button class="save-btn" style="margin-top:0;" type="button" onclick="saveCoachingTeamFeedback('published')">Publiser til teamet</button>
-            </div>
-          </div>
+          ${activeCoachingManagerSection === 'feedback' && activeCoachingFeedbackSection === 'team'
+            ? renderCoachingTeamFeedbackSection(teamFeedbackDraft, teamReport, teamFeedbackStatus)
+            : ''}
           <div class="coaching-card">
             <div class="coaching-head">
               <div>
@@ -23699,6 +23932,7 @@
   function resetCoachingRatingDraft() {
     coachingEditingRatingId = '';
     coachingRatingDraft = getDefaultCoachingRatingDraft(getSelectedCoachingWorkerId());
+    isCoachingRatingFormOpen = true;
     renderCoachingManagerPage();
   }
 
@@ -23706,7 +23940,9 @@
     const rating = coachingConversationRatings.find(row => row.rating_id === ratingId);
     if (!rating) return;
     selectedCoachingWorkerId = rating.worker_user_id;
+    activeCoachingManagerSection = 'ratings';
     coachingEditingRatingId = ratingId;
+    isCoachingRatingFormOpen = true;
     coachingRatingDraft = {
       workerUserId: rating.worker_user_id,
       interactionId: rating.interaction_id,
@@ -23769,6 +24005,7 @@
     }
     coachingEditingRatingId = '';
     coachingRatingDraft = getDefaultCoachingRatingDraft(draft.workerUserId);
+    isCoachingRatingFormOpen = false;
     await loadCoachingData({ silentLoading: true }).catch(() => {});
     setCoachingManagerStatus('Samtalerating lagret.');
   }
@@ -23786,7 +24023,7 @@
       setCoachingManagerStatus(error.message, 'warning');
       return;
     }
-    if (coachingEditingRatingId === ratingId) resetCoachingRatingDraft();
+    if (coachingEditingRatingId === ratingId) closeCoachingRatingForm();
     await loadCoachingData({ silentLoading: true }).catch(() => {});
     setCoachingManagerStatus('Samtalerating slettet.');
   }
