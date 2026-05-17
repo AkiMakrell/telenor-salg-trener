@@ -2280,6 +2280,24 @@
       margin-top: 10px;
     }
 
+    .coaching-report-form {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .coaching-report-detail-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .coaching-report-detail-item {
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      background: rgba(11, 18, 32, 0.88);
+      padding: 14px;
+    }
+
     .coaching-divider {
       height: 1px;
       background: rgba(148, 163, 184, 0.18);
@@ -24346,8 +24364,31 @@
     }
   }
 
-  function renderCoachingIndividualFeedbackSection(workerFeedbackDraft, summary, selectedWorkerId, weekKey) {
+  function renderCoachingReportConversationDetails(ratings = []) {
+    if (!ratings.length) return `<div class="coaching-empty">Ingen samtaler rated denne uken ennå.</div>`;
+    return `
+      <div class="coaching-report-detail-list">
+        ${ratings.map(rating => `
+          <div class="coaching-report-detail-item">
+            <div class="coaching-history-head">
+              <div>
+                <div class="coaching-history-title">${escHtml(rating.interaction_id || 'Uten InteractionID')}</div>
+                <div class="coaching-history-meta">${escHtml(formatSamtaleRatingDate(rating.rating_date))}</div>
+              </div>
+              <button class="backup-btn" style="margin-top:0;" type="button" onclick="openCoachingRatingEntry('${rating.rating_id}')">Åpne</button>
+            </div>
+            ${renderCoachingScorePills(buildCoachingSummary([rating]))}
+            ${rating.notes ? `<div class="coaching-history-note" style="margin-top:10px;">${escHtml(rating.notes)}</div>` : ''}
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function renderCoachingIndividualFeedbackSection(workerFeedbackDraft, summary, selectedWorkerId, weekKey, options = {}) {
     const report = buildCoachingIndividualReport(summary);
+    const selectedProfile = options.selectedProfile || getCoachingProfile(selectedWorkerId);
+    const ratings = Array.isArray(options.ratings) ? options.ratings : [];
     return `
       <div class="coaching-card">
         <div class="coaching-head">
@@ -24359,10 +24400,29 @@
             <button class="choice-chip ${activeCoachingFeedbackSection === 'team' ? 'active' : ''}" type="button" onclick="setActiveCoachingFeedbackSection('team')">Team tilbakemelding</button>
           </div>
         </div>
-        <div class="coaching-panel-stack">
+        <div class="coaching-report-form">
+          <div class="coaching-report-summary-grid">
+            <div class="coaching-mini-stat">
+              <div class="coaching-mini-stat-label">Navn</div>
+              <div class="coaching-mini-stat-value">${escHtml(selectedProfile?.display_name || 'Ingen valgt')}</div>
+            </div>
+            <div class="coaching-mini-stat">
+              <div class="coaching-mini-stat-label">Ratings</div>
+              <div class="coaching-mini-stat-value">${summary.count}</div>
+            </div>
+          </div>
           <div class="coaching-note-card">
             <div class="coaching-note-title">Individrapport</div>
             <div class="coaching-note-copy">${escHtml(report.summaryLine)}</div>
+          </div>
+          <div class="coaching-card" style="padding:0; border:none; box-shadow:none; background:transparent;">
+            <div class="coaching-section-headline" style="margin-bottom:12px;">
+              <div>
+                <div class="coaching-section-kicker">Samtalegrunnlag</div>
+                <div class="coaching-title">Denne ukens samtaler</div>
+              </div>
+            </div>
+            ${renderCoachingReportConversationDetails(ratings)}
           </div>
           <div class="coaching-report-list">
             <div class="coaching-report-item">
@@ -24526,7 +24586,6 @@
     const summaryPills = [
       { label: 'Ansatt', value: selectedProfile?.display_name || 'Ingen valgt' },
       { label: 'Ratings', value: String(summary.count) },
-      { label: 'Snitt', value: `${formatCoachingAverage(summary.overallAverage)}/5` },
       { label: 'Fokus', value: workerFeedbackDraft.weekFocusText || currentReport?.week_focus_text || '-' }
     ];
     const publishCard = `
@@ -24600,19 +24659,36 @@
           <div class="coaching-section-headline">
             <div>
               <div class="coaching-section-kicker">${activeCoachingManagerSection === 'ratings' ? 'Steg 1' : 'Steg 2'}</div>
-              <div class="coaching-title">${activeCoachingManagerSection === 'ratings' ? 'Samtaler denne uken' : 'Ukesrapport for valgt ansatt'}</div>
+              <div class="coaching-title">${activeCoachingManagerSection === 'ratings' ? 'Samtaler denne uken' : 'Felles grunnlag'}</div>
             </div>
             ${currentReport ? `<span class="coaching-status-pill published">Publisert</span>` : bundle.workerFeedback ? `<span class="coaching-status-pill ${escAttr(bundle.workerFeedback.status)}">${escHtml(formatCoachingStatusLabel(bundle.workerFeedback.status))}</span>` : ''}
           </div>
-          <div class="coaching-week-summary">
-            ${summaryPills.map(item => `
-              <div class="coaching-metric-card">
-                <div class="coaching-metric-label">${escHtml(item.label)}</div>
-                <div class="coaching-metric-value small">${escHtml(item.value)}</div>
+          ${activeCoachingManagerSection === 'ratings' ? `
+            <div class="coaching-week-summary">
+              ${summaryPills.map(item => `
+                <div class="coaching-metric-card">
+                  <div class="coaching-metric-label">${escHtml(item.label)}</div>
+                  <div class="coaching-metric-value small">${escHtml(item.value)}</div>
+                </div>
+              `).join('')}
+            </div>
+            <div style="margin-top:14px;">${renderCoachingScorePills(summary)}</div>
+          ` : `
+            <div class="coaching-report-summary-grid">
+              <div class="coaching-mini-stat">
+                <div class="coaching-mini-stat-label">Datoperiode</div>
+                <div class="coaching-mini-stat-value">${escHtml(formatCoachingWeekLabel(weekKey))}</div>
               </div>
-            `).join('')}
-          </div>
-          <div style="margin-top:14px;">${renderCoachingScorePills(summary)}</div>
+              <div class="coaching-mini-stat">
+                <div class="coaching-mini-stat-label">Ansatte klare</div>
+                <div class="coaching-mini-stat-value">${publishReadyCount}</div>
+              </div>
+            </div>
+            <div class="coaching-note-card" style="margin-top:14px;">
+              <div class="coaching-note-title">Team retning</div>
+              <div class="coaching-note-copy">${escHtml(teamReport.summaryLine)}</div>
+            </div>
+          `}
         </div>
         ${activeCoachingManagerSection === 'ratings' ? `
           <div class="coaching-flow-grid two-column">
@@ -24717,47 +24793,43 @@
             </div>
           </div>
         ` : `
-          <div class="coaching-flow-grid two-column">
-            <div class="coaching-section-stack">
-              <div class="coaching-card">
-                <div class="coaching-summary-strip">
-                  <span class="coaching-summary-pill"><strong>${publishReadyCount}</strong> ansatte klare</span>
-                  <span class="coaching-summary-pill"><strong>${(teamFeedbackDraft.sharedGrowthPoints || []).map(item => String(item || '').trim()).filter(Boolean).length}</strong> vekstpunkt</span>
-                </div>
+          <div class="coaching-section-stack">
+            <div class="coaching-flow-grid two-column">
+              <div class="coaching-section-stack">
+                ${activeCoachingFeedbackSection === 'individual'
+                  ? renderCoachingIndividualFeedbackSection(workerFeedbackDraft, summary, selectedWorkerId, weekKey, { selectedProfile, ratings: bundle.ratings })
+                  : renderCoachingTeamFeedbackSection(teamFeedbackDraft, teamReport, teamFeedbackStatus)}
               </div>
-              ${activeCoachingFeedbackSection === 'individual'
-                ? renderCoachingIndividualFeedbackSection(workerFeedbackDraft, summary, selectedWorkerId, weekKey)
-                : renderCoachingTeamFeedbackSection(teamFeedbackDraft, teamReport, teamFeedbackStatus)}
-            </div>
-            <div class="coaching-section-stack">
-              ${activeCoachingFeedbackSection === 'individual' ? `
-                <div class="coaching-card">
-                  <div class="coaching-section-headline">
-                    <div>
-                      <div class="coaching-section-kicker">Felles</div>
-                      <div class="coaching-title">Teamretning</div>
+              <div class="coaching-section-stack">
+                ${activeCoachingFeedbackSection === 'individual' ? `
+                  <div class="coaching-card">
+                    <div class="coaching-section-headline">
+                      <div>
+                        <div class="coaching-section-kicker">Felles</div>
+                        <div class="coaching-title">Teamretning</div>
+                      </div>
+                      <button class="backup-btn" style="margin-top:0;" type="button" onclick="setActiveCoachingFeedbackSection('team')">Åpne</button>
                     </div>
-                    <button class="backup-btn" style="margin-top:0;" type="button" onclick="setActiveCoachingFeedbackSection('team')">Åpne</button>
-                  </div>
-                  <div class="coaching-note-card">
-                    <div class="coaching-note-copy">${escHtml(teamReport.summaryLine)}</div>
-                  </div>
-                </div>
-              ` : `
-                <div class="coaching-card">
-                  <div class="coaching-section-headline">
-                    <div>
-                      <div class="coaching-section-kicker">Individ</div>
-                      <div class="coaching-title">Ansattrapport</div>
+                    <div class="coaching-note-card">
+                      <div class="coaching-note-copy">${escHtml(teamReport.summaryLine)}</div>
                     </div>
-                    <button class="backup-btn" style="margin-top:0;" type="button" onclick="setActiveCoachingFeedbackSection('individual')">Åpne</button>
                   </div>
-                  <div class="coaching-note-card">
-                    <div class="coaching-note-copy">${escHtml(buildCoachingIndividualReport(summary).summaryLine)}</div>
+                ` : `
+                  <div class="coaching-card">
+                    <div class="coaching-section-headline">
+                      <div>
+                        <div class="coaching-section-kicker">Individ</div>
+                        <div class="coaching-title">Ansattrapport</div>
+                      </div>
+                      <button class="backup-btn" style="margin-top:0;" type="button" onclick="setActiveCoachingFeedbackSection('individual')">Åpne</button>
+                    </div>
+                    <div class="coaching-note-card">
+                      <div class="coaching-note-copy">${escHtml(buildCoachingIndividualReport(summary).summaryLine)}</div>
+                    </div>
                   </div>
-                </div>
-              `}
-              ${publishCard}
+                `}
+                ${publishCard}
+              </div>
             </div>
           </div>
         `}
