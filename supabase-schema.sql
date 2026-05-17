@@ -712,6 +712,7 @@ alter table public.coaching_weekly_worker_feedback
   add column if not exists strength_highlight text not null default '',
   add column if not exists focus_primary text not null default '',
   add column if not exists focus_secondary text not null default '',
+  add column if not exists week_focus_text text not null default '',
   add column if not exists personal_message text not null default '',
   add column if not exists status text not null default 'draft';
 
@@ -772,6 +773,7 @@ create table if not exists public.coaching_weekly_team_feedback (
   team_key text not null default '',
   message_one text not null default '',
   message_two text not null default '',
+  shared_growth_points jsonb not null default '[]'::jsonb,
   status text not null default 'draft' check (status in ('draft', 'published')),
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())
@@ -781,6 +783,7 @@ alter table public.coaching_weekly_team_feedback
   add column if not exists team_key text not null default '',
   add column if not exists message_one text not null default '',
   add column if not exists message_two text not null default '',
+  add column if not exists shared_growth_points jsonb not null default '[]'::jsonb,
   add column if not exists status text not null default 'draft';
 
 create unique index if not exists coaching_weekly_team_feedback_team_week_uidx
@@ -832,6 +835,234 @@ using (
   auth.uid() = manager_user_id
   and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
 );
+
+create table if not exists public.coaching_daily_focus_messages (
+  focus_id text not null primary key,
+  worker_user_id uuid not null references auth.users (id) on delete cascade,
+  manager_user_id uuid not null references auth.users (id) on delete cascade,
+  message text not null default '',
+  is_active boolean not null default true,
+  sent_at timestamptz not null default timezone('utc', now()),
+  read_at timestamptz,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.coaching_daily_focus_messages
+  add column if not exists message text not null default '',
+  add column if not exists is_active boolean not null default true,
+  add column if not exists sent_at timestamptz not null default timezone('utc', now()),
+  add column if not exists read_at timestamptz;
+
+create index if not exists coaching_daily_focus_worker_active_idx
+  on public.coaching_daily_focus_messages (worker_user_id, is_active, sent_at desc);
+
+create index if not exists coaching_daily_focus_manager_sent_idx
+  on public.coaching_daily_focus_messages (manager_user_id, sent_at desc);
+
+drop trigger if exists coaching_daily_focus_messages_set_updated_at on public.coaching_daily_focus_messages;
+create trigger coaching_daily_focus_messages_set_updated_at
+before update on public.coaching_daily_focus_messages
+for each row
+execute function public.set_user_app_state_updated_at();
+
+alter table public.coaching_daily_focus_messages enable row level security;
+
+grant select, insert, update, delete on public.coaching_daily_focus_messages to authenticated;
+
+drop policy if exists "Managers and workers can read daily focus" on public.coaching_daily_focus_messages;
+create policy "Managers and workers can read daily focus"
+on public.coaching_daily_focus_messages
+for select
+using (auth.uid() = worker_user_id or auth.uid() = manager_user_id);
+
+drop policy if exists "Temporary manager can insert daily focus" on public.coaching_daily_focus_messages;
+create policy "Temporary manager can insert daily focus"
+on public.coaching_daily_focus_messages
+for insert
+with check (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+);
+
+drop policy if exists "Temporary manager can update daily focus" on public.coaching_daily_focus_messages;
+create policy "Temporary manager can update daily focus"
+on public.coaching_daily_focus_messages
+for update
+using (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+)
+with check (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+);
+
+drop policy if exists "Temporary manager can delete daily focus" on public.coaching_daily_focus_messages;
+create policy "Temporary manager can delete daily focus"
+on public.coaching_daily_focus_messages
+for delete
+using (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+);
+
+create table if not exists public.coaching_weekly_reports (
+  report_id text not null primary key,
+  worker_user_id uuid not null references auth.users (id) on delete cascade,
+  manager_user_id uuid not null references auth.users (id) on delete cascade,
+  team_key text not null default '',
+  week_start_date date not null,
+  week_end_date date not null,
+  rating_count integer not null default 0 check (rating_count >= 0),
+  overall_average double precision not null default 0,
+  strongest_area text not null default '',
+  weakest_area text not null default '',
+  focus_primary text not null default '',
+  focus_secondary text not null default '',
+  week_focus_text text not null default '',
+  personal_message text not null default '',
+  shared_growth_points jsonb not null default '[]'::jsonb,
+  summary_json jsonb not null default '{}'::jsonb,
+  published_at timestamptz not null default timezone('utc', now()),
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.coaching_weekly_reports
+  add column if not exists team_key text not null default '',
+  add column if not exists week_end_date date,
+  add column if not exists rating_count integer not null default 0,
+  add column if not exists overall_average double precision not null default 0,
+  add column if not exists strongest_area text not null default '',
+  add column if not exists weakest_area text not null default '',
+  add column if not exists focus_primary text not null default '',
+  add column if not exists focus_secondary text not null default '',
+  add column if not exists week_focus_text text not null default '',
+  add column if not exists personal_message text not null default '',
+  add column if not exists shared_growth_points jsonb not null default '[]'::jsonb,
+  add column if not exists summary_json jsonb not null default '{}'::jsonb,
+  add column if not exists published_at timestamptz not null default timezone('utc', now());
+
+update public.coaching_weekly_reports
+set week_end_date = coalesce(week_end_date, week_start_date + integer '6')
+where week_end_date is null;
+
+alter table public.coaching_weekly_reports
+  alter column week_end_date set not null;
+
+create unique index if not exists coaching_weekly_reports_worker_week_uidx
+  on public.coaching_weekly_reports (worker_user_id, week_start_date);
+
+create index if not exists coaching_weekly_reports_worker_published_idx
+  on public.coaching_weekly_reports (worker_user_id, published_at desc);
+
+drop trigger if exists coaching_weekly_reports_set_updated_at on public.coaching_weekly_reports;
+create trigger coaching_weekly_reports_set_updated_at
+before update on public.coaching_weekly_reports
+for each row
+execute function public.set_user_app_state_updated_at();
+
+alter table public.coaching_weekly_reports enable row level security;
+
+grant select, insert, update, delete on public.coaching_weekly_reports to authenticated;
+
+drop policy if exists "Managers and workers can read weekly reports" on public.coaching_weekly_reports;
+create policy "Managers and workers can read weekly reports"
+on public.coaching_weekly_reports
+for select
+using (auth.uid() = worker_user_id or auth.uid() = manager_user_id);
+
+drop policy if exists "Temporary manager can insert weekly reports" on public.coaching_weekly_reports;
+create policy "Temporary manager can insert weekly reports"
+on public.coaching_weekly_reports
+for insert
+with check (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+);
+
+drop policy if exists "Temporary manager can update weekly reports" on public.coaching_weekly_reports;
+create policy "Temporary manager can update weekly reports"
+on public.coaching_weekly_reports
+for update
+using (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+)
+with check (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+);
+
+drop policy if exists "Temporary manager can delete weekly reports" on public.coaching_weekly_reports;
+create policy "Temporary manager can delete weekly reports"
+on public.coaching_weekly_reports
+for delete
+using (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+);
+
+create table if not exists public.coaching_notifications (
+  notification_id text not null primary key,
+  recipient_user_id uuid not null references auth.users (id) on delete cascade,
+  manager_user_id uuid not null references auth.users (id) on delete cascade,
+  notification_type text not null check (notification_type in ('daily-focus', 'weekly-report')),
+  target_reference_id text not null default '',
+  week_start_date date,
+  title text not null default '',
+  body text not null default '',
+  destination_tab text not null default 'coaching-worker',
+  is_read boolean not null default false,
+  read_at timestamptz,
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+alter table public.coaching_notifications
+  add column if not exists target_reference_id text not null default '',
+  add column if not exists week_start_date date,
+  add column if not exists title text not null default '',
+  add column if not exists body text not null default '',
+  add column if not exists destination_tab text not null default 'coaching-worker',
+  add column if not exists is_read boolean not null default false,
+  add column if not exists read_at timestamptz;
+
+create index if not exists coaching_notifications_recipient_created_idx
+  on public.coaching_notifications (recipient_user_id, created_at desc);
+
+drop trigger if exists coaching_notifications_set_updated_at on public.coaching_notifications;
+create trigger coaching_notifications_set_updated_at
+before update on public.coaching_notifications
+for each row
+execute function public.set_user_app_state_updated_at();
+
+alter table public.coaching_notifications enable row level security;
+
+grant select, insert, update, delete on public.coaching_notifications to authenticated;
+
+drop policy if exists "Recipients and managers can read coaching notifications" on public.coaching_notifications;
+create policy "Recipients and managers can read coaching notifications"
+on public.coaching_notifications
+for select
+using (auth.uid() = recipient_user_id or auth.uid() = manager_user_id);
+
+drop policy if exists "Temporary manager can insert coaching notifications" on public.coaching_notifications;
+create policy "Temporary manager can insert coaching notifications"
+on public.coaching_notifications
+for insert
+with check (
+  auth.uid() = manager_user_id
+  and (auth.jwt() ->> 'email') = 'aki.fackrell@telenor.no'
+);
+
+drop policy if exists "Recipients can update coaching notifications" on public.coaching_notifications;
+create policy "Recipients can update coaching notifications"
+on public.coaching_notifications
+for update
+using (auth.uid() = recipient_user_id)
+with check (auth.uid() = recipient_user_id);
 
 create table if not exists public.user_public_stats (
   user_id uuid not null references auth.users (id) on delete cascade,
