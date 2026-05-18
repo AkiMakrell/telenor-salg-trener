@@ -14341,6 +14341,11 @@
     const entryId = String(row.entry_id || '').trim();
     if (!userId || !entryId) return null;
     const saleDetails = buildNormalizedSaleEntryData(row);
+    const hasModernRevenueMarkers = (
+      Math.max(0, Number(row.port_sales_count) || 0) > 0 ||
+      Math.max(0, Number(row.ov_sales_count) || 0) > 0 ||
+      Math.max(0, Number(row.addon_count) || 0) > 0
+    );
     return {
       entry_id: entryId,
       user_id: userId,
@@ -14351,7 +14356,7 @@
       port_sales_count: saleDetails.portSalesCount,
       ov_sales_count: saleDetails.ovSalesCount,
       addon_count: saleDetails.addonCount,
-      points: Math.max(0, Number(row.points) || 0),
+      points: hasModernRevenueMarkers ? Math.max(0, Number(row.points) || 0) : 0,
       updated_at: row.updated_at ? String(row.updated_at) : ''
     };
   }
@@ -14752,13 +14757,13 @@
         ...row,
         day_over6: hasValidLatest && isToday(row.latest_entry_at) ? row.day_over6 : 0,
         day_sales: hasValidLatest && isToday(row.latest_entry_at) ? row.day_sales : 0,
-        day_points: hasValidLatest && isToday(row.latest_entry_at) ? row.day_points : 0,
+        day_points: 0,
         week_over6: hasValidLatest && isThisWeek(row.latest_entry_at) ? row.week_over6 : 0,
         week_sales: hasValidLatest && isThisWeek(row.latest_entry_at) ? row.week_sales : 0,
-        week_points: hasValidLatest && isThisWeek(row.latest_entry_at) ? row.week_points : 0,
+        week_points: 0,
         month_over6: hasValidLatest && isThisMonth(row.latest_entry_at) ? row.month_over6 : 0,
         month_sales: hasValidLatest && isThisMonth(row.latest_entry_at) ? row.month_sales : 0,
-        month_points: hasValidLatest && isThisMonth(row.latest_entry_at) ? row.month_points : 0,
+        month_points: 0,
       };
     }).filter(hasVisibleLeaderboardActivity);
   }
