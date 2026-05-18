@@ -11434,10 +11434,18 @@
 
     .bigscreen-display-root.display.boards-4 .bigscreen-board.game.compact .bigscreen-board-user {
       gap: 8px;
+      align-items: flex-start;
     }
 
     .bigscreen-display-root.display.boards-4 .bigscreen-board.game.compact .bigscreen-board-user-info {
       gap: 4px;
+    }
+
+    .bigscreen-display-root.display.boards-4 .bigscreen-board.game.compact .bigscreen-board-name {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      line-height: 1.15;
     }
 
     .bigscreen-display-root.display.boards-4 .bigscreen-board.game.compact .bigscreen-board-team-pill {
@@ -22125,7 +22133,7 @@
                   </div>
                   <div class="bigscreen-board-score">
                     ${formatCompetitionScoreValue(row.score)}
-                    <span class="bigscreen-board-score-label">${escHtml(getCompetitionMetricLabel(game.metric_type))}</span>
+                    ${isCompact ? '' : `<span class="bigscreen-board-score-label">${escHtml(getCompetitionMetricLabel(game.metric_type))}</span>`}
                   </div>
                 </div>
               `;
@@ -22141,7 +22149,7 @@
                 </div>
                 <div class="bigscreen-board-score">
                   ${formatCompetitionScoreValue(row.score)}
-                  <span class="bigscreen-board-score-label">${escHtml(getCompetitionMetricLabel(game.metric_type))}</span>
+                  ${isCompact ? '' : `<span class="bigscreen-board-score-label">${escHtml(getCompetitionMetricLabel(game.metric_type))}</span>`}
                 </div>
               </div>
             `;
