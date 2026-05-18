@@ -11686,6 +11686,8 @@
   let activeCoachingManagerSection = 'ratings';
   let activeCoachingFeedbackSection = 'individual';
   let isCoachingRatingFormOpen = false;
+  let isCoachingRatingFlowOpen = false;
+  let coachingRatingFlowWorkerId = '';
   let coachingNotificationsOpen = false;
 
   localStorage.setItem = function(k, v) {
@@ -24207,7 +24209,11 @@
 
   function setActiveCoachingManagerSection(sectionId) {
     activeCoachingManagerSection = sectionId === 'feedback' ? 'feedback' : 'ratings';
-    if (activeCoachingManagerSection !== 'ratings') isCoachingRatingFormOpen = false;
+    if (activeCoachingManagerSection !== 'ratings') {
+      isCoachingRatingFormOpen = false;
+      isCoachingRatingFlowOpen = false;
+      coachingRatingFlowWorkerId = '';
+    }
     renderCoachingManagerPage();
   }
 
@@ -24219,15 +24225,38 @@
 
   function openNewCoachingRatingForm() {
     coachingEditingRatingId = '';
-    coachingRatingDraft = getDefaultCoachingRatingDraft(getSelectedCoachingWorkerId());
+    coachingRatingDraft = getDefaultCoachingRatingDraft('');
+    isCoachingRatingFormOpen = false;
+    isCoachingRatingFlowOpen = true;
+    coachingRatingFlowWorkerId = '';
+    renderCoachingManagerPage();
+  }
+
+  function startCoachingRatingForWorker(userId) {
+    const normalizedUserId = String(userId || '').trim();
+    if (!normalizedUserId) {
+      coachingRatingFlowWorkerId = '';
+      isCoachingRatingFormOpen = false;
+      renderCoachingManagerPage();
+      return;
+    }
+    selectedCoachingWorkerId = normalizedUserId;
+    coachingRatingFlowWorkerId = normalizedUserId;
+    coachingEditingRatingId = '';
+    coachingRatingDraft = getDefaultCoachingRatingDraft(normalizedUserId);
+    isCoachingRatingFlowOpen = true;
     isCoachingRatingFormOpen = true;
+    syncCoachingDraftsForSelectedWorker();
+    setCoachingManagerStatus('');
     renderCoachingManagerPage();
   }
 
   function closeCoachingRatingForm() {
     coachingEditingRatingId = '';
-    coachingRatingDraft = getDefaultCoachingRatingDraft(getSelectedCoachingWorkerId());
+    coachingRatingDraft = getDefaultCoachingRatingDraft(coachingRatingFlowWorkerId || getSelectedCoachingWorkerId());
     isCoachingRatingFormOpen = false;
+    isCoachingRatingFlowOpen = false;
+    coachingRatingFlowWorkerId = '';
     renderCoachingManagerPage();
   }
 
@@ -24392,15 +24421,11 @@
       <div class="coaching-report-section">
         <div class="coaching-report-section-head">
           <div>
-            <div class="coaching-title">Individuell tilbakemelding</div>
+            <div class="coaching-title">Oppsummering</div>
           </div>
         </div>
         <div class="coaching-report-form">
           <div class="coaching-report-summary-grid">
-            <div class="coaching-mini-stat">
-              <div class="coaching-mini-stat-label">Navn</div>
-              <div class="coaching-mini-stat-value">${escHtml(selectedProfile?.display_name || 'Ingen valgt')}</div>
-            </div>
             <div class="coaching-mini-stat">
               <div class="coaching-mini-stat-label">Ratings</div>
               <div class="coaching-mini-stat-value">${summary.count}</div>
@@ -24573,6 +24598,12 @@
     const currentReport = coachingSchemaReady ? getCoachingWeeklyReportRow(selectedWorkerId, weekKey) : bundle.weeklyReport;
     const ratedWorkerIds = [...new Set(coachingConversationRatings.filter(rating => rating.week_start_date === weekKey).map(rating => rating.worker_user_id).filter(Boolean))];
     const publishReadyCount = coachingSchemaReady ? ratedWorkerIds.length : 1;
+    const showRatingFlow = activeCoachingManagerSection === 'ratings' && (isCoachingRatingFlowOpen || !!coachingEditingRatingId);
+    const hasRatingWorkerContext = showRatingFlow && !!(coachingRatingFlowWorkerId || coachingEditingRatingId || isCoachingRatingFormOpen);
+    const isIndividualFeedback = activeCoachingFeedbackSection === 'individual';
+    const reportTitle = isIndividualFeedback
+      ? `${selectedProfile?.display_name || 'Ansatt'} ukesrapport`
+      : 'Team tilbakemelding';
     const summaryPills = [
       { label: 'Ansatt', value: selectedProfile?.display_name || 'Ingen valgt' },
       { label: 'Ratings', value: String(summary.count) },
@@ -24633,18 +24664,19 @@
                   <span>Ukesrapport</span>
                 </button>
               </div>
-              ${workerOptions.length ? `
+              ${activeCoachingManagerSection === 'feedback'
+                ? (workerOptions.length ? `
                 <div class="coaching-field">
                   <label for="coaching-worker-select">Ansatt</label>
                   <select id="coaching-worker-select" class="coaching-select" onchange="setSelectedCoachingWorker(this.value)">
                     ${workerOptions.map(option => `<option value="${escAttr(option.user_id)}" ${option.user_id === selectedWorkerId ? 'selected' : ''}>${escHtml(option.display_name)}${option.team ? ` · ${escHtml(option.team)}` : ''}</option>`).join('')}
                   </select>
                 </div>
-              ` : `<div class="coaching-empty">Ingen ansatte tilgjengelige ennå.</div>`}
+              ` : `<div class="coaching-empty">Ingen ansatte tilgjengelige ennå.</div>`) : ''}
             </div>
             <div class="coaching-manager-actions">
               <span class="coaching-week-pill">${escHtml(formatCoachingWeekLabel(weekKey))}</span>
-              <button class="backup-btn" style="margin-top:0;" type="button" onclick="previewCoachingWorkerPage()" ${selectedWorkerId ? '' : 'disabled'}>Forhåndsvis</button>
+              ${activeCoachingManagerSection === 'feedback' ? `<button class="backup-btn" style="margin-top:0;" type="button" onclick="previewCoachingWorkerPage()" ${selectedWorkerId ? '' : 'disabled'}>Forhåndsvis</button>` : ''}
             </div>
           </div>
         </div>
@@ -24656,32 +24688,49 @@
             <div class="coaching-section-headline">
               <div>
                 <div class="coaching-section-kicker">Steg 1</div>
-                <div class="coaching-title">Samtaler denne uken</div>
+                <div class="coaching-title">Samtalerating</div>
               </div>
-              ${currentReport ? `<span class="coaching-status-pill published">Publisert</span>` : bundle.workerFeedback ? `<span class="coaching-status-pill ${escAttr(bundle.workerFeedback.status)}">${escHtml(formatCoachingStatusLabel(bundle.workerFeedback.status))}</span>` : ''}
+              <button class="save-btn" style="margin-top:0;" type="button" onclick="openNewCoachingRatingForm()">Ny rating</button>
             </div>
             <div class="coaching-week-summary">
-              ${summaryPills.map(item => `
-                <div class="coaching-metric-card">
-                  <div class="coaching-metric-label">${escHtml(item.label)}</div>
-                  <div class="coaching-metric-value small">${escHtml(item.value)}</div>
-                </div>
-              `).join('')}
+              <div class="coaching-metric-card">
+                <div class="coaching-metric-label">Datoperiode</div>
+                <div class="coaching-metric-value small">${escHtml(formatCoachingWeekLabel(weekKey))}</div>
+              </div>
             </div>
-            <div style="margin-top:14px;">${renderCoachingScorePills(summary)}</div>
           </div>
+          ${showRatingFlow ? `
           <div class="coaching-flow-grid two-column">
             <div class="coaching-section-stack">
               <div class="coaching-card">
                 <div class="coaching-section-headline">
                   <div>
                     <div class="coaching-section-kicker">Steg 1A</div>
-                    <div class="coaching-title">Ny samtalerating</div>
+                    <div class="coaching-title">${hasRatingWorkerContext ? (selectedProfile?.display_name || 'Ansatt') : 'Velg ansatt'}</div>
                   </div>
-                  <button class="save-btn" style="margin-top:0;" type="button" onclick="openNewCoachingRatingForm()" ${!selectedWorkerId ? 'disabled' : ''}>Ny rating</button>
+                  ${showRatingFlow ? `<button class="backup-btn" style="margin-top:0;" type="button" onclick="closeCoachingRatingForm()">Lukk</button>` : ''}
                 </div>
-                ${isCoachingRatingFormOpen || coachingEditingRatingId ? `
+                ${!hasRatingWorkerContext ? `
+                  <div class="coaching-field">
+                    <label for="coaching-rating-worker-select">Ansatt</label>
+                    <select id="coaching-rating-worker-select" class="coaching-select" onchange="startCoachingRatingForWorker(this.value)">
+                      <option value="">Velg ansatt</option>
+                      ${workerOptions.map(option => `<option value="${escAttr(option.user_id)}">${escHtml(option.display_name)}${option.team ? ` · ${escHtml(option.team)}` : ''}</option>`).join('')}
+                    </select>
+                  </div>
+                ` : ''}
+                ${hasRatingWorkerContext ? `
                   <div class="coaching-panel-stack">
+                    <div class="coaching-week-summary">
+                      ${summaryPills.map(item => `
+                        <div class="coaching-metric-card">
+                          <div class="coaching-metric-label">${escHtml(item.label)}</div>
+                          <div class="coaching-metric-value small">${escHtml(item.value)}</div>
+                        </div>
+                      `).join('')}
+                    </div>
+                    <div>${renderCoachingScorePills(summary)}</div>
+                    ${isCoachingRatingFormOpen || coachingEditingRatingId ? `
                     <div class="coaching-grid">
                       <div class="coaching-field">
                         <label for="coaching-interaction-id">InteractionID</label>
@@ -24715,9 +24764,11 @@
                       <button class="save-btn" style="margin-top:0;" type="button" onclick="saveCoachingConversationRating()" ${!selectedWorkerId ? 'disabled' : ''}>${coachingEditingRatingId ? 'Oppdater' : 'Lagre'}</button>
                       <button class="backup-btn" style="margin-top:0;" type="button" onclick="closeCoachingRatingForm()">Lukk</button>
                     </div>
+                    ` : ''}
                   </div>
-                ` : `<div class="coaching-empty">Åpne ny rating når du vil legge til eller redigere en samtale.</div>`}
+                ` : ''}
               </div>
+              ${hasRatingWorkerContext ? `
               <div class="coaching-card coaching-spotlight-card">
                 <div class="coaching-section-headline">
                   <div>
@@ -24739,7 +24790,9 @@
                   <button class="save-btn" style="margin-top:0;" type="button" onclick="sendCoachingDailyFocus()" ${!selectedWorkerId || !coachingSchemaReady ? 'disabled' : ''}>Send fokus</button>
                 </div>
               </div>
+              ` : ''}
             </div>
+            ${hasRatingWorkerContext ? `
             <div class="coaching-section-stack">
               <div class="coaching-card">
                 <div class="coaching-section-headline">
@@ -24770,29 +24823,28 @@
                 </div>
               </div>
             </div>
+            ` : ''}
           </div>
+          ` : ''}
         ` : `
-          <div class="coaching-card coaching-report-shell">
-            <div class="coaching-section-headline">
-              <div>
-                <div class="coaching-section-kicker">Steg 2</div>
-                <div class="coaching-title">Ukesrapport</div>
-              </div>
-              ${reportStatusPill}
-            </div>
+          <div class="coaching-card">
             <div class="coaching-report-summary-grid">
-              <div class="coaching-mini-stat">
-                <div class="coaching-mini-stat-label">Datoperiode</div>
-                <div class="coaching-mini-stat-value">${escHtml(formatCoachingWeekLabel(weekKey))}</div>
-              </div>
               <div class="coaching-mini-stat">
                 <div class="coaching-mini-stat-label">Ansatte klare</div>
                 <div class="coaching-mini-stat-value">${publishReadyCount}</div>
               </div>
             </div>
-            <div class="coaching-note-card">
-              <div class="coaching-note-title">Team retning</div>
-              <div class="coaching-note-copy">${escHtml(teamReport.summaryLine)}</div>
+          </div>
+          <div class="coaching-card coaching-report-shell">
+            <div class="coaching-section-headline">
+              <div>
+                <div class="coaching-section-kicker">Steg 2</div>
+                <div class="coaching-title">${escHtml(reportTitle)}</div>
+              </div>
+              <div class="coaching-preview-row">
+                <span class="coaching-week-pill">${escHtml(formatCoachingWeekLabel(weekKey))}</span>
+                ${reportStatusPill}
+              </div>
             </div>
             <div class="coaching-toggle-row coaching-report-toggle">
               <button class="choice-chip ${activeCoachingFeedbackSection === 'individual' ? 'active' : ''}" type="button" onclick="setActiveCoachingFeedbackSection('individual')">Individuell tilbakemelding</button>
@@ -25025,6 +25077,8 @@
     const rating = coachingConversationRatings.find(row => row.rating_id === ratingId);
     if (!rating) return;
     selectedCoachingWorkerId = rating.worker_user_id;
+    coachingRatingFlowWorkerId = rating.worker_user_id;
+    isCoachingRatingFlowOpen = true;
     activeCoachingManagerSection = 'ratings';
     coachingEditingRatingId = ratingId;
     isCoachingRatingFormOpen = true;
