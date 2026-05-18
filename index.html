@@ -18928,6 +18928,10 @@
     return index >= 0 ? index + 1 : null;
   }
 
+  function formatLeaderboardPoints(value) {
+    return (Number(value) || 0).toLocaleString('no-NO');
+  }
+
   function formatLeaderboardTimestamp(isoDate) {
     if (!isoDate) return 'Ingen registreringer ennå';
     const parsed = new Date(isoDate);
