@@ -11026,8 +11026,7 @@
     }
 
     .bigscreen-hero,
-    .bigscreen-config-card,
-    .bigscreen-preview-card {
+    .bigscreen-config-card {
       background: var(--card);
       border: 1px solid var(--line);
       border-radius: 24px;
@@ -11052,15 +11051,7 @@
       max-width: 760px;
     }
 
-    .bigscreen-layout {
-      display: grid;
-      grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
-      gap: 20px;
-      align-items: start;
-    }
-
-    .bigscreen-config-card,
-    .bigscreen-preview-card {
+    .bigscreen-config-card {
       padding: 22px;
     }
 
@@ -11123,72 +11114,65 @@
       box-shadow: 0 16px 28px rgba(37, 99, 235, 0.24);
     }
 
-    .bigscreen-game-list {
+    .bigscreen-toggle-row {
       display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .bigscreen-game-option {
-      width: 100%;
-      text-align: left;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
       border-radius: 18px;
       border: 1px solid rgba(148, 163, 184, 0.22);
       background: #fff;
-      padding: 14px 16px;
-      cursor: pointer;
-      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
     }
 
-    .bigscreen-game-option:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 12px 22px rgba(15, 23, 42, 0.08);
+    .bigscreen-toggle-copy {
+      min-width: 0;
     }
 
-    .bigscreen-game-option.active {
-      border-color: rgba(37, 99, 235, 0.35);
-      box-shadow: 0 16px 26px rgba(37, 99, 235, 0.14);
-    }
-
-    .bigscreen-game-option-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .bigscreen-game-option-title {
+    .bigscreen-toggle-title {
       font-size: 0.98rem;
       font-weight: 800;
       color: var(--text);
     }
 
-    .bigscreen-game-option-meta {
+    .bigscreen-toggle-meta {
       margin-top: 4px;
       font-size: 0.84rem;
       line-height: 1.45;
       color: var(--muted);
     }
 
-    .bigscreen-game-option-check {
+    .bigscreen-toggle-btn {
       flex-shrink: 0;
-      min-width: 32px;
-      height: 32px;
+      min-width: 64px;
+      height: 38px;
       border-radius: 999px;
       border: 1px solid rgba(148, 163, 184, 0.3);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.8rem;
+      font-size: 0.84rem;
       font-weight: 800;
       color: #64748b;
       background: #f8fafc;
+      cursor: pointer;
+      transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
     }
 
-    .bigscreen-game-option.active .bigscreen-game-option-check {
+    .bigscreen-toggle-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .bigscreen-toggle-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      transform: none;
+    }
+
+    .bigscreen-toggle-btn.on {
       border-color: rgba(37, 99, 235, 0.2);
-      background: rgba(37, 99, 235, 0.1);
-      color: #1d4ed8;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff;
     }
 
     .bigscreen-actions {
@@ -11200,39 +11184,6 @@
     .bigscreen-actions .save-btn,
     .bigscreen-actions .backup-btn {
       margin-top: 0;
-    }
-
-    .bigscreen-preview-card {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .bigscreen-preview-shell {
-      position: relative;
-      border-radius: 24px;
-      overflow: hidden;
-      border: 1px solid rgba(148, 163, 184, 0.24);
-      background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
-      aspect-ratio: 16 / 9;
-      min-height: 360px;
-    }
-
-    .bigscreen-preview-stage {
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      scrollbar-width: thin;
-    }
-
-    .bigscreen-preview-stage::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-
-    .bigscreen-preview-stage::-webkit-scrollbar-thumb {
-      background: rgba(148, 163, 184, 0.5);
-      border-radius: 999px;
     }
 
     .bigscreen-display-root {
@@ -11260,6 +11211,17 @@
       gap: 14px;
     }
 
+    .bigscreen-display-root.display {
+      min-height: 0;
+      height: calc(100vh - 68px);
+      padding: 12px 20px 20px;
+      overflow: hidden;
+    }
+
+    .bigscreen-display-root.display .bigscreen-display-grid {
+      height: 100%;
+    }
+
     .bigscreen-board {
       display: flex;
       flex-direction: column;
@@ -11271,6 +11233,12 @@
       background: linear-gradient(180deg, rgba(15, 23, 42, 0.86), rgba(15, 23, 42, 0.68));
       box-shadow: 0 22px 40px rgba(2, 6, 23, 0.28);
       backdrop-filter: blur(18px);
+    }
+
+    .bigscreen-display-root.display .bigscreen-board {
+      min-height: 0;
+      padding: 16px;
+      gap: 12px;
     }
 
     .bigscreen-board.standard.day {
@@ -11325,6 +11293,11 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      min-height: 0;
+    }
+
+    .bigscreen-display-root.display .bigscreen-board-list {
+      overflow: hidden;
     }
 
     .bigscreen-board-row {
@@ -11338,6 +11311,13 @@
       border: 1px solid rgba(148, 163, 184, 0.14);
     }
 
+    .bigscreen-display-root.display.boards-4 .bigscreen-board-row {
+      grid-template-columns: 38px minmax(0, 1fr) auto;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 16px;
+    }
+
     .bigscreen-board-rank {
       display: inline-flex;
       align-items: center;
@@ -11349,6 +11329,13 @@
       color: #dbeafe;
       font-size: 0.94rem;
       font-weight: 800;
+    }
+
+    .bigscreen-display-root.display.boards-4 .bigscreen-board-rank {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      font-size: 0.84rem;
     }
 
     .bigscreen-board-user {
@@ -11380,12 +11367,35 @@
       text-overflow: ellipsis;
     }
 
+    .bigscreen-display-root.display.boards-4 .bigscreen-board-title {
+      font-size: 1.04rem;
+    }
+
+    .bigscreen-display-root.display.boards-4 .bigscreen-board-meta {
+      font-size: 0.77rem;
+      margin-top: 3px;
+    }
+
+    .bigscreen-display-root.display.boards-4 .bigscreen-board-badge {
+      padding: 6px 10px;
+      font-size: 0.66rem;
+    }
+
+    .bigscreen-display-root.display.boards-4 .bigscreen-board-name {
+      font-size: 0.9rem;
+    }
+
     .bigscreen-board-subline {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
       font-size: 0.8rem;
       color: rgba(226, 232, 240, 0.72);
+    }
+
+    .bigscreen-display-root.display.boards-4 .bigscreen-board-subline {
+      gap: 6px;
+      font-size: 0.72rem;
     }
 
     .bigscreen-board-team-pill {
@@ -11406,6 +11416,10 @@
       font-size: 1.18rem;
       font-weight: 800;
       color: #f8fafc;
+    }
+
+    .bigscreen-display-root.display.boards-4 .bigscreen-board-score {
+      font-size: 0.98rem;
     }
 
     .bigscreen-board-score-label {
@@ -11440,12 +11454,13 @@
     }
 
     .bigscreen-display-overlay.visible {
-      display: block;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
 
     .bigscreen-display-topbar {
-      position: sticky;
-      top: 0;
+      position: relative;
       z-index: 2;
       display: flex;
       justify-content: flex-end;
@@ -11464,21 +11479,9 @@
     body.bigscreen-display-open {
       overflow: hidden;
     }
-
-    @media (max-width: 1100px) {
-      .bigscreen-layout {
-        grid-template-columns: 1fr;
-      }
-    }
-
     @media (max-width: 820px) {
       .bigscreen-display-grid {
         grid-template-columns: 1fr;
-      }
-
-      .bigscreen-preview-shell {
-        aspect-ratio: auto;
-        min-height: 480px;
       }
     }
     </style>
@@ -21937,24 +21940,15 @@
 
   function getDefaultBigScreenDisplayConfig() {
     return {
-      periods: ['day'],
-      competitionIds: []
+      showActiveGame: true
     };
   }
 
   function normalizeBigScreenDisplayConfig(config) {
     const defaults = getDefaultBigScreenDisplayConfig();
-    const periodIds = new Set(LEADERBOARD_PERIOD_CONFIG.map(item => item.id));
     const next = config && typeof config === 'object' ? config : {};
-    const periods = Array.isArray(next.periods)
-      ? next.periods.filter(id => periodIds.has(id))
-      : defaults.periods;
-    const competitionIds = Array.isArray(next.competitionIds)
-      ? next.competitionIds.map(id => String(id || '').trim()).filter(Boolean)
-      : defaults.competitionIds;
     return {
-      periods: Array.from(new Set(periods)),
-      competitionIds: Array.from(new Set(competitionIds))
+      showActiveGame: next.showActiveGame !== false
     };
   }
 
@@ -21978,26 +21972,11 @@
     if (bigScreenDisplayOpen) renderBigScreenDisplayOverlay();
   }
 
-  function toggleBigScreenPeriod(periodId) {
-    updateBigScreenDisplayConfig(config => {
-      const periods = config.periods.includes(periodId)
-        ? config.periods.filter(id => id !== periodId)
-        : [...config.periods, periodId];
-      return { ...config, periods };
-    });
-  }
-
-  function toggleBigScreenCompetition(competitionId) {
-    updateBigScreenDisplayConfig(config => {
-      const competitionIds = config.competitionIds.includes(competitionId)
-        ? config.competitionIds.filter(id => id !== competitionId)
-        : [...config.competitionIds, competitionId];
-      return { ...config, competitionIds };
-    });
-  }
-
-  function clearBigScreenSelections() {
-    updateBigScreenDisplayConfig(() => getDefaultBigScreenDisplayConfig());
+  function toggleBigScreenActiveGame() {
+    updateBigScreenDisplayConfig(config => ({
+      ...config,
+      showActiveGame: config.showActiveGame === false
+    }));
   }
 
   function getBigScreenSelectableGames() {
@@ -22026,8 +22005,9 @@
       type: 'period',
       periodId: period.id
     }));
+    const config = getBigScreenDisplayConfig();
     const activeGame = getBigScreenSelectableGames()[0] || null;
-    if (activeGame) {
+    if (config.showActiveGame !== false && activeGame) {
       boards.push({
         id: `competition-${activeGame.competition_id}`,
         type: 'competition',
@@ -22049,7 +22029,7 @@
     if (mode === 'preview') return boardCount <= 2 ? 5 : 4;
     if (boardCount <= 1) return 12;
     if (boardCount <= 2) return 10;
-    if (boardCount <= 4) return 8;
+    if (boardCount <= 4) return 5;
     return 6;
   }
 
@@ -22172,7 +22152,7 @@
       `;
     }
     return `
-      <div class="bigscreen-display-root ${escAttr(mode)}">
+      <div class="bigscreen-display-root ${escAttr(mode)} boards-${boardCount}">
         <div class="bigscreen-display-grid" style="--bigscreen-columns:${columns};">
           ${boards.map(board => board.type === 'period'
             ? renderBigScreenStandardBoard(board.periodId, { mode, boardCount })
@@ -22216,70 +22196,49 @@
   function renderStorskjermPage() {
     const page = document.getElementById('storskjerm-page');
     if (!page) return;
+    const config = getBigScreenDisplayConfig();
     const availableGames = getBigScreenSelectableGames();
     const activeGame = availableGames[0] || null;
     page.innerHTML = `
       <div class="bigscreen-page">
         <div class="bigscreen-hero">
           <div class="bigscreen-hero-title">Storskjerm display</div>
-          <div class="bigscreen-hero-text">Forh&aring;ndsvisningen viser alltid dag, uke og m&aring;ned. Aktivt spill legges til automatisk.</div>
+          <div class="bigscreen-hero-text">Dag, uke og m&aring;ned vises alltid. Aktivt spill kan sl&aring;s av eller p&aring; f&oslash;r du starter displayet.</div>
         </div>
 
-        <div class="bigscreen-layout">
-          <div class="bigscreen-config-card">
-            <div>
-              <div class="bigscreen-section-head">
-                <div>
-                  <div class="bigscreen-section-title">Vises alltid</div>
-                  <div class="bigscreen-section-copy">Dag, uke og m&aring;ned vises alltid med omsetning.</div>
-                </div>
-              </div>
-              <div class="bigscreen-chip-row">
-                ${LEADERBOARD_PERIOD_CONFIG.map(period => `<span class="bigscreen-chip active">${escHtml(period.label)}</span>`).join('')}
+        <div class="bigscreen-config-card">
+          <div>
+            <div class="bigscreen-section-head">
+              <div>
+                <div class="bigscreen-section-title">Vises alltid</div>
               </div>
             </div>
-
-            <div>
-              <div class="bigscreen-section-head">
-                <div>
-                  <div class="bigscreen-section-title">Aktivt spill</div>
-                  <div class="bigscreen-section-copy">${activeGame ? 'Skjermen viser det aktive spillet som avsluttes f&oslash;rst.' : 'Ingen aktive spill akkurat n&aring;.'}</div>
-                </div>
-              </div>
-              ${competitionState === 'loading' ? '<div class="bigscreen-section-copy">Laster spill...</div>' : ''}
-              ${competitionState === 'error' ? `<div class="bigscreen-section-copy">${escHtml(competitionErrorMessage || 'Kunne ikke laste spill.')}</div>` : ''}
-              ${activeGame ? `
-                <div class="bigscreen-game-list">
-                  <div class="bigscreen-game-option active">
-                    <div class="bigscreen-game-option-top">
-                      <div>
-                        <div class="bigscreen-game-option-title">${escHtml(activeGame.name)}</div>
-                        <div class="bigscreen-game-option-meta">${escHtml(formatCompetitionTimeRange(activeGame))}</div>
-                      </div>
-                      <span class="bigscreen-game-option-check">&#10003;</span>
-                    </div>
-                  </div>
-                </div>
-              ` : ''}
-            </div>
-
-            <div class="bigscreen-actions">
-              <button class="save-btn" type="button" onclick="openBigScreenDisplay()">Start display</button>
+            <div class="bigscreen-chip-row">
+              ${LEADERBOARD_PERIOD_CONFIG.map(period => `<span class="bigscreen-chip active">${escHtml(period.label)}</span>`).join('')}
             </div>
           </div>
 
-          <div class="bigscreen-preview-card">
+          <div>
             <div class="bigscreen-section-head">
               <div>
-                <div class="bigscreen-section-title">Forh&aring;ndsvisning</div>
-                <div class="bigscreen-section-copy">${activeGame ? 'Dag, uke, m&aring;ned og ett aktivt spill.' : 'Dag, uke og m&aring;ned.'}</div>
+                <div class="bigscreen-section-title">Aktive spill</div>
               </div>
             </div>
-            <div class="bigscreen-preview-shell">
-              <div class="bigscreen-preview-stage">
-                ${renderBigScreenBoards('preview')}
+            ${competitionState === 'loading' ? '<div class="bigscreen-section-copy">Laster spill...</div>' : ''}
+            ${competitionState === 'error' ? `<div class="bigscreen-section-copy">${escHtml(competitionErrorMessage || 'Kunne ikke laste spill.')}</div>` : ''}
+            <div class="bigscreen-toggle-row">
+              <div class="bigscreen-toggle-copy">
+                <div class="bigscreen-toggle-title">${activeGame ? escHtml(activeGame.name) : 'Ingen aktive spill'}</div>
+                <div class="bigscreen-toggle-meta">${activeGame ? escHtml(formatCompetitionTimeRange(activeGame)) : 'Displayet viser bare dag, uke og m&aring;ned akkurat n&aring;.'}</div>
               </div>
+              <button class="bigscreen-toggle-btn${config.showActiveGame !== false && activeGame ? ' on' : ''}" type="button" onclick="toggleBigScreenActiveGame()" ${activeGame ? '' : 'disabled'}>
+                ${config.showActiveGame !== false && activeGame ? 'P&aring;' : 'Av'}
+              </button>
             </div>
+          </div>
+
+          <div class="bigscreen-actions">
+            <button class="save-btn" type="button" onclick="openBigScreenDisplay()">Start display</button>
           </div>
         </div>
       </div>
