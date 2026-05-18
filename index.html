@@ -11424,6 +11424,27 @@
       font-size: 0.98rem;
     }
 
+    .bigscreen-display-root.display.boards-4 .bigscreen-board.game.compact .bigscreen-board-head {
+      align-items: center;
+    }
+
+    .bigscreen-display-root.display.boards-4 .bigscreen-board.game.compact .bigscreen-board-meta {
+      display: none;
+    }
+
+    .bigscreen-display-root.display.boards-4 .bigscreen-board.game.compact .bigscreen-board-user {
+      gap: 8px;
+    }
+
+    .bigscreen-display-root.display.boards-4 .bigscreen-board.game.compact .bigscreen-board-user-info {
+      gap: 4px;
+    }
+
+    .bigscreen-display-root.display.boards-4 .bigscreen-board.game.compact .bigscreen-board-team-pill {
+      padding: 4px 8px;
+      font-size: 0.68rem;
+    }
+
     .bigscreen-board-score-label {
       display: block;
       margin-top: 4px;
@@ -22032,6 +22053,7 @@
     if (mode === 'preview') return boardCount <= 2 ? 5 : 4;
     if (boardCount <= 1) return 12;
     if (boardCount <= 2) return 10;
+    if (boardCount === 3) return 7;
     if (boardCount <= 4) return 5;
     return 6;
   }
@@ -22047,7 +22069,6 @@
         <div class="bigscreen-board-head">
           <div>
             <div class="bigscreen-board-title">${escHtml(period.title)}</div>
-            <div class="bigscreen-board-meta">Omsetning fra registrerte salg i valgt periode.</div>
           </div>
           <span class="bigscreen-board-badge">Leaderboard</span>
         </div>
@@ -22067,7 +22088,7 @@
               </div>
               <div class="bigscreen-board-score">
                 ${formatOmsetningValue(row.points || 0)}
-                <span class="bigscreen-board-score-label">Omsetning</span>
+                <span class="bigscreen-board-score-label">Oms</span>
               </div>
             </div>
           `).join('') : '<div class="bigscreen-empty-state">Ingen aktivitet enn&aring;.</div>'}
@@ -22081,12 +22102,13 @@
     const isTeamGame = isTeamCompetitionGame(game);
     const boardCount = Math.max(Number(options.boardCount) || 0, 1);
     const rowLimit = getBigScreenRowLimit(boardCount, options.mode);
+    const isCompact = options.mode === 'display' && boardCount >= 4;
     const rows = (isTeamGame ? buildCompetitionTeamStandings(game) : buildCompetitionStandings(game)).slice(0, rowLimit);
     const metaLabel = isTeamGame
       ? `${getCompetitionMetricLabel(game.metric_type)} · ${getCompetitionTeamScoreModeLabel(game)}`
       : `${getCompetitionObjectiveLabel(game)} · ${getCompetitionMetricLabel(game.metric_type)}`;
     return `
-      <section class="bigscreen-board game">
+      <section class="bigscreen-board game${isCompact ? ' compact' : ''}">
         <div class="bigscreen-board-head">
           <div>
             <div class="bigscreen-board-title">${escHtml(game.name)}</div>
@@ -22106,7 +22128,7 @@
                       <div class="bigscreen-board-subline">
                         <span>${Number(row.playerCount || 0)} deltakere</span>
                         <span>${Number(row.totalSales || 0)} salg</span>
-                        <span>${Number(row.totalOver6 || 0)} x 6-min</span>
+                        ${isCompact ? '' : `<span>${Number(row.totalOver6 || 0)} x 6-min</span>`}
                       </div>
                     </div>
                   </div>
@@ -22125,9 +22147,9 @@
                   <div class="bigscreen-board-user-info">
                     <div class="bigscreen-board-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
                     <div class="bigscreen-board-subline">
-                      ${row.team ? `<span class="bigscreen-board-team-pill">${escHtml(row.team)}</span>` : ''}
+                      ${row.team && !isCompact ? `<span class="bigscreen-board-team-pill">${escHtml(row.team)}</span>` : ''}
                       <span>${Number(row.totalSales || 0)} salg</span>
-                      <span>${Number(row.totalOver6 || 0)} x 6-min</span>
+                      ${isCompact ? '' : `<span>${Number(row.totalOver6 || 0)} x 6-min</span>`}
                     </div>
                   </div>
                 </div>
