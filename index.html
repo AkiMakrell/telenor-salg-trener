@@ -22043,7 +22043,7 @@
       <section class="bigscreen-board standard ${escAttr(periodId)}">
         <div class="bigscreen-board-head">
           <div>
-            <div class="bigscreen-board-title">${escHtml(period.label)}</div>
+            <div class="bigscreen-board-title">${escHtml(period.title)}</div>
             <div class="bigscreen-board-meta">Omsetning fra registrerte salg i valgt periode.</div>
           </div>
           <span class="bigscreen-board-badge">Leaderboard</span>
@@ -22214,7 +22214,7 @@
               </div>
             </div>
             <div class="bigscreen-chip-row">
-              ${LEADERBOARD_PERIOD_CONFIG.map(period => `<span class="bigscreen-chip active">${escHtml(period.label)}</span>`).join('')}
+              ${LEADERBOARD_PERIOD_CONFIG.map(period => `<span class="bigscreen-chip active">${escHtml(period.title)}</span>`).join('')}
             </div>
           </div>
 
