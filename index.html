@@ -10917,6 +10917,469 @@
       background: #dbeafe;
       color: #1d4ed8;
     }
+
+    .bigscreen-page {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .bigscreen-hero,
+    .bigscreen-config-card,
+    .bigscreen-preview-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .bigscreen-hero {
+      padding: 24px 26px;
+    }
+
+    .bigscreen-hero-title {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .bigscreen-hero-text {
+      margin-top: 8px;
+      font-size: 0.98rem;
+      line-height: 1.55;
+      color: var(--muted);
+      max-width: 760px;
+    }
+
+    .bigscreen-layout {
+      display: grid;
+      grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .bigscreen-config-card,
+    .bigscreen-preview-card {
+      padding: 22px;
+    }
+
+    .bigscreen-config-card {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .bigscreen-section-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .bigscreen-section-title {
+      font-size: 1.02rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .bigscreen-section-copy {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    .bigscreen-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .bigscreen-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      border: 1px solid rgba(37, 99, 235, 0.14);
+      background: #f8fbff;
+      color: #1e3a8a;
+      font-weight: 700;
+      font-size: 0.92rem;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+    }
+
+    .bigscreen-chip:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.1);
+    }
+
+    .bigscreen-chip.active {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 16px 28px rgba(37, 99, 235, 0.24);
+    }
+
+    .bigscreen-game-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .bigscreen-game-option {
+      width: 100%;
+      text-align: left;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: #fff;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+    }
+
+    .bigscreen-game-option:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 22px rgba(15, 23, 42, 0.08);
+    }
+
+    .bigscreen-game-option.active {
+      border-color: rgba(37, 99, 235, 0.35);
+      box-shadow: 0 16px 26px rgba(37, 99, 235, 0.14);
+    }
+
+    .bigscreen-game-option-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .bigscreen-game-option-title {
+      font-size: 0.98rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .bigscreen-game-option-meta {
+      margin-top: 4px;
+      font-size: 0.84rem;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    .bigscreen-game-option-check {
+      flex-shrink: 0;
+      min-width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: #64748b;
+      background: #f8fafc;
+    }
+
+    .bigscreen-game-option.active .bigscreen-game-option-check {
+      border-color: rgba(37, 99, 235, 0.2);
+      background: rgba(37, 99, 235, 0.1);
+      color: #1d4ed8;
+    }
+
+    .bigscreen-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .bigscreen-actions .save-btn,
+    .bigscreen-actions .backup-btn {
+      margin-top: 0;
+    }
+
+    .bigscreen-preview-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .bigscreen-preview-shell {
+      position: relative;
+      border-radius: 24px;
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+      aspect-ratio: 16 / 9;
+      min-height: 360px;
+    }
+
+    .bigscreen-preview-stage {
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      scrollbar-width: thin;
+    }
+
+    .bigscreen-preview-stage::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    .bigscreen-preview-stage::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.5);
+      border-radius: 999px;
+    }
+
+    .bigscreen-display-root {
+      min-height: 100%;
+      padding: 22px;
+      color: #e2e8f0;
+      background:
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.22), transparent 34%),
+        radial-gradient(circle at top right, rgba(14, 165, 233, 0.16), transparent 28%),
+        linear-gradient(180deg, #0f172a 0%, #020617 100%);
+    }
+
+    .bigscreen-display-grid {
+      display: grid;
+      grid-template-columns: repeat(var(--bigscreen-columns, 2), minmax(0, 1fr));
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .bigscreen-display-root.preview {
+      padding: 18px;
+    }
+
+    .bigscreen-display-root.preview .bigscreen-display-grid {
+      gap: 14px;
+    }
+
+    .bigscreen-board {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 100%;
+      padding: 18px;
+      border-radius: 24px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.86), rgba(15, 23, 42, 0.68));
+      box-shadow: 0 22px 40px rgba(2, 6, 23, 0.28);
+      backdrop-filter: blur(18px);
+    }
+
+    .bigscreen-board.standard.day {
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(30, 64, 175, 0.3));
+    }
+
+    .bigscreen-board.standard.week {
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(2, 132, 199, 0.28));
+    }
+
+    .bigscreen-board.standard.month {
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(8, 145, 178, 0.26));
+    }
+
+    .bigscreen-board-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .bigscreen-board-title {
+      font-size: 1.18rem;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+
+    .bigscreen-board-meta {
+      margin-top: 5px;
+      font-size: 0.85rem;
+      line-height: 1.45;
+      color: rgba(226, 232, 240, 0.74);
+    }
+
+    .bigscreen-board-badge {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #dbeafe;
+      background: rgba(37, 99, 235, 0.18);
+      border: 1px solid rgba(96, 165, 250, 0.18);
+    }
+
+    .bigscreen-board-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .bigscreen-board-row {
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: rgba(15, 23, 42, 0.42);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+    }
+
+    .bigscreen-board-rank {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: rgba(37, 99, 235, 0.16);
+      color: #dbeafe;
+      font-size: 0.94rem;
+      font-weight: 800;
+    }
+
+    .bigscreen-board-user {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .bigscreen-board-user.team {
+      gap: 10px;
+    }
+
+    .bigscreen-board-user-info {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .bigscreen-board-name {
+      min-width: 0;
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #f8fafc;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bigscreen-board-subline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: rgba(226, 232, 240, 0.72);
+    }
+
+    .bigscreen-board-team-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #f8fafc;
+      background: rgba(37, 99, 235, 0.18);
+      border: 1px solid rgba(96, 165, 250, 0.16);
+    }
+
+    .bigscreen-board-score {
+      text-align: right;
+      font-size: 1.18rem;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+
+    .bigscreen-board-score-label {
+      display: block;
+      margin-top: 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(191, 219, 254, 0.76);
+    }
+
+    .bigscreen-empty-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100%;
+      padding: 28px;
+      text-align: center;
+      border-radius: 24px;
+      border: 1px dashed rgba(148, 163, 184, 0.2);
+      color: rgba(226, 232, 240, 0.7);
+      background: rgba(15, 23, 42, 0.36);
+    }
+
+    .bigscreen-display-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 5000;
+      display: none;
+      background: #020617;
+    }
+
+    .bigscreen-display-overlay.visible {
+      display: block;
+    }
+
+    .bigscreen-display-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: flex;
+      justify-content: flex-end;
+      padding: 18px 22px 0;
+      margin-bottom: 8px;
+    }
+
+    .bigscreen-display-exit {
+      margin-top: 0;
+      background: rgba(15, 23, 42, 0.76);
+      color: #e2e8f0;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      box-shadow: none;
+    }
+
+    body.bigscreen-display-open {
+      overflow: hidden;
+    }
+
+    @media (max-width: 1100px) {
+      .bigscreen-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 820px) {
+      .bigscreen-display-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .bigscreen-preview-shell {
+        aspect-ratio: auto;
+        min-height: 480px;
+      }
+    }
     </style>
 </head>
 <body>
@@ -11075,6 +11538,7 @@
     <button class="tab-btn" data-tab="stats" onclick="openStatsPage('overview', this)">Stats</button>
     <button class="tab-btn" data-tab="rekorder" onclick="switchTab('rekorder', this)">Rekorder</button>
     <button class="tab-btn" data-tab="ledertavler-spill" onclick="switchTab('ledertavler-spill', this)">Spill</button>
+    <button class="tab-btn" data-tab="storskjerm" onclick="switchTab('storskjerm', this)">Storskjerm</button>
     <button id="coaching-worker-nav-btn" class="tab-btn" data-tab="coaching-worker" onclick="switchTab('coaching-worker', this)">Coaching</button>
     <button id="coaching-manager-nav-btn" class="tab-btn" data-tab="coaching-manager" style="display:none;" onclick="switchTab('coaching-manager', this)">Ledercoaching</button>
     <div id="top-bar-tools" class="top-bar-tools">
@@ -11209,6 +11673,10 @@
 
 <div id="tab-ledertavler-spill" class="tab-content">
   <div id="ledertavler-spill-page"></div>
+</div>
+
+<div id="tab-storskjerm" class="tab-content">
+  <div id="storskjerm-page"></div>
 </div>
 
 <div id="tab-competition-create" class="tab-content">
@@ -11467,6 +11935,8 @@
 </div>
 </div>
 
+<div id="bigscreen-display-overlay" class="bigscreen-display-overlay" aria-hidden="true"></div>
+
 <footer class="app-footer">
   <div class="app-footer-top">
     <div>
@@ -11544,6 +12014,7 @@
   ];
   const INTRO_LEADERBOARD_DATA_VERSION = '2';
   const INTRO_LEADERBOARD_DATA_VERSION_KEY = 'introLeaderboardDataVersion';
+  const BIG_SCREEN_DISPLAY_CONFIG_KEY = 'bigScreenDisplayConfig';
   const STORAGE_KEYS = [
     'savedIntros',
     'introHistory',
@@ -11556,6 +12027,7 @@
     'ovEntries',
     'statsGoals',
     'statsGoalCelebrations',
+    BIG_SCREEN_DISPLAY_CONFIG_KEY,
     'samtaleflyt',
     'samtaleflyt2_intro',
     'samtaleflyt2_behovsanalyse',
@@ -12071,7 +12543,9 @@
     competitionState = state;
     competitionErrorMessage = errorMessage;
     if (isTabActive('ledertavler-spill')) renderLedertavlerSpillPage();
+    if (isTabActive('storskjerm')) renderStorskjermPage();
     if (isTabActive('competition-create')) renderCompetitionCreatePage();
+    if (bigScreenDisplayOpen) renderBigScreenDisplayOverlay();
   }
 
   function clearCompetitionState() {
@@ -14803,10 +15277,12 @@
     renderGoalsPage();
     renderRetroHistoryPage();
     renderLedertavlerSpillPage();
+    renderStorskjermPage();
     renderTeamRecordsPage();
     renderCompetitionCreatePage();
     renderAllPriceCalculators();
     renderSamtaleflyt();
+    if (bigScreenDisplayOpen) renderBigScreenDisplayOverlay();
   }
 
   async function activateAuthenticatedApp(user, previousDeviceData) {
@@ -15210,6 +15686,7 @@
     if (name === 'coaching-worker') renderCoachingWorkerPage();
     if (name === 'rekorder') renderTeamRecordsPage();
     if (name === 'ledertavler-spill') renderLedertavlerSpillPage();
+    if (name === 'storskjerm') renderStorskjermPage();
     if (name === 'competition-create') renderCompetitionCreatePage();
     if (name === 'stats') renderStatsPage();
     if (name === 'goals') renderGoalsPage();
@@ -15225,6 +15702,7 @@
   let activeStatsSubview = 'overview';
   let shouldGlowStatsSidebarOnEntry = false;
   let activeLeaderboardPeriod = 'day';
+  let bigScreenDisplayOpen = false;
   let retroHistoryFeedback = null;
   let retroHistoryDraft = null;
   const DASHBOARD_OPPTAK_SHORTCUT_KEY = 'dashboardOpptakShortcutEnabled';
@@ -18333,19 +18811,25 @@
   }
 
   function refreshVisibleStatsSurface() {
+    let rendered = false;
     if (isTabActive('stats')) {
       renderStatsPage();
-      return;
+      rendered = true;
     }
-    if (isTabActive('rekorder')) {
+    if (!rendered && isTabActive('rekorder')) {
       renderTeamRecordsPage();
-      return;
+      rendered = true;
     }
-    if (isTabActive('ledertavler-spill')) {
+    if (!rendered && isTabActive('ledertavler-spill')) {
       renderLedertavlerSpillPage();
-      return;
+      rendered = true;
     }
-    if (isTabActive('hjem')) renderStatsHome();
+    if (!rendered && isTabActive('storskjerm')) {
+      renderStorskjermPage();
+      rendered = true;
+    }
+    if (bigScreenDisplayOpen) renderBigScreenDisplayOverlay();
+    if (!rendered && isTabActive('hjem')) renderStatsHome();
   }
 
   function setStatsSubview(view) {
@@ -21135,6 +21619,370 @@
         </div>
         ${competitionState === 'error' ? `<div class="stats-empty-card">${escHtml(competitionErrorMessage || 'Kunne ikke laste spill.')}</div>` : ''}
         ${activeGames.map(game => renderCompetitionDetailCard(game, { showActions: false })).join('')}
+      </div>
+    `;
+  }
+
+  function getDefaultBigScreenDisplayConfig() {
+    return {
+      periods: ['day'],
+      competitionIds: []
+    };
+  }
+
+  function normalizeBigScreenDisplayConfig(config) {
+    const defaults = getDefaultBigScreenDisplayConfig();
+    const periodIds = new Set(LEADERBOARD_PERIOD_CONFIG.map(item => item.id));
+    const next = config && typeof config === 'object' ? config : {};
+    const periods = Array.isArray(next.periods)
+      ? next.periods.filter(id => periodIds.has(id))
+      : defaults.periods;
+    const competitionIds = Array.isArray(next.competitionIds)
+      ? next.competitionIds.map(id => String(id || '').trim()).filter(Boolean)
+      : defaults.competitionIds;
+    return {
+      periods: Array.from(new Set(periods)),
+      competitionIds: Array.from(new Set(competitionIds))
+    };
+  }
+
+  function getBigScreenDisplayConfig() {
+    try {
+      return normalizeBigScreenDisplayConfig(JSON.parse(localStorage.getItem(BIG_SCREEN_DISPLAY_CONFIG_KEY) || 'null'));
+    } catch (_error) {
+      return getDefaultBigScreenDisplayConfig();
+    }
+  }
+
+  function saveBigScreenDisplayConfig(config) {
+    localStorage.setItem(BIG_SCREEN_DISPLAY_CONFIG_KEY, JSON.stringify(normalizeBigScreenDisplayConfig(config)));
+  }
+
+  function updateBigScreenDisplayConfig(updater) {
+    const currentConfig = getBigScreenDisplayConfig();
+    const nextConfig = typeof updater === 'function' ? updater(currentConfig) : currentConfig;
+    saveBigScreenDisplayConfig(nextConfig);
+    renderStorskjermPage();
+    if (bigScreenDisplayOpen) renderBigScreenDisplayOverlay();
+  }
+
+  function toggleBigScreenPeriod(periodId) {
+    updateBigScreenDisplayConfig(config => {
+      const periods = config.periods.includes(periodId)
+        ? config.periods.filter(id => id !== periodId)
+        : [...config.periods, periodId];
+      return { ...config, periods };
+    });
+  }
+
+  function toggleBigScreenCompetition(competitionId) {
+    updateBigScreenDisplayConfig(config => {
+      const competitionIds = config.competitionIds.includes(competitionId)
+        ? config.competitionIds.filter(id => id !== competitionId)
+        : [...config.competitionIds, competitionId];
+      return { ...config, competitionIds };
+    });
+  }
+
+  function clearBigScreenSelections() {
+    updateBigScreenDisplayConfig(() => getDefaultBigScreenDisplayConfig());
+  }
+
+  function getBigScreenSelectableGames() {
+    if (!currentUser) return [];
+    return getCompetitionVisibleGames('active')
+      .filter(game => {
+        if (!game?.competition_id) return false;
+        if (String(game.created_by || '') === String(currentUser.id || '')) return true;
+        const members = getCompetitionMemberRowsForGame(game.competition_id);
+        const viewers = getCompetitionViewerRowsForGame(game.competition_id);
+        return [...members, ...viewers].some(item => String(item?.user_id || '') === String(currentUser.id || ''));
+      })
+      .slice()
+      .sort((a, b) => {
+        const endTimeDelta = getCompetitionDateSortValue(a.ends_at) - getCompetitionDateSortValue(b.ends_at);
+        if (endTimeDelta !== 0) return endTimeDelta;
+        const participantDelta = getCompetitionMemberRowsForGame(b.competition_id).length - getCompetitionMemberRowsForGame(a.competition_id).length;
+        if (participantDelta !== 0) return participantDelta;
+        return String(a.name || '').localeCompare(String(b.name || ''), 'nb');
+      });
+  }
+
+  function getBigScreenSelectedBoards() {
+    const config = getBigScreenDisplayConfig();
+    const availableGames = getBigScreenSelectableGames();
+    const boards = [];
+    LEADERBOARD_PERIOD_CONFIG.forEach(period => {
+      if (config.periods.includes(period.id)) {
+        boards.push({ id: `period-${period.id}`, type: 'period', periodId: period.id });
+      }
+    });
+    availableGames.forEach(game => {
+      if (config.competitionIds.includes(game.competition_id)) {
+        boards.push({ id: `competition-${game.competition_id}`, type: 'competition', competitionId: game.competition_id, game });
+      }
+    });
+    return boards;
+  }
+
+  function getBigScreenGridColumnCount(boardCount) {
+    if (boardCount <= 1) return 1;
+    if (boardCount === 2) return 2;
+    if (boardCount <= 4) return 2;
+    return 3;
+  }
+
+  function getBigScreenRowLimit(boardCount, mode = 'preview') {
+    if (mode === 'preview') return boardCount <= 2 ? 5 : 4;
+    if (boardCount <= 1) return 12;
+    if (boardCount <= 2) return 10;
+    if (boardCount <= 4) return 8;
+    return 6;
+  }
+
+  function renderBigScreenStandardBoard(periodId, options = {}) {
+    const period = LEADERBOARD_PERIOD_CONFIG.find(item => item.id === periodId);
+    if (!period) return '';
+    const boardCount = Math.max(Number(options.boardCount) || 0, 1);
+    const rowLimit = getBigScreenRowLimit(boardCount, options.mode);
+    const rows = getSortedLeaderboardRows(periodId).slice(0, rowLimit);
+    return `
+      <section class="bigscreen-board standard ${escAttr(periodId)}">
+        <div class="bigscreen-board-head">
+          <div>
+            <div class="bigscreen-board-title">${escHtml(period.label)}</div>
+            <div class="bigscreen-board-meta">Poeng bygger p&aring; 6-minuttere og salg i valgt periode.</div>
+          </div>
+          <span class="bigscreen-board-badge">Leaderboard</span>
+        </div>
+        <div class="bigscreen-board-list">
+          ${rows.length ? rows.map((row, index) => `
+            <div class="bigscreen-board-row">
+              <div class="bigscreen-board-rank">#${index + 1}</div>
+              <div class="bigscreen-board-user">
+                ${renderLeaderboardAvatar(row.user_id, row.display_name, 'small')}
+                <div class="bigscreen-board-user-info">
+                  <div class="bigscreen-board-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
+                  <div class="bigscreen-board-subline">
+                    <span>${Number(row.over5 || 0)} x 6-min</span>
+                    <span>${Number(row.salg || 0)} salg</span>
+                  </div>
+                </div>
+              </div>
+              <div class="bigscreen-board-score">
+                ${formatLeaderboardPoints(row.points || 0)}
+                <span class="bigscreen-board-score-label">Poeng</span>
+              </div>
+            </div>
+          `).join('') : '<div class="bigscreen-empty-state">Ingen aktivitet enn&aring;.</div>'}
+        </div>
+      </section>
+    `;
+  }
+
+  function renderBigScreenCompetitionBoard(game, options = {}) {
+    if (!game) return '';
+    const isTeamGame = isTeamCompetitionGame(game);
+    const boardCount = Math.max(Number(options.boardCount) || 0, 1);
+    const rowLimit = getBigScreenRowLimit(boardCount, options.mode);
+    const rows = (isTeamGame ? buildCompetitionTeamStandings(game) : buildCompetitionStandings(game)).slice(0, rowLimit);
+    const metaLabel = isTeamGame
+      ? `${getCompetitionMetricLabel(game.metric_type)} · ${getCompetitionTeamScoreModeLabel(game)}`
+      : `${getCompetitionObjectiveLabel(game)} · ${getCompetitionMetricLabel(game.metric_type)}`;
+    return `
+      <section class="bigscreen-board game">
+        <div class="bigscreen-board-head">
+          <div>
+            <div class="bigscreen-board-title">${escHtml(game.name)}</div>
+            <div class="bigscreen-board-meta">${escHtml(metaLabel)} · ${escHtml(formatCompetitionTimeRange(game))}</div>
+          </div>
+          <span class="bigscreen-board-badge">${escHtml(isTeamGame ? 'Lagspill' : 'Spill')}</span>
+        </div>
+        <div class="bigscreen-board-list">
+          ${rows.length ? rows.map((row, index) => {
+            if (isTeamGame) {
+              return `
+                <div class="bigscreen-board-row">
+                  <div class="bigscreen-board-rank">#${index + 1}</div>
+                  <div class="bigscreen-board-user team">
+                    <div class="bigscreen-board-user-info">
+                      <div class="bigscreen-board-name">${escHtml(row.team || 'Lag')}</div>
+                      <div class="bigscreen-board-subline">
+                        <span>${Number(row.playerCount || 0)} deltakere</span>
+                        <span>${Number(row.totalSales || 0)} salg</span>
+                        <span>${Number(row.totalOver6 || 0)} x 6-min</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="bigscreen-board-score">
+                    ${formatCompetitionScoreValue(row.score)}
+                    <span class="bigscreen-board-score-label">${escHtml(getCompetitionMetricLabel(game.metric_type))}</span>
+                  </div>
+                </div>
+              `;
+            }
+            return `
+              <div class="bigscreen-board-row">
+                <div class="bigscreen-board-rank">#${index + 1}</div>
+                <div class="bigscreen-board-user">
+                  ${renderLeaderboardAvatar(row.user_id, row.display_name, 'small')}
+                  <div class="bigscreen-board-user-info">
+                    <div class="bigscreen-board-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
+                    <div class="bigscreen-board-subline">
+                      ${row.team ? `<span class="bigscreen-board-team-pill">${escHtml(row.team)}</span>` : ''}
+                      <span>${Number(row.totalSales || 0)} salg</span>
+                      <span>${Number(row.totalOver6 || 0)} x 6-min</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="bigscreen-board-score">
+                  ${formatCompetitionScoreValue(row.score)}
+                  <span class="bigscreen-board-score-label">${escHtml(getCompetitionMetricLabel(game.metric_type))}</span>
+                </div>
+              </div>
+            `;
+          }).join('') : '<div class="bigscreen-empty-state">Ingen aktivitet registrert enn&aring;.</div>'}
+        </div>
+      </section>
+    `;
+  }
+
+  function renderBigScreenBoards(mode = 'preview') {
+    const boards = getBigScreenSelectedBoards();
+    const boardCount = boards.length;
+    const columns = getBigScreenGridColumnCount(boardCount);
+    if (!boardCount) {
+      return `
+        <div class="bigscreen-display-root ${escAttr(mode)}">
+          <div class="bigscreen-empty-state">Velg minst ett leaderboard for &aring; bygge storskjermen.</div>
+        </div>
+      `;
+    }
+    return `
+      <div class="bigscreen-display-root ${escAttr(mode)}">
+        <div class="bigscreen-display-grid" style="--bigscreen-columns:${columns};">
+          ${boards.map(board => board.type === 'period'
+            ? renderBigScreenStandardBoard(board.periodId, { mode, boardCount })
+            : renderBigScreenCompetitionBoard(board.game, { mode, boardCount })).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderBigScreenDisplayOverlay() {
+    const overlay = document.getElementById('bigscreen-display-overlay');
+    if (!overlay) return;
+    if (!bigScreenDisplayOpen) {
+      overlay.classList.remove('visible');
+      overlay.setAttribute('aria-hidden', 'true');
+      overlay.innerHTML = '';
+      document.body.classList.remove('bigscreen-display-open');
+      return;
+    }
+    overlay.classList.add('visible');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('bigscreen-display-open');
+    overlay.innerHTML = `
+      <div class="bigscreen-display-topbar">
+        <button class="backup-btn bigscreen-display-exit" type="button" onclick="closeBigScreenDisplay()">Exit</button>
+      </div>
+      ${renderBigScreenBoards('display')}
+    `;
+  }
+
+  function openBigScreenDisplay() {
+    const hasBoards = getBigScreenSelectedBoards().length > 0;
+    if (!hasBoards) return;
+    bigScreenDisplayOpen = true;
+    renderBigScreenDisplayOverlay();
+  }
+
+  function closeBigScreenDisplay() {
+    bigScreenDisplayOpen = false;
+    renderBigScreenDisplayOverlay();
+  }
+
+  function renderStorskjermPage() {
+    const page = document.getElementById('storskjerm-page');
+    if (!page) return;
+    const config = getBigScreenDisplayConfig();
+    const availableGames = getBigScreenSelectableGames();
+    const selectedCount = getBigScreenSelectedBoards().length;
+    page.innerHTML = `
+      <div class="bigscreen-page">
+        <div class="bigscreen-hero">
+          <div class="bigscreen-hero-title">Storskjerm display</div>
+          <div class="bigscreen-hero-text">Velg hvilke leaderboards som skal vises p&aring; storskjermen. Forh&aring;ndsvisningen bruker samme oppsett som skjermen dere viser i rommet.</div>
+        </div>
+
+        <div class="bigscreen-layout">
+          <div class="bigscreen-config-card">
+            <div>
+              <div class="bigscreen-section-head">
+                <div>
+                  <div class="bigscreen-section-title">Standard leaderboards</div>
+                  <div class="bigscreen-section-copy">Dag, uke og m&aring;ned kan vises hver for seg eller samtidig.</div>
+                </div>
+              </div>
+              <div class="bigscreen-chip-row">
+                ${LEADERBOARD_PERIOD_CONFIG.map(period => `
+                  <button
+                    class="bigscreen-chip${config.periods.includes(period.id) ? ' active' : ''}"
+                    type="button"
+                    onclick="toggleBigScreenPeriod('${period.id}')"
+                  >${escHtml(period.label)}</button>
+                `).join('')}
+              </div>
+            </div>
+
+            <div>
+              <div class="bigscreen-section-head">
+                <div>
+                  <div class="bigscreen-section-title">Aktive spill</div>
+                  <div class="bigscreen-section-copy">Bare spill du deltar i eller er seer p&aring; vises her.</div>
+                </div>
+              </div>
+              ${competitionState === 'loading' ? '<div class="bigscreen-section-copy">Laster spill...</div>' : ''}
+              ${competitionState === 'error' ? `<div class="bigscreen-section-copy">${escHtml(competitionErrorMessage || 'Kunne ikke laste spill.')}</div>` : ''}
+              <div class="bigscreen-game-list">
+                ${availableGames.length ? availableGames.map(game => `
+                  <button
+                    class="bigscreen-game-option${config.competitionIds.includes(game.competition_id) ? ' active' : ''}"
+                    type="button"
+                    onclick="toggleBigScreenCompetition('${game.competition_id}')"
+                  >
+                    <div class="bigscreen-game-option-top">
+                      <div>
+                        <div class="bigscreen-game-option-title">${escHtml(game.name)}</div>
+                        <div class="bigscreen-game-option-meta">${escHtml(formatCompetitionTimeRange(game))}</div>
+                      </div>
+                      <span class="bigscreen-game-option-check">${config.competitionIds.includes(game.competition_id) ? '&#10003;' : '+'}</span>
+                    </div>
+                  </button>
+                `).join('') : '<div class="bigscreen-section-copy">Ingen aktive spill tilgjengelig akkurat n&aring;.</div>'}
+              </div>
+            </div>
+
+            <div class="bigscreen-actions">
+              <button class="save-btn" type="button" onclick="openBigScreenDisplay()" ${selectedCount ? '' : 'disabled'}>Start display</button>
+              <button class="backup-btn" type="button" onclick="clearBigScreenSelections()">Nullstill</button>
+            </div>
+          </div>
+
+          <div class="bigscreen-preview-card">
+            <div class="bigscreen-section-head">
+              <div>
+                <div class="bigscreen-section-title">Forh&aring;ndsvisning</div>
+                <div class="bigscreen-section-copy">${selectedCount ? `${selectedCount} valgt${selectedCount === 1 ? '' : 'e'} leaderboard${selectedCount === 1 ? '' : 's'}` : 'Ingen leaderboards valgt enn&aring;.'}</div>
+              </div>
+            </div>
+            <div class="bigscreen-preview-shell">
+              <div class="bigscreen-preview-stage">
+                ${renderBigScreenBoards('preview')}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     `;
   }
