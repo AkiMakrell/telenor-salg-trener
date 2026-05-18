@@ -9967,6 +9967,10 @@
       color: var(--text);
     }
 
+    .abo-count-modal.is-sale-breakdown {
+      width: min(100%, 720px);
+    }
+
     .abo-count-modal-title {
       font-size: 1.15rem;
       font-weight: 800;
@@ -10015,6 +10019,95 @@
     .abo-count-modal-body {
       display: grid;
       gap: 12px;
+    }
+
+    .abo-count-plan-table {
+      display: grid;
+      gap: 10px;
+    }
+
+    .abo-count-plan-table-head,
+    .abo-count-plan-row,
+    .abo-count-plan-summary {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) 120px 140px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .abo-count-plan-table-head {
+      padding: 0 12px;
+      color: #94a3b8;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .abo-count-plan-row,
+    .abo-count-plan-summary {
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      background: rgba(15, 23, 42, 0.72);
+    }
+
+    .abo-count-plan-name {
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .abo-count-plan-value {
+      color: #cbd5e1;
+      font-size: 0.92rem;
+      text-align: right;
+    }
+
+    .abo-count-plan-input {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: #020617;
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 11px 12px;
+      text-align: right;
+      outline: none;
+    }
+
+    .abo-count-plan-input:focus {
+      border-color: rgba(56, 189, 248, 0.45);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+    }
+
+    .abo-count-plan-summary {
+      border-color: rgba(56, 189, 248, 0.18);
+      background: rgba(8, 47, 73, 0.48);
+    }
+
+    .abo-count-plan-summary-label {
+      font-size: 0.84rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #bae6fd;
+    }
+
+    @media (max-width: 640px) {
+      .abo-count-plan-table-head {
+        display: none;
+      }
+
+      .abo-count-plan-row,
+      .abo-count-plan-summary {
+        grid-template-columns: 1fr;
+      }
+
+      .abo-count-plan-value,
+      .abo-count-plan-input {
+        text-align: left;
+      }
     }
 
     .abo-count-choice-grid {
@@ -12052,6 +12145,17 @@
   ];
   const LEADERBOARD_POINTS_PER_SALE = 300;
   const LEADERBOARD_POINTS_PER_OVER6 = 100;
+  const SALE_OMSETNING_BY_PLAN = {
+    basis: 400,
+    'basis-tale': 900,
+    'basis-data': 900,
+    'flyt-5': 1700,
+    'flyt-20': 2500,
+    'flyt-50': 2500,
+    'frihet-start': 2750,
+    frihet: 2750,
+    'frihet-premium': 3000
+  };
   const LEADERBOARD_SCHEMA_WARNING = 'Leaderboard trenger en Supabase-oppdatering før dag/uke/måned kan vises. Kjør den nyeste supabase-schema.sql i SQL Editor.';
   const DATA_SAFETY_SCHEMA_WARNING = 'Databeskyttelse trenger en Supabase-oppdatering. Kjør den nyeste supabase-schema.sql i SQL Editor.';
   const BACKEND_MIGRATION_SCHEMA_WARNING = 'Backend-migrering trenger en Supabase-oppdatering. Kjør den nyeste supabase-schema.sql i SQL Editor.';
@@ -12828,11 +12932,43 @@
     return Math.max(minimum, normalized);
   }
 
+  function getSaleRegistrationPlans() {
+    return PRICE_CALCULATOR_PLANS.filter(plan => Object.prototype.hasOwnProperty.call(SALE_OMSETNING_BY_PLAN, plan.id));
+  }
+
+  function normalizeSalePlanQuantities(value = {}) {
+    const source = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+    const normalized = {};
+    getSaleRegistrationPlans().forEach(plan => {
+      const count = normalizeWholeNumber(source[plan.id], 0, 0);
+      if (count > 0) normalized[plan.id] = count;
+    });
+    return normalized;
+  }
+
+  function getSalePlanQuantitiesTotal(planQuantities = {}) {
+    return Object.values(normalizeSalePlanQuantities(planQuantities)).reduce((sum, count) => sum + count, 0);
+  }
+
+  function getSaleOmsetning(planQuantities = {}) {
+    const normalized = normalizeSalePlanQuantities(planQuantities);
+    return Object.entries(normalized).reduce((sum, [planId, count]) => {
+      return sum + ((SALE_OMSETNING_BY_PLAN[planId] || 0) * count);
+    }, 0);
+  }
+
   function createSalePromptDraft(overrides = {}) {
     const saleCategory = String(overrides.saleCategory || overrides.saleType || 'port').trim().toLowerCase() === 'ov'
       ? 'ov'
       : 'port';
-    const salesCount = normalizeWholeNumber(overrides.salesCount, 1, 1);
+    const salePlanQuantities = normalizeSalePlanQuantities(
+      overrides.salePlanQuantities
+      ?? overrides.sale_plan_quantities
+      ?? overrides.planQuantities
+      ?? overrides.plan_quantities
+    );
+    const planSalesCount = getSalePlanQuantitiesTotal(salePlanQuantities);
+    const salesCount = normalizeWholeNumber(overrides.salesCount, planSalesCount, 0) || planSalesCount;
     const addonCount = normalizeWholeNumber(overrides.addonCount, 0, 0);
     const hasAddons = Object.prototype.hasOwnProperty.call(overrides, 'hasAddons')
       ? (overrides.hasAddons === true || overrides.hasAddons === 'ja' || addonCount > 0)
@@ -12841,12 +12977,20 @@
       step: String(overrides.step || 'sale-type'),
       saleCategory,
       salesCount,
+      salePlanQuantities,
       hasAddons,
       addonCount: hasAddons ? Math.max(1, addonCount || 1) : 0
     };
   }
 
   function buildNormalizedSaleEntryData(options = {}) {
+    const salePlanQuantities = normalizeSalePlanQuantities(
+      options.salePlanQuantities
+      ?? options.sale_plan_quantities
+      ?? options.planQuantities
+      ?? options.plan_quantities
+    );
+    const planSalesCount = getSalePlanQuantitiesTotal(salePlanQuantities);
     const rawPortSalesCount = normalizeWholeNumber(
       options.portSalesCount ?? options.port_sales_count,
       0,
@@ -12858,36 +13002,41 @@
       0
     );
     const explicitSalesCount = normalizeWholeNumber(options.salesCount ?? options.sales_count, 0, 0);
-    const hasSale = options.salg === 'ja' || rawPortSalesCount > 0 || rawOvSalesCount > 0 || explicitSalesCount > 0;
+    const hasSale = options.salg === 'ja' || rawPortSalesCount > 0 || rawOvSalesCount > 0 || explicitSalesCount > 0 || planSalesCount > 0;
     if (!hasSale) {
       return {
         salesCount: 0,
         saleCategory: 'port',
         portSalesCount: 0,
         ovSalesCount: 0,
-        addonCount: 0
+        addonCount: 0,
+        salePlanQuantities: {},
+        omsetning: 0
       };
     }
 
     const saleCategory = String(options.saleCategory || options.saleType || '').trim().toLowerCase() === 'ov'
       ? 'ov'
       : 'port';
-    const derivedSalesCount = rawPortSalesCount + rawOvSalesCount;
+    const derivedSalesCount = planSalesCount || rawPortSalesCount + rawOvSalesCount;
     const salesCount = Math.max(1, derivedSalesCount || explicitSalesCount || 1);
-    const portSalesCount = derivedSalesCount
+    const portSalesCount = (rawPortSalesCount + rawOvSalesCount)
       ? rawPortSalesCount
       : saleCategory === 'ov' ? 0 : salesCount;
-    const ovSalesCount = derivedSalesCount
+    const ovSalesCount = (rawPortSalesCount + rawOvSalesCount)
       ? rawOvSalesCount
       : saleCategory === 'ov' ? salesCount : 0;
     const addonCount = normalizeWholeNumber(options.addonCount ?? options.addon_count, 0, 0);
+    const omsetning = getSaleOmsetning(salePlanQuantities);
 
     return {
       salesCount: portSalesCount + ovSalesCount,
       saleCategory: ovSalesCount > 0 && portSalesCount === 0 ? 'ov' : 'port',
       portSalesCount,
       ovSalesCount,
-      addonCount
+      addonCount,
+      salePlanQuantities,
+      omsetning
     };
   }
 
@@ -12910,28 +13059,29 @@
           normalized.salesCount = normalizedSaleDetails.salesCount;
           changed = true;
         }
-        const hasStructuredSaleFields =
-          Object.prototype.hasOwnProperty.call(normalized, 'saleCategory')
-          || Object.prototype.hasOwnProperty.call(normalized, 'portSalesCount')
-          || Object.prototype.hasOwnProperty.call(normalized, 'ovSalesCount')
-          || Object.prototype.hasOwnProperty.call(normalized, 'addonCount');
-        if (hasStructuredSaleFields) {
-          if (String(normalized.saleCategory || '') !== normalizedSaleDetails.saleCategory) {
-            normalized.saleCategory = normalizedSaleDetails.saleCategory;
-            changed = true;
-          }
-          if (Number(normalized.portSalesCount || 0) !== normalizedSaleDetails.portSalesCount) {
-            normalized.portSalesCount = normalizedSaleDetails.portSalesCount;
-            changed = true;
-          }
-          if (Number(normalized.ovSalesCount || 0) !== normalizedSaleDetails.ovSalesCount) {
-            normalized.ovSalesCount = normalizedSaleDetails.ovSalesCount;
-            changed = true;
-          }
-          if (Number(normalized.addonCount || 0) !== normalizedSaleDetails.addonCount) {
-            normalized.addonCount = normalizedSaleDetails.addonCount;
-            changed = true;
-          }
+        if (String(normalized.saleCategory || '') !== normalizedSaleDetails.saleCategory) {
+          normalized.saleCategory = normalizedSaleDetails.saleCategory;
+          changed = true;
+        }
+        if (Number(normalized.portSalesCount || 0) !== normalizedSaleDetails.portSalesCount) {
+          normalized.portSalesCount = normalizedSaleDetails.portSalesCount;
+          changed = true;
+        }
+        if (Number(normalized.ovSalesCount || 0) !== normalizedSaleDetails.ovSalesCount) {
+          normalized.ovSalesCount = normalizedSaleDetails.ovSalesCount;
+          changed = true;
+        }
+        if (Number(normalized.addonCount || 0) !== normalizedSaleDetails.addonCount) {
+          normalized.addonCount = normalizedSaleDetails.addonCount;
+          changed = true;
+        }
+        if (JSON.stringify(normalizeSalePlanQuantities(normalized.salePlanQuantities || normalized.sale_plan_quantities || {})) !== JSON.stringify(normalizedSaleDetails.salePlanQuantities)) {
+          normalized.salePlanQuantities = normalizedSaleDetails.salePlanQuantities;
+          changed = true;
+        }
+        if (Number(normalized.omsetning || 0) !== normalizedSaleDetails.omsetning) {
+          normalized.omsetning = normalizedSaleDetails.omsetning;
+          changed = true;
         }
         return normalized;
       })
@@ -14115,10 +14265,10 @@
     const entryId = String(row.entry_id || '').trim();
     const occurredAt = String(row.occurred_at || '').trim();
     if (!entryId || !occurredAt) return null;
-    const salesCount = Math.max(0, Number(row.sales_count) || 0);
-    const portSalesCount = Math.max(0, Number(row.port_sales_count) || 0);
-    const ovSalesCount = Math.max(0, Number(row.ov_sales_count) || 0);
-    const addonCount = Math.max(0, Number(row.addon_count) || 0);
+    const sourcePayload = row.source_payload && typeof row.source_payload === 'object' && !Array.isArray(row.source_payload)
+      ? row.source_payload
+      : {};
+    const saleDetails = buildNormalizedSaleEntryData({ ...row, ...sourcePayload });
     const localDateKey = String(row.session_date || row.local_date || '').trim();
     const entryDate = new Date(occurredAt);
     return {
@@ -14129,11 +14279,13 @@
       opptak: Number(row.intro_success_count) > 0 ? 'ja' : 'nei',
       over5min: Number(row.over6_count) > 0 ? 'ja' : 'nei',
       salg: salesCount > 0 ? 'ja' : 'nei',
-      salesCount,
-      saleCategory: ovSalesCount > 0 && portSalesCount === 0 ? 'ov' : 'port',
-      portSalesCount,
-      ovSalesCount,
-      addonCount,
+      salesCount: saleDetails.salesCount,
+      saleCategory: saleDetails.saleCategory,
+      portSalesCount: saleDetails.portSalesCount,
+      ovSalesCount: saleDetails.ovSalesCount,
+      addonCount: saleDetails.addonCount,
+      salePlanQuantities: saleDetails.salePlanQuantities,
+      omsetning: saleDetails.omsetning,
       isoDate: occurredAt,
       tid: Number.isNaN(entryDate.getTime()) ? occurredAt : formatHistoryTimestamp(entryDate),
       sessionId: String(row.session_id || '').trim() || null,
@@ -14173,17 +14325,17 @@
       day: {
         sales: dayStats.salg,
         over6: dayStats.over5,
-        points: getLeaderboardPoints(dayStats.salg, dayStats.over5)
+        points: dayStats.omsetning
       },
       week: {
         sales: weekStats.salg,
         over6: weekStats.over5,
-        points: getLeaderboardPoints(weekStats.salg, weekStats.over5)
+        points: weekStats.omsetning
       },
       month: {
         sales: monthStats.salg,
         over6: monthStats.over5,
-        points: getLeaderboardPoints(monthStats.salg, monthStats.over5)
+        points: monthStats.omsetning
       }
     };
   }
@@ -14474,7 +14626,7 @@
     if (!supabaseClient || !currentUser) return [];
     const { data, error } = await supabaseClient
       .from(SUPABASE_CANONICAL_STATS_ACTIVITY_TABLE)
-      .select('entry_id, source_entry_type, source_intro_id, source_text, occurred_at, local_date, session_date, session_id, session_label, intro_success_count, over6_count, sales_count, port_sales_count, ov_sales_count, addon_count, quick_entry')
+      .select('entry_id, source_entry_type, source_intro_id, source_text, occurred_at, local_date, session_date, session_id, session_label, intro_success_count, over6_count, sales_count, port_sales_count, ov_sales_count, addon_count, quick_entry, source_payload')
       .eq('user_id', currentUser.id)
       .order('occurred_at', { ascending: false });
     if (error) throw error;
@@ -14590,7 +14742,6 @@
       setCompetitionState('loading');
     }
 
-    const readStrategy = getBackendReadStrategy('leaderboard');
     try {
       await Promise.all([
         loadPublicProfiles(),
@@ -14628,27 +14779,10 @@
         backendStatsHistoryEntries = [];
         backendStatsHistoryLoaded = false;
       }
-      let nextRows = [];
-      if (readStrategy === 'backend') {
-        try {
-          const backendRows = await loadBackendLeaderboardRows();
-          nextRows = mergeCurrentUserLocalLeaderboardRow(backendRows);
-          setLeaderboardSourceMode('backend');
-        } catch (error) {
-          if (!isBackendStatsSchemaMismatch(error)) {
-            console.warn('Backend leaderboard read failed, falling back to legacy rows.', error);
-          }
-          const legacyRows = await loadLegacyPublicStatsRows().catch(() => []);
-          const freshRows = buildLeaderboardRowsFromPublicActivity();
-          nextRows = mergeCurrentUserLocalLeaderboardRow(mergeLeaderboardSourceRows(freshRows, legacyRows));
-          setLeaderboardSourceMode('fallback');
-        }
-      } else {
-        const legacyRows = await loadLegacyPublicStatsRows().catch(() => []);
-        const freshRows = buildLeaderboardRowsFromPublicActivity();
-        nextRows = mergeCurrentUserLocalLeaderboardRow(mergeLeaderboardSourceRows(freshRows, legacyRows));
-        setLeaderboardSourceMode('legacy');
-      }
+      const legacyRows = await loadLegacyPublicStatsRows().catch(() => []);
+      const freshRows = buildLeaderboardRowsFromPublicActivity();
+      const nextRows = mergeCurrentUserLocalLeaderboardRow(mergeLeaderboardSourceRows(freshRows, legacyRows));
+      setLeaderboardSourceMode('legacy');
       if (loadToken !== leaderboardLoadToken) return leaderboardRows;
       leaderboardRows = nextRows;
       syncCompetitionLeadCelebration();
@@ -14776,7 +14910,7 @@
           port_sales_count: saleDetails.portSalesCount,
           ov_sales_count: saleDetails.ovSalesCount,
           addon_count: saleDetails.addonCount,
-          points: getLeaderboardPoints(salesCount, over6Count)
+          points: saleDetails.omsetning
         };
       })
       .filter(Boolean);
@@ -15933,6 +16067,8 @@
       portSalesCount: saleDetails.portSalesCount,
       ovSalesCount: saleDetails.ovSalesCount,
       addonCount: saleDetails.addonCount,
+      salePlanQuantities: saleDetails.salePlanQuantities,
+      omsetning: saleDetails.omsetning,
       isoDate: entryDate.toISOString(),
       tid: formatHistoryTimestamp(entryDate),
       sessionId: currentSession ? currentSession.id : null,
@@ -16154,11 +16290,16 @@
     return getEntrySaleDetails(entry).salesCount;
   }
 
+  function getEntryOmsetning(entry) {
+    return getEntrySaleDetails(entry).omsetning;
+  }
+
   function getSuccessStats(entries) {
     return {
       introSuccesses: entries.filter(isIntroSuccessEntry).length,
       over5: entries.filter(h => h.over5min === 'ja').length,
       salg: entries.reduce((sum, entry) => sum + getEntrySalesCount(entry), 0),
+      omsetning: entries.reduce((sum, entry) => sum + getEntryOmsetning(entry), 0),
     };
   }
 
@@ -18928,10 +19069,6 @@
     return index >= 0 ? index + 1 : null;
   }
 
-  function formatLeaderboardPoints(value) {
-    return (Number(value) || 0).toLocaleString('no-NO');
-  }
-
   function formatLeaderboardTimestamp(isoDate) {
     if (!isoDate) return 'Ingen registreringer ennå';
     const parsed = new Date(isoDate);
@@ -18970,12 +19107,12 @@
     const rank = ownRow ? getLeaderboardRank(period.id, ownRow.user_id) : null;
     const gap = Math.max(0, leaderPoints - ownPoints);
     const meta = ownRow
-      ? `${rank === 1 ? 'Du leder akkurat nå' : `Plass #${rank}`} · ${gap === 0 ? 'Delt førsteplass' : `${gap} poeng opp til toppen`}`
+      ? `${rank === 1 ? 'Du leder akkurat nå' : `Plass #${rank}`} · ${gap === 0 ? 'Delt førsteplass' : `${formatOmsetningValue(gap)} opp til toppen`}`
       : 'Registrer et opptak for å komme inn på lista';
     return `
       <div class="leaderboard-summary-card period-${period.id}">
         <div class="leaderboard-summary-label">${period.title}</div>
-        <div class="leaderboard-summary-value">${ownPoints}</div>
+        <div class="leaderboard-summary-value">${formatOmsetningValue(ownPoints)}</div>
         <div class="leaderboard-summary-meta">${ownSales} abo · ${ownOver6} stk 6 min</div>
         <div class="leaderboard-summary-foot">${meta}</div>
       </div>
@@ -19183,7 +19320,7 @@
           </div>
         </div>
         <div class="dashboard-leaderboard-score">
-          <div class="dashboard-leaderboard-points">${points}<span>poeng</span></div>
+          <div class="dashboard-leaderboard-points">${formatOmsetningValue(points)}<span>omsetning</span></div>
         </div>
       </div>
     `;
@@ -19449,8 +19586,8 @@
                       ${renderLeaderboardCrown(rank)}
                     </div>
                     <div class="leaderboard-user-points">
-                      <span class="leaderboard-user-points-value">${points}</span>
-                      <span class="leaderboard-value-label">poeng</span>
+                      <span class="leaderboard-user-points-value">${formatOmsetningValue(points)}</span>
+                      <span class="leaderboard-value-label">omsetning</span>
                     </div>
                   </div>
                 </div>
@@ -19505,7 +19642,7 @@
         <div class="leaderboard-hero">
           <div>
             <div class="leaderboard-hero-title">Leaderboard</div>
-            <div class="leaderboard-hero-text">Poengberegning: 300 per abo, 100 per 6-minutter</div>
+            <div class="leaderboard-hero-text">Sortert p&aring; omsetning fra registrerte salg.</div>
           </div>
           <div class="leaderboard-live-meta">
             <span class="leaderboard-live-pill">Live</span>
@@ -21713,19 +21850,20 @@
   }
 
   function getBigScreenSelectedBoards() {
-    const config = getBigScreenDisplayConfig();
-    const availableGames = getBigScreenSelectableGames();
-    const boards = [];
-    LEADERBOARD_PERIOD_CONFIG.forEach(period => {
-      if (config.periods.includes(period.id)) {
-        boards.push({ id: `period-${period.id}`, type: 'period', periodId: period.id });
-      }
-    });
-    availableGames.forEach(game => {
-      if (config.competitionIds.includes(game.competition_id)) {
-        boards.push({ id: `competition-${game.competition_id}`, type: 'competition', competitionId: game.competition_id, game });
-      }
-    });
+    const boards = LEADERBOARD_PERIOD_CONFIG.map(period => ({
+      id: `period-${period.id}`,
+      type: 'period',
+      periodId: period.id
+    }));
+    const activeGame = getBigScreenSelectableGames()[0] || null;
+    if (activeGame) {
+      boards.push({
+        id: `competition-${activeGame.competition_id}`,
+        type: 'competition',
+        competitionId: activeGame.competition_id,
+        game: activeGame
+      });
+    }
     return boards;
   }
 
@@ -21755,7 +21893,7 @@
         <div class="bigscreen-board-head">
           <div>
             <div class="bigscreen-board-title">${escHtml(period.label)}</div>
-            <div class="bigscreen-board-meta">Poeng bygger p&aring; 6-minuttere og salg i valgt periode.</div>
+            <div class="bigscreen-board-meta">Omsetning fra registrerte salg i valgt periode.</div>
           </div>
           <span class="bigscreen-board-badge">Leaderboard</span>
         </div>
@@ -21774,8 +21912,8 @@
                 </div>
               </div>
               <div class="bigscreen-board-score">
-                ${formatLeaderboardPoints(row.points || 0)}
-                <span class="bigscreen-board-score-label">Poeng</span>
+                ${formatOmsetningValue(row.points || 0)}
+                <span class="bigscreen-board-score-label">Omsetning</span>
               </div>
             </div>
           `).join('') : '<div class="bigscreen-empty-state">Ingen aktivitet enn&aring;.</div>'}
@@ -21895,8 +22033,6 @@
   }
 
   function openBigScreenDisplay() {
-    const hasBoards = getBigScreenSelectedBoards().length > 0;
-    if (!hasBoards) return;
     bigScreenDisplayOpen = true;
     renderBigScreenDisplayOverlay();
   }
@@ -21909,14 +22045,13 @@
   function renderStorskjermPage() {
     const page = document.getElementById('storskjerm-page');
     if (!page) return;
-    const config = getBigScreenDisplayConfig();
     const availableGames = getBigScreenSelectableGames();
-    const selectedCount = getBigScreenSelectedBoards().length;
+    const activeGame = availableGames[0] || null;
     page.innerHTML = `
       <div class="bigscreen-page">
         <div class="bigscreen-hero">
           <div class="bigscreen-hero-title">Storskjerm display</div>
-          <div class="bigscreen-hero-text">Velg hvilke leaderboards som skal vises p&aring; storskjermen. Forh&aring;ndsvisningen bruker samme oppsett som skjermen dere viser i rommet.</div>
+          <div class="bigscreen-hero-text">Forh&aring;ndsvisningen viser alltid dag, uke og m&aring;ned. Aktivt spill legges til automatisk.</div>
         </div>
 
         <div class="bigscreen-layout">
@@ -21924,52 +22059,41 @@
             <div>
               <div class="bigscreen-section-head">
                 <div>
-                  <div class="bigscreen-section-title">Standard leaderboards</div>
-                  <div class="bigscreen-section-copy">Dag, uke og m&aring;ned kan vises hver for seg eller samtidig.</div>
+                  <div class="bigscreen-section-title">Vises alltid</div>
+                  <div class="bigscreen-section-copy">Dag, uke og m&aring;ned vises alltid med omsetning.</div>
                 </div>
               </div>
               <div class="bigscreen-chip-row">
-                ${LEADERBOARD_PERIOD_CONFIG.map(period => `
-                  <button
-                    class="bigscreen-chip${config.periods.includes(period.id) ? ' active' : ''}"
-                    type="button"
-                    onclick="toggleBigScreenPeriod('${period.id}')"
-                  >${escHtml(period.label)}</button>
-                `).join('')}
+                ${LEADERBOARD_PERIOD_CONFIG.map(period => `<span class="bigscreen-chip active">${escHtml(period.label)}</span>`).join('')}
               </div>
             </div>
 
             <div>
               <div class="bigscreen-section-head">
                 <div>
-                  <div class="bigscreen-section-title">Aktive spill</div>
-                  <div class="bigscreen-section-copy">Bare spill du deltar i eller er seer p&aring; vises her.</div>
+                  <div class="bigscreen-section-title">Aktivt spill</div>
+                  <div class="bigscreen-section-copy">${activeGame ? 'Skjermen viser det aktive spillet som avsluttes f&oslash;rst.' : 'Ingen aktive spill akkurat n&aring;.'}</div>
                 </div>
               </div>
               ${competitionState === 'loading' ? '<div class="bigscreen-section-copy">Laster spill...</div>' : ''}
               ${competitionState === 'error' ? `<div class="bigscreen-section-copy">${escHtml(competitionErrorMessage || 'Kunne ikke laste spill.')}</div>` : ''}
-              <div class="bigscreen-game-list">
-                ${availableGames.length ? availableGames.map(game => `
-                  <button
-                    class="bigscreen-game-option${config.competitionIds.includes(game.competition_id) ? ' active' : ''}"
-                    type="button"
-                    onclick="toggleBigScreenCompetition('${game.competition_id}')"
-                  >
+              ${activeGame ? `
+                <div class="bigscreen-game-list">
+                  <div class="bigscreen-game-option active">
                     <div class="bigscreen-game-option-top">
                       <div>
-                        <div class="bigscreen-game-option-title">${escHtml(game.name)}</div>
-                        <div class="bigscreen-game-option-meta">${escHtml(formatCompetitionTimeRange(game))}</div>
+                        <div class="bigscreen-game-option-title">${escHtml(activeGame.name)}</div>
+                        <div class="bigscreen-game-option-meta">${escHtml(formatCompetitionTimeRange(activeGame))}</div>
                       </div>
-                      <span class="bigscreen-game-option-check">${config.competitionIds.includes(game.competition_id) ? '&#10003;' : '+'}</span>
+                      <span class="bigscreen-game-option-check">&#10003;</span>
                     </div>
-                  </button>
-                `).join('') : '<div class="bigscreen-section-copy">Ingen aktive spill tilgjengelig akkurat n&aring;.</div>'}
-              </div>
+                  </div>
+                </div>
+              ` : ''}
             </div>
 
             <div class="bigscreen-actions">
-              <button class="save-btn" type="button" onclick="openBigScreenDisplay()" ${selectedCount ? '' : 'disabled'}>Start display</button>
-              <button class="backup-btn" type="button" onclick="clearBigScreenSelections()">Nullstill</button>
+              <button class="save-btn" type="button" onclick="openBigScreenDisplay()">Start display</button>
             </div>
           </div>
 
@@ -21977,7 +22101,7 @@
             <div class="bigscreen-section-head">
               <div>
                 <div class="bigscreen-section-title">Forh&aring;ndsvisning</div>
-                <div class="bigscreen-section-copy">${selectedCount ? `${selectedCount} valgt${selectedCount === 1 ? '' : 'e'} leaderboard${selectedCount === 1 ? '' : 's'}` : 'Ingen leaderboards valgt enn&aring;.'}</div>
+                <div class="bigscreen-section-copy">${activeGame ? 'Dag, uke, m&aring;ned og ett aktivt spill.' : 'Dag, uke og m&aring;ned.'}</div>
               </div>
             </div>
             <div class="bigscreen-preview-shell">
@@ -22666,7 +22790,73 @@
     registerIntroSuccessById(intro.id);
   }
 
+  function formatOmsetningValue(value) {
+    return `kr ${Math.max(0, Number(value) || 0).toLocaleString('no-NO')}`;
+  }
+
+  function renderSalePromptPlanBreakdown(draft) {
+    const planQuantities = normalizeSalePlanQuantities(draft.salePlanQuantities || {});
+    const totalSales = getSalePlanQuantitiesTotal(planQuantities);
+    const omsetning = getSaleOmsetning(planQuantities);
+    return `
+      <div class="abo-count-plan-table">
+        <div class="abo-count-plan-table-head">
+          <span>Abonnement</span>
+          <span class="abo-count-plan-value">Omsetning</span>
+          <span class="abo-count-plan-value">Antall</span>
+        </div>
+        ${getSaleRegistrationPlans().map(plan => `
+          <div class="abo-count-plan-row">
+            <div class="abo-count-plan-name">${escHtml(plan.name)}</div>
+            <div class="abo-count-plan-value">${formatOmsetningValue(SALE_OMSETNING_BY_PLAN[plan.id] || 0)}</div>
+            <input
+              id="sale-plan-quantity-${escAttr(plan.id)}"
+              class="abo-count-plan-input"
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              value="${escAttr(planQuantities[plan.id] || 0)}"
+              oninput="setSalePromptPlanQuantity('${plan.id}', this.value)"
+            />
+          </div>
+        `).join('')}
+        <div class="abo-count-plan-summary">
+          <div class="abo-count-plan-summary-label">Totalt</div>
+          <div id="sale-plan-omsetning-total" class="abo-count-plan-value">${formatOmsetningValue(omsetning)}</div>
+          <div id="sale-plan-sales-total" class="abo-count-plan-value">${totalSales} abo</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function syncSalePromptPlanBreakdownSummary() {
+    const draft = salePromptDraft || createSalePromptDraft();
+    const planQuantities = normalizeSalePlanQuantities(draft.salePlanQuantities || {});
+    const totalSales = getSalePlanQuantitiesTotal(planQuantities);
+    const omsetning = getSaleOmsetning(planQuantities);
+    const salesTotal = document.getElementById('sale-plan-sales-total');
+    const omsetningTotal = document.getElementById('sale-plan-omsetning-total');
+    if (salesTotal) salesTotal.textContent = `${totalSales} abo`;
+    if (omsetningTotal) omsetningTotal.textContent = formatOmsetningValue(omsetning);
+  }
+
+  function setSalePromptPlanQuantity(planId, value) {
+    const draft = salePromptDraft || createSalePromptDraft();
+    const salePlanQuantities = {
+      ...normalizeSalePlanQuantities(draft.salePlanQuantities || {}),
+      [planId]: normalizeWholeNumber(value, 0, 0)
+    };
+    if (!salePlanQuantities[planId]) delete salePlanQuantities[planId];
+    salePromptDraft = {
+      ...draft,
+      salePlanQuantities,
+      salesCount: getSalePlanQuantitiesTotal(salePlanQuantities)
+    };
+    syncSalePromptPlanBreakdownSummary();
+  }
+
   function renderAboCountPrompt() {
+    const modal = document.querySelector('#abo-count-overlay .abo-count-modal');
     const title = document.getElementById('abo-count-title');
     const text = document.querySelector('#abo-count-overlay .abo-count-modal-text');
     const body = document.getElementById('abo-count-body');
@@ -22676,6 +22866,7 @@
     const error = document.getElementById('abo-count-error');
     if (!title || !text || !body || !confirmButton) return;
     if (error) error.textContent = '';
+    if (modal) modal.classList.remove('is-sale-breakdown');
 
     if (aboCountPromptMode !== 'sale-details') {
       if (step) step.hidden = true;
@@ -22694,7 +22885,7 @@
     }
 
     const draft = salePromptDraft || createSalePromptDraft();
-    const stepOrder = ['sale-type', 'sales-count', 'has-addons', 'addon-count'];
+    const stepOrder = ['sale-type', 'sale-breakdown', 'has-addons', 'addon-count'];
     const visibleSteps = draft.hasAddons ? stepOrder : stepOrder.filter(item => item !== 'addon-count');
     const currentStepIndex = Math.max(0, visibleSteps.indexOf(draft.step));
     if (step) {
@@ -22716,14 +22907,13 @@
       return;
     }
 
-    if (draft.step === 'sales-count') {
-      title.textContent = 'Hvor mange abo?';
-      text.textContent = draft.saleCategory === 'ov'
-        ? 'Skriv inn hvor mange OV/BedTotal-abo registreringen gjelder.'
-        : 'Skriv inn hvor mange PORT-abo registreringen gjelder.';
-      body.innerHTML = `<input id="abo-count-input" class="abo-count-modal-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${escAttr(draft.salesCount)}" />`;
+    if (draft.step === 'sale-breakdown') {
+      if (modal) modal.classList.add('is-sale-breakdown');
+      title.textContent = draft.saleCategory === 'ov' ? 'OV/BedTotal' : 'PORT';
+      text.textContent = 'Legg inn antall per abonnement.';
+      body.innerHTML = renderSalePromptPlanBreakdown(draft);
       confirmButton.textContent = 'Neste';
-      const input = document.getElementById('abo-count-input');
+      const input = document.getElementById(`sale-plan-quantity-${getSaleRegistrationPlans()[0]?.id || 'basis'}`);
       requestAnimationFrame(() => {
         input?.focus();
         input?.select();
@@ -22777,10 +22967,10 @@
   function goBackAboCountPrompt() {
     if (aboCountPromptMode !== 'sale-details') return;
     const draft = salePromptDraft || createSalePromptDraft();
-    if (draft.step === 'sales-count') {
+    if (draft.step === 'sale-breakdown') {
       salePromptDraft = { ...draft, step: 'sale-type' };
     } else if (draft.step === 'has-addons') {
-      salePromptDraft = { ...draft, step: 'sales-count' };
+      salePromptDraft = { ...draft, step: 'sale-breakdown' };
     } else if (draft.step === 'addon-count') {
       salePromptDraft = { ...draft, step: 'has-addons' };
     }
@@ -22822,22 +23012,19 @@
 
     const draft = salePromptDraft || createSalePromptDraft();
     if (draft.step === 'sale-type') {
-      salePromptDraft = { ...draft, step: 'sales-count' };
+      salePromptDraft = { ...draft, step: 'sale-breakdown' };
       renderAboCountPrompt();
       return;
     }
 
-    if (draft.step === 'sales-count') {
-      const input = document.getElementById('abo-count-input');
-      const trimmed = String(input?.value || '').trim();
-      const value = Math.floor(Number(trimmed));
-      if (!trimmed || !Number.isFinite(value) || value < 1) {
-        if (error) error.textContent = 'Skriv inn et heltall på 1 eller mer.';
-        input?.focus();
-        input?.select();
+    if (draft.step === 'sale-breakdown') {
+      const planQuantities = normalizeSalePlanQuantities(draft.salePlanQuantities || {});
+      const totalSales = getSalePlanQuantitiesTotal(planQuantities);
+      if (totalSales < 1) {
+        if (error) error.textContent = 'Legg inn minst ett abonnement.';
         return;
       }
-      salePromptDraft = { ...draft, salesCount: value, step: 'has-addons' };
+      salePromptDraft = { ...draft, salePlanQuantities: planQuantities, salesCount: totalSales, step: 'has-addons' };
       renderAboCountPrompt();
       return;
     }
@@ -22849,7 +23036,9 @@
           saleCategory: draft.saleCategory,
           portSalesCount: draft.saleCategory === 'ov' ? 0 : draft.salesCount,
           ovSalesCount: draft.saleCategory === 'ov' ? draft.salesCount : 0,
-          addonCount: 0
+          addonCount: 0,
+          salePlanQuantities: normalizeSalePlanQuantities(draft.salePlanQuantities || {}),
+          omsetning: getSaleOmsetning(draft.salePlanQuantities || {})
         });
         return;
       }
@@ -22872,7 +23061,9 @@
       saleCategory: draft.saleCategory,
       portSalesCount: draft.saleCategory === 'ov' ? 0 : draft.salesCount,
       ovSalesCount: draft.saleCategory === 'ov' ? draft.salesCount : 0,
-      addonCount: value
+      addonCount: value,
+      salePlanQuantities: normalizeSalePlanQuantities(draft.salePlanQuantities || {}),
+      omsetning: getSaleOmsetning(draft.salePlanQuantities || {})
     });
   }
 
@@ -22906,10 +23097,11 @@
       portSalesCount: saleDetails?.portSalesCount || 0,
       ovSalesCount: saleDetails?.ovSalesCount || 0,
       addonCount: saleDetails?.addonCount || 0,
+      salePlanQuantities: saleDetails?.salePlanQuantities || {},
     });
     history.unshift(nextEntry);
     const actionLabel = selectedSalg === 'ja'
-      ? `Registrerte opptak med ${saleDetails.salesCount} abo${saleDetails.addonCount ? ` og ${saleDetails.addonCount} tilleggstjenester` : ''}`
+      ? `Registrerte opptak med ${saleDetails.salesCount} abo${saleDetails.addonCount ? ` og ${saleDetails.addonCount} tilleggstjenester` : ''}${saleDetails.omsetning ? ` · ${formatOmsetningValue(saleDetails.omsetning)}` : ''}`
       : selectedOver5min === 'ja'
         ? 'Registrerte opptak med 6-minutter'
         : 'Registrerte opptak';
@@ -23058,6 +23250,7 @@
       portSalesCount: normalizedType === 'salg' ? saleDetails?.portSalesCount || 0 : 0,
       ovSalesCount: normalizedType === 'salg' ? saleDetails?.ovSalesCount || 0 : 0,
       addonCount: normalizedType === 'salg' ? saleDetails?.addonCount || 0 : 0,
+      salePlanQuantities: normalizedType === 'salg' ? saleDetails?.salePlanQuantities || {} : {},
       quickEntry: true
     });
     if (editId) {
@@ -27352,11 +27545,12 @@
       portSalesCount: saleDetails?.portSalesCount || 0,
       ovSalesCount: saleDetails?.ovSalesCount || 0,
       addonCount: saleDetails?.addonCount || 0,
+      salePlanQuantities: saleDetails?.salePlanQuantities || {},
       quickEntry: true
     });
     history.unshift(nextEntry);
     const actionLabel = type === 'salg'
-      ? `Registrerte ${saleDetails.salesCount} abo${saleDetails.addonCount ? ` og ${saleDetails.addonCount} tilleggstjenester` : ''}`
+      ? `Registrerte ${saleDetails.salesCount} abo${saleDetails.addonCount ? ` og ${saleDetails.addonCount} tilleggstjenester` : ''}${saleDetails.omsetning ? ` · ${formatOmsetningValue(saleDetails.omsetning)}` : ''}`
       : 'Registrerte 6-minutter';
     commitIntroHistory(history, {
       previousHistory,
