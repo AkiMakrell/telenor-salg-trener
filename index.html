@@ -12153,16 +12153,41 @@
   ];
   const LEADERBOARD_POINTS_PER_SALE = 300;
   const LEADERBOARD_POINTS_PER_OVER6 = 100;
-  const SALE_OMSETNING_BY_PLAN = {
-    basis: 400,
-    'basis-tale': 900,
-    'basis-data': 900,
-    'flyt-5': 1700,
-    'flyt-20': 2500,
-    'flyt-50': 2500,
-    'frihet-start': 2750,
-    frihet: 2750,
-    'frihet-premium': 3000
+  const SALE_OMSETNING_CONFIG_BY_TEAM = {
+    nysalg: {
+      plans: [
+        { id: 'basis', name: 'Basis', omsetning: 400 },
+        { id: 'basis-tale', name: 'Basis Tale', omsetning: 900 },
+        { id: 'basis-data', name: 'Basis Data', omsetning: 900 },
+        { id: 'flyt-5', name: 'Flyt 5', omsetning: 1700 },
+        { id: 'flyt-20', name: 'Flyt 20', omsetning: 2500 },
+        { id: 'flyt-50', name: 'Flyt 50', omsetning: 2500 },
+        { id: 'frihet-start', name: 'Frihet Start', omsetning: 2750 },
+        { id: 'frihet', name: 'Frihet', omsetning: 2750 },
+        { id: 'frihet-premium', name: 'Frihet Premium', omsetning: 3000 }
+      ],
+      addons: [
+        { id: 'safe-zone', name: 'Safe Zone', omsetning: 225 },
+        { id: 'datakort', name: 'Datakort', omsetning: 100 }
+      ]
+    },
+    agrol: {
+      plans: [
+        { id: 'basis', name: 'Basis', omsetning: 150 },
+        { id: 'basis-tale', name: 'Basis Tale', omsetning: 350 },
+        { id: 'basis-data', name: 'Basis Data', omsetning: 350 },
+        { id: 'bed-total', name: 'Bed total', omsetning: 350 },
+        { id: 'flyt-5', name: 'Flyt 5', omsetning: 1400 },
+        { id: 'flyt-20', name: 'Flyt 20', omsetning: 2000 },
+        { id: 'flyt-50', name: 'Flyt 50', omsetning: 2000 },
+        { id: 'frihet-start', name: 'Frihet Start', omsetning: 2500 },
+        { id: 'frihet', name: 'Frihet', omsetning: 2500 }
+      ],
+      addons: [
+        { id: 'safe-zone', name: 'Safe Zone', omsetning: 140 },
+        { id: 'datakort', name: 'Datakort', omsetning: 55 }
+      ]
+    }
   };
   const LEADERBOARD_SCHEMA_WARNING = 'Leaderboard trenger en Supabase-oppdatering før dag/uke/måned kan vises. Kjør den nyeste supabase-schema.sql i SQL Editor.';
   const DATA_SAFETY_SCHEMA_WARNING = 'Databeskyttelse trenger en Supabase-oppdatering. Kjør den nyeste supabase-schema.sql i SQL Editor.';
@@ -12940,14 +12965,28 @@
     return Math.max(minimum, normalized);
   }
 
-  function getSaleRegistrationPlans() {
-    return PRICE_CALCULATOR_PLANS.filter(plan => Object.prototype.hasOwnProperty.call(SALE_OMSETNING_BY_PLAN, plan.id));
+  function getSaleOmsetningTeamKey(team = getUserTeam(currentUser)) {
+    const normalizedTeam = normalizeTeamKey(team);
+    if (normalizedTeam === 'agrol' || normalizedTeam === 'argol') return 'agrol';
+    return 'nysalg';
   }
 
-  function normalizeSalePlanQuantities(value = {}) {
+  function getSaleOmsetningConfig(team = getUserTeam(currentUser)) {
+    return SALE_OMSETNING_CONFIG_BY_TEAM[getSaleOmsetningTeamKey(team)] || SALE_OMSETNING_CONFIG_BY_TEAM.nysalg;
+  }
+
+  function getSaleRegistrationPlans(team = getUserTeam(currentUser)) {
+    return getSaleOmsetningConfig(team).plans;
+  }
+
+  function getSaleRegistrationAddons(team = getUserTeam(currentUser)) {
+    return getSaleOmsetningConfig(team).addons;
+  }
+
+  function normalizeSalePlanQuantities(value = {}, team = getUserTeam(currentUser)) {
     const source = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
     const normalized = {};
-    getSaleRegistrationPlans().forEach(plan => {
+    getSaleRegistrationPlans(team).forEach(plan => {
       const count = normalizeWholeNumber(source[plan.id], 0, 0);
       if (count > 0) normalized[plan.id] = count;
     });
@@ -12955,17 +12994,106 @@
   }
 
   function getSalePlanQuantitiesTotal(planQuantities = {}) {
-    return Object.values(normalizeSalePlanQuantities(planQuantities)).reduce((sum, count) => sum + count, 0);
+    return Object.values(planQuantities || {}).reduce((sum, count) => sum + normalizeWholeNumber(count, 0, 0), 0);
   }
 
-  function getSaleOmsetning(planQuantities = {}) {
-    const normalized = normalizeSalePlanQuantities(planQuantities);
+  function normalizeSaleAddonQuantities(value = {}, team = getUserTeam(currentUser)) {
+    const source = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+    const normalized = {};
+    getSaleRegistrationAddons(team).forEach(addon => {
+      const count = normalizeWholeNumber(source[addon.id], 0, 0);
+      if (count > 0) normalized[addon.id] = count;
+    });
+    return normalized;
+  }
+
+  function getSaleAddonQuantitiesTotal(addonQuantities = {}) {
+    return Object.values(addonQuantities || {}).reduce((sum, count) => sum + normalizeWholeNumber(count, 0, 0), 0);
+  }
+
+  function getSaleOmsetning(planQuantities = {}, addonQuantities = {}, team = getUserTeam(currentUser)) {
+    const normalizedPlans = normalizeSalePlanQuantities(planQuantities, team);
+    const normalizedAddons = normalizeSaleAddonQuantities(addonQuantities, team);
+    const planMap = new Map(getSaleRegistrationPlans(team).map(item => [item.id, item.omsetning]));
+    const addonMap = new Map(getSaleRegistrationAddons(team).map(item => [item.id, item.omsetning]));
+    const planOmsetning = Object.entries(normalizedPlans).reduce((sum, [planId, count]) => {
+      return sum + ((planMap.get(planId) || 0) * count);
+    }, 0);
+    const addonOmsetning = Object.entries(normalizedAddons).reduce((sum, [addonId, count]) => {
+      return sum + ((addonMap.get(addonId) || 0) * count);
+    }, 0);
+    return planOmsetning + addonOmsetning;
+  }
+
+  function getSalePlanOmsetningValue(planId, team = getUserTeam(currentUser)) {
+    const plan = getSaleRegistrationPlans(team).find(item => item.id === planId);
+    return Number(plan?.omsetning) || 0;
+  }
+
+  function getSaleAddonOmsetningValue(addonId, team = getUserTeam(currentUser)) {
+    const addon = getSaleRegistrationAddons(team).find(item => item.id === addonId);
+    return Number(addon?.omsetning) || 0;
+  }
+
+  function getSalePlanName(planId, team = getUserTeam(currentUser)) {
+    const plan = getSaleRegistrationPlans(team).find(item => item.id === planId);
+    return plan?.name || planId;
+  }
+
+  function getSaleAddonName(addonId, team = getUserTeam(currentUser)) {
+    const addon = getSaleRegistrationAddons(team).find(item => item.id === addonId);
+    return addon?.name || addonId;
+  }
+
+  function getSalePlanQuantitiesLabel(planQuantities = {}, team = getUserTeam(currentUser)) {
+    const normalized = normalizeSalePlanQuantities(planQuantities, team);
+    return Object.entries(normalized)
+      .map(([planId, count]) => `${count} ${getSalePlanName(planId, team)}`)
+      .join(', ');
+  }
+
+  function getSaleAddonQuantitiesLabel(addonQuantities = {}, team = getUserTeam(currentUser)) {
+    const normalized = normalizeSaleAddonQuantities(addonQuantities, team);
+    return Object.entries(normalized)
+      .map(([addonId, count]) => `${count} ${getSaleAddonName(addonId, team)}`)
+      .join(', ');
+  }
+
+  function getSaleOmsetningFromExplicitValue(value, fallback = null) {
+    if (value === null || value === undefined || value === '') return fallback;
+    const normalized = Math.max(0, Number(value) || 0);
+    return Number.isFinite(normalized) ? normalized : fallback;
+  }
+
+  function buildComputedSaleOmsetning(options = {}) {
+    const saleTeam = options.saleTeam || options.sale_team || getUserTeam(currentUser);
+    const planQuantities = normalizeSalePlanQuantities(
+      options.salePlanQuantities ?? options.sale_plan_quantities ?? options.planQuantities ?? options.plan_quantities,
+      saleTeam
+    );
+    const addonQuantities = normalizeSaleAddonQuantities(
+      options.addonQuantities ?? options.addon_quantities,
+      saleTeam
+    );
+    return {
+      saleTeam: getSaleOmsetningTeamKey(saleTeam),
+      salePlanQuantities: planQuantities,
+      addonQuantities,
+      salesCount: getSalePlanQuantitiesTotal(planQuantities),
+      addonCount: getSaleAddonQuantitiesTotal(addonQuantities),
+      omsetning: getSaleOmsetning(planQuantities, addonQuantities, saleTeam)
+    };
+  }
+
+  function getLegacySaleOmsetning(planQuantities = {}) {
+    const normalized = normalizeSalePlanQuantities(planQuantities, 'nysalg');
     return Object.entries(normalized).reduce((sum, [planId, count]) => {
-      return sum + ((SALE_OMSETNING_BY_PLAN[planId] || 0) * count);
+      return sum + (getSalePlanOmsetningValue(planId, 'nysalg') * count);
     }, 0);
   }
 
   function createSalePromptDraft(overrides = {}) {
+    const saleTeam = getSaleOmsetningTeamKey(overrides.saleTeam || overrides.sale_team || getUserTeam(currentUser));
     const saleCategory = String(overrides.saleCategory || overrides.saleType || 'port').trim().toLowerCase() === 'ov'
       ? 'ov'
       : 'port';
@@ -12973,30 +13101,45 @@
       overrides.salePlanQuantities
       ?? overrides.sale_plan_quantities
       ?? overrides.planQuantities
-      ?? overrides.plan_quantities
+      ?? overrides.plan_quantities,
+      saleTeam
+    );
+    const addonQuantities = normalizeSaleAddonQuantities(
+      overrides.addonQuantities
+      ?? overrides.addon_quantities,
+      saleTeam
     );
     const planSalesCount = getSalePlanQuantitiesTotal(salePlanQuantities);
     const salesCount = normalizeWholeNumber(overrides.salesCount, planSalesCount, 0) || planSalesCount;
-    const addonCount = normalizeWholeNumber(overrides.addonCount, 0, 0);
+    const addonCount = normalizeWholeNumber(overrides.addonCount, getSaleAddonQuantitiesTotal(addonQuantities), 0);
     const hasAddons = Object.prototype.hasOwnProperty.call(overrides, 'hasAddons')
       ? (overrides.hasAddons === true || overrides.hasAddons === 'ja' || addonCount > 0)
       : addonCount > 0;
     return {
       step: String(overrides.step || 'sale-type'),
+      saleTeam,
       saleCategory,
       salesCount,
       salePlanQuantities,
+      addonQuantities,
       hasAddons,
       addonCount: hasAddons ? Math.max(1, addonCount || 1) : 0
     };
   }
 
   function buildNormalizedSaleEntryData(options = {}) {
+    const computed = buildComputedSaleOmsetning(options);
     const salePlanQuantities = normalizeSalePlanQuantities(
       options.salePlanQuantities
       ?? options.sale_plan_quantities
       ?? options.planQuantities
-      ?? options.plan_quantities
+      ?? options.plan_quantities,
+      computed.saleTeam
+    );
+    const addonQuantities = normalizeSaleAddonQuantities(
+      options.addonQuantities
+      ?? options.addon_quantities,
+      computed.saleTeam
     );
     const planSalesCount = getSalePlanQuantitiesTotal(salePlanQuantities);
     const rawPortSalesCount = normalizeWholeNumber(
@@ -13018,7 +13161,9 @@
         portSalesCount: 0,
         ovSalesCount: 0,
         addonCount: 0,
+        saleTeam: computed.saleTeam,
         salePlanQuantities: {},
+        addonQuantities: {},
         omsetning: 0
       };
     }
@@ -13034,8 +13179,11 @@
     const ovSalesCount = (rawPortSalesCount + rawOvSalesCount)
       ? rawOvSalesCount
       : saleCategory === 'ov' ? salesCount : 0;
-    const addonCount = normalizeWholeNumber(options.addonCount ?? options.addon_count, 0, 0);
-    const omsetning = getSaleOmsetning(salePlanQuantities);
+    const addonCount = normalizeWholeNumber(options.addonCount ?? options.addon_count, getSaleAddonQuantitiesTotal(addonQuantities), 0);
+    const explicitOmsetning = getSaleOmsetningFromExplicitValue(options.omsetning, null);
+    const omsetning = explicitOmsetning !== null
+      ? explicitOmsetning
+      : (planSalesCount || addonCount ? getSaleOmsetning(salePlanQuantities, addonQuantities, computed.saleTeam) : getLegacySaleOmsetning(salePlanQuantities));
 
     return {
       salesCount: portSalesCount + ovSalesCount,
@@ -13043,7 +13191,9 @@
       portSalesCount,
       ovSalesCount,
       addonCount,
+      saleTeam: computed.saleTeam,
       salePlanQuantities,
+      addonQuantities,
       omsetning
     };
   }
@@ -13083,8 +13233,16 @@
           normalized.addonCount = normalizedSaleDetails.addonCount;
           changed = true;
         }
-        if (JSON.stringify(normalizeSalePlanQuantities(normalized.salePlanQuantities || normalized.sale_plan_quantities || {})) !== JSON.stringify(normalizedSaleDetails.salePlanQuantities)) {
+        if (String(normalized.saleTeam || normalized.sale_team || '') !== normalizedSaleDetails.saleTeam) {
+          normalized.saleTeam = normalizedSaleDetails.saleTeam;
+          changed = true;
+        }
+        if (JSON.stringify(normalizeSalePlanQuantities(normalized.salePlanQuantities || normalized.sale_plan_quantities || {}, normalizedSaleDetails.saleTeam)) !== JSON.stringify(normalizedSaleDetails.salePlanQuantities)) {
           normalized.salePlanQuantities = normalizedSaleDetails.salePlanQuantities;
+          changed = true;
+        }
+        if (JSON.stringify(normalizeSaleAddonQuantities(normalized.addonQuantities || normalized.addon_quantities || {}, normalizedSaleDetails.saleTeam)) !== JSON.stringify(normalizedSaleDetails.addonQuantities)) {
+          normalized.addonQuantities = normalizedSaleDetails.addonQuantities;
           changed = true;
         }
         if (Number(normalized.omsetning || 0) !== normalizedSaleDetails.omsetning) {
@@ -14292,7 +14450,9 @@
       portSalesCount: saleDetails.portSalesCount,
       ovSalesCount: saleDetails.ovSalesCount,
       addonCount: saleDetails.addonCount,
+      saleTeam: saleDetails.saleTeam,
       salePlanQuantities: saleDetails.salePlanQuantities,
+      addonQuantities: saleDetails.addonQuantities,
       omsetning: saleDetails.omsetning,
       isoDate: occurredAt,
       tid: Number.isNaN(entryDate.getTime()) ? occurredAt : formatHistoryTimestamp(entryDate),
@@ -16075,7 +16235,9 @@
       portSalesCount: saleDetails.portSalesCount,
       ovSalesCount: saleDetails.ovSalesCount,
       addonCount: saleDetails.addonCount,
+      saleTeam: saleDetails.saleTeam,
       salePlanQuantities: saleDetails.salePlanQuantities,
+      addonQuantities: saleDetails.addonQuantities,
       omsetning: saleDetails.omsetning,
       isoDate: entryDate.toISOString(),
       tid: formatHistoryTimestamp(entryDate),
@@ -22802,48 +22964,62 @@
     return `kr ${Math.max(0, Number(value) || 0).toLocaleString('no-NO')}`;
   }
 
-  function renderSalePromptPlanBreakdown(draft) {
-    const planQuantities = normalizeSalePlanQuantities(draft.salePlanQuantities || {});
-    const totalSales = getSalePlanQuantitiesTotal(planQuantities);
-    const omsetning = getSaleOmsetning(planQuantities);
+  function renderSalePromptQuantityTable(items = [], quantities = {}, type = 'plan', team = getUserTeam(currentUser)) {
+    const normalizedQuantities = type === 'addon'
+      ? normalizeSaleAddonQuantities(quantities, team)
+      : normalizeSalePlanQuantities(quantities, team);
+    const totalCount = type === 'addon'
+      ? getSaleAddonQuantitiesTotal(normalizedQuantities)
+      : getSalePlanQuantitiesTotal(normalizedQuantities);
+    const omsetning = type === 'addon'
+      ? getSaleOmsetning({}, normalizedQuantities, team)
+      : getSaleOmsetning(normalizedQuantities, {}, team);
     return `
       <div class="abo-count-plan-table">
         <div class="abo-count-plan-table-head">
-          <span>Abonnement</span>
+          <span>${type === 'addon' ? 'Tilleggstjeneste' : 'Abonnement'}</span>
           <span class="abo-count-plan-value">Omsetning</span>
           <span class="abo-count-plan-value">Antall</span>
         </div>
-        ${getSaleRegistrationPlans().map(plan => `
+        ${items.map(item => `
           <div class="abo-count-plan-row">
-            <div class="abo-count-plan-name">${escHtml(plan.name)}</div>
-            <div class="abo-count-plan-value">${formatOmsetningValue(SALE_OMSETNING_BY_PLAN[plan.id] || 0)}</div>
+            <div class="abo-count-plan-name">${escHtml(item.name)}</div>
+            <div class="abo-count-plan-value">${formatOmsetningValue(item.omsetning)}</div>
             <input
-              id="sale-plan-quantity-${escAttr(plan.id)}"
+              id="${type}-quantity-${escAttr(item.id)}"
               class="abo-count-plan-input"
               type="text"
               inputmode="numeric"
               pattern="[0-9]*"
-              value="${escAttr(planQuantities[plan.id] || 0)}"
-              oninput="setSalePromptPlanQuantity('${plan.id}', this.value)"
+              value="${escAttr(normalizedQuantities[item.id] || 0)}"
+              oninput="${type === 'addon' ? `setSalePromptAddonQuantity('${item.id}', this.value)` : `setSalePromptPlanQuantity('${item.id}', this.value)`}"
             />
           </div>
         `).join('')}
         <div class="abo-count-plan-summary">
           <div class="abo-count-plan-summary-label">Totalt</div>
-          <div id="sale-plan-omsetning-total" class="abo-count-plan-value">${formatOmsetningValue(omsetning)}</div>
-          <div id="sale-plan-sales-total" class="abo-count-plan-value">${totalSales} abo</div>
+          <div id="${type}-omsetning-total" class="abo-count-plan-value">${formatOmsetningValue(omsetning)}</div>
+          <div id="${type}-count-total" class="abo-count-plan-value">${totalCount} ${type === 'addon' ? 'tillegg' : 'abo'}</div>
         </div>
       </div>
     `;
   }
 
+  function renderSalePromptPlanBreakdown(draft) {
+    return renderSalePromptQuantityTable(getSaleRegistrationPlans(draft.saleTeam), draft.salePlanQuantities || {}, 'plan', draft.saleTeam);
+  }
+
+  function renderSalePromptAddonBreakdown(draft) {
+    return renderSalePromptQuantityTable(getSaleRegistrationAddons(draft.saleTeam), draft.addonQuantities || {}, 'addon', draft.saleTeam);
+  }
+
   function syncSalePromptPlanBreakdownSummary() {
     const draft = salePromptDraft || createSalePromptDraft();
-    const planQuantities = normalizeSalePlanQuantities(draft.salePlanQuantities || {});
+    const planQuantities = normalizeSalePlanQuantities(draft.salePlanQuantities || {}, draft.saleTeam);
     const totalSales = getSalePlanQuantitiesTotal(planQuantities);
-    const omsetning = getSaleOmsetning(planQuantities);
-    const salesTotal = document.getElementById('sale-plan-sales-total');
-    const omsetningTotal = document.getElementById('sale-plan-omsetning-total');
+    const omsetning = getSaleOmsetning(planQuantities, {}, draft.saleTeam);
+    const salesTotal = document.getElementById('plan-count-total');
+    const omsetningTotal = document.getElementById('plan-omsetning-total');
     if (salesTotal) salesTotal.textContent = `${totalSales} abo`;
     if (omsetningTotal) omsetningTotal.textContent = formatOmsetningValue(omsetning);
   }
@@ -22851,7 +23027,7 @@
   function setSalePromptPlanQuantity(planId, value) {
     const draft = salePromptDraft || createSalePromptDraft();
     const salePlanQuantities = {
-      ...normalizeSalePlanQuantities(draft.salePlanQuantities || {}),
+      ...normalizeSalePlanQuantities(draft.salePlanQuantities || {}, draft.saleTeam),
       [planId]: normalizeWholeNumber(value, 0, 0)
     };
     if (!salePlanQuantities[planId]) delete salePlanQuantities[planId];
@@ -22861,6 +23037,32 @@
       salesCount: getSalePlanQuantitiesTotal(salePlanQuantities)
     };
     syncSalePromptPlanBreakdownSummary();
+  }
+
+  function syncSalePromptAddonBreakdownSummary() {
+    const draft = salePromptDraft || createSalePromptDraft();
+    const addonQuantities = normalizeSaleAddonQuantities(draft.addonQuantities || {}, draft.saleTeam);
+    const totalAddons = getSaleAddonQuantitiesTotal(addonQuantities);
+    const omsetning = getSaleOmsetning({}, addonQuantities, draft.saleTeam);
+    const countTotal = document.getElementById('addon-count-total');
+    const omsetningTotal = document.getElementById('addon-omsetning-total');
+    if (countTotal) countTotal.textContent = `${totalAddons} tillegg`;
+    if (omsetningTotal) omsetningTotal.textContent = formatOmsetningValue(omsetning);
+  }
+
+  function setSalePromptAddonQuantity(addonId, value) {
+    const draft = salePromptDraft || createSalePromptDraft();
+    const addonQuantities = {
+      ...normalizeSaleAddonQuantities(draft.addonQuantities || {}, draft.saleTeam),
+      [addonId]: normalizeWholeNumber(value, 0, 0)
+    };
+    if (!addonQuantities[addonId]) delete addonQuantities[addonId];
+    salePromptDraft = {
+      ...draft,
+      addonQuantities,
+      addonCount: getSaleAddonQuantitiesTotal(addonQuantities)
+    };
+    syncSalePromptAddonBreakdownSummary();
   }
 
   function renderAboCountPrompt() {
@@ -22893,8 +23095,8 @@
     }
 
     const draft = salePromptDraft || createSalePromptDraft();
-    const stepOrder = ['sale-type', 'sale-breakdown', 'has-addons', 'addon-count'];
-    const visibleSteps = draft.hasAddons ? stepOrder : stepOrder.filter(item => item !== 'addon-count');
+    const stepOrder = ['sale-type', 'sale-breakdown', 'has-addons', 'addon-breakdown'];
+    const visibleSteps = draft.hasAddons ? stepOrder : stepOrder.filter(item => item !== 'addon-breakdown');
     const currentStepIndex = Math.max(0, visibleSteps.indexOf(draft.step));
     if (step) {
       step.hidden = false;
@@ -22921,7 +23123,7 @@
       text.textContent = 'Legg inn antall per abonnement.';
       body.innerHTML = renderSalePromptPlanBreakdown(draft);
       confirmButton.textContent = 'Neste';
-      const input = document.getElementById(`sale-plan-quantity-${getSaleRegistrationPlans()[0]?.id || 'basis'}`);
+      const input = document.getElementById(`plan-quantity-${getSaleRegistrationPlans(draft.saleTeam)[0]?.id || 'basis'}`);
       requestAnimationFrame(() => {
         input?.focus();
         input?.select();
@@ -22942,11 +23144,12 @@
       return;
     }
 
-    title.textContent = 'Hvor mange tilleggstjenester?';
-    text.textContent = 'Skriv inn hvor mange tilleggstjenester som skal registreres sammen med salget.';
-    body.innerHTML = `<input id="abo-count-addon-input" class="abo-count-modal-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${escAttr(draft.addonCount || 1)}" />`;
+    if (modal) modal.classList.add('is-sale-breakdown');
+    title.textContent = 'Tilleggstjenester';
+    text.textContent = 'Legg inn antall per tilleggstjeneste.';
+    body.innerHTML = renderSalePromptAddonBreakdown(draft);
     confirmButton.textContent = 'Lagre';
-    const input = document.getElementById('abo-count-addon-input');
+    const input = document.getElementById(`addon-quantity-${getSaleRegistrationAddons(draft.saleTeam)[0]?.id || 'safe-zone'}`);
     requestAnimationFrame(() => {
       input?.focus();
       input?.select();
@@ -22979,7 +23182,7 @@
       salePromptDraft = { ...draft, step: 'sale-type' };
     } else if (draft.step === 'has-addons') {
       salePromptDraft = { ...draft, step: 'sale-breakdown' };
-    } else if (draft.step === 'addon-count') {
+    } else if (draft.step === 'addon-breakdown') {
       salePromptDraft = { ...draft, step: 'has-addons' };
     }
     renderAboCountPrompt();
@@ -22997,7 +23200,8 @@
     salePromptDraft = {
       ...(salePromptDraft || createSalePromptDraft()),
       hasAddons: Boolean(hasAddons),
-      addonCount: hasAddons ? Math.max(1, normalizeWholeNumber(salePromptDraft?.addonCount, 1, 1)) : 0
+      addonCount: hasAddons ? Math.max(1, normalizeWholeNumber(salePromptDraft?.addonCount, 1, 1)) : 0,
+      addonQuantities: hasAddons ? normalizeSaleAddonQuantities(salePromptDraft?.addonQuantities || {}, salePromptDraft?.saleTeam) : {}
     };
     renderAboCountPrompt();
   }
@@ -23045,23 +23249,22 @@
           portSalesCount: draft.saleCategory === 'ov' ? 0 : draft.salesCount,
           ovSalesCount: draft.saleCategory === 'ov' ? draft.salesCount : 0,
           addonCount: 0,
-          salePlanQuantities: normalizeSalePlanQuantities(draft.salePlanQuantities || {}),
-          omsetning: getSaleOmsetning(draft.salePlanQuantities || {})
+          saleTeam: draft.saleTeam,
+          salePlanQuantities: normalizeSalePlanQuantities(draft.salePlanQuantities || {}, draft.saleTeam),
+          addonQuantities: {},
+          omsetning: getSaleOmsetning(draft.salePlanQuantities || {}, {}, draft.saleTeam)
         });
         return;
       }
-      salePromptDraft = { ...draft, step: 'addon-count' };
+      salePromptDraft = { ...draft, step: 'addon-breakdown' };
       renderAboCountPrompt();
       return;
     }
 
-    const input = document.getElementById('abo-count-addon-input');
-    const trimmed = String(input?.value || '').trim();
-    const value = Math.floor(Number(trimmed));
-    if (!trimmed || !Number.isFinite(value) || value < 1) {
-      if (error) error.textContent = 'Skriv inn et heltall på 1 eller mer.';
-      input?.focus();
-      input?.select();
+    const addonQuantities = normalizeSaleAddonQuantities(draft.addonQuantities || {}, draft.saleTeam);
+    const addonCount = getSaleAddonQuantitiesTotal(addonQuantities);
+    if (addonCount < 1) {
+      if (error) error.textContent = 'Legg inn minst én tilleggstjeneste.';
       return;
     }
     closeAboCountPrompt({
@@ -23069,9 +23272,11 @@
       saleCategory: draft.saleCategory,
       portSalesCount: draft.saleCategory === 'ov' ? 0 : draft.salesCount,
       ovSalesCount: draft.saleCategory === 'ov' ? draft.salesCount : 0,
-      addonCount: value,
-      salePlanQuantities: normalizeSalePlanQuantities(draft.salePlanQuantities || {}),
-      omsetning: getSaleOmsetning(draft.salePlanQuantities || {})
+      addonCount,
+      saleTeam: draft.saleTeam,
+      salePlanQuantities: normalizeSalePlanQuantities(draft.salePlanQuantities || {}, draft.saleTeam),
+      addonQuantities,
+      omsetning: getSaleOmsetning(draft.salePlanQuantities || {}, addonQuantities, draft.saleTeam)
     });
   }
 
@@ -23105,7 +23310,10 @@
       portSalesCount: saleDetails?.portSalesCount || 0,
       ovSalesCount: saleDetails?.ovSalesCount || 0,
       addonCount: saleDetails?.addonCount || 0,
+      saleTeam: saleDetails?.saleTeam || getSaleOmsetningTeamKey(getUserTeam(currentUser)),
       salePlanQuantities: saleDetails?.salePlanQuantities || {},
+      addonQuantities: saleDetails?.addonQuantities || {},
+      omsetning: saleDetails?.omsetning || 0,
     });
     history.unshift(nextEntry);
     const actionLabel = selectedSalg === 'ja'
@@ -23258,7 +23466,10 @@
       portSalesCount: normalizedType === 'salg' ? saleDetails?.portSalesCount || 0 : 0,
       ovSalesCount: normalizedType === 'salg' ? saleDetails?.ovSalesCount || 0 : 0,
       addonCount: normalizedType === 'salg' ? saleDetails?.addonCount || 0 : 0,
+      saleTeam: normalizedType === 'salg' ? saleDetails?.saleTeam || existingSaleDetails.saleTeam || getSaleOmsetningTeamKey(getUserTeam(currentUser)) : getSaleOmsetningTeamKey(getUserTeam(currentUser)),
       salePlanQuantities: normalizedType === 'salg' ? saleDetails?.salePlanQuantities || {} : {},
+      addonQuantities: normalizedType === 'salg' ? saleDetails?.addonQuantities || {} : {},
+      omsetning: normalizedType === 'salg' ? saleDetails?.omsetning || 0 : 0,
       quickEntry: true
     });
     if (editId) {
@@ -27553,7 +27764,10 @@
       portSalesCount: saleDetails?.portSalesCount || 0,
       ovSalesCount: saleDetails?.ovSalesCount || 0,
       addonCount: saleDetails?.addonCount || 0,
+      saleTeam: saleDetails?.saleTeam || getSaleOmsetningTeamKey(getUserTeam(currentUser)),
       salePlanQuantities: saleDetails?.salePlanQuantities || {},
+      addonQuantities: saleDetails?.addonQuantities || {},
+      omsetning: saleDetails?.omsetning || 0,
       quickEntry: true
     });
     history.unshift(nextEntry);
