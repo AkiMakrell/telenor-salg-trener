@@ -14639,7 +14639,6 @@
         periods[periodId] = periodEntries.reduce((acc, entry) => {
           acc.over6 += entry.over6_count;
           acc.sales += entry.sales_count;
-          acc.points += entry.points;
           return acc;
         }, { over6: 0, sales: 0, points: 0 });
       });
