@@ -11023,10 +11023,12 @@
       display: flex;
       flex-direction: column;
       gap: 20px;
+      align-items: center;
     }
 
     .bigscreen-hero,
     .bigscreen-config-card {
+      width: min(100%, 760px);
       background: var(--card);
       border: 1px solid var(--line);
       border-radius: 24px;
@@ -11035,20 +11037,13 @@
 
     .bigscreen-hero {
       padding: 24px 26px;
+      text-align: center;
     }
 
     .bigscreen-hero-title {
       font-size: 1.9rem;
       font-weight: 800;
       color: var(--text);
-    }
-
-    .bigscreen-hero-text {
-      margin-top: 8px;
-      font-size: 0.98rem;
-      line-height: 1.55;
-      color: var(--muted);
-      max-width: 760px;
     }
 
     .bigscreen-config-card {
@@ -11059,14 +11054,16 @@
       display: flex;
       flex-direction: column;
       gap: 18px;
+      align-items: center;
     }
 
     .bigscreen-section-head {
       display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
+      align-items: center;
+      justify-content: center;
       gap: 12px;
       margin-bottom: 10px;
+      text-align: center;
     }
 
     .bigscreen-section-title {
@@ -11084,6 +11081,7 @@
     .bigscreen-chip-row {
       display: flex;
       flex-wrap: wrap;
+      justify-content: center;
       gap: 10px;
     }
 
@@ -11116,30 +11114,33 @@
 
     .bigscreen-toggle-row {
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
       gap: 12px;
+      width: min(100%, 520px);
       padding: 14px 16px;
       border-radius: 18px;
-      border: 1px solid rgba(148, 163, 184, 0.22);
-      background: #fff;
+      border: 1px solid rgba(37, 99, 235, 0.16);
+      background: linear-gradient(180deg, rgba(30, 41, 59, 0.96), rgba(15, 23, 42, 0.96));
     }
 
     .bigscreen-toggle-copy {
       min-width: 0;
+      text-align: center;
     }
 
     .bigscreen-toggle-title {
       font-size: 0.98rem;
       font-weight: 800;
-      color: var(--text);
+      color: #f8fafc;
     }
 
     .bigscreen-toggle-meta {
       margin-top: 4px;
       font-size: 0.84rem;
       line-height: 1.45;
-      color: var(--muted);
+      color: rgba(226, 232, 240, 0.76);
     }
 
     .bigscreen-toggle-btn {
@@ -11178,6 +11179,7 @@
     .bigscreen-actions {
       display: flex;
       flex-wrap: wrap;
+      justify-content: center;
       gap: 10px;
     }
 
@@ -22204,7 +22206,6 @@
       <div class="bigscreen-page">
         <div class="bigscreen-hero">
           <div class="bigscreen-hero-title">Storskjerm display</div>
-          <div class="bigscreen-hero-text">Dag, uke og m&aring;ned vises alltid. Aktivt spill kan sl&aring;s av eller p&aring; f&oslash;r du starter displayet.</div>
         </div>
 
         <div class="bigscreen-config-card">
