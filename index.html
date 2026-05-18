@@ -22080,10 +22080,6 @@
                 ${renderLeaderboardAvatar(row.user_id, row.display_name, 'small')}
                 <div class="bigscreen-board-user-info">
                   <div class="bigscreen-board-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
-                  <div class="bigscreen-board-subline">
-                    <span>${Number(row.over5 || 0)} x 6-min</span>
-                    <span>${Number(row.salg || 0)} salg</span>
-                  </div>
                 </div>
               </div>
               <div class="bigscreen-board-score">
@@ -22125,11 +22121,6 @@
                   <div class="bigscreen-board-user team">
                     <div class="bigscreen-board-user-info">
                       <div class="bigscreen-board-name">${escHtml(row.team || 'Lag')}</div>
-                      <div class="bigscreen-board-subline">
-                        <span>${Number(row.playerCount || 0)} deltakere</span>
-                        <span>${Number(row.totalSales || 0)} salg</span>
-                        ${isCompact ? '' : `<span>${Number(row.totalOver6 || 0)} x 6-min</span>`}
-                      </div>
                     </div>
                   </div>
                   <div class="bigscreen-board-score">
@@ -22146,11 +22137,6 @@
                   ${renderLeaderboardAvatar(row.user_id, row.display_name, 'small')}
                   <div class="bigscreen-board-user-info">
                     <div class="bigscreen-board-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
-                    <div class="bigscreen-board-subline">
-                      ${row.team && !isCompact ? `<span class="bigscreen-board-team-pill">${escHtml(row.team)}</span>` : ''}
-                      <span>${Number(row.totalSales || 0)} salg</span>
-                      ${isCompact ? '' : `<span>${Number(row.totalOver6 || 0)} x 6-min</span>`}
-                    </div>
                   </div>
                 </div>
                 <div class="bigscreen-board-score">
