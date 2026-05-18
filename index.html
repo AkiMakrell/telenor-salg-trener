@@ -1235,6 +1235,14 @@
       margin-top: 18px;
     }
 
+    .retro-history-register-grid {
+      margin-top: 18px;
+    }
+
+    .retro-history-register-grid .dashboard-quick-btn {
+      min-height: 78px;
+    }
+
     .retro-history-feedback {
       margin-top: 14px;
       padding: 11px 13px;
@@ -22154,16 +22162,14 @@
     return retroHistoryDraft || createRetroHistoryDraft();
   }
 
-  function saveRetroHistoryEntry() {
+  async function saveRetroHistoryEntry(entryType = '') {
+    const normalizedType = String(entryType || '').trim().toLowerCase() === 'salg' ? 'salg' : 'over5min';
     const dateValue = document.getElementById('retro-history-date')?.value || '';
     const timeValue = document.getElementById('retro-history-time')?.value || '';
-    const selectedIntroIdValue = document.getElementById('retro-history-intro-select')?.value || '';
-    const introText = document.getElementById('retro-history-intro-text')?.value.trim() || '';
     const editId = retroHistoryDraft?.editId || '';
-    let opptak = document.getElementById('retro-history-opptak')?.value === 'nei' ? 'nei' : 'ja';
-    const over5min = document.getElementById('retro-history-over5min')?.value === 'ja' ? 'ja' : 'nei';
-    const salg = document.getElementById('retro-history-salg')?.value === 'ja' ? 'ja' : 'nei';
-    retroHistoryDraft = createRetroHistoryDraft({ editId, dateValue, timeValue, selectedIntroId: selectedIntroIdValue, introText, opptak, over5min, salg });
+    const over5min = normalizedType === 'over5min' ? 'ja' : 'nei';
+    const salg = normalizedType === 'salg' ? 'ja' : 'nei';
+    retroHistoryDraft = createRetroHistoryDraft({ editId, dateValue, timeValue, opptak: 'nei', over5min, salg });
     const entryDate = parseDateTimeInput(dateValue, timeValue);
 
     if (!entryDate) {
@@ -22172,42 +22178,36 @@
       return;
     }
 
-    let intro = selectedIntroIdValue ? getIntroById(selectedIntroIdValue) : null;
-    if (introText) {
-      if (!intro || intro.text.trim() !== introText) intro = findOrCreateIntroByText(introText);
-    }
-
-    if (!intro) {
-      retroHistoryFeedback = { tone: 'warning', message: 'Velg en intro fra biblioteket eller skriv inn teksten du brukte.' };
+    const history = getIntroHistory();
+    const existingEntry = editId ? history.find(entry => entry.id === editId) : null;
+    const existingSaleDetails = getEntrySaleDetails(existingEntry);
+    if (editId && !existingEntry) {
+      retroHistoryFeedback = { tone: 'warning', message: 'Fant ikke oppføringen du prøvde å redigere. Oppdater siden og prøv igjen.' };
+      retroHistoryDraft = createRetroHistoryDraft();
       renderRetroHistoryPage();
       return;
     }
 
-    if (salg === 'ja') opptak = 'ja';
+    const saleDetails = normalizedType === 'salg'
+      ? await requestSaleDetails(existingSaleDetails.salesCount ? existingSaleDetails : {})
+      : null;
+    if (normalizedType === 'salg' && !saleDetails) return;
 
-    const history = getIntroHistory();
-    const existingEntry = editId ? history.find(entry => entry.id === editId) : null;
-    const existingSaleDetails = getEntrySaleDetails(existingEntry);
-    const nextEntry = buildIntroHistoryEntry(intro, {
+    const nextEntry = buildIntroHistoryEntry(null, {
       id: editId || undefined,
       date: entryDate,
-      opptak,
+      opptak: 'nei',
       over5min,
       salg,
-      salesCount: salg === 'ja' ? existingSaleDetails.salesCount || 1 : 0,
-      saleCategory: existingSaleDetails.saleCategory,
-      portSalesCount: existingSaleDetails.portSalesCount,
-      ovSalesCount: existingSaleDetails.ovSalesCount,
-      addonCount: existingSaleDetails.addonCount
+      salesCount: normalizedType === 'salg' ? saleDetails?.salesCount || 0 : 0,
+      saleCategory: normalizedType === 'salg' ? saleDetails?.saleCategory || 'port' : 'port',
+      portSalesCount: normalizedType === 'salg' ? saleDetails?.portSalesCount || 0 : 0,
+      ovSalesCount: normalizedType === 'salg' ? saleDetails?.ovSalesCount || 0 : 0,
+      addonCount: normalizedType === 'salg' ? saleDetails?.addonCount || 0 : 0,
+      quickEntry: true
     });
     if (editId) {
       const index = history.findIndex(entry => entry.id === editId);
-      if (index === -1) {
-        retroHistoryFeedback = { tone: 'warning', message: 'Fant ikke oppføringen du prøvde å redigere. Oppdater siden og prøv igjen.' };
-        retroHistoryDraft = createRetroHistoryDraft();
-        renderRetroHistoryPage();
-        return;
-      }
       history[index] = nextEntry;
     } else {
       history.push(nextEntry);
@@ -22216,18 +22216,16 @@
     retroHistoryDraft = createRetroHistoryDraft({
       dateValue,
       timeValue,
-      selectedIntroId: intro.id,
-      introText: intro.text,
-      opptak,
-      over5min,
-      salg
+      opptak: 'nei',
+      over5min: 'nei',
+      salg: 'nei'
     });
     commitIntroHistory(history, {
       feedback: {
         tone: 'success',
         message: editId
           ? `Historikken ble oppdatert for ${formatHistoryTimestamp(entryDate)}.`
-          : `Historikk lagret for ${formatHistoryTimestamp(entryDate)}.`
+          : `${normalizedType === 'salg' ? 'Salg' : '6-minutter'} registrert for ${formatHistoryTimestamp(entryDate)}.`
       }
     });
     queueCelebrationsForEntryChange(existingEntry, nextEntry);
@@ -22238,7 +22236,7 @@
     if (!container) return;
 
     const intros = getSavedIntros();
-    const historyEntries = getSortedIntroHistory();
+    const historyEntries = getSortedIntroHistory().filter(entry => entry?.over5min === 'ja' || entry?.salg === 'ja');
     const draft = getRetroHistoryDraft();
     const isEditing = !!draft.editId;
     const historySummary = historyEntries.length === 1
@@ -22247,13 +22245,13 @@
 
     container.innerHTML = `
       <div class="retro-history-hero">
-        <div class="retro-history-title">Etterregistrer historikk</div>
-        <div class="retro-history-text">Legg inn eller rediger samtaler i etterkant. Både opptak og tidligere forsøk lagres på kontoen din og teller med i historikk, stats og introoversikt akkurat som vanlige registreringer.</div>
+        <div class="retro-history-title">Etterregistrer</div>
+        <div class="retro-history-text">Legg inn 6-minuttere og salg tilbake i tid.</div>
       </div>
       <div class="retro-history-layout">
         <div class="retro-history-card">
-          <div class="retro-history-card-title">${isEditing ? 'Rediger historikkoppføring' : 'Ny historikkoppføring'}</div>
-          <div class="retro-history-card-text">${isEditing ? 'Oppdater tidspunkt, intro eller resultat. Endringene slår rett inn i hele historikken.' : 'Velg tidspunkt, koble oppføringen til en intro, og marker om samtalen ga opptak, over 6 minutter eller salg.'}</div>
+          <div class="retro-history-card-title">${isEditing ? 'Oppdater registrering' : 'Ny registrering'}</div>
+          <div class="retro-history-card-text">${isEditing ? 'Velg tidspunkt og trykk på det du vil oppdatere til.' : 'Velg tidspunkt og registrer det som mangler.'}</div>
           <div class="retro-history-grid">
             <div class="goals-field">
               <label for="retro-history-date">Dato</label>
@@ -22263,51 +22261,25 @@
               <label for="retro-history-time">Klokkeslett</label>
               <input id="retro-history-time" type="time" value="${draft.timeValue}" />
             </div>
-            <div class="goals-field full">
-              <label for="retro-history-intro-select">Intro fra biblioteket</label>
-              <select id="retro-history-intro-select" onchange="syncRetroHistoryIntroSelection()">
-                <option value="">Velg lagret intro (valgfritt)</option>
-                ${intros.map(intro => `<option value="${intro.id}" ${draft.selectedIntroId === intro.id ? 'selected' : ''}>${escHtml(intro.text)}</option>`).join('')}
-              </select>
-            </div>
-            <div class="goals-field full">
-              <label for="retro-history-intro-text">Introtekst</label>
-              <textarea id="retro-history-intro-text" placeholder="Skriv inn introen du brukte hvis den ikke ligger i biblioteket fra før.">${escHtml(draft.introText)}</textarea>
-            </div>
-            <div class="goals-field">
-              <label for="retro-history-opptak">Resultat</label>
-              <select id="retro-history-opptak">
-                <option value="ja" ${draft.opptak === 'ja' ? 'selected' : ''}>Opptak</option>
-                <option value="nei" ${draft.opptak === 'nei' ? 'selected' : ''}>Tidligere forsøk</option>
-              </select>
-            </div>
-            <div class="goals-field">
-              <label for="retro-history-over5min">Over 6 minutter</label>
-              <select id="retro-history-over5min">
-                <option value="nei" ${draft.over5min === 'nei' ? 'selected' : ''}>Nei</option>
-                <option value="ja" ${draft.over5min === 'ja' ? 'selected' : ''}>Ja</option>
-              </select>
-            </div>
-            <div class="goals-field">
-              <label for="retro-history-salg">Salg</label>
-              <select id="retro-history-salg">
-                <option value="nei" ${draft.salg === 'nei' ? 'selected' : ''}>Nei</option>
-                <option value="ja" ${draft.salg === 'ja' ? 'selected' : ''}>Ja</option>
-              </select>
-            </div>
+          </div>
+          <div class="dashboard-quick-grid retro-history-register-grid">
+            <button class="dashboard-quick-btn over6" type="button" onclick="saveRetroHistoryEntry('over5min')">
+              <span class="dashboard-quick-btn-title">${isEditing ? 'Oppdater 6-minutter' : 'Registrer 6-minutter'}</span>
+            </button>
+            <button class="dashboard-quick-btn sales" type="button" onclick="saveRetroHistoryEntry('salg')">
+              <span class="dashboard-quick-btn-title">${isEditing ? 'Oppdater salg' : 'Registrer salg'}</span>
+            </button>
           </div>
           <div class="retro-history-actions">
-            <button class="save-btn" type="button" style="margin-top:0;" onclick="saveRetroHistoryEntry()">${isEditing ? 'Oppdater historikk' : 'Lagre historikk'}</button>
             ${isEditing ? `<button class="backup-btn" type="button" onclick="cancelRetroHistoryEdit()">Avbryt redigering</button>` : ''}
-            <button class="backup-btn" type="button" onclick="switchTab('intro')">Til introtest</button>
           </div>
           ${retroHistoryFeedback ? `<div class="retro-history-feedback ${retroHistoryFeedback.tone}">${escHtml(retroHistoryFeedback.message)}</div>` : ''}
         </div>
         <div class="retro-history-card">
           <div class="retro-history-list-head">
             <div>
-              <div class="retro-history-card-title">Hele historikken</div>
-              <div class="retro-history-card-text">Alle opptak og tidligere forsøk vises her. Du kan redigere eller slette hver oppføring enkeltvis.</div>
+              <div class="retro-history-card-title">Etterregistrert</div>
+              <div class="retro-history-card-text">6-minuttere og salg du har lagt inn i etterkant.</div>
             </div>
             <div class="retro-history-list-tools">
               <div class="retro-history-summary">${historySummary}</div>
@@ -22319,12 +22291,9 @@
               ${historyEntries.map(entry => renderIntroHistoryItem(entry, intros, { includeEdit: true })).join('')}
             </div>
           ` : `<div class="empty-state">Ingen historikk ennå.</div>`}
-          <div class="retro-history-preview-meta">Tips: Hvis du skriver en introtekst som ikke finnes fra før, lagres den automatisk i introbiblioteket slik at du kan bruke den igjen senere.</div>
         </div>
       </div>
     `;
-
-    autoResizeTextarea(document.getElementById('retro-history-intro-text'));
     updateIntroHistoryUndoUi();
   }
 
