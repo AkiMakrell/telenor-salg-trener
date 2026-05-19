@@ -22136,18 +22136,18 @@
           ${rows.length ? rows.map((row, index) => `
             <div class="bigscreen-board-row">
               <div class="bigscreen-board-rank">#${index + 1}</div>
-              <div class="bigscreen-board-user">
-                ${renderLeaderboardAvatar(row.user_id, row.display_name, 'small')}
-                <div class="bigscreen-board-user-info">
-                  <div class="bigscreen-board-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
+                <div class="bigscreen-board-user">
+                  ${renderLeaderboardAvatar(row.user_id, row.display_name, 'small')}
+                  <div class="bigscreen-board-user-info">
+                    <div class="bigscreen-board-name ${getLeaderboardTeamClass(row.team)}">${escHtml(row.display_name)}</div>
+                  </div>
+                </div>
+                <div class="bigscreen-board-score">
+                  ${formatOmsetningValue(getLeaderboardPeriodValue(row, periodId, 'points'))}
+                  <span class="bigscreen-board-score-label">Oms</span>
                 </div>
               </div>
-              <div class="bigscreen-board-score">
-                ${formatOmsetningValue(row.points || 0)}
-                <span class="bigscreen-board-score-label">Oms</span>
-              </div>
-            </div>
-          `).join('') : '<div class="bigscreen-empty-state">Ingen aktivitet enn&aring;.</div>'}
+            `).join('') : '<div class="bigscreen-empty-state">Ingen aktivitet enn&aring;.</div>'}
         </div>
       </section>
     `;
