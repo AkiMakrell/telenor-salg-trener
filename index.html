@@ -12165,6 +12165,12 @@
   let leaderboardRealtimeChannel = null;
   let leaderboardLoadToken = 0;
   const pendingSyncKeys = new Set();
+  const syncKeyVersions = new Map();
+  let syncMutationVersion = 0;
+  let syncInFlightPromise = null;
+  let leaderboardSyncPromise = null;
+  let leaderboardSyncQueued = false;
+  let leaderboardSyncReloadRequested = false;
   let leaderboardRows = [];
   let leaderboardState = 'idle';
   let leaderboardErrorMessage = '';
@@ -12727,6 +12733,7 @@
     return {
       isOpen: overrides.isOpen === false ? false : true,
       editCompetitionId: String(overrides.editCompetitionId || ''),
+      pendingCompetitionId: String(overrides.pendingCompetitionId || ''),
       mode: String(overrides.mode || 'ffa') === 'team' ? 'team' : 'ffa',
       teamScoreMode: String(overrides.teamScoreMode || 'total') === 'average' ? 'average' : 'total',
       name: String(overrides.name || ''),
@@ -12871,6 +12878,8 @@
 
   function queueSyncKey(key) {
     if (!STORAGE_KEYS.includes(key) || isHydratingRemoteState || !currentUser) return;
+    syncMutationVersion += 1;
+    syncKeyVersions.set(key, syncMutationVersion);
     pendingSyncKeys.add(key);
     scheduleSync();
     if (key === 'introHistory') scheduleLeaderboardSync();
@@ -13190,6 +13199,7 @@
 
   function clearTrackedLocalData() {
     pendingSyncKeys.clear();
+    syncKeyVersions.clear();
     isHydratingRemoteState = true;
     STORAGE_KEYS.forEach(key => _origRemoveItem(key));
     isHydratingRemoteState = false;
@@ -13647,12 +13657,6 @@
   async function overwriteCloudData(data) {
     if (!supabaseClient || !currentUser) return;
     setSyncStatus('syncing');
-    const { error: deleteError } = await supabaseClient
-      .from(SUPABASE_STATE_TABLE)
-      .delete()
-      .eq('user_id', currentUser.id);
-    if (deleteError) throw deleteError;
-
     const rows = STORAGE_KEYS
       .filter(key => Object.prototype.hasOwnProperty.call(data, key))
       .map(key => ({
@@ -13660,6 +13664,12 @@
         state_key: key,
         state_value: data[key]
       }));
+    const nextKeys = new Set(rows.map(row => row.state_key));
+    const { data: existingRows, error: existingError } = await supabaseClient
+      .from(SUPABASE_STATE_TABLE)
+      .select('state_key')
+      .eq('user_id', currentUser.id);
+    if (existingError) throw existingError;
 
     if (rows.length) {
       const { error: upsertError } = await supabaseClient
@@ -13668,7 +13678,20 @@
       if (upsertError) throw upsertError;
     }
 
+    const staleKeys = (existingRows || [])
+      .map(row => String(row?.state_key || '').trim())
+      .filter(key => key && !nextKeys.has(key));
+    if (staleKeys.length) {
+      const { error: deleteError } = await supabaseClient
+        .from(SUPABASE_STATE_TABLE)
+        .delete()
+        .eq('user_id', currentUser.id)
+        .in('state_key', staleKeys);
+      if (deleteError) throw deleteError;
+    }
+
     pendingSyncKeys.clear();
+    syncKeyVersions.clear();
     writeDeviceBackup(currentUser.id, data);
     try {
       await createAppSnapshot('overwrite', data);
@@ -13696,7 +13719,10 @@
       .upsert(rows, { onConflict: 'user_id,state_key' });
     if (error) throw error;
 
-    rows.forEach(row => pendingSyncKeys.delete(row.state_key));
+    rows.forEach(row => {
+      pendingSyncKeys.delete(row.state_key);
+      syncKeyVersions.delete(row.state_key);
+    });
     writeDeviceBackup(currentUser.id, getAllData());
     try {
       await createAppSnapshot('upsert');
@@ -13708,58 +13734,83 @@
 
   async function syncToCloud() {
     if (!supabaseClient || !currentUser || !pendingSyncKeys.size) return;
-    const keysToSync = [...pendingSyncKeys];
-    pendingSyncKeys.clear();
-    setSyncStatus('syncing');
+    if (syncInFlightPromise) return syncInFlightPromise;
+    syncInFlightPromise = (async () => {
+      let syncedAnything = false;
+      try {
+        while (pendingSyncKeys.size) {
+          setSyncStatus('syncing');
+          const keysToSync = [...pendingSyncKeys];
+          const versionSnapshot = new Map(
+            keysToSync.map(key => [key, Math.max(0, Number(syncKeyVersions.get(key)) || 0)])
+          );
+          const upsertRows = [];
+          const deleteKeys = [];
 
-    const upsertRows = [];
-    const deleteKeys = [];
+          keysToSync.forEach(key => {
+            const value = readStoredValue(key, _origGetItem);
+            if (value === null) deleteKeys.push(key);
+            else {
+              upsertRows.push({
+                user_id: currentUser.id,
+                state_key: key,
+                state_value: value
+              });
+            }
+          });
 
-    keysToSync.forEach(key => {
-      const value = readStoredValue(key, _origGetItem);
-      if (value === null) deleteKeys.push(key);
-      else {
-        upsertRows.push({
-          user_id: currentUser.id,
-          state_key: key,
-          state_value: value
-        });
+          if (deleteKeys.length) {
+            const { error: deleteError } = await supabaseClient
+              .from(SUPABASE_STATE_TABLE)
+              .delete()
+              .eq('user_id', currentUser.id)
+              .in('state_key', deleteKeys);
+            if (deleteError) {
+              setSyncStatus('error');
+              setAuthStatus(deleteError.message, 'error');
+              return;
+            }
+          }
+
+          if (upsertRows.length) {
+            const { error: upsertError } = await supabaseClient
+              .from(SUPABASE_STATE_TABLE)
+              .upsert(upsertRows, { onConflict: 'user_id,state_key' });
+            if (upsertError) {
+              setSyncStatus('error');
+              setAuthStatus(upsertError.message, 'error');
+              return;
+            }
+          }
+
+          syncedAnything = true;
+          keysToSync.forEach(key => {
+            const currentVersion = Math.max(0, Number(syncKeyVersions.get(key)) || 0);
+            if (currentVersion === versionSnapshot.get(key)) {
+              pendingSyncKeys.delete(key);
+              syncKeyVersions.delete(key);
+            }
+          });
+        }
+
+        if (!syncedAnything) return;
+        writeDeviceBackup(currentUser.id, getAllData());
+        try {
+          await createAppSnapshot('sync');
+        } catch (error) {
+          if (!isSafetySchemaMismatch(error)) {
+            setSyncStatus('error');
+            setAuthStatus(error.message || 'Kunne ikke lagre snapshot.', 'error');
+            return;
+          }
+        }
+        setSyncStatus('ok');
+      } finally {
+        syncInFlightPromise = null;
+        if (pendingSyncKeys.size) scheduleSync();
       }
-    });
-
-    if (deleteKeys.length) {
-      const { error: deleteError } = await supabaseClient
-        .from(SUPABASE_STATE_TABLE)
-        .delete()
-        .eq('user_id', currentUser.id)
-        .in('state_key', deleteKeys);
-      if (deleteError) {
-        deleteKeys.forEach(key => pendingSyncKeys.add(key));
-        setSyncStatus('error');
-        setAuthStatus(deleteError.message, 'error');
-        return;
-      }
-    }
-
-    if (upsertRows.length) {
-      const { error: upsertError } = await supabaseClient
-        .from(SUPABASE_STATE_TABLE)
-        .upsert(upsertRows, { onConflict: 'user_id,state_key' });
-      if (upsertError) {
-        upsertRows.forEach(row => pendingSyncKeys.add(row.state_key));
-        setSyncStatus('error');
-        setAuthStatus(upsertError.message, 'error');
-        return;
-      }
-    }
-
-    writeDeviceBackup(currentUser.id, getAllData());
-    try {
-      await createAppSnapshot('sync');
-    } catch (error) {
-      if (!isSafetySchemaMismatch(error)) throw error;
-    }
-    setSyncStatus('ok');
+    })();
+    return syncInFlightPromise;
   }
 
   async function loadFromCloud() {
@@ -15185,57 +15236,74 @@
 
   async function syncPublicLeaderboard(options = {}) {
     if (!supabaseClient || !currentUser) return;
-    const history = getIntroHistory();
-    try {
-      await syncPublicProfile();
-    } catch (error) {
-      if (!isLeaderboardSchemaMismatch(error)) throw error;
+    leaderboardSyncReloadRequested = leaderboardSyncReloadRequested || !options.skipReload;
+    if (leaderboardSyncPromise) {
+      leaderboardSyncQueued = true;
+      return leaderboardSyncPromise;
     }
-    try {
-      await syncPublicActivityEntries(history);
-    } catch (error) {
-      if (!isLeaderboardSchemaMismatch(error)) throw error;
-    }
-    try {
-      await syncCanonicalStatsActivityEntries(history);
-    } catch (error) {
-      if (isBackendStatsSchemaMismatch(error)) {
-        // Keep legacy sync alive until the Supabase schema is updated.
-      } else {
-        console.warn('Canonical stats dual-write failed.', error);
-        try {
-          await saveBackendMigrationState({
-            parity_status: 'failed',
-            notes_json: {
-              lastCanonicalSyncFailedAt: new Date().toISOString(),
-              lastCanonicalSyncError: error?.message || String(error)
+    leaderboardSyncPromise = (async () => {
+      try {
+        do {
+          const shouldReload = leaderboardSyncReloadRequested;
+          leaderboardSyncQueued = false;
+          leaderboardSyncReloadRequested = false;
+          const history = getIntroHistory();
+          try {
+            await syncPublicProfile();
+          } catch (error) {
+            if (!isLeaderboardSchemaMismatch(error)) throw error;
+          }
+          try {
+            await syncPublicActivityEntries(history);
+          } catch (error) {
+            if (!isLeaderboardSchemaMismatch(error)) throw error;
+          }
+          try {
+            await syncCanonicalStatsActivityEntries(history);
+          } catch (error) {
+            if (isBackendStatsSchemaMismatch(error)) {
+              // Keep legacy sync alive until the Supabase schema is updated.
+            } else {
+              console.warn('Canonical stats dual-write failed.', error);
+              try {
+                await saveBackendMigrationState({
+                  parity_status: 'failed',
+                  notes_json: {
+                    lastCanonicalSyncFailedAt: new Date().toISOString(),
+                    lastCanonicalSyncError: error?.message || String(error)
+                  }
+                });
+              } catch (_stateError) {}
             }
-          });
-        } catch (_stateError) {}
-      }
-    }
-    await syncLegacyPublicStats(history);
-    try {
-      await runBackendShadowParityCheck(history);
-    } catch (error) {
-      if (isBackendStatsSchemaMismatch(error)) {
-        // Ignore parity checks until the backend read helpers exist in Supabase.
-      } else {
-        console.warn('Backend shadow parity check failed.', error);
-        try {
-          await saveBackendMigrationState({
-            parity_status: 'failed',
-            notes_json: {
-              lastParityFailedAt: new Date().toISOString(),
-              lastParityError: error?.message || String(error)
+          }
+          await syncLegacyPublicStats(history);
+          try {
+            await runBackendShadowParityCheck(history);
+          } catch (error) {
+            if (isBackendStatsSchemaMismatch(error)) {
+              // Ignore parity checks until the backend read helpers exist in Supabase.
+            } else {
+              console.warn('Backend shadow parity check failed.', error);
+              try {
+                await saveBackendMigrationState({
+                  parity_status: 'failed',
+                  notes_json: {
+                    lastParityFailedAt: new Date().toISOString(),
+                    lastParityError: error?.message || String(error)
+                  }
+                });
+              } catch (_stateError) {}
             }
-          });
-        } catch (_stateError) {}
+          }
+          if (shouldReload && !leaderboardSyncQueued) {
+            await loadLeaderboardRows({ silentLoading: !(isTabActive('stats') && activeStatsSubview === 'leaderboard') && !isTabActive('ledertavler-spill') });
+          }
+        } while (leaderboardSyncQueued);
+      } finally {
+        leaderboardSyncPromise = null;
       }
-    }
-    if (!options.skipReload) {
-      await loadLeaderboardRows({ silentLoading: !(isTabActive('stats') && activeStatsSubview === 'leaderboard') && !isTabActive('ledertavler-spill') });
-    }
+    })();
+    return leaderboardSyncPromise;
   }
 
   function setSyncStatus(s) {
@@ -20905,7 +20973,14 @@
     }
 
     setCompetitionState('loading');
-    const competitionId = isEditing ? editingCompetitionId : createClientUuid();
+    const pendingCompetitionId = String(draft.pendingCompetitionId || '').trim();
+    const competitionId = isEditing ? editingCompetitionId : (pendingCompetitionId || createClientUuid());
+    if (!isEditing && competitionId !== pendingCompetitionId) {
+      competitionDraft = {
+        ...draft,
+        pendingCompetitionId: competitionId
+      };
+    }
     const nowIso = new Date().toISOString();
     const gameRow = {
       creator_user_id: currentUser.id,
@@ -21002,16 +21077,16 @@
       } else {
         const { error: gameError } = await supabaseClient
           .from(SUPABASE_COMPETITION_GAMES_TABLE)
-          .insert([{ competition_id: competitionId, ...gameRow, created_at: nowIso }]);
+          .upsert([{ competition_id: competitionId, ...gameRow, created_at: nowIso }], { onConflict: 'competition_id' });
         if (gameError) throw gameError;
         const { error: participantError } = await supabaseClient
           .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
-          .insert(participantRows);
+          .upsert(participantRows, { onConflict: 'competition_id,user_id' });
         let saveParticipantError = participantError;
         if (saveParticipantError && isLeaderboardSchemaMismatch(saveParticipantError)) {
           ({ error: saveParticipantError } = await supabaseClient
             .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
-            .insert(participantRows.map(({
+            .upsert(participantRows.map(({
               competition_id,
               user_id,
               invited_by_user_id,
@@ -21023,13 +21098,13 @@
               invited_by_user_id,
               invite_status,
               joined_at
-            }))));
+            })), { onConflict: 'competition_id,user_id' }));
         }
         if (saveParticipantError) throw saveParticipantError;
         if (viewerRows.length) {
           const { error: viewerError } = await supabaseClient
             .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
-            .insert(viewerRows);
+            .upsert(viewerRows, { onConflict: 'competition_id,user_id' });
           if (viewerError) throw viewerError;
         }
       }
@@ -26418,16 +26493,7 @@
       return;
     }
     const previousRows = coachingDailyFocusRows.filter(row => row.worker_user_id === draft.workerUserId && row.is_active);
-    if (previousRows.length) {
-      const { error: deactivateError } = await supabaseClient
-        .from(SUPABASE_COACHING_DAILY_FOCUS_TABLE)
-        .update({ is_active: false })
-        .in('focus_id', previousRows.map(row => row.focus_id));
-      if (deactivateError) {
-        setCoachingManagerStatus(deactivateError.message, 'warning');
-        return;
-      }
-    }
+    const sentAt = new Date().toISOString();
     const focusId = `coaching-focus-${draft.workerUserId}-${Date.now()}`;
     const focusRow = {
       focus_id: focusId,
@@ -26435,11 +26501,11 @@
       manager_user_id: currentUser.id,
       message,
       is_active: true,
-      sent_at: new Date().toISOString()
+      sent_at: sentAt
     };
     const profile = getCoachingProfile(draft.workerUserId);
     const notificationRow = {
-      notification_id: `coaching-notification-${draft.workerUserId}-${Date.now()}`,
+      notification_id: `coaching-notification-focus-${focusId}`,
       recipient_user_id: draft.workerUserId,
       manager_user_id: currentUser.id,
       notification_type: 'daily-focus',
@@ -26449,18 +26515,36 @@
       destination_tab: 'hjem',
       is_read: false
     };
-    const [focusResponse, notificationResponse] = await Promise.all([
-      supabaseClient.from(SUPABASE_COACHING_DAILY_FOCUS_TABLE).insert([focusRow]),
-      supabaseClient.from(SUPABASE_COACHING_NOTIFICATIONS_TABLE).insert([notificationRow])
-    ]);
-    if (focusResponse.error || notificationResponse.error) {
-      setCoachingManagerStatus(focusResponse.error?.message || notificationResponse.error?.message || 'Kunne ikke sende fokus for dagen.', 'warning');
+    const { error: focusError } = await supabaseClient
+      .from(SUPABASE_COACHING_DAILY_FOCUS_TABLE)
+      .insert([focusRow]);
+    if (focusError) {
+      setCoachingManagerStatus(focusError.message || 'Kunne ikke sende fokus for dagen.', 'warning');
       return;
+    }
+    const { error: notificationError } = await supabaseClient
+      .from(SUPABASE_COACHING_NOTIFICATIONS_TABLE)
+      .upsert([notificationRow], { onConflict: 'notification_id' });
+    let deactivateError = null;
+    if (previousRows.length) {
+      ({ error: deactivateError } = await supabaseClient
+        .from(SUPABASE_COACHING_DAILY_FOCUS_TABLE)
+        .update({ is_active: false })
+        .in('focus_id', previousRows.map(row => row.focus_id)));
     }
     coachingDailyFocusDraft = getDefaultCoachingDailyFocusDraft(draft.workerUserId);
     await loadCoachingData({ silentLoading: true }).catch(() => {});
-    setCoachingManagerStatus(`Fokus for dagen sendt til ${profile?.display_name || 'ansatt'}.`);
     renderStatsHome();
+    if (notificationError || deactivateError) {
+      setCoachingManagerStatus(
+        notificationError?.message
+          || deactivateError?.message
+          || 'Fokus ble lagret, men oppdateringen ble bare delvis fullfort.',
+        'warning'
+      );
+      return;
+    }
+    setCoachingManagerStatus(`Fokus for dagen sendt til ${profile?.display_name || 'ansatt'}.`);
   }
 
   async function markCoachingNotificationRead(notificationId) {
@@ -26575,7 +26659,7 @@
         published_at: new Date().toISOString()
       });
       notificationRows.push({
-        notification_id: `coaching-notification-report-${workerUserId}-${Date.now()}-${notificationRows.length}`,
+        notification_id: `coaching-notification-report-${workerUserId}-${weekKey}`,
         recipient_user_id: workerUserId,
         manager_user_id: currentUser.id,
         notification_type: 'weekly-report',
@@ -26595,17 +26679,34 @@
       message_one: sharedGrowthPoints[0] || '',
       message_two: sharedGrowthPoints[1] || '',
       shared_growth_points: sharedGrowthPoints,
-      status: 'published'
-    };
-    const [workerSaveResponse, teamSaveResponse, reportSaveResponse, notificationSaveResponse] = await Promise.all([
-      supabaseClient.from(SUPABASE_COACHING_WORKER_FEEDBACK_TABLE).upsert(workerFeedbackRowsToSave, { onConflict: 'feedback_id' }),
-      supabaseClient.from(SUPABASE_COACHING_TEAM_FEEDBACK_TABLE).upsert([teamFeedbackRow], { onConflict: 'feedback_id' }),
-      supabaseClient.from(SUPABASE_COACHING_WEEKLY_REPORTS_TABLE).upsert(reportRows, { onConflict: 'report_id' }),
-      supabaseClient.from(SUPABASE_COACHING_NOTIFICATIONS_TABLE).insert(notificationRows)
-    ]);
-    const saveError = workerSaveResponse.error || teamSaveResponse.error || reportSaveResponse.error || notificationSaveResponse.error;
-    if (saveError) {
-      setCoachingManagerStatus(saveError.message || 'Kunne ikke publisere ukesrapportene.', 'warning');
+        status: 'published'
+      };
+    const { error: workerSaveError } = await supabaseClient
+      .from(SUPABASE_COACHING_WORKER_FEEDBACK_TABLE)
+      .upsert(workerFeedbackRowsToSave, { onConflict: 'feedback_id' });
+    if (workerSaveError) {
+      setCoachingManagerStatus(workerSaveError.message || 'Kunne ikke publisere ukesrapportene.', 'warning');
+      return;
+    }
+    const { error: teamSaveError } = await supabaseClient
+      .from(SUPABASE_COACHING_TEAM_FEEDBACK_TABLE)
+      .upsert([teamFeedbackRow], { onConflict: 'feedback_id' });
+    if (teamSaveError) {
+      setCoachingManagerStatus(teamSaveError.message || 'Kunne ikke publisere ukesrapportene.', 'warning');
+      return;
+    }
+    const { error: reportSaveError } = await supabaseClient
+      .from(SUPABASE_COACHING_WEEKLY_REPORTS_TABLE)
+      .upsert(reportRows, { onConflict: 'report_id' });
+    if (reportSaveError) {
+      setCoachingManagerStatus(reportSaveError.message || 'Kunne ikke publisere ukesrapportene.', 'warning');
+      return;
+    }
+    const { error: notificationSaveError } = await supabaseClient
+      .from(SUPABASE_COACHING_NOTIFICATIONS_TABLE)
+      .upsert(notificationRows, { onConflict: 'notification_id' });
+    if (notificationSaveError) {
+      setCoachingManagerStatus(notificationSaveError.message || 'Kunne ikke publisere ukesrapportene.', 'warning');
       return;
     }
     await loadCoachingData({ silentLoading: true }).catch(() => {});
