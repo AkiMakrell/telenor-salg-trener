@@ -22364,6 +22364,7 @@
           </div>
           ${showBadge ? `<span class="bigscreen-board-badge">${escHtml(isTeamGame ? 'Lagspill' : 'Spill')}</span>` : ''}
         </div>
+        ${renderCompetitionTimeProgress(game)}
         <div class="bigscreen-board-list">
           ${rows.length ? rows.map((row, index) => {
             if (isTeamGame) {
