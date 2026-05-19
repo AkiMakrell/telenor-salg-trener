@@ -13082,6 +13082,10 @@
     return getSaleOmsetningConfig(team).addons;
   }
 
+  function normalizeSaleCategory(value) {
+    return String(value || '').trim().toLowerCase() === 'ov' ? 'ov' : 'port';
+  }
+
   function normalizeSalePlanQuantities(value = {}, team = getUserTeam(currentUser)) {
     const source = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
     const normalized = {};
@@ -13110,13 +13114,16 @@
     return Object.values(addonQuantities || {}).reduce((sum, count) => sum + normalizeWholeNumber(count, 0, 0), 0);
   }
 
-  function getSaleOmsetning(planQuantities = {}, addonQuantities = {}, team = getUserTeam(currentUser)) {
+  function getOvSalePlanOmsetningValue(planId) {
+    return ['basis', 'basis-tale', 'basis-data'].includes(String(planId || '').trim().toLowerCase()) ? 0 : 100;
+  }
+
+  function getSaleOmsetning(planQuantities = {}, addonQuantities = {}, team = getUserTeam(currentUser), saleCategory = 'port') {
     const normalizedPlans = normalizeSalePlanQuantities(planQuantities, team);
     const normalizedAddons = normalizeSaleAddonQuantities(addonQuantities, team);
-    const planMap = new Map(getSaleRegistrationPlans(team).map(item => [item.id, item.omsetning]));
     const addonMap = new Map(getSaleRegistrationAddons(team).map(item => [item.id, item.omsetning]));
     const planOmsetning = Object.entries(normalizedPlans).reduce((sum, [planId, count]) => {
-      return sum + ((planMap.get(planId) || 0) * count);
+      return sum + (getSalePlanOmsetningValue(planId, team, saleCategory) * count);
     }, 0);
     const addonOmsetning = Object.entries(normalizedAddons).reduce((sum, [addonId, count]) => {
       return sum + ((addonMap.get(addonId) || 0) * count);
@@ -13124,7 +13131,8 @@
     return planOmsetning + addonOmsetning;
   }
 
-  function getSalePlanOmsetningValue(planId, team = getUserTeam(currentUser)) {
+  function getSalePlanOmsetningValue(planId, team = getUserTeam(currentUser), saleCategory = 'port') {
+    if (normalizeSaleCategory(saleCategory) === 'ov') return getOvSalePlanOmsetningValue(planId);
     const plan = getSaleRegistrationPlans(team).find(item => item.id === planId);
     return Number(plan?.omsetning) || 0;
   }
@@ -13166,6 +13174,7 @@
 
   function buildComputedSaleOmsetning(options = {}) {
     const saleTeam = options.saleTeam || options.sale_team || getUserTeam(currentUser);
+    const saleCategory = normalizeSaleCategory(options.saleCategory || options.saleType);
     const planQuantities = normalizeSalePlanQuantities(
       options.salePlanQuantities ?? options.sale_plan_quantities ?? options.planQuantities ?? options.plan_quantities,
       saleTeam
@@ -13176,11 +13185,12 @@
     );
     return {
       saleTeam: getSaleOmsetningTeamKey(saleTeam),
+      saleCategory,
       salePlanQuantities: planQuantities,
       addonQuantities,
       salesCount: getSalePlanQuantitiesTotal(planQuantities),
       addonCount: getSaleAddonQuantitiesTotal(addonQuantities),
-      omsetning: getSaleOmsetning(planQuantities, addonQuantities, saleTeam)
+      omsetning: getSaleOmsetning(planQuantities, addonQuantities, saleTeam, saleCategory)
     };
   }
 
@@ -13201,9 +13211,7 @@
 
   function createSalePromptDraft(overrides = {}) {
     const saleTeam = getSaleOmsetningTeamKey(overrides.saleTeam || overrides.sale_team || getUserTeam(currentUser));
-    const saleCategory = String(overrides.saleCategory || overrides.saleType || 'port').trim().toLowerCase() === 'ov'
-      ? 'ov'
-      : 'port';
+    const saleCategory = normalizeSaleCategory(overrides.saleCategory || overrides.saleType || 'port');
     const salePlanQuantities = normalizeSalePlanQuantities(
       overrides.salePlanQuantities
       ?? overrides.sale_plan_quantities
@@ -13275,9 +13283,7 @@
       };
     }
 
-    const saleCategory = String(options.saleCategory || options.saleType || '').trim().toLowerCase() === 'ov'
-      ? 'ov'
-      : 'port';
+    const saleCategory = normalizeSaleCategory(options.saleCategory || options.saleType);
     const derivedSalesCount = planSalesCount || rawPortSalesCount + rawOvSalesCount;
     const salesCount = Math.max(1, derivedSalesCount || explicitSalesCount || 1);
     const portSalesCount = (rawPortSalesCount + rawOvSalesCount)
@@ -13298,7 +13304,7 @@
     const omsetning = hasStructuredRevenue
       ? (explicitOmsetning !== null
         ? explicitOmsetning
-        : getSaleOmsetning(salePlanQuantities, addonQuantities, computed.saleTeam))
+        : getSaleOmsetning(salePlanQuantities, addonQuantities, computed.saleTeam, saleCategory))
       : 0;
 
     return {
@@ -23224,7 +23230,7 @@
     return `kr ${Math.max(0, Number(value) || 0).toLocaleString('no-NO')}`;
   }
 
-  function renderSalePromptQuantityTable(items = [], quantities = {}, type = 'plan', team = getUserTeam(currentUser)) {
+  function renderSalePromptQuantityTable(items = [], quantities = {}, type = 'plan', team = getUserTeam(currentUser), saleCategory = 'port') {
     const normalizedQuantities = type === 'addon'
       ? normalizeSaleAddonQuantities(quantities, team)
       : normalizeSalePlanQuantities(quantities, team);
@@ -23232,8 +23238,8 @@
       ? getSaleAddonQuantitiesTotal(normalizedQuantities)
       : getSalePlanQuantitiesTotal(normalizedQuantities);
     const omsetning = type === 'addon'
-      ? getSaleOmsetning({}, normalizedQuantities, team)
-      : getSaleOmsetning(normalizedQuantities, {}, team);
+      ? getSaleOmsetning({}, normalizedQuantities, team, saleCategory)
+      : getSaleOmsetning(normalizedQuantities, {}, team, saleCategory);
     return `
       <div class="abo-count-plan-table">
         <div class="abo-count-plan-table-head">
@@ -23244,7 +23250,7 @@
         ${items.map(item => `
           <div class="abo-count-plan-row">
             <div class="abo-count-plan-name">${escHtml(item.name)}</div>
-            <div class="abo-count-plan-value">${formatOmsetningValue(item.omsetning)}</div>
+            <div class="abo-count-plan-value">${formatOmsetningValue(type === 'addon' ? getSaleAddonOmsetningValue(item.id, team) : getSalePlanOmsetningValue(item.id, team, saleCategory))}</div>
             <input
               id="${type}-quantity-${escAttr(item.id)}"
               class="abo-count-plan-input"
@@ -23266,18 +23272,18 @@
   }
 
   function renderSalePromptPlanBreakdown(draft) {
-    return renderSalePromptQuantityTable(getSaleRegistrationPlans(draft.saleTeam), draft.salePlanQuantities || {}, 'plan', draft.saleTeam);
+    return renderSalePromptQuantityTable(getSaleRegistrationPlans(draft.saleTeam), draft.salePlanQuantities || {}, 'plan', draft.saleTeam, draft.saleCategory);
   }
 
   function renderSalePromptAddonBreakdown(draft) {
-    return renderSalePromptQuantityTable(getSaleRegistrationAddons(draft.saleTeam), draft.addonQuantities || {}, 'addon', draft.saleTeam);
+    return renderSalePromptQuantityTable(getSaleRegistrationAddons(draft.saleTeam), draft.addonQuantities || {}, 'addon', draft.saleTeam, draft.saleCategory);
   }
 
   function syncSalePromptPlanBreakdownSummary() {
     const draft = salePromptDraft || createSalePromptDraft();
     const planQuantities = normalizeSalePlanQuantities(draft.salePlanQuantities || {}, draft.saleTeam);
     const totalSales = getSalePlanQuantitiesTotal(planQuantities);
-    const omsetning = getSaleOmsetning(planQuantities, {}, draft.saleTeam);
+    const omsetning = getSaleOmsetning(planQuantities, {}, draft.saleTeam, draft.saleCategory);
     const salesTotal = document.getElementById('plan-count-total');
     const omsetningTotal = document.getElementById('plan-omsetning-total');
     if (salesTotal) salesTotal.textContent = `${totalSales} abo`;
@@ -23303,7 +23309,7 @@
     const draft = salePromptDraft || createSalePromptDraft();
     const addonQuantities = normalizeSaleAddonQuantities(draft.addonQuantities || {}, draft.saleTeam);
     const totalAddons = getSaleAddonQuantitiesTotal(addonQuantities);
-    const omsetning = getSaleOmsetning({}, addonQuantities, draft.saleTeam);
+    const omsetning = getSaleOmsetning({}, addonQuantities, draft.saleTeam, draft.saleCategory);
     const countTotal = document.getElementById('addon-count-total');
     const omsetningTotal = document.getElementById('addon-omsetning-total');
     if (countTotal) countTotal.textContent = `${totalAddons} tillegg`;
@@ -23451,7 +23457,7 @@
   function setSalePromptCategory(category) {
     salePromptDraft = {
       ...(salePromptDraft || createSalePromptDraft()),
-      saleCategory: String(category || '').trim().toLowerCase() === 'ov' ? 'ov' : 'port'
+      saleCategory: normalizeSaleCategory(category)
     };
     renderAboCountPrompt();
   }
@@ -23512,7 +23518,7 @@
           saleTeam: draft.saleTeam,
           salePlanQuantities: normalizeSalePlanQuantities(draft.salePlanQuantities || {}, draft.saleTeam),
           addonQuantities: {},
-          omsetning: getSaleOmsetning(draft.salePlanQuantities || {}, {}, draft.saleTeam)
+          omsetning: getSaleOmsetning(draft.salePlanQuantities || {}, {}, draft.saleTeam, draft.saleCategory)
         });
         return;
       }
@@ -23536,7 +23542,7 @@
       saleTeam: draft.saleTeam,
       salePlanQuantities: normalizeSalePlanQuantities(draft.salePlanQuantities || {}, draft.saleTeam),
       addonQuantities,
-      omsetning: getSaleOmsetning(draft.salePlanQuantities || {}, addonQuantities, draft.saleTeam)
+      omsetning: getSaleOmsetning(draft.salePlanQuantities || {}, addonQuantities, draft.saleTeam, draft.saleCategory)
     });
   }
 
