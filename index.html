@@ -19413,7 +19413,9 @@
   function getLeaderboardPeriodValue(row, periodId, metric) {
     if (metric === 'points' && periodId === 'month') {
       const monthOmsetningBaseline = getManualMonthOmsetningBaselineForName(row?.display_name);
-      if (monthOmsetningBaseline !== null) return monthOmsetningBaseline;
+      if (monthOmsetningBaseline !== null) {
+        return monthOmsetningBaseline + Math.max(0, Number(row?.[getLeaderboardPeriodField(periodId, metric)]) || 0);
+      }
     }
     return Math.max(0, Number(row?.[getLeaderboardPeriodField(periodId, metric)]) || 0);
   }
