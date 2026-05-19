@@ -13034,6 +13034,14 @@
     }, 0);
   }
 
+  function hasStructuredRevenueMarkers(options = {}) {
+    return Math.max(0, Number(options.rawPortSalesCount) || 0) > 0
+      || Math.max(0, Number(options.rawOvSalesCount) || 0) > 0
+      || Math.max(0, Number(options.addonCount) || 0) > 0
+      || Object.keys(options.salePlanQuantities || {}).length > 0
+      || Object.keys(options.addonQuantities || {}).length > 0;
+  }
+
   function createSalePromptDraft(overrides = {}) {
     const saleTeam = getSaleOmsetningTeamKey(overrides.saleTeam || overrides.sale_team || getUserTeam(currentUser));
     const saleCategory = String(overrides.saleCategory || overrides.saleType || 'port').trim().toLowerCase() === 'ov'
@@ -13122,10 +13130,19 @@
       ? rawOvSalesCount
       : saleCategory === 'ov' ? salesCount : 0;
     const addonCount = normalizeWholeNumber(options.addonCount ?? options.addon_count, getSaleAddonQuantitiesTotal(addonQuantities), 0);
+    const hasStructuredRevenue = hasStructuredRevenueMarkers({
+      rawPortSalesCount,
+      rawOvSalesCount,
+      addonCount,
+      salePlanQuantities,
+      addonQuantities
+    });
     const explicitOmsetning = getSaleOmsetningFromExplicitValue(options.omsetning, null);
-    const omsetning = explicitOmsetning !== null
-      ? explicitOmsetning
-      : (planSalesCount || addonCount ? getSaleOmsetning(salePlanQuantities, addonQuantities, computed.saleTeam) : getLegacySaleOmsetning(salePlanQuantities));
+    const omsetning = hasStructuredRevenue
+      ? (explicitOmsetning !== null
+        ? explicitOmsetning
+        : getSaleOmsetning(salePlanQuantities, addonQuantities, computed.saleTeam))
+      : 0;
 
     return {
       salesCount: portSalesCount + ovSalesCount,
@@ -14433,7 +14450,7 @@
       text: String(row.source_text || '').trim(),
       opptak: Number(row.intro_success_count) > 0 ? 'ja' : 'nei',
       over5min: Number(row.over6_count) > 0 ? 'ja' : 'nei',
-      salg: salesCount > 0 ? 'ja' : 'nei',
+      salg: saleDetails.salesCount > 0 ? 'ja' : 'nei',
       salesCount: saleDetails.salesCount,
       saleCategory: saleDetails.saleCategory,
       portSalesCount: saleDetails.portSalesCount,
@@ -14722,9 +14739,21 @@
       reference_date: referenceDate
     });
     if (error) throw error;
+    const trustedRowsByUser = new Map(
+      buildLeaderboardRowsFromPublicActivity(reference).map(row => [row.user_id, row])
+    );
     return (Array.isArray(data) ? data : [])
       .map(normalizeLeaderboardRow)
       .filter(Boolean)
+      .map(row => {
+        const trustedRow = trustedRowsByUser.get(row.user_id);
+        return {
+          ...row,
+          day_points: trustedRow?.day_points || 0,
+          week_points: trustedRow?.week_points || 0,
+          month_points: trustedRow?.month_points || 0
+        };
+      })
       .filter(hasVisibleLeaderboardActivity);
   }
 
