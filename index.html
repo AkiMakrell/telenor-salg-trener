@@ -11671,7 +11671,6 @@
   <div class="tabs">
     <button class="tab-btn active" data-tab="hjem" onclick="switchTab('hjem', this)">Dashboard</button>
     <button class="tab-btn" data-tab="stats" onclick="openStatsPage('overview', this)">Stats</button>
-    <button class="tab-btn" data-tab="rekorder" onclick="switchTab('rekorder', this)">Rekorder</button>
     <button class="tab-btn" data-tab="ledertavler-spill" onclick="switchTab('ledertavler-spill', this)">Spill</button>
     <button class="tab-btn" data-tab="storskjerm" onclick="switchTab('storskjerm', this)">Storskjerm</button>
     <button id="coaching-worker-nav-btn" class="tab-btn" data-tab="coaching-worker" onclick="switchTab('coaching-worker', this)">Coaching</button>
@@ -11690,9 +11689,6 @@
         <span class="menu-trigger-icon" aria-hidden="true">&#9662;</span>
       </button>
       <div id="top-bar-tools-menu" class="tools-menu" role="menu">
-        <button class="more-tab-btn" data-tab="intro" type="button" onclick="switchTab('intro', this); closeTopBarTools();">
-          <span>Introtest</span>
-        </button>
         <button class="more-tab-btn" data-tab="innvendinger" type="button" onclick="switchTab('innvendinger', this); closeTopBarTools();">
           <span>Innvendinger</span>
         </button>
@@ -11701,12 +11697,6 @@
         </button>
         <button class="more-tab-btn" data-tab="priser" type="button" onclick="switchTab('priser', this); closeTopBarTools();">
           <span>Pris kalkulator</span>
-        </button>
-        <button class="more-tab-btn" data-tab="samtalerating" type="button" onclick="switchTab('samtalerating', this); closeTopBarTools();">
-          <span>Samtalerating</span>
-        </button>
-        <button class="more-tab-btn" data-tab="samtaleflyt" type="button" onclick="switchTab('samtaleflyt', this); closeTopBarTools();">
-          <span>Flyt</span>
         </button>
       </div>
     </div>
@@ -11800,10 +11790,6 @@
 
 <div id="tab-stats" class="tab-content">
   <div id="stats-page"></div>
-</div>
-
-<div id="tab-rekorder" class="tab-content">
-  <div id="rekorder-page"></div>
 </div>
 
 <div id="tab-ledertavler-spill" class="tab-content">
@@ -11959,10 +11945,6 @@
   </div>
 </div>
 
-<div id="tab-samtalerating" class="tab-content">
-  <div id="samtalerating-page" class="samtalerating-page"></div>
-</div>
-
 <div id="tab-coaching-manager" class="tab-content">
   <div id="coaching-manager-page" class="coaching-page"></div>
 </div>
@@ -11985,89 +11967,6 @@
   </div>
 </div>
 
-<div id="tab-samtaleflyt" class="tab-content">
-  <div class="sf-info-card">
-    <strong>Bruk helst innvendinger for vanlige samtaler.</strong>
-    Samtaleflyt er beholdt som et avansert verktøy for lengre eller mer spesielle forlop. For gjentatte innvendinger er biblioteket i fanen "Innvendinger" den raskeste losningen.
-  </div>
-  <!-- Phase picker -->
-  <div id="sf-phase-picker" style="max-width:900px;margin:0 auto;">
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:600px;margin:0 auto;">
-      <button class="sf-phase-card" onclick="sfOpenPhase('intro')">
-        <div class="sf-phase-card-num">1</div>
-        <div class="sf-phase-card-name">Intro</div>
-      </button>
-      <button class="sf-phase-card" onclick="sfShowBehovsanalyse()">
-        <div class="sf-phase-card-num">2</div>
-        <div class="sf-phase-card-name">Behovsanalyse</div>
-      </button>
-      <button class="sf-phase-card" onclick="sfOpenPhase('oppsummering')">
-        <div class="sf-phase-card-num">3</div>
-        <div class="sf-phase-card-name">Oppsummering</div>
-      </button>
-      <button class="sf-phase-card" onclick="sfOpenPhase('losning')">
-        <div class="sf-phase-card-num">4</div>
-        <div class="sf-phase-card-name">Løsningspresentasjon</div>
-      </button>
-    </div>
-  </div>
-  <!-- Behovsanalyse sub-picker -->
-  <div id="sf-behovsanalyse-picker" style="display:none;max-width:900px;margin:0 auto;">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-      <button class="sf-back-phase-btn" onclick="sfBackFromBehovsanalyse()">← Tilbake</button>
-      <span style="font-size:1.1rem;font-weight:700;color:#1e293b;">Behovsanalyse</span>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:700px;margin:0 auto;">
-      <button class="sf-phase-card" onclick="sfOpenPhase('behovsanalyse_bildelagring')">
-        <div class="sf-phase-card-num">📸</div>
-        <div class="sf-phase-card-name">Bildelagring</div>
-      </button>
-      <button class="sf-phase-card" onclick="sfOpenPhase('behovsanalyse_dekning')">
-        <div class="sf-phase-card-num">📶</div>
-        <div class="sf-phase-card-name">Dekning</div>
-      </button>
-      <button class="sf-phase-card" onclick="sfOpenPhase('behovsanalyse_nettsikkerhet')">
-        <div class="sf-phase-card-num">🔒</div>
-        <div class="sf-phase-card-name">Nettsikkerhet</div>
-      </button>
-    </div>
-  </div>
-  <!-- Tree view (hidden until phase selected) -->
-  <div id="sf-tree-view" style="display:none;max-width:1100px;margin:0 auto;">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
-      <button class="sf-back-phase-btn" onclick="sfBackToPhases()">← Tilbake</button>
-      <span id="sf-phase-title" style="font-size:1.1rem;font-weight:700;color:#1e293b;"></span>
-      <button class="sf-toolbar-btn new-intro" onclick="sfAddNewIntro()">+ Ny intro</button>
-      <button class="sf-toolbar-btn" id="sf-koble-btn" onclick="sfToggleKobleMode()">🔗 Koble modus</button>
-      <button class="sf-toolbar-btn" id="sf-undo-btn" onclick="sfUndo()" disabled>↩ Angre</button>
-    </div>
-    <div id="sf-outer">
-      <div id="sf-koble-banner" style="display:none;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:8px;padding:10px 16px;margin-bottom:12px;align-items:center;gap:12px;">
-        <span id="sf-koble-banner-text" style="color:#ea580c;font-weight:600;font-size:0.88rem;">🔗 Koble modus — klikk en boks for å velge den, klikk deretter en kompatibel boks for å koble. Klikk tomt område for å avvelge.</span>
-      </div>
-      <div id="sf-canvas-wrap">
-        <div id="sf-canvas">
-          <svg id="sf-svg"></svg>
-        </div>
-      </div>
-      <div id="sf-detail">
-        <div class="sf-detail-section sf-jeg-section">
-          <div class="sf-section-label sf-jeg-label">Jeg sier</div>
-          <textarea id="sf-detail-script" placeholder="Skriv inn hva du sier..."></textarea>
-        </div>
-        <div class="sf-detail-section sf-kunde-section">
-          <div class="sf-section-label sf-kunde-label">Kunden kan svare</div>
-          <div class="sf-branch-list" id="sf-branch-list"></div>
-          <button class="sf-add-branch-btn" onclick="sfAddBranch()">+ Legg til kundesvar</button>
-        </div>
-        <div class="sf-detail-actions">
-          <button class="sf-save-node-btn" onclick="sfSaveCurrentNode()">Lagre</button>
-          <button class="sf-delete-node-btn" onclick="sfDeleteCurrentNode()">Slett steg</button>
-        </div>
-      </div>
-    </div>
-</div>
-</div>
 </div>
 
 <div id="bigscreen-display-overlay" class="bigscreen-display-overlay" aria-hidden="true"></div>
@@ -12083,7 +11982,6 @@
   </div>
   <div class="app-footer-links">
     <button class="app-footer-link" type="button" onclick="switchTab('hjem')">Dashboard</button>
-    <button class="app-footer-link" type="button" onclick="switchTab('intro')">Registrering</button>
     <button class="app-footer-link" type="button" onclick="openRetroHistoryPage()">Historikk</button>
     <button class="app-footer-link" type="button" onclick="switchTab('goals')">Mål</button>
     <button class="app-footer-link" type="button" onclick="switchTab('innvendinger')">Innvendinger</button>
@@ -15613,16 +15511,13 @@
     renderIntroHistory();
     renderFakta();
     renderConversationNotes();
-    renderSamtaleRating();
     renderOvPage();
     renderGoalsPage();
     renderRetroHistoryPage();
     renderLedertavlerSpillPage();
     renderStorskjermPage();
-    renderTeamRecordsPage();
     renderCompetitionCreatePage();
     renderAllPriceCalculators();
-    renderSamtaleflyt();
     if (bigScreenDisplayOpen) renderBigScreenDisplayOverlay();
   }
 
@@ -16003,35 +15898,34 @@
 
   // ---- Tab switching ----
   function activateTab(name, activeButtonName = name, triggerButton = null) {
+    const removedTabs = new Set(['intro', 'samtalerating', 'samtaleflyt', 'rekorder']);
+    const nextName = removedTabs.has(name) ? 'hjem' : name;
+    const nextActiveButtonName = removedTabs.has(activeButtonName) ? nextName : activeButtonName;
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-btn, .more-tab-btn, .menu-trigger, .settings-trigger').forEach(b => b.classList.remove('active'));
-    document.getElementById('tab-' + name).classList.add('active');
-    const button = triggerButton || document.querySelector(`.tab-btn[data-tab="${activeButtonName}"], .more-tab-btn[data-tab="${activeButtonName}"]`);
+    document.getElementById('tab-' + nextName).classList.add('active');
+    const button = triggerButton || document.querySelector(`.tab-btn[data-tab="${nextActiveButtonName}"], .more-tab-btn[data-tab="${nextActiveButtonName}"]`);
     if (button) button.classList.add('active');
-    if (['intro', 'innvendinger', 'notater', 'priser', 'samtalerating', 'samtaleflyt'].includes(name)) {
+    if (['innvendinger', 'notater', 'priser'].includes(nextName)) {
       document.getElementById('top-bar-tools-button')?.classList.add('active');
     }
     closeTopBarTools();
     closeTopBarSettings();
     closeCoachingNotifications();
-    if (name === 'hjem') {
+    if (nextName === 'hjem') {
       renderSessionStatus();
       renderStatsHome();
     }
-    if (name === 'intro') resizeActiveIntroTextarea();
-    if (name === 'priser' || name === 'notater') renderAllPriceCalculators();
-    if (name === 'samtaleflyt') renderSamtaleflyt();
-    if (name === 'notater') renderConversationNotes();
-    if (name === 'samtalerating') renderSamtaleRating();
-    if (name === 'coaching-manager') renderCoachingManagerPage();
-    if (name === 'coaching-worker') renderCoachingWorkerPage();
-    if (name === 'rekorder') renderTeamRecordsPage();
-    if (name === 'ledertavler-spill') renderLedertavlerSpillPage();
-    if (name === 'storskjerm') renderStorskjermPage();
-    if (name === 'competition-create') renderCompetitionCreatePage();
-    if (name === 'stats') renderStatsPage();
-    if (name === 'goals') renderGoalsPage();
-    if (name === 'etterregistrering') renderRetroHistoryPage();
+    if (nextName === 'priser' || nextName === 'notater') renderAllPriceCalculators();
+    if (nextName === 'notater') renderConversationNotes();
+    if (nextName === 'coaching-manager') renderCoachingManagerPage();
+    if (nextName === 'coaching-worker') renderCoachingWorkerPage();
+    if (nextName === 'ledertavler-spill') renderLedertavlerSpillPage();
+    if (nextName === 'storskjerm') renderStorskjermPage();
+    if (nextName === 'competition-create') renderCompetitionCreatePage();
+    if (nextName === 'stats') renderStatsPage();
+    if (nextName === 'goals') renderGoalsPage();
+    if (nextName === 'etterregistrering') renderRetroHistoryPage();
   }
 
   function switchTab(name, triggerButton = null) {
@@ -19329,7 +19223,7 @@
   }
 
   function renderDashboardQuickRegisterCard(dag, uke) {
-    const showOpptakShortcut = isDashboardOpptakShortcutEnabled();
+    const showOpptakShortcut = false;
     return `
       <div class="dashboard-card dashboard-card-strong">
         <div class="dashboard-card-heading">
@@ -19747,9 +19641,7 @@
     const items = [
       { tab: 'innvendinger', title: 'Innvendinger' },
       { tab: 'notater', title: 'Notater' },
-      { tab: 'priser', title: 'Pris kalkulator' },
-      { tab: 'samtalerating', title: 'Samtalerating' },
-      { tab: 'samtaleflyt', title: 'Flyt' }
+      { tab: 'priser', title: 'Pris kalkulator' }
     ];
     return `
       <div class="dashboard-card">
