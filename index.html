@@ -12085,6 +12085,20 @@
   ];
   const LEADERBOARD_POINTS_PER_SALE = 300;
   const LEADERBOARD_POINTS_PER_OVER6 = 100;
+  const MANUAL_MONTH_OMSETNING_BASELINE_MONTH_KEY = '2026-05';
+  const MANUAL_MONTH_OMSETNING_BASELINE_BY_NAME = Object.freeze({
+    'aki fackrell': 5000,
+    'adam farhat': 2750,
+    'andreas vedal': 17850,
+    'ali akbari': 16500,
+    'trui': 33700,
+    'anis alizadeh': 61500,
+    'emilia wos': 38420,
+    'elmodam zerai': 6805,
+    'georg ness': 700,
+    'thom duvaas': 11850,
+    'jhon': 6550
+  });
   const SALE_OMSETNING_CONFIG_BY_TEAM = {
     nysalg: {
       plans: [
@@ -12324,6 +12338,23 @@
       .filter(Boolean)
       .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
       .join(' ');
+  }
+
+  function normalizeManualOmsetningNameKey(value) {
+    return String(formatDisplayNameValue(value) || value || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, ' ');
+  }
+
+  function getManualMonthOmsetningBaselineForName(displayName, reference = new Date()) {
+    const monthKey = `${reference.getFullYear()}-${String(reference.getMonth() + 1).padStart(2, '0')}`;
+    if (monthKey !== MANUAL_MONTH_OMSETNING_BASELINE_MONTH_KEY) return null;
+    const normalizedName = normalizeManualOmsetningNameKey(displayName);
+    if (!normalizedName) return null;
+    return Object.prototype.hasOwnProperty.call(MANUAL_MONTH_OMSETNING_BASELINE_BY_NAME, normalizedName)
+      ? MANUAL_MONTH_OMSETNING_BASELINE_BY_NAME[normalizedName]
+      : 0;
   }
 
   function getUserDisplayName(user) {
@@ -14267,9 +14298,11 @@
     if (!row || typeof row !== 'object') return null;
     const userId = String(row.user_id || '');
     const fallbackOwnTeam = userId && userId === String(currentUser?.id || '') ? getUserTeam(currentUser) : '';
+    const displayName = formatDisplayNameValue(row.display_name) || String(row.display_name || '').trim() || 'Ukjent bruker';
+    const monthOmsetningBaseline = getManualMonthOmsetningBaselineForName(displayName);
     return {
       user_id: userId,
-      display_name: formatDisplayNameValue(row.display_name) || String(row.display_name || '').trim() || 'Ukjent bruker',
+      display_name: displayName,
       team: String(row.team || '').trim() || fallbackOwnTeam,
       total_intro_successes: Math.max(0, Number(row.total_intro_successes) || 0),
       total_over6: Math.max(0, Number(row.total_over6) || 0),
@@ -14282,7 +14315,7 @@
       week_points: Math.max(0, Number(row.week_points) || 0),
       month_over6: Math.max(0, Number(row.month_over6) || 0),
       month_sales: Math.max(0, Number(row.month_sales) || 0),
-      month_points: Math.max(0, Number(row.month_points) || 0),
+      month_points: monthOmsetningBaseline === null ? Math.max(0, Number(row.month_points) || 0) : monthOmsetningBaseline,
       latest_entry_at: row.latest_entry_at ? String(row.latest_entry_at) : '',
       updated_at: row.updated_at ? String(row.updated_at) : ''
     };
