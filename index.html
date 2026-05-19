@@ -14416,7 +14416,6 @@
     const userId = String(row.user_id || '');
     const fallbackOwnTeam = userId && userId === String(currentUser?.id || '') ? getUserTeam(currentUser) : '';
     const displayName = formatDisplayNameValue(row.display_name) || String(row.display_name || '').trim() || 'Ukjent bruker';
-    const monthOmsetningBaseline = getManualMonthOmsetningBaselineForName(displayName);
     return {
       user_id: userId,
       display_name: displayName,
@@ -14432,7 +14431,7 @@
       week_points: Math.max(0, Number(row.week_points) || 0),
       month_over6: Math.max(0, Number(row.month_over6) || 0),
       month_sales: Math.max(0, Number(row.month_sales) || 0),
-      month_points: monthOmsetningBaseline === null ? Math.max(0, Number(row.month_points) || 0) : monthOmsetningBaseline,
+      month_points: Math.max(0, Number(row.month_points) || 0),
       latest_entry_at: row.latest_entry_at ? String(row.latest_entry_at) : '',
       updated_at: row.updated_at ? String(row.updated_at) : ''
     };
@@ -19402,6 +19401,10 @@
   }
 
   function getLeaderboardPeriodValue(row, periodId, metric) {
+    if (metric === 'points' && periodId === 'month') {
+      const monthOmsetningBaseline = getManualMonthOmsetningBaselineForName(row?.display_name);
+      if (monthOmsetningBaseline !== null) return monthOmsetningBaseline;
+    }
     return Math.max(0, Number(row?.[getLeaderboardPeriodField(periodId, metric)]) || 0);
   }
 
