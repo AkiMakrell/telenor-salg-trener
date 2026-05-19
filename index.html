@@ -14884,10 +14884,29 @@
         backendStatsHistoryEntries = [];
         backendStatsHistoryLoaded = false;
       }
-      const legacyRows = await loadLegacyPublicStatsRows().catch(() => []);
-      const freshRows = buildLeaderboardRowsFromPublicActivity();
-      const nextRows = mergeCurrentUserLocalLeaderboardRow(mergeLeaderboardSourceRows(freshRows, legacyRows));
-      setLeaderboardSourceMode('legacy');
+      const requestedLeaderboardStrategy = getBackendReadStrategy('leaderboard');
+      let nextRows = [];
+      let nextSourceMode = 'legacy';
+      if (requestedLeaderboardStrategy === 'backend') {
+        try {
+          const backendRows = await loadBackendLeaderboardRows();
+          nextRows = mergeCurrentUserLocalLeaderboardRow(backendRows);
+          nextSourceMode = 'backend';
+        } catch (error) {
+          if (!isBackendStatsSchemaMismatch(error)) {
+            console.warn('Backend leaderboard read failed, falling back to legacy rows.', error);
+          }
+          const legacyRows = await loadLegacyPublicStatsRows().catch(() => []);
+          const freshRows = buildLeaderboardRowsFromPublicActivity();
+          nextRows = mergeCurrentUserLocalLeaderboardRow(mergeLeaderboardSourceRows(freshRows, legacyRows));
+          nextSourceMode = 'fallback';
+        }
+      } else {
+        const legacyRows = await loadLegacyPublicStatsRows().catch(() => []);
+        const freshRows = buildLeaderboardRowsFromPublicActivity();
+        nextRows = mergeCurrentUserLocalLeaderboardRow(mergeLeaderboardSourceRows(freshRows, legacyRows));
+      }
+      setLeaderboardSourceMode(nextSourceMode);
       if (loadToken !== leaderboardLoadToken) return leaderboardRows;
       leaderboardRows = nextRows;
       syncCompetitionLeadCelebration();
