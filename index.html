@@ -14062,19 +14062,19 @@
       total_intro_successes: totals.introSuccesses,
       total_over6: totals.over5,
       total_sales: totals.salg,
-      total_points: getLeaderboardPoints(totals.salg, totals.over5),
+      total_points: totals.omsetning,
       day_intro_successes: dayStats.introSuccesses,
       day_over6: dayStats.over5,
       day_sales: dayStats.salg,
-      day_points: getLeaderboardPoints(dayStats.salg, dayStats.over5),
+      day_points: dayStats.omsetning,
       week_intro_successes: weekStats.introSuccesses,
       week_over6: weekStats.over5,
       week_sales: weekStats.salg,
-      week_points: getLeaderboardPoints(weekStats.salg, weekStats.over5),
+      week_points: weekStats.omsetning,
       month_intro_successes: monthStats.introSuccesses,
       month_over6: monthStats.over5,
       month_sales: monthStats.salg,
-      month_points: getLeaderboardPoints(monthStats.salg, monthStats.over5),
+      month_points: monthStats.omsetning,
       latest_entry_at: latestEntry?.isoDate || null
     };
   }
@@ -15122,7 +15122,7 @@
           port_sales_count: saleDetails.portSalesCount,
           ov_sales_count: saleDetails.ovSalesCount,
           addon_count: saleDetails.addonCount,
-          leaderboard_points: getLeaderboardPoints(salesCount, over6Count),
+          leaderboard_points: saleDetails.omsetning,
           quick_entry: !!entry.quickEntry,
           source_payload: entry
         };
