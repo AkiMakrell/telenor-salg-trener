@@ -11252,16 +11252,25 @@
       gap: 12px;
     }
 
-    .bigscreen-board.standard.day {
-      background: linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(30, 64, 175, 0.3));
+    .bigscreen-display-root.display .bigscreen-board-head {
+      justify-content: center;
+      text-align: center;
     }
 
-    .bigscreen-board.standard.week {
-      background: linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(2, 132, 199, 0.28));
+    .bigscreen-display-root.display .bigscreen-board-head > div {
+      width: 100%;
     }
 
+    .bigscreen-board.standard.day,
+    .bigscreen-board.standard.week,
     .bigscreen-board.standard.month {
-      background: linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(8, 145, 178, 0.26));
+      background: linear-gradient(180deg, rgba(8, 25, 56, 0.96), rgba(29, 78, 216, 0.38));
+      border-color: rgba(96, 165, 250, 0.22);
+    }
+
+    .bigscreen-board.game {
+      background: linear-gradient(180deg, rgba(76, 5, 95, 0.96), rgba(219, 39, 119, 0.34));
+      border-color: rgba(244, 114, 182, 0.26);
     }
 
     .bigscreen-board-head {
@@ -22304,13 +22313,14 @@
     const boardCount = Math.max(Number(options.boardCount) || 0, 1);
     const rowLimit = getBigScreenRowLimit(boardCount, options.mode);
     const rows = getSortedLeaderboardRows(periodId).slice(0, rowLimit);
+    const showBadge = options.mode !== 'display';
     return `
       <section class="bigscreen-board standard ${escAttr(periodId)}">
         <div class="bigscreen-board-head">
           <div>
             <div class="bigscreen-board-title">${escHtml(period.title)}</div>
           </div>
-          <span class="bigscreen-board-badge">Leaderboard</span>
+          ${showBadge ? '<span class="bigscreen-board-badge">Leaderboard</span>' : ''}
         </div>
         <div class="bigscreen-board-list">
           ${rows.length ? rows.map((row, index) => `
@@ -22339,6 +22349,7 @@
     const boardCount = Math.max(Number(options.boardCount) || 0, 1);
     const rowLimit = getBigScreenRowLimit(boardCount, options.mode);
     const isCompact = options.mode === 'display' && boardCount >= 4;
+    const showBadge = options.mode !== 'display';
     const rows = (isTeamGame ? buildCompetitionTeamStandings(game) : buildCompetitionStandings(game)).slice(0, rowLimit);
     const metaLabel = isTeamGame
       ? `${getCompetitionMetricLabel(game.metric_type)} · ${getCompetitionTeamScoreModeLabel(game)}`
@@ -22350,7 +22361,7 @@
             <div class="bigscreen-board-title">${escHtml(game.name)}</div>
             <div class="bigscreen-board-meta">${escHtml(metaLabel)} · ${escHtml(formatCompetitionTimeRange(game))}</div>
           </div>
-          <span class="bigscreen-board-badge">${escHtml(isTeamGame ? 'Lagspill' : 'Spill')}</span>
+          ${showBadge ? `<span class="bigscreen-board-badge">${escHtml(isTeamGame ? 'Lagspill' : 'Spill')}</span>` : ''}
         </div>
         <div class="bigscreen-board-list">
           ${rows.length ? rows.map((row, index) => {
