@@ -12357,6 +12357,7 @@
         { id: 'basis', name: 'Basis', omsetning: 400 },
         { id: 'basis-tale', name: 'Basis Tale', omsetning: 900 },
         { id: 'basis-data', name: 'Basis Data', omsetning: 900 },
+        { id: 'bed-total', name: 'BedTotal', omsetning: 900 },
         { id: 'flyt-5', name: 'Flyt 5', omsetning: 1700 },
         { id: 'flyt-20', name: 'Flyt 20', omsetning: 2500 },
         { id: 'flyt-50', name: 'Flyt 50', omsetning: 2500 },
@@ -12375,7 +12376,7 @@
         { id: 'basis', name: 'Basis', omsetning: 150 },
         { id: 'basis-tale', name: 'Basis Tale', omsetning: 350 },
         { id: 'basis-data', name: 'Basis Data', omsetning: 350 },
-        { id: 'bed-total', name: 'Bed total', omsetning: 350 },
+        { id: 'bed-total', name: 'BedTotal', omsetning: 350 },
         { id: 'flyt-5', name: 'Flyt 5', omsetning: 1400 },
         { id: 'flyt-20', name: 'Flyt 20', omsetning: 2000 },
         { id: 'flyt-50', name: 'Flyt 50', omsetning: 2000 },
@@ -13333,6 +13334,7 @@
   }
 
   function getOvSalePlanOmsetningValue(planId, monthKey = getStatsMonthKey(new Date())) {
+    if (String(planId || '').trim().toLowerCase() === 'bed-total') return 900;
     if (['basis', 'basis-tale', 'basis-data'].includes(String(planId || '').trim().toLowerCase())) return 0;
     return isOvMonthlyMtBoostEnabled(monthKey) ? 500 : 100;
   }
