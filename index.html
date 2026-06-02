@@ -13057,6 +13057,10 @@
       && /(avatar_url|profile-avatars|storage\.objects|storage\.buckets|user_public_profiles)/i.test(message);
   }
 
+  function isSupabaseUniqueViolation(error) {
+    return String(error?.code || '').trim() === '23505';
+  }
+
   function isMissingLeaderboardTeamColumn(error) {
     const message = String(error?.message || error || '');
     return /(schema cache|column .* does not exist|could not find the .*team.* column)/i.test(message) && /\bteam\b/i.test(message);
@@ -21506,9 +21510,17 @@
           if (deleteViewerError) throw deleteViewerError;
         }
       } else {
-        const { error: gameError } = await supabaseClient
+        const createGameRow = { competition_id: competitionId, ...gameRow, created_at: nowIso };
+        let { error: gameError } = await supabaseClient
           .from(SUPABASE_COMPETITION_GAMES_TABLE)
-          .upsert([{ competition_id: competitionId, ...gameRow, created_at: nowIso }], { onConflict: 'competition_id' });
+          .insert([createGameRow]);
+        if (gameError && isSupabaseUniqueViolation(gameError)) {
+          ({ error: gameError } = await supabaseClient
+            .from(SUPABASE_COMPETITION_GAMES_TABLE)
+            .update(gameRow)
+            .eq('competition_id', competitionId)
+            .eq('creator_user_id', currentUser.id));
+        }
         if (gameError) throw gameError;
         const { error: participantError } = await supabaseClient
           .from(SUPABASE_COMPETITION_PARTICIPANTS_TABLE)
