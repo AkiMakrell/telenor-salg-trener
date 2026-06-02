@@ -11450,9 +11450,27 @@
       color: rgba(226, 232, 240, 0.72);
     }
 
+    .bigscreen-board-subline.pills {
+      margin-top: 8px;
+      justify-content: center;
+    }
+
     .bigscreen-display-root.display.boards-4 .bigscreen-board-subline {
       gap: 6px;
       font-size: 0.72rem;
+    }
+
+    .bigscreen-board-meta-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #f8fafc;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.14);
     }
 
     .bigscreen-board-team-pill {
@@ -20310,6 +20328,13 @@
     return getCompetitionMetricConfig(metricType).title;
   }
 
+  function getCompetitionDisplayMetricLabel(source = null) {
+    const metricType = String(source?.metric_type || source?.metricType || getCompetitionGameConfig(source?.game_type).metricType || 'sales').trim();
+    if (metricType === 'over6') return '6-minuttere';
+    if (metricType === 'points') return 'MT + 6-minuttere';
+    return 'MT';
+  }
+
   function getCompetitionPointWeights(source = null) {
     const pointsPerSale = Math.max(1, Math.floor(Number(
       source?.pointsPerSale
@@ -20337,6 +20362,28 @@
   function formatCompetitionPointWeights(source = null) {
     const { pointsPerSale, pointsPerOver6, pointsPerOv, pointsPerAddon } = getCompetitionPointWeights(source);
     return `${pointsPerSale} poeng per abo · ${pointsPerOver6} poeng per 6-minuttere · ${pointsPerOv} poeng per OV/BedTotal · ${pointsPerAddon} poeng per tilleggstjeneste`;
+  }
+
+  function hasCustomCompetitionPointWeights(source = null) {
+    const metricType = String(source?.metric_type || source?.metricType || getCompetitionGameConfig(source?.game_type).metricType || '').trim();
+    if (metricType !== 'points') return false;
+    const { pointsPerSale, pointsPerOver6, pointsPerOv, pointsPerAddon } = getCompetitionPointWeights(source);
+    return pointsPerSale !== LEADERBOARD_POINTS_PER_SALE
+      || pointsPerOver6 !== LEADERBOARD_POINTS_PER_OVER6
+      || pointsPerOv !== pointsPerSale
+      || pointsPerAddon !== 0;
+  }
+
+  function getCompetitionDisplayPointWeights(source = null) {
+    if (!hasCustomCompetitionPointWeights(source)) return '';
+    const { pointsPerSale, pointsPerOver6, pointsPerOv, pointsPerAddon } = getCompetitionPointWeights(source);
+    const labels = [
+      `${pointsPerOver6} poeng per 6-minutter`,
+      `${pointsPerSale} poeng per MT`
+    ];
+    if (pointsPerOv !== pointsPerSale) labels.push(`${pointsPerOv} poeng per OV/BedTotal`);
+    if (pointsPerAddon > 0) labels.push(`${pointsPerAddon} poeng per tilleggstjeneste`);
+    return joinLabelsNatural(labels);
   }
 
   function getCompetitionObjectiveMode(game) {
@@ -22718,12 +22765,17 @@
     const metaLabel = isTeamGame
       ? `${getCompetitionMetricLabel(game.metric_type)} · ${getCompetitionTeamScoreModeLabel(game)}`
       : `${getCompetitionObjectiveLabel(game)} · ${getCompetitionMetricLabel(game.metric_type)}`;
+    const detailLabels = [
+      getCompetitionDisplayMetricLabel(game),
+      getCompetitionDisplayPointWeights(game)
+    ].filter(Boolean);
     return `
       <section class="bigscreen-board game${isCompact ? ' compact' : ''}">
         <div class="bigscreen-board-head">
           <div>
             <div class="bigscreen-board-title">${escHtml(game.name)}</div>
             <div class="bigscreen-board-meta">${escHtml(metaLabel)} · ${escHtml(formatCompetitionTimeRange(game))}</div>
+            ${detailLabels.length ? `<div class="bigscreen-board-subline pills">${detailLabels.map(label => `<span class="bigscreen-board-meta-pill">${escHtml(label)}</span>`).join('')}</div>` : ''}
           </div>
           ${showBadge ? `<span class="bigscreen-board-badge">${escHtml(isTeamGame ? 'Lagspill' : 'Spill')}</span>` : ''}
         </div>
