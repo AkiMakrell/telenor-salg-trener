@@ -13333,8 +13333,10 @@
     return Object.values(addonQuantities || {}).reduce((sum, count) => sum + normalizeWholeNumber(count, 0, 0), 0);
   }
 
-  function getOvSalePlanOmsetningValue(planId, monthKey = getStatsMonthKey(new Date())) {
-    if (String(planId || '').trim().toLowerCase() === 'bed-total') return 900;
+  function getOvSalePlanOmsetningValue(planId, team = getUserTeam(currentUser), monthKey = getStatsMonthKey(new Date())) {
+    if (String(planId || '').trim().toLowerCase() === 'bed-total') {
+      return getSaleOmsetningTeamKey(team) === 'agrol' ? 350 : 900;
+    }
     if (['basis', 'basis-tale', 'basis-data'].includes(String(planId || '').trim().toLowerCase())) return 0;
     return isOvMonthlyMtBoostEnabled(monthKey) ? 500 : 100;
   }
@@ -13353,7 +13355,7 @@
   }
 
   function getSalePlanOmsetningValue(planId, team = getUserTeam(currentUser), saleCategory = 'port', monthKey = getStatsMonthKey(new Date())) {
-    if (normalizeSaleCategory(saleCategory) === 'ov') return getOvSalePlanOmsetningValue(planId, monthKey);
+    if (normalizeSaleCategory(saleCategory) === 'ov') return getOvSalePlanOmsetningValue(planId, team, monthKey);
     const plan = getSaleRegistrationPlans(team).find(item => item.id === planId);
     return Number(plan?.omsetning) || 0;
   }
