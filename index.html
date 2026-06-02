@@ -11347,6 +11347,14 @@
       color: rgba(226, 232, 240, 0.74);
     }
 
+    .bigscreen-board-explainer {
+      margin-top: 10px;
+      font-size: 0.8rem;
+      line-height: 1.45;
+      color: rgba(226, 232, 240, 0.82);
+      text-align: center;
+    }
+
     .bigscreen-board-badge {
       flex-shrink: 0;
       display: inline-flex;
@@ -20403,6 +20411,18 @@
     return joinLabelsNatural(labels);
   }
 
+  function getCompetitionScoreExplainer(game) {
+    const metricType = String(game?.metric_type || getCompetitionGameConfig(game?.game_type).metricType || 'sales').trim();
+    if (isTeamCompetitionGame(game)) {
+      return getCompetitionTeamScoreMode(game) === 'average'
+        ? 'Poengene regnes fra snitt per spiller i hvert lag.'
+        : 'Poengene viser totalsummen for lagene.';
+    }
+    if (metricType === 'over6') return 'Stillingen viser totalt antall 6-minuttere per spiller.';
+    if (metricType === 'points') return 'Poengene viser totalsummen per spiller.';
+    return 'Stillingen viser totalt antall MT per spiller.';
+  }
+
   function getCompetitionObjectiveMode(game) {
     const mode = String(game?.rules_json?.objectiveMode || '');
     if (mode === 'target' || game?.game_type === 'target-hit') return 'target';
@@ -22786,6 +22806,7 @@
       getCompetitionDisplayMetricLabel(game),
       getCompetitionDisplayPointWeights(game)
     ].filter(Boolean);
+    const explainer = getCompetitionScoreExplainer(game);
     return `
       <section class="bigscreen-board game${isCompact ? ' compact' : ''}">
         <div class="bigscreen-board-head">
@@ -22797,6 +22818,7 @@
           ${showBadge ? `<span class="bigscreen-board-badge">${escHtml(isTeamGame ? 'Lagspill' : 'Spill')}</span>` : ''}
         </div>
         ${renderCompetitionTimeProgress(game)}
+        ${explainer ? `<div class="bigscreen-board-explainer">${escHtml(explainer)}</div>` : ''}
         <div class="bigscreen-board-list">
           ${rows.length ? rows.map((row, index) => {
             if (isTeamGame) {
