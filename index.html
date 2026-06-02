@@ -15239,9 +15239,12 @@
         .from(SUPABASE_PUBLIC_PROFILES_TABLE)
         .select('user_id, display_name, team, updated_at'));
     }
-    if (error && !isLeaderboardSchemaMismatch(error)) throw error;
-    const profileRows = (data || []).map(normalizePublicProfileRow).filter(Boolean);
+    if (error && !isLeaderboardSchemaMismatch(error)) {
+      console.warn('Public profile read failed, falling back to legacy profile sources.', error);
+    }
+    const profileRows = error ? [] : (data || []).map(normalizePublicProfileRow).filter(Boolean);
     let fallbackProfiles = [];
+    let legacyProfileError = null;
     try {
       fallbackProfiles = (await loadLegacyPublicStatsRows()).map(row => ({
         user_id: row.user_id,
@@ -15250,7 +15253,10 @@
         avatar_url: '',
         updated_at: row.updated_at || row.latest_entry_at || ''
       }));
-    } catch (_error) {}
+    } catch (legacyError) {
+      legacyProfileError = legacyError;
+      console.warn('Legacy profile fallback read failed.', legacyError);
+    }
     const ownUserId = String(currentUser?.id || '').trim();
     if (ownUserId && !profileRows.some(profile => profile.user_id === ownUserId) && !fallbackProfiles.some(profile => profile.user_id === ownUserId)) {
       fallbackProfiles.push({
@@ -15262,6 +15268,7 @@
       });
     }
     publicProfileRows = [...new Map([...fallbackProfiles, ...profileRows].map(row => [row.user_id, row])).values()];
+    if (!publicProfileRows.length && error && legacyProfileError) throw error;
     return publicProfileRows;
   }
 
@@ -15337,11 +15344,11 @@
       await Promise.all([
         loadPublicProfiles(),
         loadPublicActivityEntries().catch(error => {
-          if (isLeaderboardSchemaMismatch(error)) {
-            publicActivityRows = [];
-            return [];
+          publicActivityRows = [];
+          if (!isLeaderboardSchemaMismatch(error)) {
+            console.warn('Public activity read failed, using legacy leaderboard rows only.', error);
           }
-          throw error;
+          return [];
         }),
         loadTeamRecordInvalidations().catch(error => {
           if (isTeamRecordModerationSchemaMismatch(error)) {
