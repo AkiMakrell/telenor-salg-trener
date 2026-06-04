@@ -431,6 +431,55 @@
       word-break: break-word;
     }
 
+    .settings-user-name-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .settings-name-edit-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.82);
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+      flex: 0 0 auto;
+    }
+
+    .settings-name-edit-btn:hover {
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #bae6fd;
+      transform: translateY(-1px);
+    }
+
+    .settings-name-edit-btn:disabled {
+      opacity: 0.6;
+      cursor: wait;
+      transform: none;
+    }
+
+    .settings-name-edit-btn.is-open {
+      border-color: rgba(56, 189, 248, 0.45);
+      color: #7dd3fc;
+      background: rgba(8, 47, 73, 0.5);
+    }
+
+    .settings-display-name-current {
+      margin-top: 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
     .settings-user-profile {
       display: flex;
       align-items: center;
@@ -476,6 +525,56 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       background: rgba(17, 24, 39, 0.72);
+    }
+
+    .settings-display-name-card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(17, 24, 39, 0.72);
+    }
+
+    .settings-display-name-options {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+    }
+
+    .settings-display-name-btn {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.82);
+      color: var(--text);
+      font-size: 0.84rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+      text-align: left;
+    }
+
+    .settings-display-name-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .settings-display-name-btn.is-active {
+      border-color: rgba(56, 189, 248, 0.45);
+      background: rgba(8, 47, 73, 0.5);
+      color: #bae6fd;
+    }
+
+    .settings-display-name-btn:disabled {
+      opacity: 0.7;
+      cursor: wait;
+      transform: none;
+    }
+
+    .settings-display-name-status {
+      margin: 0;
     }
 
     .settings-avatar-actions {
@@ -12046,9 +12145,31 @@
           <div class="settings-user-profile">
             <span id="settings-user-avatar" class="settings-user-avatar" aria-hidden="true">?</span>
             <div>
-              <div id="settings-user-name" class="settings-user-name"></div>
+              <div class="settings-user-name-row">
+                <div id="settings-user-name" class="settings-user-name"></div>
+                <button
+                  id="settings-display-name-edit-btn"
+                  class="settings-name-edit-btn"
+                  type="button"
+                  aria-label="Endre hvordan navnet vises"
+                  aria-expanded="false"
+                  onclick="toggleSettingsDisplayNameEditor()"
+                >
+                  <span aria-hidden="true">&#9998;</span>
+                </button>
+              </div>
+              <div id="settings-display-name-current" class="settings-display-name-current"></div>
               <div id="settings-user-email" class="settings-user-email"></div>
             </div>
+          </div>
+          <div id="settings-display-name-editor" class="settings-display-name-card" hidden>
+            <span class="settings-status-label">Vis navn som</span>
+            <div class="settings-display-name-options" role="group" aria-label="Velg hvordan navnet vises">
+              <button id="settings-display-name-full" class="settings-display-name-btn" type="button" onclick="updateCurrentUserDisplayNamePreference('full')">Hele navnet</button>
+              <button id="settings-display-name-first" class="settings-display-name-btn" type="button" onclick="updateCurrentUserDisplayNamePreference('first')">Fornavn</button>
+              <button id="settings-display-name-last" class="settings-display-name-btn" type="button" onclick="updateCurrentUserDisplayNamePreference('last')">Etternavn</button>
+            </div>
+            <div id="settings-display-name-status" class="auth-message auth-message-info settings-display-name-status"></div>
           </div>
           <div class="settings-user-note">Din konto har sitt eget datasett. Andre brukere ser bare sitt eget innhold.</div>
           <div class="settings-avatar-card">
@@ -12324,6 +12445,11 @@
   const SUPABASE_BACKEND_COMPETITION_TEAM_RPC = 'get_competition_team_standings';
   const SUPABASE_PROFILE_AVATAR_BUCKET = 'profile-avatars';
   const PROFILE_AVATAR_MAX_BYTES = 3 * 1024 * 1024;
+  const DISPLAY_NAME_PREFERENCE_OPTIONS = Object.freeze([
+    { id: 'full', label: 'Hele navnet' },
+    { id: 'first', label: 'Fornavn' },
+    { id: 'last', label: 'Etternavn' }
+  ]);
   const PROFILE_AVATAR_PRESETS = [
     { id: 'nysalg-avatar-1', team: 'nysalg', label: 'Avatar 1', avatar_url: './Avatars/Avatar Nysalg/ChatGPT Image May 10, 2026, 10_56_39 AM.png' },
     { id: 'nysalg-avatar-2', team: 'nysalg', label: 'Avatar 2', avatar_url: './Avatars/Avatar Nysalg/ChatGPT Image May 10, 2026, 11_47_18 AM.png' },
@@ -12529,6 +12655,8 @@
   let competitionViewerModalGameId = '';
   let competitionViewerSelectionIds = [];
   let profileAvatarSaving = false;
+  let displayNamePreferenceSaving = false;
+  let settingsDisplayNameEditorOpen = false;
   let backendMigrationState = null;
   let backendBackfillPromise = null;
   let backendFaktaBackfillPromise = null;
@@ -12650,6 +12778,41 @@
       .join(' ');
   }
 
+  function normalizeDisplayNamePreference(value) {
+    const normalized = String(value || '').trim().toLowerCase();
+    return ['first', 'last'].includes(normalized) ? normalized : 'full';
+  }
+
+  function getDisplayNamePreferenceLabel(value) {
+    const normalized = normalizeDisplayNamePreference(value);
+    return DISPLAY_NAME_PREFERENCE_OPTIONS.find(option => option.id === normalized)?.label || 'Hele navnet';
+  }
+
+  function getUserBaseName(user) {
+    const candidates = [
+      user?.user_metadata?.full_name,
+      user?.user_metadata?.name,
+      user?.user_metadata?.display_name
+    ];
+    const name = candidates.find(value => String(value || '').trim());
+    return name ? (formatDisplayNameValue(name) || String(name).trim()) : '';
+  }
+
+  function getUserDisplayNamePreference(user) {
+    return normalizeDisplayNamePreference(user?.user_metadata?.display_name_mode);
+  }
+
+  function applyDisplayNamePreference(name, preference = 'full') {
+    const normalizedName = formatDisplayNameValue(name) || String(name || '').trim();
+    if (!normalizedName) return '';
+    const parts = normalizedName.split(/\s+/).filter(Boolean);
+    if (!parts.length) return '';
+    const normalizedPreference = normalizeDisplayNamePreference(preference);
+    if (normalizedPreference === 'first') return parts[0];
+    if (normalizedPreference === 'last') return parts.length > 1 ? parts[parts.length - 1] : parts[0];
+    return normalizedName;
+  }
+
   function normalizeManualOmsetningNameKey(value) {
     return String(formatDisplayNameValue(value) || value || '')
       .trim()
@@ -12668,13 +12831,9 @@
   }
 
   function getUserDisplayName(user) {
-    const candidates = [
-      user?.user_metadata?.display_name,
-      user?.user_metadata?.full_name,
-      user?.user_metadata?.name
-    ];
-    const name = candidates.find(value => String(value || '').trim());
-    return name ? (formatDisplayNameValue(name) || String(name).trim()) : formatAuthEmailFallback(user?.email || '');
+    const baseName = getUserBaseName(user);
+    const displayName = applyDisplayNamePreference(baseName, getUserDisplayNamePreference(user));
+    return displayName || formatAuthEmailFallback(user?.email || '');
   }
 
   function getUserTeam(user) {
@@ -12739,6 +12898,47 @@
     }
     setElementMessage('settings-avatar-status', message, tone);
     setElementMessage('profile-avatar-picker-status', message, tone);
+  }
+
+  function setSettingsDisplayNameStatus(message, tone = 'info') {
+    if (!message) {
+      clearElementMessage('settings-display-name-status');
+      return;
+    }
+    setElementMessage('settings-display-name-status', message, tone);
+  }
+
+  function toggleSettingsDisplayNameEditor(forceOpen) {
+    if (!currentUser) return;
+    const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : !settingsDisplayNameEditorOpen;
+    settingsDisplayNameEditorOpen = shouldOpen;
+    updateSettingsDisplayNameControls(currentUser, displayNamePreferenceSaving);
+  }
+
+  function updateSettingsDisplayNameControls(user = currentUser, isSaving = false) {
+    const preference = getUserDisplayNamePreference(user);
+    const editButton = document.getElementById('settings-display-name-edit-btn');
+    const currentEl = document.getElementById('settings-display-name-current');
+    const editor = document.getElementById('settings-display-name-editor');
+    if (editButton) {
+      editButton.disabled = isSaving;
+      editButton.classList.toggle('is-open', settingsDisplayNameEditorOpen);
+      editButton.setAttribute('aria-expanded', settingsDisplayNameEditorOpen ? 'true' : 'false');
+    }
+    if (currentEl) {
+      currentEl.textContent = getDisplayNamePreferenceLabel(preference);
+    }
+    if (editor) {
+      editor.hidden = !settingsDisplayNameEditorOpen;
+    }
+    DISPLAY_NAME_PREFERENCE_OPTIONS.forEach(option => {
+      const button = document.getElementById(`settings-display-name-${option.id}`);
+      if (!button) return;
+      const isActive = option.id === preference;
+      button.disabled = isSaving;
+      button.classList.toggle('is-active', isActive);
+      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
   }
 
   function updateSettingsTeamControls(user = currentUser, isSaving = false) {
@@ -12933,6 +13133,7 @@
     if (nameEl) nameEl.textContent = displayName;
     if (emailEl) emailEl.textContent = [user?.email || '', team].filter(Boolean).join(' · ') || 'Innlogget bruker';
     applyAvatarToElement(avatarEl, displayName, avatarUrl);
+    updateSettingsDisplayNameControls(user, displayNamePreferenceSaving);
     updateSettingsTeamControls(user);
     updateSettingsAvatarControls(user);
     updateCoachingTabVisibility();
@@ -15949,6 +16150,11 @@
 
     menu.classList.toggle('open', shouldOpen);
     button.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+    if (!shouldOpen) {
+      settingsDisplayNameEditorOpen = false;
+      updateSettingsDisplayNameControls(currentUser, displayNamePreferenceSaving);
+      setSettingsDisplayNameStatus('');
+    }
   }
 
   function toggleTopBarTools(forceOpen) {
@@ -16430,6 +16636,7 @@
       options: {
         data: {
           team,
+          display_name_mode: 'full',
           display_name: name,
           full_name: name,
           name
@@ -16484,6 +16691,65 @@
       setSettingsTeamStatus(`Team ble lagret, men leaderboard kunne ikke oppdateres: ${syncError.message || 'ukjent feil'}`, 'warning');
     } finally {
       updateSettingsTeamControls(currentUser, false);
+    }
+  }
+
+  async function updateCurrentUserDisplayNamePreference(nextPreference) {
+    if (!supabaseClient || !currentUser) return;
+    const normalizedPreference = normalizeDisplayNamePreference(nextPreference);
+    const currentPreference = getUserDisplayNamePreference(currentUser);
+    if (currentPreference === normalizedPreference) {
+      setSettingsDisplayNameStatus(`Navnet vises allerede som ${getDisplayNamePreferenceLabel(normalizedPreference).toLowerCase()}.`, 'info');
+      settingsDisplayNameEditorOpen = false;
+      updateSettingsDisplayNameControls(currentUser, false);
+      return;
+    }
+
+    const baseName = getUserBaseName(currentUser);
+    const nextDisplayName = applyDisplayNamePreference(baseName, normalizedPreference) || getUserDisplayName(currentUser);
+    setSettingsDisplayNameStatus('Lagrer navn...', 'info');
+    displayNamePreferenceSaving = true;
+    updateSettingsDisplayNameControls(currentUser, true);
+
+    const nextMetadata = {
+      ...(currentUser.user_metadata || {}),
+      display_name_mode: normalizedPreference,
+      display_name: nextDisplayName
+    };
+    if (!String(nextMetadata.full_name || '').trim() && baseName) nextMetadata.full_name = baseName;
+    if (!String(nextMetadata.name || '').trim() && baseName) nextMetadata.name = baseName;
+
+    const { data, error } = await supabaseClient.auth.updateUser({ data: nextMetadata });
+    if (error) {
+      displayNamePreferenceSaving = false;
+      updateSettingsDisplayNameControls(currentUser, false);
+      setSettingsDisplayNameStatus(error.message || 'Kunne ikke oppdatere navnet.', 'error');
+      return;
+    }
+
+    currentUser = data?.user || { ...currentUser, user_metadata: nextMetadata };
+    upsertLocalPublicProfileRow({
+      user_id: currentUser.id,
+      display_name: getUserDisplayName(currentUser),
+      team: getUserTeam(currentUser),
+      avatar_url: getCurrentUserAvatarUrl(currentUser),
+      updated_at: new Date().toISOString()
+    });
+    updateUserBar(currentUser);
+
+    try {
+      await syncPublicLeaderboard({ skipReload: true });
+      await loadLeaderboardRows({ silentLoading: true });
+      renderAll();
+      settingsDisplayNameEditorOpen = false;
+      setSettingsDisplayNameStatus(`Navnet vises nå som ${getUserDisplayName(currentUser)}.`, 'success');
+    } catch (syncError) {
+      setLeaderboardState('error', getLeaderboardErrorMessage(syncError, 'Kunne ikke oppdatere leaderboard.'));
+      renderAll();
+      setSettingsDisplayNameStatus(`Navnet ble lagret, men leaderboard kunne ikke oppdateres: ${syncError.message || 'ukjent feil'}`, 'warning');
+    } finally {
+      displayNamePreferenceSaving = false;
+      updateSettingsDisplayNameControls(currentUser, false);
     }
   }
 
