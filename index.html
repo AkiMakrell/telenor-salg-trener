@@ -11938,6 +11938,13 @@
       margin-bottom: 8px;
     }
 
+    .bigscreen-display-celebration-root {
+      position: relative;
+      z-index: 3;
+      padding: 14px 24px 0;
+      flex: 0 0 auto;
+    }
+
     .bigscreen-display-exit {
       margin-top: 0;
       background: rgba(15, 23, 42, 0.76);
@@ -12996,12 +13003,9 @@
     return `<span class="lead-change-celebration-team"${style}>${escHtml(displayName)}</span>`;
   }
 
-  function renderCompetitionLeadCelebration() {
-    const root = document.getElementById('competition-lead-celebration-root');
-    if (!root) return;
+  function getLeadCelebrationMarkup() {
     if (!competitionLeadCelebration || !shouldRenderStorskjermLeadCelebration()) {
-      root.innerHTML = '';
-      return;
+      return '';
     }
     const displayName = String(competitionLeadCelebration.displayName || '').trim() || 'Ukjent bruker';
     const boardLabel = String(competitionLeadCelebration.boardLabel || '').trim() || 'spillet';
@@ -13011,7 +13015,7 @@
       ? `Du tok ledelsen i ${boardLabel}.`
       : `${displayName} tok ledelsen i ${boardLabel}.`;
     const overtookLine = overtakenName ? `Forbi ${overtakenName}.` : '';
-    root.innerHTML = `
+    return `
       <div class="lead-change-celebration">
         <div class="lead-change-celebration-card${isYou ? ' is-you' : ''}">
           <div class="lead-change-celebration-confetti" aria-hidden="true">${renderCompetitionLeadCelebrationConfetti()}</div>
@@ -13029,6 +13033,18 @@
         </div>
       </div>
     `;
+  }
+
+  function renderCompetitionLeadCelebration() {
+    const inlineRoot = document.getElementById('competition-lead-celebration-root');
+    const displayRoot = document.getElementById('bigscreen-display-celebration-root');
+    const markup = getLeadCelebrationMarkup();
+    if (inlineRoot) {
+      inlineRoot.innerHTML = bigScreenDisplayOpen ? '' : markup;
+    }
+    if (displayRoot) {
+      displayRoot.innerHTML = bigScreenDisplayOpen ? markup : '';
+    }
   }
 
   function updateSettingsAvatarControls(user = currentUser, isSaving = profileAvatarSaving) {
@@ -23473,6 +23489,7 @@
       <div class="bigscreen-display-topbar">
         <button class="backup-btn bigscreen-display-exit" type="button" onclick="closeBigScreenDisplay()">Exit</button>
       </div>
+      <div id="bigscreen-display-celebration-root" class="bigscreen-display-celebration-root"></div>
       ${renderBigScreenBoards('display')}
     `;
     renderCompetitionLeadCelebration();
