@@ -431,55 +431,6 @@
       word-break: break-word;
     }
 
-    .settings-user-name-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-width: 0;
-    }
-
-    .settings-name-edit-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 28px;
-      height: 28px;
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.82);
-      color: var(--muted);
-      cursor: pointer;
-      transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease, transform 0.2s ease;
-      flex: 0 0 auto;
-    }
-
-    .settings-name-edit-btn:hover {
-      border-color: rgba(56, 189, 248, 0.4);
-      color: #bae6fd;
-      transform: translateY(-1px);
-    }
-
-    .settings-name-edit-btn:disabled {
-      opacity: 0.6;
-      cursor: wait;
-      transform: none;
-    }
-
-    .settings-name-edit-btn.is-open {
-      border-color: rgba(56, 189, 248, 0.45);
-      color: #7dd3fc;
-      background: rgba(8, 47, 73, 0.5);
-    }
-
-    .settings-display-name-current {
-      margin-top: 4px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
     .settings-user-profile {
       display: flex;
       align-items: center;
@@ -12671,7 +12622,6 @@
   let competitionViewerSelectionIds = [];
   let profileAvatarSaving = false;
   let displayNamePreferenceSaving = false;
-  let settingsDisplayNameEditorOpen = false;
   let backendMigrationState = null;
   let backendBackfillPromise = null;
   let backendFaktaBackfillPromise = null;
@@ -12923,29 +12873,8 @@
     setElementMessage('settings-display-name-status', message, tone);
   }
 
-  function toggleSettingsDisplayNameEditor(forceOpen) {
-    if (!currentUser) return;
-    const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : !settingsDisplayNameEditorOpen;
-    settingsDisplayNameEditorOpen = shouldOpen;
-    updateSettingsDisplayNameControls(currentUser, displayNamePreferenceSaving);
-  }
-
   function updateSettingsDisplayNameControls(user = currentUser, isSaving = false) {
     const preference = getUserDisplayNamePreference(user);
-    const editButton = document.getElementById('settings-display-name-edit-btn');
-    const currentEl = document.getElementById('settings-display-name-current');
-    const editor = document.getElementById('settings-display-name-editor');
-    if (editButton) {
-      editButton.disabled = isSaving;
-      editButton.classList.toggle('is-open', settingsDisplayNameEditorOpen);
-      editButton.setAttribute('aria-expanded', settingsDisplayNameEditorOpen ? 'true' : 'false');
-    }
-    if (currentEl) {
-      currentEl.textContent = getDisplayNamePreferenceLabel(preference);
-    }
-    if (editor) {
-      editor.hidden = !settingsDisplayNameEditorOpen;
-    }
     DISPLAY_NAME_PREFERENCE_OPTIONS.forEach(option => {
       const button = document.getElementById(`settings-display-name-${option.id}`);
       if (!button) return;
@@ -13173,24 +13102,11 @@
             <div class="settings-user-profile">
               <span id="settings-user-avatar" class="settings-user-avatar" aria-hidden="true">?</span>
               <div>
-                <div class="settings-user-name-row">
-                  <div id="settings-user-name" class="settings-user-name"></div>
-                  <button
-                    id="settings-display-name-edit-btn"
-                    class="settings-name-edit-btn"
-                    type="button"
-                    aria-label="Endre hvordan navnet vises"
-                    aria-expanded="false"
-                    onclick="toggleSettingsDisplayNameEditor()"
-                  >
-                    <span aria-hidden="true">&#9998;</span>
-                  </button>
-                </div>
-                <div id="settings-display-name-current" class="settings-display-name-current"></div>
+                <div id="settings-user-name" class="settings-user-name"></div>
                 <div id="settings-user-email" class="settings-user-email"></div>
               </div>
             </div>
-            <div id="settings-display-name-editor" class="settings-display-name-card" hidden>
+            <div id="settings-display-name-editor" class="settings-display-name-card">
               <span class="settings-status-label">Vis navn som</span>
               <div class="settings-display-name-options" role="group" aria-label="Velg hvordan navnet vises">
                 <button id="settings-display-name-full" class="settings-display-name-btn" type="button" onclick="updateCurrentUserDisplayNamePreference('full')">Hele navnet</button>
@@ -16245,7 +16161,6 @@
     const button = document.getElementById('top-bar-settings-button');
     if (!button) return;
     if (forceOpen === false) return;
-    settingsDisplayNameEditorOpen = false;
     setSettingsDisplayNameStatus('');
     switchTab('innstillinger', button);
   }
@@ -16276,7 +16191,6 @@
   }
 
   function closeTopBarSettings() {
-    settingsDisplayNameEditorOpen = false;
     setSettingsDisplayNameStatus('');
   }
 
@@ -16795,7 +16709,6 @@
     const currentPreference = getUserDisplayNamePreference(currentUser);
     if (currentPreference === normalizedPreference) {
       setSettingsDisplayNameStatus(`Navnet vises allerede som ${getDisplayNamePreferenceLabel(normalizedPreference).toLowerCase()}.`, 'info');
-      settingsDisplayNameEditorOpen = false;
       updateSettingsDisplayNameControls(currentUser, false);
       return;
     }
@@ -16836,7 +16749,6 @@
       await syncPublicLeaderboard({ skipReload: true });
       await loadLeaderboardRows({ silentLoading: true });
       renderAll();
-      settingsDisplayNameEditorOpen = false;
       setSettingsDisplayNameStatus(`Navnet vises nå som ${getUserDisplayName(currentUser)}.`, 'success');
     } catch (syncError) {
       setLeaderboardState('error', getLeaderboardErrorMessage(syncError, 'Kunne ikke oppdatere leaderboard.'));
