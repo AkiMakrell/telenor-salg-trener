@@ -12992,6 +12992,41 @@
     return bigScreenDisplayOpen || isTabActive('storskjerm');
   }
 
+  function getStorskjermLeadSnapshotStorageKey() {
+    const userId = String(currentUser?.id || '').trim();
+    return userId ? `${STORSKJERM_LEAD_SNAPSHOT_STORAGE_KEY}:${userId}` : STORSKJERM_LEAD_SNAPSHOT_STORAGE_KEY;
+  }
+
+  function readStoredStorskjermLeadSnapshotState() {
+    try {
+      const raw = localStorage.getItem(getStorskjermLeadSnapshotStorageKey());
+      if (!raw) return { periods: {}, competitions: {} };
+      const parsed = JSON.parse(raw);
+      return {
+        periods: parsed && typeof parsed.periods === 'object' && parsed.periods ? parsed.periods : {},
+        competitions: parsed && typeof parsed.competitions === 'object' && parsed.competitions ? parsed.competitions : {}
+      };
+    } catch (_error) {
+      return { periods: {}, competitions: {} };
+    }
+  }
+
+  function writeStoredStorskjermLeadSnapshotState(periods = leaderboardLeadSnapshotByPeriod, competitions = competitionLeadSnapshotByGame) {
+    try {
+      localStorage.setItem(getStorskjermLeadSnapshotStorageKey(), JSON.stringify({
+        periods: periods && typeof periods === 'object' ? periods : {},
+        competitions: competitions && typeof competitions === 'object' ? competitions : {}
+      }));
+    } catch (_error) {}
+  }
+
+  function hasStoredStorskjermLeadSnapshotState(state) {
+    if (!state || typeof state !== 'object') return false;
+    return [state.periods, state.competitions].some(collection => (
+      collection && typeof collection === 'object' && Object.keys(collection).length > 0
+    ));
+  }
+
   function renderLeadCelebrationLeaderVisual(celebration, displayName) {
     if (!celebration?.isTeam) {
       return renderLeaderboardAvatar(celebration?.userId, displayName);
@@ -17011,6 +17046,7 @@
   let retroHistoryDraft = null;
   const DASHBOARD_OPPTAK_SHORTCUT_KEY = 'dashboardOpptakShortcutEnabled';
   const STORSKJERM_REFRESH_INTERVAL_MS = 15000;
+  const STORSKJERM_LEAD_SNAPSHOT_STORAGE_KEY = 'storskjermLeadSnapshots';
 
   function updateToggleSelectionState(key, value) {
     const group = document.getElementById(`${key}-toggle-group`);
@@ -21245,47 +21281,59 @@
   function syncCompetitionLeadCelebration() {
     const nextPeriodSnapshots = buildLeaderboardLeadSnapshotByPeriod();
     const nextSnapshots = buildCompetitionLeadSnapshotByGame();
+    const storedSnapshotState = competitionLeadSnapshotReady ? null : readStoredStorskjermLeadSnapshotState();
+    const previousPeriodSnapshots = competitionLeadSnapshotReady
+      ? leaderboardLeadSnapshotByPeriod
+      : (storedSnapshotState?.periods || {});
+    const previousCompetitionSnapshots = competitionLeadSnapshotReady
+      ? competitionLeadSnapshotByGame
+      : (storedSnapshotState?.competitions || {});
     if (!competitionLeadSnapshotReady) {
-      leaderboardLeadSnapshotByPeriod = nextPeriodSnapshots;
-      competitionLeadSnapshotByGame = nextSnapshots;
       competitionLeadSnapshotReady = true;
-      return;
+      if (!hasStoredStorskjermLeadSnapshotState(storedSnapshotState)) {
+        leaderboardLeadSnapshotByPeriod = nextPeriodSnapshots;
+        competitionLeadSnapshotByGame = nextSnapshots;
+        writeStoredStorskjermLeadSnapshotState(nextPeriodSnapshots, nextSnapshots);
+        return;
+      }
     }
 
     if (!shouldRenderStorskjermLeadCelebration()) {
       leaderboardLeadSnapshotByPeriod = nextPeriodSnapshots;
       competitionLeadSnapshotByGame = nextSnapshots;
+      writeStoredStorskjermLeadSnapshotState(nextPeriodSnapshots, nextSnapshots);
       return;
     }
 
     const changedPeriodId = LEADERBOARD_PERIOD_CONFIG
       .map(period => String(period?.id || '').trim())
       .find(periodId => {
-        const previousSnapshot = leaderboardLeadSnapshotByPeriod[periodId];
+        const previousSnapshot = previousPeriodSnapshots[periodId];
         const nextSnapshot = nextPeriodSnapshots[periodId];
         if (!nextSnapshot?.leaderKey) return false;
         if (!previousSnapshot?.leaderKey) return true;
         return previousSnapshot.leaderKey !== nextSnapshot.leaderKey;
       });
     if (changedPeriodId) {
-      showCompetitionLeadCelebration(nextPeriodSnapshots[changedPeriodId], leaderboardLeadSnapshotByPeriod[changedPeriodId]);
+      showCompetitionLeadCelebration(nextPeriodSnapshots[changedPeriodId], previousPeriodSnapshots[changedPeriodId]);
     } else {
       const changedSnapshot = getCompetitionVisibleGames('active')
         .map(game => String(game?.competition_id || '').trim())
         .find(competitionId => {
-          if (!Object.prototype.hasOwnProperty.call(competitionLeadSnapshotByGame, competitionId)) return false;
-          const previousSnapshot = competitionLeadSnapshotByGame[competitionId];
+          if (!Object.prototype.hasOwnProperty.call(previousCompetitionSnapshots, competitionId)) return false;
+          const previousSnapshot = previousCompetitionSnapshots[competitionId];
           const nextSnapshot = nextSnapshots[competitionId];
           if (!nextSnapshot?.leaderKey) return false;
           if (!previousSnapshot?.leaderKey) return true;
           return previousSnapshot.leaderKey !== nextSnapshot.leaderKey;
         });
       if (changedSnapshot) {
-        showCompetitionLeadCelebration(nextSnapshots[changedSnapshot], competitionLeadSnapshotByGame[changedSnapshot]);
+        showCompetitionLeadCelebration(nextSnapshots[changedSnapshot], previousCompetitionSnapshots[changedSnapshot]);
       }
     }
     leaderboardLeadSnapshotByPeriod = nextPeriodSnapshots;
     competitionLeadSnapshotByGame = nextSnapshots;
+    writeStoredStorskjermLeadSnapshotState(nextPeriodSnapshots, nextSnapshots);
   }
 
   function getCompetitionDateSortValue(value, fallback = Number.POSITIVE_INFINITY) {
