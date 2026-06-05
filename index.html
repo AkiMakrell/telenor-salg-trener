@@ -21188,7 +21188,7 @@
   }
 
   function showCompetitionLeadCelebration(snapshot, previousSnapshot) {
-    if (!snapshot?.leaderKey || !previousSnapshot?.leaderKey) return;
+    if (!snapshot?.leaderKey) return;
     competitionLeadCelebration = {
       boardType: snapshot.boardType,
       boardId: snapshot.boardId,
@@ -21199,7 +21199,7 @@
       score: snapshot.score,
       isTeam: !!snapshot.isTeam,
       teamColor: snapshot.teamColor,
-      overtakenDisplayName: previousSnapshot.displayName
+      overtakenDisplayName: previousSnapshot?.leaderKey ? previousSnapshot.displayName : ''
     };
     clearTimeout(competitionLeadCelebrationTimeout);
     renderCompetitionLeadCelebration();
@@ -21231,7 +21231,8 @@
       .find(periodId => {
         const previousSnapshot = leaderboardLeadSnapshotByPeriod[periodId];
         const nextSnapshot = nextPeriodSnapshots[periodId];
-        if (!previousSnapshot?.leaderKey || !nextSnapshot?.leaderKey) return false;
+        if (!nextSnapshot?.leaderKey) return false;
+        if (!previousSnapshot?.leaderKey) return true;
         return previousSnapshot.leaderKey !== nextSnapshot.leaderKey;
       });
     if (changedPeriodId) {
@@ -21243,7 +21244,8 @@
           if (!Object.prototype.hasOwnProperty.call(competitionLeadSnapshotByGame, competitionId)) return false;
           const previousSnapshot = competitionLeadSnapshotByGame[competitionId];
           const nextSnapshot = nextSnapshots[competitionId];
-          if (!previousSnapshot?.leaderKey || !nextSnapshot?.leaderKey) return false;
+          if (!nextSnapshot?.leaderKey) return false;
+          if (!previousSnapshot?.leaderKey) return true;
           return previousSnapshot.leaderKey !== nextSnapshot.leaderKey;
         });
       if (changedSnapshot) {
