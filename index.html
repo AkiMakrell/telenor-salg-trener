@@ -16853,6 +16853,10 @@
   async function signOutUser() {
     if (!supabaseClient) return;
     setAuthStatus('Logger ut...', 'info');
+    if (storskjermRefreshInterval) {
+      clearInterval(storskjermRefreshInterval);
+      storskjermRefreshInterval = null;
+    }
     const { error } = await supabaseClient.auth.signOut();
     if (error) {
       setAuthStatus(error.message, 'error');
@@ -16899,10 +16903,34 @@
     if (nextName === 'stats') renderStatsPage();
     if (nextName === 'goals') renderGoalsPage();
     if (nextName === 'etterregistrering') renderRetroHistoryPage();
+    updateStorskjermAutoRefresh();
+    if (nextName === 'storskjerm') refreshStorskjermData();
   }
 
   function switchTab(name, triggerButton = null) {
     activateTab(name, name, triggerButton);
+  }
+
+  function shouldAutoRefreshStorskjerm() {
+    return Boolean(currentUser) && (isTabActive('storskjerm') || bigScreenDisplayOpen);
+  }
+
+  async function refreshStorskjermData() {
+    if (!shouldAutoRefreshStorskjerm()) return;
+    try {
+      await loadLeaderboardRows({ silentLoading: true });
+    } catch (_error) {}
+  }
+
+  function updateStorskjermAutoRefresh() {
+    if (storskjermRefreshInterval) {
+      clearInterval(storskjermRefreshInterval);
+      storskjermRefreshInterval = null;
+    }
+    if (!shouldAutoRefreshStorskjerm()) return;
+    storskjermRefreshInterval = setInterval(() => {
+      refreshStorskjermData();
+    }, STORSKJERM_REFRESH_INTERVAL_MS);
   }
 
   let selectedOver5min = 'nei';
@@ -16911,9 +16939,11 @@
   let shouldGlowStatsSidebarOnEntry = false;
   let activeLeaderboardPeriod = 'day';
   let bigScreenDisplayOpen = false;
+  let storskjermRefreshInterval = null;
   let retroHistoryFeedback = null;
   let retroHistoryDraft = null;
   const DASHBOARD_OPPTAK_SHORTCUT_KEY = 'dashboardOpptakShortcutEnabled';
+  const STORSKJERM_REFRESH_INTERVAL_MS = 15000;
 
   function updateToggleSelectionState(key, value) {
     const group = document.getElementById(`${key}-toggle-group`);
@@ -23310,11 +23340,14 @@
 
   function openBigScreenDisplay() {
     bigScreenDisplayOpen = true;
+    updateStorskjermAutoRefresh();
+    refreshStorskjermData();
     renderBigScreenDisplayOverlay();
   }
 
   function closeBigScreenDisplay() {
     bigScreenDisplayOpen = false;
+    updateStorskjermAutoRefresh();
     renderBigScreenDisplayOverlay();
   }
 
