@@ -577,6 +577,82 @@
       margin: 0;
     }
 
+    .settings-page {
+      max-width: 1080px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .settings-page-head {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .settings-page-title {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .settings-page-subtitle {
+      font-size: 0.94rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .settings-page-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      align-items: start;
+    }
+
+    .settings-page-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: rgba(15, 23, 42, 0.82);
+      box-shadow: 0 18px 36px rgba(2, 6, 23, 0.18);
+    }
+
+    .settings-page-card.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .settings-page-card-title {
+      font-size: 1.04rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .settings-page-card .backup-btn,
+    .settings-page-card .logout-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+    }
+
+    .settings-page-card label.backup-btn {
+      display: flex;
+    }
+
+    @media (max-width: 900px) {
+      .settings-page-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
     .settings-avatar-actions {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
@@ -12127,81 +12203,16 @@
         id="top-bar-settings-button"
         class="backup-btn settings-trigger"
         type="button"
-        aria-expanded="false"
-        aria-controls="top-bar-settings-menu"
         aria-label="Åpne innstillinger"
-        onclick="toggleTopBarSettings()"
+        data-tab="innstillinger"
+        onclick="switchTab('innstillinger', this)"
       >
         <span id="settings-trigger-avatar" class="settings-trigger-avatar" aria-hidden="true">?</span>
         <span class="settings-trigger-profile">
           <span id="settings-trigger-name" class="settings-trigger-name">Profil</span>
           <span class="settings-trigger-meta">Konto</span>
         </span>
-        <span class="menu-trigger-icon" aria-hidden="true">&#9662;</span>
       </button>
-      <div id="top-bar-settings-menu" class="settings-menu" role="menu">
-        <div class="settings-menu-section">
-          <span class="settings-menu-heading">Konto</span>
-          <div class="settings-user-profile">
-            <span id="settings-user-avatar" class="settings-user-avatar" aria-hidden="true">?</span>
-            <div>
-              <div class="settings-user-name-row">
-                <div id="settings-user-name" class="settings-user-name"></div>
-                <button
-                  id="settings-display-name-edit-btn"
-                  class="settings-name-edit-btn"
-                  type="button"
-                  aria-label="Endre hvordan navnet vises"
-                  aria-expanded="false"
-                  onclick="toggleSettingsDisplayNameEditor()"
-                >
-                  <span aria-hidden="true">&#9998;</span>
-                </button>
-              </div>
-              <div id="settings-display-name-current" class="settings-display-name-current"></div>
-              <div id="settings-user-email" class="settings-user-email"></div>
-            </div>
-          </div>
-          <div id="settings-display-name-editor" class="settings-display-name-card" hidden>
-            <span class="settings-status-label">Vis navn som</span>
-            <div class="settings-display-name-options" role="group" aria-label="Velg hvordan navnet vises">
-              <button id="settings-display-name-full" class="settings-display-name-btn" type="button" onclick="updateCurrentUserDisplayNamePreference('full')">Hele navnet</button>
-              <button id="settings-display-name-first" class="settings-display-name-btn" type="button" onclick="updateCurrentUserDisplayNamePreference('first')">Fornavn</button>
-              <button id="settings-display-name-last" class="settings-display-name-btn" type="button" onclick="updateCurrentUserDisplayNamePreference('last')">Etternavn</button>
-            </div>
-            <div id="settings-display-name-status" class="auth-message auth-message-info settings-display-name-status"></div>
-          </div>
-          <div class="settings-user-note">Din konto har sitt eget datasett. Andre brukere ser bare sitt eget innhold.</div>
-          <div class="settings-avatar-card">
-            <span class="settings-status-label">Avatar</span>
-            <div class="settings-avatar-actions">
-              <button id="settings-avatar-upload" class="backup-btn" type="button" onclick="openProfileAvatarPicker()">Velg avatar</button>
-              <button id="settings-avatar-remove" class="backup-btn" type="button" onclick="removeCurrentUserAvatar()">Fjern avatar</button>
-            </div>
-            <div id="settings-avatar-status" class="auth-message auth-message-info settings-avatar-status"></div>
-          </div>
-          <div class="settings-team-card">
-            <span class="settings-status-label">Team</span>
-            <div class="settings-team-toggle" role="group" aria-label="Velg team">
-              <button id="settings-team-agrol" class="settings-team-btn" type="button" onclick="updateCurrentUserTeam('Agrol')">Agrol</button>
-              <button id="settings-team-nysalg" class="settings-team-btn" type="button" onclick="updateCurrentUserTeam('Nysalg')">Nysalg</button>
-            </div>
-            <div id="settings-team-status" class="auth-message auth-message-info settings-team-status"></div>
-          </div>
-          <div class="settings-status-row">
-            <span class="settings-status-label">Skystatus</span>
-            <span id="sync-status" class="settings-status-value"></span>
-          </div>
-          <button class="backup-btn logout-btn" type="button" onclick="signOutUser(); closeTopBarSettings();">Logg ut</button>
-        </div>
-        <div class="settings-menu-section">
-          <span class="settings-menu-heading">Data</span>
-          <button class="backup-btn" type="button" onclick="openRetroHistoryPage(); closeTopBarSettings();">Etterregistrer historikk</button>
-          <button class="backup-btn" type="button" onclick="openRecoveryModal()">Gjenopprett data</button>
-          <button class="backup-btn" type="button" onclick="exportData(); closeTopBarSettings();" title="Last ned sikkerhetskopi">Eksporter data</button>
-          <label class="backup-btn" title="Gjenopprett fra sikkerhetskopi">Importer data<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
-        </div>
-      </div>
     </div>
   </div>
 </div>
@@ -12391,6 +12402,10 @@
       </div>
     </div>
   </div>
+</div>
+
+<div id="tab-innstillinger" class="tab-content">
+  <div id="settings-page"></div>
 </div>
 
 </div>
@@ -13137,6 +13152,92 @@
     updateSettingsTeamControls(user);
     updateSettingsAvatarControls(user);
     updateCoachingTabVisibility();
+  }
+
+  function renderSettingsPage() {
+    const container = document.getElementById('settings-page');
+    if (!container) return;
+    if (!currentUser) {
+      container.innerHTML = '';
+      return;
+    }
+    container.innerHTML = `
+      <div class="settings-page">
+        <div class="settings-page-head">
+          <div class="settings-page-title">Innstillinger</div>
+          <div class="settings-page-subtitle">Konto, profil og data.</div>
+        </div>
+        <div class="settings-page-grid">
+          <section class="settings-page-card">
+            <div class="settings-page-card-title">Konto</div>
+            <div class="settings-user-profile">
+              <span id="settings-user-avatar" class="settings-user-avatar" aria-hidden="true">?</span>
+              <div>
+                <div class="settings-user-name-row">
+                  <div id="settings-user-name" class="settings-user-name"></div>
+                  <button
+                    id="settings-display-name-edit-btn"
+                    class="settings-name-edit-btn"
+                    type="button"
+                    aria-label="Endre hvordan navnet vises"
+                    aria-expanded="false"
+                    onclick="toggleSettingsDisplayNameEditor()"
+                  >
+                    <span aria-hidden="true">&#9998;</span>
+                  </button>
+                </div>
+                <div id="settings-display-name-current" class="settings-display-name-current"></div>
+                <div id="settings-user-email" class="settings-user-email"></div>
+              </div>
+            </div>
+            <div id="settings-display-name-editor" class="settings-display-name-card" hidden>
+              <span class="settings-status-label">Vis navn som</span>
+              <div class="settings-display-name-options" role="group" aria-label="Velg hvordan navnet vises">
+                <button id="settings-display-name-full" class="settings-display-name-btn" type="button" onclick="updateCurrentUserDisplayNamePreference('full')">Hele navnet</button>
+                <button id="settings-display-name-first" class="settings-display-name-btn" type="button" onclick="updateCurrentUserDisplayNamePreference('first')">Fornavn</button>
+                <button id="settings-display-name-last" class="settings-display-name-btn" type="button" onclick="updateCurrentUserDisplayNamePreference('last')">Etternavn</button>
+              </div>
+              <div id="settings-display-name-status" class="auth-message auth-message-info settings-display-name-status"></div>
+            </div>
+            <div class="settings-user-note">Dataene dine følger kontoen din.</div>
+            <button class="backup-btn logout-btn" type="button" onclick="signOutUser()">Logg ut</button>
+          </section>
+
+          <section class="settings-page-card">
+            <div class="settings-page-card-title">Profil</div>
+            <div class="settings-avatar-card">
+              <span class="settings-status-label">Avatar</span>
+              <div class="settings-avatar-actions">
+                <button id="settings-avatar-upload" class="backup-btn" type="button" onclick="openProfileAvatarPicker()">Velg avatar</button>
+                <button id="settings-avatar-remove" class="backup-btn" type="button" onclick="removeCurrentUserAvatar()">Fjern avatar</button>
+              </div>
+              <div id="settings-avatar-status" class="auth-message auth-message-info settings-avatar-status"></div>
+            </div>
+            <div class="settings-team-card">
+              <span class="settings-status-label">Team</span>
+              <div class="settings-team-toggle" role="group" aria-label="Velg team">
+                <button id="settings-team-agrol" class="settings-team-btn" type="button" onclick="updateCurrentUserTeam('Agrol')">Agrol</button>
+                <button id="settings-team-nysalg" class="settings-team-btn" type="button" onclick="updateCurrentUserTeam('Nysalg')">Nysalg</button>
+              </div>
+              <div id="settings-team-status" class="auth-message auth-message-info settings-team-status"></div>
+            </div>
+            <div class="settings-status-row">
+              <span class="settings-status-label">Skystatus</span>
+              <span id="sync-status" class="settings-status-value"></span>
+            </div>
+          </section>
+
+          <section class="settings-page-card full-width">
+            <div class="settings-page-card-title">Data</div>
+            <button class="backup-btn" type="button" onclick="openRetroHistoryPage()">Etterregistrer historikk</button>
+            <button class="backup-btn" type="button" onclick="openRecoveryModal()">Gjenopprett data</button>
+            <button class="backup-btn" type="button" onclick="exportData()" title="Last ned sikkerhetskopi">Eksporter data</button>
+            <label class="backup-btn" title="Gjenopprett fra sikkerhetskopi">Importer data<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+          </section>
+        </div>
+      </div>
+    `;
+    updateUserBar(currentUser);
   }
 
   function setLeaderboardState(state, errorMessage = '') {
@@ -16141,21 +16242,12 @@
   }
 
   function toggleTopBarSettings(forceOpen) {
-    const menu = document.getElementById('top-bar-settings-menu');
     const button = document.getElementById('top-bar-settings-button');
-    if (!menu || !button) return;
-
-    const shouldOpen = typeof forceOpen === 'boolean'
-      ? forceOpen
-      : !menu.classList.contains('open');
-
-    menu.classList.toggle('open', shouldOpen);
-    button.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
-    if (!shouldOpen) {
-      settingsDisplayNameEditorOpen = false;
-      updateSettingsDisplayNameControls(currentUser, displayNamePreferenceSaving);
-      setSettingsDisplayNameStatus('');
-    }
+    if (!button) return;
+    if (forceOpen === false) return;
+    settingsDisplayNameEditorOpen = false;
+    setSettingsDisplayNameStatus('');
+    switchTab('innstillinger', button);
   }
 
   function toggleTopBarTools(forceOpen) {
@@ -16184,7 +16276,8 @@
   }
 
   function closeTopBarSettings() {
-    toggleTopBarSettings(false);
+    settingsDisplayNameEditorOpen = false;
+    setSettingsDisplayNameStatus('');
   }
 
   function closeTopBarTools() {
@@ -16430,6 +16523,7 @@
     renderLedertavlerSpillPage();
     renderStorskjermPage();
     renderCompetitionCreatePage();
+    renderSettingsPage();
     renderAllPriceCalculators();
     if (bigScreenDisplayOpen) renderBigScreenDisplayOverlay();
   }
@@ -16881,7 +16975,7 @@
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-btn, .more-tab-btn, .menu-trigger, .settings-trigger').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-' + nextName).classList.add('active');
-    const button = triggerButton || document.querySelector(`.tab-btn[data-tab="${nextActiveButtonName}"], .more-tab-btn[data-tab="${nextActiveButtonName}"]`);
+    const button = triggerButton || document.querySelector(`.tab-btn[data-tab="${nextActiveButtonName}"], .more-tab-btn[data-tab="${nextActiveButtonName}"], .settings-trigger[data-tab="${nextActiveButtonName}"]`);
     if (button) button.classList.add('active');
     if (['innvendinger', 'notater', 'priser'].includes(nextName)) {
       document.getElementById('top-bar-tools-button')?.classList.add('active');
@@ -16903,6 +16997,7 @@
     if (nextName === 'stats') renderStatsPage();
     if (nextName === 'goals') renderGoalsPage();
     if (nextName === 'etterregistrering') renderRetroHistoryPage();
+    if (nextName === 'innstillinger') renderSettingsPage();
     updateStorskjermAutoRefresh();
     if (nextName === 'storskjerm') refreshStorskjermData();
   }
