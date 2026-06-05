@@ -13603,6 +13603,7 @@
   }
 
   function getOvSalePlanOmsetningValue(planId, team = getUserTeam(currentUser), monthKey = getStatsMonthKey(new Date())) {
+    if (getSaleOmsetningTeamKey(team) === 'agrol') return 50;
     if (String(planId || '').trim().toLowerCase() === 'bed-total') {
       return getSaleOmsetningTeamKey(team) === 'agrol' ? 350 : 900;
     }
@@ -24147,7 +24148,7 @@
 
   function renderSalePromptPlanBreakdown(draft) {
     const entryMonth = draft.entryMonth || getStatsMonthKey(new Date());
-    const showOvMtToggle = draft.saleCategory === 'ov';
+    const showOvMtToggle = draft.saleCategory === 'ov' && getSaleOmsetningTeamKey(draft.saleTeam) !== 'agrol';
     const showCustomOmsetningToggle = draft.saleCategory === 'port';
     const customOmsetningEnabled = showCustomOmsetningToggle && draft.customOmsetningEnabled === true;
     const rebindingEnabled = draft.saleCategory === 'port' && draft.rebindingEnabled === true;
