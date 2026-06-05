@@ -9649,6 +9649,23 @@
       box-shadow: 0 12px 26px rgba(15, 23, 42, 0.24);
     }
 
+    .lead-change-celebration-team {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 72px;
+      min-height: 62px;
+      padding: 0 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      font-size: 1.15rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.24);
+    }
+
     .lead-change-celebration-name {
       font-size: clamp(1.55rem, 4vw, 2.5rem);
       font-weight: 950;
@@ -9662,6 +9679,13 @@
       font-size: 0.96rem;
       font-weight: 700;
       line-height: 1.4;
+    }
+
+    .lead-change-celebration-subline {
+      color: rgba(255,255,255,0.68);
+      font-size: 0.88rem;
+      font-weight: 700;
+      line-height: 1.35;
     }
 
     .lead-change-celebration-confetti {
@@ -12605,6 +12629,7 @@
   let competitionParticipants = [];
   let competitionPlayerStandingsByGame = {};
   let competitionTeamStandingsByGame = {};
+  let leaderboardLeadSnapshotByPeriod = {};
   let competitionLeadSnapshotByGame = {};
   let competitionLeadSnapshotReady = false;
   let competitionLeadCelebration = null;
@@ -12956,19 +12981,36 @@
     `).join('');
   }
 
+  function shouldRenderStorskjermLeadCelebration() {
+    return bigScreenDisplayOpen || isTabActive('storskjerm');
+  }
+
+  function renderLeadCelebrationLeaderVisual(celebration, displayName) {
+    if (!celebration?.isTeam) {
+      return renderLeaderboardAvatar(celebration?.userId, displayName);
+    }
+    const teamColor = normalizeHexColor(celebration?.teamColor || '');
+    const style = teamColor
+      ? ` style="background:${escAttr(`linear-gradient(135deg, ${hexToRgba(teamColor, 0.92)} 0%, ${hexToRgba(teamColor, 0.72)} 100%)`)};border-color:${escAttr(hexToRgba(teamColor, 0.44))};"`
+      : '';
+    return `<span class="lead-change-celebration-team"${style}>${escHtml(displayName)}</span>`;
+  }
+
   function renderCompetitionLeadCelebration() {
     const root = document.getElementById('competition-lead-celebration-root');
     if (!root) return;
-    if (!competitionLeadCelebration) {
+    if (!competitionLeadCelebration || !shouldRenderStorskjermLeadCelebration()) {
       root.innerHTML = '';
       return;
     }
     const displayName = String(competitionLeadCelebration.displayName || '').trim() || 'Ukjent bruker';
-    const gameName = String(competitionLeadCelebration.gameName || '').trim() || 'spillet';
-    const isYou = String(competitionLeadCelebration.userId || '') === String(currentUser?.id || '');
+    const boardLabel = String(competitionLeadCelebration.boardLabel || '').trim() || 'spillet';
+    const overtakenName = String(competitionLeadCelebration.overtakenDisplayName || '').trim();
+    const isYou = !competitionLeadCelebration.isTeam && String(competitionLeadCelebration.userId || '') === String(currentUser?.id || '');
     const line = isYou
-      ? `Du tok ledelsen i ${gameName}.`
-      : `${displayName} tok ledelsen i ${gameName}.`;
+      ? `Du tok ledelsen i ${boardLabel}.`
+      : `${displayName} tok ledelsen i ${boardLabel}.`;
+    const overtookLine = overtakenName ? `Forbi ${overtakenName}.` : '';
     root.innerHTML = `
       <div class="lead-change-celebration">
         <div class="lead-change-celebration-card${isYou ? ' is-you' : ''}">
@@ -12976,10 +13018,11 @@
           <div class="lead-change-celebration-content">
             <div class="lead-change-celebration-badge">${isYou ? 'Du tok ledelsen' : 'Ny #1'}</div>
             <div class="lead-change-celebration-main">
-              ${renderLeaderboardAvatar(competitionLeadCelebration.userId, displayName)}
+              ${renderLeadCelebrationLeaderVisual(competitionLeadCelebration, displayName)}
               <div>
                 <div class="lead-change-celebration-name">${escHtml(displayName)}</div>
                 <div class="lead-change-celebration-line">${escHtml(line)}</div>
+                ${overtookLine ? `<div class="lead-change-celebration-subline">${escHtml(overtookLine)}</div>` : ''}
               </div>
             </div>
           </div>
@@ -13196,6 +13239,7 @@
     competitionParticipants = [];
     competitionPlayerStandingsByGame = {};
     competitionTeamStandingsByGame = {};
+    leaderboardLeadSnapshotByPeriod = {};
     competitionLeadSnapshotByGame = {};
     competitionLeadSnapshotReady = false;
     competitionLeadCelebration = null;
@@ -21059,20 +21103,80 @@
       .sort((a, b) => String(a.starts_at).localeCompare(String(b.starts_at)));
   }
 
+  function getStorskjermBoardLabel(periodId) {
+    if (periodId === 'day') return 'dag';
+    if (periodId === 'week') return 'uke';
+    if (periodId === 'month') return 'måned';
+    return 'ledertavlen';
+  }
+
+  function getLeaderboardSoleLeaderSnapshot(periodId) {
+    const rows = getSortedLeaderboardRows(periodId);
+    if (!rows.length) return null;
+    const leader = rows[0];
+    const topScore = Number(getLeaderboardPeriodValue(leader, periodId, 'points') || 0);
+    if (topScore <= 0) return null;
+    const secondScore = Number(rows[1] ? getLeaderboardPeriodValue(rows[1], periodId, 'points') || 0 : 0);
+    if (rows.length > 1 && secondScore >= topScore) return null;
+    const userId = String(leader?.user_id || '').trim();
+    if (!userId) return null;
+    return {
+      boardType: 'period',
+      boardId: String(periodId || '').trim(),
+      leaderKey: `user:${userId}`,
+      userId,
+      displayName: getUserDisplayName(leader),
+      boardLabel: getStorskjermBoardLabel(periodId),
+      score: topScore,
+      isTeam: false,
+      teamColor: ''
+    };
+  }
+
+  function buildLeaderboardLeadSnapshotByPeriod() {
+    return Object.fromEntries(LEADERBOARD_PERIOD_CONFIG.map(period => [
+      String(period?.id || '').trim(),
+      getLeaderboardSoleLeaderSnapshot(period?.id)
+    ]));
+  }
+
   function getCompetitionSoleLeaderSnapshot(game) {
-    const standings = buildCompetitionStandings(game);
+    const isTeamGame = isCompetitionTeamGame(game);
+    const standings = isTeamGame ? buildCompetitionTeamStandings(game) : buildCompetitionStandings(game);
     if (!standings.length) return null;
     const leader = standings[0];
     const topScore = Number(leader?.score || 0);
     if (topScore <= 0) return null;
     const secondScore = Number(standings[1]?.score || 0);
     if (standings.length > 1 && secondScore >= topScore) return null;
+    if (isTeamGame) {
+      const teamName = String(leader?.team || '').trim();
+      const teamKey = normalizeTeamKey(teamName);
+      if (!teamKey) return null;
+      return {
+        boardType: 'competition',
+        boardId: String(game?.competition_id || '').trim(),
+        leaderKey: `team:${teamKey}`,
+        userId: '',
+        displayName: teamName || 'Lag',
+        boardLabel: String(game?.name || '').trim() || 'Spill',
+        score: topScore,
+        isTeam: true,
+        teamColor: normalizeHexColor(leader?.teamColor || '')
+      };
+    }
+    const userId = String(leader?.user_id || '').trim();
+    if (!userId) return null;
     return {
-      competitionId: String(game?.competition_id || '').trim(),
-      userId: String(leader?.user_id || '').trim(),
+      boardType: 'competition',
+      boardId: String(game?.competition_id || '').trim(),
+      leaderKey: `user:${userId}`,
+      userId,
       displayName: String(leader?.display_name || '').trim() || 'Ukjent bruker',
-      gameName: String(game?.name || '').trim() || 'Spill',
-      score: topScore
+      boardLabel: String(game?.name || '').trim() || 'Spill',
+      score: topScore,
+      isTeam: false,
+      teamColor: ''
     };
   }
 
@@ -21083,14 +21187,19 @@
     ]));
   }
 
-  function showCompetitionLeadCelebration(snapshot) {
-    if (!snapshot?.userId) return;
+  function showCompetitionLeadCelebration(snapshot, previousSnapshot) {
+    if (!snapshot?.leaderKey || !previousSnapshot?.leaderKey) return;
     competitionLeadCelebration = {
-      competitionId: snapshot.competitionId,
+      boardType: snapshot.boardType,
+      boardId: snapshot.boardId,
+      leaderKey: snapshot.leaderKey,
       userId: snapshot.userId,
       displayName: snapshot.displayName,
-      gameName: snapshot.gameName,
-      score: snapshot.score
+      boardLabel: snapshot.boardLabel,
+      score: snapshot.score,
+      isTeam: !!snapshot.isTeam,
+      teamColor: snapshot.teamColor,
+      overtakenDisplayName: previousSnapshot.displayName
     };
     clearTimeout(competitionLeadCelebrationTimeout);
     renderCompetitionLeadCelebration();
@@ -21102,25 +21211,46 @@
   }
 
   function syncCompetitionLeadCelebration() {
+    const nextPeriodSnapshots = buildLeaderboardLeadSnapshotByPeriod();
     const nextSnapshots = buildCompetitionLeadSnapshotByGame();
     if (!competitionLeadSnapshotReady) {
+      leaderboardLeadSnapshotByPeriod = nextPeriodSnapshots;
       competitionLeadSnapshotByGame = nextSnapshots;
       competitionLeadSnapshotReady = true;
       return;
     }
-    const changedSnapshot = getCompetitionVisibleGames('active')
-      .map(game => String(game?.competition_id || '').trim())
-      .find(competitionId => {
-        if (!Object.prototype.hasOwnProperty.call(competitionLeadSnapshotByGame, competitionId)) return false;
-        const previousSnapshot = competitionLeadSnapshotByGame[competitionId];
-        const nextSnapshot = nextSnapshots[competitionId];
-        if (!nextSnapshot?.userId) return false;
-        if (previousSnapshot?.userId === nextSnapshot.userId) return false;
-        return true;
-      });
-    if (changedSnapshot) {
-      showCompetitionLeadCelebration(nextSnapshots[changedSnapshot]);
+
+    if (!shouldRenderStorskjermLeadCelebration()) {
+      leaderboardLeadSnapshotByPeriod = nextPeriodSnapshots;
+      competitionLeadSnapshotByGame = nextSnapshots;
+      return;
     }
+
+    const changedPeriodId = LEADERBOARD_PERIOD_CONFIG
+      .map(period => String(period?.id || '').trim())
+      .find(periodId => {
+        const previousSnapshot = leaderboardLeadSnapshotByPeriod[periodId];
+        const nextSnapshot = nextPeriodSnapshots[periodId];
+        if (!previousSnapshot?.leaderKey || !nextSnapshot?.leaderKey) return false;
+        return previousSnapshot.leaderKey !== nextSnapshot.leaderKey;
+      });
+    if (changedPeriodId) {
+      showCompetitionLeadCelebration(nextPeriodSnapshots[changedPeriodId], leaderboardLeadSnapshotByPeriod[changedPeriodId]);
+    } else {
+      const changedSnapshot = getCompetitionVisibleGames('active')
+        .map(game => String(game?.competition_id || '').trim())
+        .find(competitionId => {
+          if (!Object.prototype.hasOwnProperty.call(competitionLeadSnapshotByGame, competitionId)) return false;
+          const previousSnapshot = competitionLeadSnapshotByGame[competitionId];
+          const nextSnapshot = nextSnapshots[competitionId];
+          if (!previousSnapshot?.leaderKey || !nextSnapshot?.leaderKey) return false;
+          return previousSnapshot.leaderKey !== nextSnapshot.leaderKey;
+        });
+      if (changedSnapshot) {
+        showCompetitionLeadCelebration(nextSnapshots[changedSnapshot], competitionLeadSnapshotByGame[changedSnapshot]);
+      }
+    }
+    leaderboardLeadSnapshotByPeriod = nextPeriodSnapshots;
     competitionLeadSnapshotByGame = nextSnapshots;
   }
 
@@ -23343,6 +23473,7 @@
       </div>
       ${renderBigScreenBoards('display')}
     `;
+    renderCompetitionLeadCelebration();
   }
 
   function openBigScreenDisplay() {
@@ -23454,6 +23585,7 @@
         </div>
       </div>
     `;
+    renderCompetitionLeadCelebration();
   }
 
   function renderLedertavlerSpillPage() {
