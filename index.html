@@ -21126,14 +21126,30 @@
     return 'ledertavlen';
   }
 
+  function getLeaderboardLeadMetrics(row, periodId) {
+    return {
+      points: Number(getLeaderboardPeriodValue(row, periodId, 'points') || 0),
+      sales: Number(getLeaderboardPeriodValue(row, periodId, 'sales') || 0),
+      over6: Number(getLeaderboardPeriodValue(row, periodId, 'over6') || 0)
+    };
+  }
+
+  function hasDistinctLeaderboardLead(leaderMetrics, challengerMetrics) {
+    if (!challengerMetrics) return true;
+    if (leaderMetrics.points !== challengerMetrics.points) return leaderMetrics.points > challengerMetrics.points;
+    if (leaderMetrics.sales !== challengerMetrics.sales) return leaderMetrics.sales > challengerMetrics.sales;
+    if (leaderMetrics.over6 !== challengerMetrics.over6) return leaderMetrics.over6 > challengerMetrics.over6;
+    return false;
+  }
+
   function getLeaderboardSoleLeaderSnapshot(periodId) {
     const rows = getSortedLeaderboardRows(periodId);
     if (!rows.length) return null;
     const leader = rows[0];
-    const topScore = Number(getLeaderboardPeriodValue(leader, periodId, 'points') || 0);
-    if (topScore <= 0) return null;
-    const secondScore = Number(rows[1] ? getLeaderboardPeriodValue(rows[1], periodId, 'points') || 0 : 0);
-    if (rows.length > 1 && secondScore >= topScore) return null;
+    const leaderMetrics = getLeaderboardLeadMetrics(leader, periodId);
+    if (leaderMetrics.points <= 0 && leaderMetrics.sales <= 0 && leaderMetrics.over6 <= 0) return null;
+    const challengerMetrics = rows[1] ? getLeaderboardLeadMetrics(rows[1], periodId) : null;
+    if (!hasDistinctLeaderboardLead(leaderMetrics, challengerMetrics)) return null;
     const userId = String(leader?.user_id || '').trim();
     if (!userId) return null;
     return {
@@ -21143,7 +21159,7 @@
       userId,
       displayName: getUserDisplayName(leader),
       boardLabel: getStorskjermBoardLabel(periodId),
-      score: topScore,
+      score: leaderMetrics.points,
       isTeam: false,
       teamColor: ''
     };
