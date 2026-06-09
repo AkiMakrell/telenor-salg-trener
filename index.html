@@ -20345,20 +20345,20 @@
           <div class="dashboard-card-title">Registrering</div>
         </div>
         <div class="dashboard-quick-grid${showOpptakShortcut ? ' has-opptak' : ''}">
-          <button class="dashboard-quick-btn over6" type="button" onclick="event.stopPropagation(); quickRegister('over5min')">
+          <button class="dashboard-quick-btn over6" type="button" onclick="quickRegister('over5min')">
             <span class="dashboard-quick-btn-title">Registrer 6-minutter</span>
           </button>
-          <button class="dashboard-quick-btn sales" type="button" onclick="event.stopPropagation(); quickRegister('salg')">
+          <button class="dashboard-quick-btn sales" type="button" onclick="quickRegister('salg')">
             <span class="dashboard-quick-btn-title">Registrer salg</span>
           </button>
           ${showOpptakShortcut ? `
-            <button class="dashboard-quick-btn opptak" type="button" onclick="event.stopPropagation(); registerDashboardOpptak()">
+            <button class="dashboard-quick-btn opptak" type="button" onclick="registerDashboardOpptak()">
               <span class="dashboard-quick-btn-title">Registrer opptak</span>
             </button>
           ` : ''}
         </div>
         <div class="quick-undo-row dashboard-quick-undo">
-          <button class="quick-undo-link" data-intro-history-undo type="button" onclick="event.stopPropagation(); undoLastIntroHistoryAction()">Angre siste</button>
+          <button class="quick-undo-link" data-intro-history-undo type="button" onclick="undoLastIntroHistoryAction()">Angre siste</button>
         </div>
       </div>
     `;
