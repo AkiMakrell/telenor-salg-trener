@@ -24916,8 +24916,8 @@
     });
     history.unshift(nextEntry);
     const saleSummaryParts = [
-      saleDetails.salesCount ? `${saleDetails.salesCount} abo` : '',
-      saleDetails.addonCount ? `${saleDetails.addonCount} tilleggstjenester` : ''
+      saleDetails?.salesCount ? `${saleDetails.salesCount} abo` : '',
+      saleDetails?.addonCount ? `${saleDetails.addonCount} tilleggstjenester` : ''
     ].filter(Boolean);
     const actionLabel = selectedSalg === 'ja'
       ? `Registrerte opptak med ${saleSummaryParts.join(' og ')}${saleDetails.omsetning ? ` · ${formatOmsetningValue(saleDetails.omsetning)}` : ''}`
@@ -29409,12 +29409,14 @@
       quickEntry: true
     });
     history.unshift(nextEntry);
-    const saleSummaryParts = [
-      saleDetails.salesCount ? `${saleDetails.salesCount} abo` : '',
-      saleDetails.addonCount ? `${saleDetails.addonCount} tilleggstjenester` : ''
-    ].filter(Boolean);
+    const saleSummaryParts = type === 'salg'
+      ? [
+          saleDetails?.salesCount ? `${saleDetails.salesCount} abo` : '',
+          saleDetails?.addonCount ? `${saleDetails.addonCount} tilleggstjenester` : ''
+        ].filter(Boolean)
+      : [];
     const actionLabel = type === 'salg'
-      ? `Registrerte ${saleSummaryParts.join(' og ')}${saleDetails.omsetning ? ` · ${formatOmsetningValue(saleDetails.omsetning)}` : ''}`
+      ? `Registrerte ${saleSummaryParts.join(' og ')}${saleDetails?.omsetning ? ` · ${formatOmsetningValue(saleDetails.omsetning)}` : ''}`
       : 'Registrerte 6-minutter';
     commitIntroHistory(history, {
       previousHistory,
